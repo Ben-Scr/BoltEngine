@@ -133,8 +133,6 @@ namespace Bolt {
         static Camera2D camera2D = Camera2D();
         Camera2D::m_Viewport = std::make_shared<Viewport>(1,1);
         camera2D.SetOrthographicSize(5);
-
-
         camera2D.UpdateViewport();
 
         const glm::mat4 vp = camera2D.GetViewProjectionMatrix();
