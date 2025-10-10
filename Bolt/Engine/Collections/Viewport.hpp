@@ -4,6 +4,7 @@
 namespace Bolt {
     class Viewport {
     public:
+        friend class Renderer2D;
 		Viewport() = default;
         Viewport(int width, int height) { SetSize(width, height); }
 

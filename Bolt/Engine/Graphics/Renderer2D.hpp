@@ -1,6 +1,7 @@
 #pragma once
 #include "..\Collections\Vec2.hpp"
 #include "..\Collections\Color.hpp"
+#include "..\Collections\Viewport.hpp"
 
 #include "Texture2D.hpp"
 #include "Shader.hpp"
@@ -46,18 +47,13 @@ namespace Bolt {
         void Shutdown();
 
         // GL-Objekte
-        unsigned mVAO{ 0 }, mVBO{ 0 }, mEBO{ 0 };
-        unsigned mWhiteTex{ 0 };
-        int mViewportW{ 0 }, mViewportH{ 0 };
+        unsigned m_VAO{ 0 }, m_VBO{ 0 }, m_EBO{ 0 };
+        unsigned m_WhiteTex{ 0 };
+        std::shared_ptr<Viewport> viewport;
 
-        // Uniform-Locations
-        int uMVP{ -1 }, uSpritePos{ -1 }, uScale{ -1 }, uRotation{ -1 };
-        int uUVOffset{ -1 }, uUVScale{ -1 }, uPremultipliedAlpha{ -1 }, uAlphaCutoff{ -1 };
+        int u_MVP{ -1 }, u_pritePos{ -1 }, u_Scale{ -1 }, u_Rotation{ -1 };
+        int u_UVOffset{ -1 }, uUVScale{ -1 }, u_PremultipliedAlpha{ -1 }, u_AlphaCutoff{ -1 };
 
-        // Einfache Ortho-Matrix (Pixel -> NDC)
-        void makeOrtho(float l, float r, float b, float t, float* out16) const;
-
-        // Dein Shader (Pfad ggf. anpassen – hier **GLSL**-Dateien, nicht .sc)
         std::optional<Shader> m_Sprite2DShader;
     };
 }
