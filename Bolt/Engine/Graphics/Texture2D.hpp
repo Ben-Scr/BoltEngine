@@ -27,6 +27,9 @@ namespace Bolt {
         Texture2D(Texture2D&&) noexcept;
         Texture2D& operator=(Texture2D&&) noexcept;
 
+        void Destroy();
+
+
         // Laden / Neu-laden
         bool Load(const char* path,
             bool generateMipmaps = true,
@@ -55,9 +58,6 @@ namespace Bolt {
         Wrap   m_WrapU = Wrap::Clamp;
         Wrap   m_WrapV = Wrap::Clamp;
         bool   m_HasMips = true;
-
-        // Helfer
-        void destroy();
         void applySamplerParams() const;
     };
 

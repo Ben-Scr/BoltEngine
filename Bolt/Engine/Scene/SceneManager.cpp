@@ -11,6 +11,10 @@ namespace Bolt {
     std::vector<std::unique_ptr<Scene>> SceneManager::s_LoadedScenes;
     Scene* SceneManager::s_ActiveScene = nullptr;
 
+    void SceneManager::Initialize() {
+        LoadScene("Test");
+    }
+
     SceneDefinition& SceneManager::RegisterScene(const std::string& name) {
         auto it = s_SceneDefinitions.find(name);
         if (it != s_SceneDefinitions.end()) {

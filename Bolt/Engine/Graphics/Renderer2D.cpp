@@ -6,7 +6,7 @@
 #include "../Scene/SceneManager.hpp"
 #include "../Components/SpriteRenderer.hpp"
 #include "../Scene/Scene.hpp"
-#include "../Graphics/Te"
+#include "../Graphics/TextureManager.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include <GLFW/glfw3.h>
 #include <vector>
@@ -138,61 +138,9 @@ namespace Bolt {
 			Camera2D::m_Viewport->SetSize(m_Viewport->m_Width, m_Viewport->m_Height);
 		}
 
+		RenderScenes();
+
 		glClear(GL_COLOR_BUFFER_BIT);
-	}
-
-	void Renderer2D::DrawSprite(Vec2 position, Vec2 scale, float rotZ, Color color,
-		const Texture2D* texture, Vec2 uvOffset, Vec2 uvScale)
-	{
-		if (!m_Sprite2DShader.value().IsValid()) return;
-
-		// 1) Shader binden
-		m_Sprite2DShader->Submit(0);
-
-		static Camera2D camera2D = Camera2D();
-		static Transform2D cameraTransform{};
-		static bool cameraInitialized = false;
-		if (!cameraInitialized) {
-			camera2D.Init(cameraTransform);
-			cameraInitialized = true;
-		}
-
-		if (Camera2D::m_Viewport) {
-			camera2D.UpdateViewport();
-			camera2D.SetOrthographicSize(0.5f * static_cast<float>(Camera2D::m_Viewport->GetHeight()));
-		}
-
-
-		const glm::mat4 vp = camera2D.GetViewProjectionMatrix();
-		if (u_MVP >= 0) glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(vp));
-
-		// 3) Sprite-Parameter
-		if (u_spritePos >= 0) glUniform2f(u_spritePos, position.x, position.y);
-		if (u_Scale >= 0) glUniform2f(u_Scale, scale.x, scale.y);
-		if (u_Rotation >= 0) glUniform1f(u_Rotation, rotZ);
-
-		// 4) Farbe als konstantes Attribut (location = 2)
-		glVertexAttrib4f(2, color.r, color.g, color.b, color.a);
-
-		// 5) UV-Ausschnitt (für Atlas/Spritesheet)
-		if (u_UVOffset >= 0) glUniform2f(u_UVOffset, uvOffset.x, uvOffset.y);
-		if (u_UVScale >= 0) glUniform2f(u_UVScale, uvScale.x, uvScale.y);
-
-		// 6) Textur an Unit 0
-		glActiveTexture(GL_TEXTURE0);
-		if (texture && texture->IsValid())
-			texture->Submit(0);           // bindet GL_TEXTURE_2D
-		else
-			glBindTexture(GL_TEXTURE_2D, m_WhiteTex);
-
-		// Hinweis: uTexture wurde bereits in Initialize auf 0 gesetzt.
-
-		// 7) Draw
-		glBindVertexArray(m_VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-		glBindVertexArray(0);
-
-		glUseProgram(0);
 	}
 
 	void Renderer2D::EndFrame() {
@@ -214,24 +162,24 @@ namespace Bolt {
 		m_Sprite2DShader.value().Submit(0);
 
 #pragma region  CAMERA
-		static Camera2D camera2D = Camera2D();
-		static Transform2D cameraTransform{};
-		static bool cameraInitialized = false;
-		if (!cameraInitialized) {
-			camera2D.Init(cameraTransform);
-			cameraInitialized = true;
+		Camera2D* camera2D = Camera2D::Main();
+
+		if (camera2D == nullptr) {
+			Logger::Error("Camera 2D", "There is no main camera");
+			return;
 		}
+
+		camera2D->Init(*camera2D->m_Transform);
 
 		if (Camera2D::m_Viewport) {
-			camera2D.UpdateViewport();
-			camera2D.SetOrthographicSize(0.5f * static_cast<float>(Camera2D::m_Viewport->GetHeight()));
+			camera2D->UpdateViewport();
+			camera2D->SetOrthographicSize(0.5f * static_cast<float>(Camera2D::m_Viewport->GetHeight()));
 		}
 
 
-		const glm::mat4 vp = camera2D.GetViewProjectionMatrix();
+		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
 		if (u_MVP >= 0) glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(vp));
 #pragma endregion
-
 
 		for (const auto& [ent, tr, spriteRenderer] : scene.GetRegistry().view<Transform2D, SpriteRenderer>().each()) {
 			if (u_spritePos >= 0) glUniform2f(u_spritePos, tr.Position.x, tr.Position.y);
@@ -243,18 +191,21 @@ namespace Bolt {
 
 			// 5) UV-Ausschnitt (für Atlas/Spritesheet)
 			if (u_UVOffset >= 0) glUniform2f(u_UVOffset, 0, 0);
-			if (u_UVScale >= 0) glUniform2f(u_UVScale, 0, 0);
+			if (u_UVScale >= 0) glUniform2f(u_UVScale, 1, 1);
 
 			// 6) Textur an Unit 0
 			glActiveTexture(GL_TEXTURE0);
-			auto texture = spriteRenderer.TextureHandle;
+			Texture2D& texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
 
 			
 
-			if (texture && texture->IsValid())
-				texture->Submit(0);           // bindet GL_TEXTURE_2D
+			if (texture.IsValid())
+				texture.Submit(0);           // bindet GL_TEXTURE_2D
 			else
+			{
+				Logger::Warning("Invalid Texture");
 				glBindTexture(GL_TEXTURE_2D, m_WhiteTex);
+			}
 
 			// Hinweis: uTexture wurde bereits in Initialize auf 0 gesetzt.
 

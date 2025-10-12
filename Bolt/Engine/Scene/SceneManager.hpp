@@ -37,6 +37,7 @@ namespace Bolt {
         static std::vector<std::string> GetLoadedSceneNames();
 
     private:
+        static void Initialize();
         static void UpdateScenes();
         static void FixedUpdateScenes();
         static void InitializeStartupScenes();

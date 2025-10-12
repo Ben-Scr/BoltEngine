@@ -49,7 +49,7 @@ namespace Bolt {
         if (IsValid()) applySamplerParams();
     }
 
-    Texture2D::~Texture2D() { destroy(); }
+    Texture2D::~Texture2D() { Destroy(); }
 
     Texture2D::Texture2D(Texture2D&& o) noexcept {
         m_Tex = o.m_Tex; o.m_Tex = 0;
@@ -59,7 +59,7 @@ namespace Bolt {
 
     Texture2D& Texture2D::operator=(Texture2D&& o) noexcept {
         if (this != &o) {
-            destroy();
+            Destroy();
             m_Tex = o.m_Tex; o.m_Tex = 0;
             m_Width = o.m_Width; m_Height = o.m_Height; m_Channels = o.m_Channels;
             m_Filter = o.m_Filter; m_WrapU = o.m_WrapU; m_WrapV = o.m_WrapV; m_HasMips = o.m_HasMips;
@@ -67,7 +67,7 @@ namespace Bolt {
         return *this;
     }
 
-    void Texture2D::destroy() {
+    void Texture2D::Destroy() {
         if (m_Tex) {
             glDeleteTextures(1, &m_Tex);
             m_Tex = 0;
@@ -77,7 +77,7 @@ namespace Bolt {
 
     bool Texture2D::Load(const char* path, bool generateMipmaps, bool srgb, bool flipVertical) {
         // Vorherige Textur ggf. entsorgen
-        destroy();
+        Destroy();
 
         stbi_set_flip_vertically_on_load(flipVertical);
 
