@@ -3,12 +3,14 @@
 #include "..\Collections\Color.hpp"
 #include "..\Collections\Viewport.hpp"
 
+
 #include "Texture2D.hpp"
 #include "Shader.hpp"
 #include <cstdint>
 #include <optional>
 
 namespace Bolt {
+    class Scene;
 
     enum GLCullingModes {
         GLNone = 0,
@@ -42,6 +44,8 @@ namespace Bolt {
             Vec2 uvScale = { 1.0f, 1.0f });
         void BeginFrame();
         void EndFrame();
+        void RenderScenes();
+        void RenderScene(Scene& scene);
 
     private:
         void Shutdown();
@@ -49,10 +53,10 @@ namespace Bolt {
         // GL-Objekte
         unsigned m_VAO{ 0 }, m_VBO{ 0 }, m_EBO{ 0 };
         unsigned m_WhiteTex{ 0 };
-        std::shared_ptr<Viewport> viewport;
+        std::shared_ptr<Viewport> m_Viewport;
 
-        int u_MVP{ -1 }, u_pritePos{ -1 }, u_Scale{ -1 }, u_Rotation{ -1 };
-        int u_UVOffset{ -1 }, uUVScale{ -1 }, u_PremultipliedAlpha{ -1 }, u_AlphaCutoff{ -1 };
+        int u_MVP{ -1 }, u_spritePos{ -1 }, u_Scale{ -1 }, u_Rotation{ -1 };
+        int u_UVOffset{ -1 }, u_UVScale{ -1 }, u_PremultipliedAlpha{ -1 }, u_AlphaCutoff{ -1 };
 
         std::optional<Shader> m_Sprite2DShader;
     };
