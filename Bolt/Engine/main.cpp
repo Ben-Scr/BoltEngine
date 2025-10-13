@@ -1,3 +1,4 @@
+#include "../pch.hpp"
 #include <iostream>
 #include "Core/Application.hpp"
 #include <chrono>

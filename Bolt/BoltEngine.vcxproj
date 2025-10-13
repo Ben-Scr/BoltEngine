@@ -193,6 +193,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Engine\Math\VectorMath.cpp" />
     <ClCompile Include="Engine\pch.cpp">
@@ -213,8 +221,98 @@
     <ClCompile Include="Engine\Scene\Scene.cpp" />
     <ClCompile Include="Engine\Scene\SceneDefinition.cpp" />
     <ClCompile Include="Engine\Scene\SceneManager.cpp" />
+    <ClCompile Include="Engine\Audio\Audio.cpp" />
+    <ClCompile Include="Engine\Audio\AudioManager.cpp" />
+    <ClCompile Include="Engine\Audio\AudioSource.cpp" />
+    <ClCompile Include="Engine\Components\BoxCollider2D.cpp" />
+    <ClCompile Include="Engine\Components\Collider2D.cpp" />
+    <ClCompile Include="Engine\Components\ParticleSystem2D.cpp" />
+    <ClCompile Include="Engine\Components\Rigidbody2D.cpp" />
+    <ClCompile Include="Engine\Components\Transform2D.cpp" />
+    <ClCompile Include="Engine\Core\Application.cpp" />
+    <ClCompile Include="Engine\Core\Window.cpp" />
+    <ClCompile Include="Engine\Debug\Logger.cpp" />
+    <ClCompile Include="Engine\GameSystem.cpp" />
+    <ClCompile Include="Engine\glad.c" />
+    <ClCompile Include="Engine\Graphics\Camera2D.cpp" />
+    <ClCompile Include="Engine\Graphics\GizmoRenderer.cpp" />
+    <ClCompile Include="Engine\Graphics\Gizmos.cpp" />
+    <ClCompile Include="Engine\Graphics\QuadMesh.cpp" />
+    <ClCompile Include="Engine\Graphics\RenderContext.cpp" />
+    <ClCompile Include="Engine\Graphics\Renderer2D.cpp" />
+    <ClCompile Include="Engine\Graphics\RenderResources.cpp" />
+    <ClCompile Include="Engine\Graphics\Shader.cpp" />
+    <ClCompile Include="Engine\Graphics\Texture2D.cpp" />
+    <ClCompile Include="Engine\Graphics\TextureManager.cpp" />
+    <ClCompile Include="Engine\main.cpp" />
+    <ClCompile Include="Engine\Math\VectorMath.cpp" />
+    <ClCompile Include="Engine\pch.cpp" />
+    <ClCompile Include="Engine\Physics\Box2DWorld.cpp" />
+    <ClCompile Include="Engine\Physics\Physics2D.cpp" />
+    <ClCompile Include="Engine\Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="Engine\Physics\PhysicsUtility.cpp" />
+    <ClCompile Include="Engine\Scene\Entity.cpp" />
+    <ClCompile Include="Engine\Scene\Scene.cpp" />
+    <ClCompile Include="Engine\Scene\SceneDefinition.cpp" />
+    <ClCompile Include="Engine\Scene\SceneManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Audio\Audio.hpp" />
+    <ClInclude Include="Engine\Audio\AudioHandle.hpp" />
+    <ClInclude Include="Engine\Audio\AudioManager.hpp" />
+    <ClInclude Include="Engine\Audio\AudioSource.hpp" />
+    <ClInclude Include="Engine\Collections\AABB.hpp" />
+    <ClInclude Include="Engine\Collections\Color.hpp" />
+    <ClInclude Include="Engine\Collections\Mat2.hpp" />
+    <ClInclude Include="Engine\Collections\Quaternion.hpp" />
+    <ClInclude Include="Engine\Collections\Vec2.hpp" />
+    <ClInclude Include="Engine\Collections\Vec4.hpp" />
+    <ClInclude Include="Engine\Collections\Viewport.hpp" />
+    <ClInclude Include="Engine\Components\BoxCollider2D.hpp" />
+    <ClInclude Include="Engine\Components\Collider2D.hpp" />
+    <ClInclude Include="Engine\Components\ComponentUtils.hpp" />
+    <ClInclude Include="Engine\Components\ParticleSystem2D.hpp" />
+    <ClInclude Include="Engine\Components\Rigidbody2D.hpp" />
+    <ClInclude Include="Engine\Components\SpriteRenderer.hpp" />
+    <ClInclude Include="Engine\Components\Tags.hpp" />
+    <ClInclude Include="Engine\Components\Transform2D.hpp" />
+    <ClInclude Include="Engine\Core\Application.hpp" />
+    <ClInclude Include="Engine\Core\Input.hpp" />
+    <ClInclude Include="Engine\Core\Window.hpp" />
+    <ClInclude Include="Engine\Debug\Logger.hpp" />
+    <ClInclude Include="Engine\GameSystem.hpp" />
+    <ClInclude Include="Engine\Graphics\Camera2D.hpp" />
+    <ClInclude Include="Engine\Graphics\GizmoRenderer.hpp" />
+    <ClInclude Include="Engine\Graphics\Gizmos.hpp" />
+    <ClInclude Include="Engine\Graphics\QuadMesh.hpp" />
+    <ClInclude Include="Engine\Graphics\RenderContext.hpp" />
+    <ClInclude Include="Engine\Graphics\Renderer2D.hpp" />
+    <ClInclude Include="Engine\Graphics\RenderResources.hpp" />
+    <ClInclude Include="Engine\Graphics\Shader.hpp" />
+    <ClInclude Include="Engine\Graphics\Texture2D.hpp" />
+    <ClInclude Include="Engine\Graphics\TextureHandle.hpp" />
+    <ClInclude Include="Engine\Graphics\TextureManager.hpp" />
+    <ClInclude Include="Engine\Math\Common.hpp" />
+    <ClInclude Include="Engine\Math\Math.hpp" />
+    <ClInclude Include="Engine\Math\Trigonometry.hpp" />
+    <ClInclude Include="Engine\Math\VectorMath.hpp" />
+    <ClInclude Include="Engine\pch.hpp" />
+    <ClInclude Include="Engine\Physics\Box2DWorld.hpp" />
+    <ClInclude Include="Engine\Physics\Collision2D.hpp" />
+    <ClInclude Include="Engine\Physics\CollisionDispatcher.hpp" />
+    <ClInclude Include="Engine\Physics\Physics2D.hpp" />
+    <ClInclude Include="Engine\Physics\PhysicsSystem.hpp" />
+    <ClInclude Include="Engine\Physics\PhysicsTypes.hpp" />
+    <ClInclude Include="Engine\Physics\PhysicsUtility.hpp" />
+    <ClInclude Include="Engine\Scene\Entity.hpp" />
+    <ClInclude Include="Engine\Scene\EntityHandle.hpp" />
+    <ClInclude Include="Engine\Scene\ISystem.hpp" />
+    <ClInclude Include="Engine\Scene\Scene.hpp" />
+    <ClInclude Include="Engine\Scene\SceneDefinition.hpp" />
+    <ClInclude Include="Engine\Scene\SceneManager.hpp" />
+    <ClInclude Include="Engine\Utils\Random.hpp" />
+    <ClInclude Include="Engine\Utils\Serializer.hpp" />
+    <ClInclude Include="Engine\Utils\Timer.hpp" />
     <ClInclude Include="Engine\Audio\Audio.hpp" />
     <ClInclude Include="Engine\Audio\AudioHandle.hpp" />
     <ClInclude Include="Engine\Audio\AudioManager.hpp" />

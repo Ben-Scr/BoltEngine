@@ -138,9 +138,9 @@ namespace Bolt {
 			Camera2D::m_Viewport->SetSize(m_Viewport->m_Width, m_Viewport->m_Height);
 		}
 
-		RenderScenes();
 
 		glClear(GL_COLOR_BUFFER_BIT);
+		RenderScenes();
 	}
 
 	void Renderer2D::EndFrame() {
@@ -208,9 +208,10 @@ namespace Bolt {
 			glBindVertexArray(m_VAO);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 			glBindVertexArray(0);
-
-			glUseProgram(0);
 		}
+
+
+		glUseProgram(0);
 	}
 
 	void Renderer2D::Shutdown() {
