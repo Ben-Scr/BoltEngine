@@ -3,8 +3,10 @@
 #include "Scene/Scene.hpp"
 #include "Components/SpriteRenderer.hpp"
 #include "Components/Transform2D.hpp"
+#include "Graphics/Camera2D.hpp"
 #include "Graphics/Texture2D.hpp"
 #include "Graphics/TextureManager.hpp"
+#include "Collections/Viewport.hpp"
 
 namespace Bolt {
 	void GameSystem::Awake(Scene& scene) {
@@ -18,6 +20,16 @@ namespace Bolt {
 
 		entity.GetComponent<SpriteRenderer>().TextureHandle = handle;
 		entity.GetComponent<Transform2D>().Scale = {128, 128};
+
+
+		Entity camEntity = scene.CreateEntity();
+		Camera2D::m_Viewport = std::make_shared<Viewport>(Viewport(1, 1));
+		Camera2D* camera2D = &camEntity.AddComponent<Camera2D>();
+
+		if (Camera2D::m_Viewport) {
+			camera2D->UpdateViewport();
+			camera2D->SetOrthographicSize(0.5f * static_cast<float>(Camera2D::m_Viewport->GetHeight()));
+		}
 	}
 
 	void GameSystem::Update(Scene& scene) {

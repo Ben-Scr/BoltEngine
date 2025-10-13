@@ -169,12 +169,7 @@ namespace Bolt {
 			return;
 		}
 
-		camera2D->Init(*camera2D->m_Transform);
-
-		if (Camera2D::m_Viewport) {
-			camera2D->UpdateViewport();
-			camera2D->SetOrthographicSize(0.5f * static_cast<float>(Camera2D::m_Viewport->GetHeight()));
-		}
+		//camera2D->Init(*camera2D->m_Transform);
 
 
 		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();

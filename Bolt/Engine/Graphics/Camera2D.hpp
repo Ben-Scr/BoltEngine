@@ -65,5 +65,6 @@ namespace Bolt {
 		friend class Scene;
 		friend class Application;
 		friend class Renderer2D;
+		friend class GameSystem;
 	};
 }
