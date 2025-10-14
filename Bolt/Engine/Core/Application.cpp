@@ -18,17 +18,30 @@ namespace Bolt {
 	}
 
 	void Application::BeginFrame() {
-
+		CoreInput();
 		m_PhysicsSystem.value().FixedUpdate(0.01f);
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
-		Input::Update();
+		Time::Update(0.01f);
 	}
 
 	void Application::EndFrame() {
 		m_Renderer2D.value().EndFrame();
 		m_Window.value().SwapBuffers();
+		Input::Update();
 		glfwPollEvents();
+	}
+
+	void Application::CoreInput() {
+		if (Input::GetKeyDown(KeyCode::Esc)) {
+			m_Window.value().MinimizeWindow();
+		}
+		if (Input::GetKeyDown(KeyCode::F11)) {
+			if (!m_Window.value().IsMaximized())
+				m_Window.value().MaximizeWindow();
+			else
+				m_Window.value().MinimizeWindow();
+		}
 	}
 
 	void Application::Initialize() {
@@ -40,7 +53,7 @@ namespace Bolt {
 
 		m_Renderer2D.emplace(Renderer2D());
 
-		GLInitProperties glInitProps = GLInitProperties(Color{0.3f, 0.3f, 0.3f}, true, GLCullingModes::GLBack);
+		GLInitProperties glInitProps = GLInitProperties(Color{ 0.3f, 0.3f, 0.3f }, true, GLCullingModes::GLBack);
 		m_Renderer2D.value().Initialize(glInitProps);
 
 		SceneManager::Initialize();

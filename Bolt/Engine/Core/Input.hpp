@@ -1,13 +1,18 @@
 #pragma once
 #include "KeyCodes.hpp"
-#include <GLFW/glfw3.h>
+#include "../Collections/Vec2.hpp"
 
-namespace Bolt { class Application; }
+#include <GLFW/glfw3.h>
+#include <algorithm>
+#include <iterator>
+
+namespace Bolt { class Application; class Window; }
 
 namespace Bolt {
     class Input {
     public:
         friend class Application;
+        friend class Window;
 
         // Keyboard
         static bool GetKey(KeyCode k) {
@@ -33,14 +38,7 @@ namespace Bolt {
             return (btn >= 0 && btn < k_MouseCount)
                 && s_CurrentMouseButtons[btn] && !s_PreviousMouseButtons[btn];
         }
-        static bool GetMouseUp(int btn) {
-            return (btn >= 0 && btn < k_MouseCount)
-                && !s_CurrentMouseButtons[btn] && s_PreviousMouseButtons[btn];
-        }
-        static Vec2 GetAxis() {
-            return s_Axis;
-        }
-
+        
         static Vec2 MousePosition() { return s_MousePosition; }
         static Vec2 MouseDelta() { return s_MouseDelta; }
         static float ScrollValue() { return s_ScrollValue; }
@@ -64,19 +62,19 @@ namespace Bolt {
         }
 
 
-        static void OnKeyDown(int k) { if (k >= 0 && k < k_KeyCount) s_CurrentKeyStates[k] = true; }
-        static void OnKeyUp(int k) { if (k >= 0 && k < k_KeyCount) s_CurrentKeyStates[k] = false; }
+        static void OnKeyDown(int key) { if (key >= 0 && key < k_KeyCount) s_CurrentKeyStates[key] = true; }
+        static void OnKeyUp(int key) { if (key >= 0 && key < k_KeyCount) s_CurrentKeyStates[key] = false; }
         static void OnMouseDown(int btn) { if (btn >= 0 && btn < k_MouseCount) s_CurrentMouseButtons[btn] = true; }
         static void OnMouseUp(int btn) { if (btn >= 0 && btn < k_MouseCount) s_CurrentMouseButtons[btn] = false; }
         static void OnScroll(float delta) { s_ScrollValue += delta; }
-        static void OnMouseMove(int x, int y) {
-            Vec2 pos{ float(x), float(y) };
+        static void OnMouseMove(double x, double y) {
+            Vec2 pos{ static_cast<float>(x), static_cast<float>(y) };
             s_MouseDelta = pos - s_MousePosition;
             s_MousePosition = pos;
         }
 
-        static const int k_KeyCount = GLFW_KEY_MENU + 1;
-        static const int k_MouseCount = 8;
+        static const int k_KeyCount = GLFW_KEY_LAST + 1;
+        static const int k_MouseCount = GLFW_MOUSE_BUTTON_LAST + 1;
 
         static bool  s_CurrentKeyStates[k_KeyCount];
         static bool  s_PreviousKeyStates[k_KeyCount];

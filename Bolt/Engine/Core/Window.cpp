@@ -45,6 +45,11 @@ namespace Bolt {
 		glfwSetWindowUserPointer(m_Window, this);
 		glfwSetScrollCallback(m_Window, SetScrollCallback);
 
+		glfwSetKeyCallback(m_Window, SetKeyCallback);
+		glfwSetMouseButtonCallback(m_Window, SetMouseButtonCallback);
+		glfwSetCursorPosCallback(m_Window, SetCursorPositionCallback);
+		glfwSetScrollCallback(m_Window, SetScrollCallback);
+
 		if (m_Resizeable) {
 			glfwSetFramebufferSizeCallback(m_Window, SetWindowResizedCallback);
 		}
@@ -54,8 +59,48 @@ namespace Bolt {
 		s_ActiveWindow = this;
 	}
 
-	void Window::SetScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+	void Window::SetKeyCallback(GLFWwindow* window, int key, int, int action, int) {
+		(void)window;
+		if (key == GLFW_KEY_UNKNOWN) {
+			return;
+		}
 
+		switch (action) {
+		case GLFW_PRESS:
+			Input::OnKeyDown(key);
+			break;
+		case GLFW_RELEASE:
+			Input::OnKeyUp(key);
+			break;
+		case GLFW_REPEAT:
+			Input::OnKeyDown(key);
+			break;
+		default:
+			break;
+		}
+	}
+
+	void Window::SetMouseButtonCallback(GLFWwindow*, int button, int action, int) {
+		switch (action) {
+		case GLFW_PRESS:
+			Input::OnMouseDown(button);
+			break;
+		case GLFW_RELEASE:
+			Input::OnMouseUp(button);
+			break;
+		default:
+			break;
+		}
+	}
+
+	void Window::SetCursorPositionCallback(GLFWwindow*, double xPos, double yPos) {
+		Input::OnMouseMove(xPos, yPos);
+	}
+
+	void Window::SetScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+		(void)window;
+		(void)xoffset;
+		Input::OnScroll(static_cast<float>(yoffset));
 	}
 
 	void Window::CenterWindow() {

@@ -13,6 +13,7 @@ namespace Bolt {
 		void EndFrame();
 	private:
 		void Initialize();
+		void CoreInput();
 		std::optional<Window> m_Window;
 		std::optional<Renderer2D> m_Renderer2D;
 		std::optional<PhysicsSystem> m_PhysicsSystem;
