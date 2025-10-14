@@ -35,7 +35,8 @@ namespace Bolt {
 		bool IsMaximized() const;
 		bool IsMinimized() const;
 
-		void MaximizeWindow();
+		void MaximizeWindow(bool reset = false);
+		void RestoreWindow();
 		void MinimizeWindow();
 
 		void CenterWindow();

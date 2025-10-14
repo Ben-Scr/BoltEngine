@@ -10,7 +10,7 @@ namespace Bolt {
 	}
 
 	Window::Window(const GLFWWindowProperties& windowProps)
-		: m_Width{ windowProps.Width }, m_Height{ windowProps.Height },m_Title{windowProps.Title}, m_Fullscreen{windowProps.Fullscreen},
+		: m_Width{ windowProps.Width }, m_Height{ windowProps.Height }, m_Title{ windowProps.Title }, m_Fullscreen{ windowProps.Fullscreen },
 		m_Resizeable{ m_Resizeable }, m_Moveable{ windowProps.Moveable }, m_BackgroundColor{ windowProps.BackgroundColor } {
 		InitWindow();
 	}
@@ -123,14 +123,24 @@ namespace Bolt {
 		return Vec2Int(k_Mode->width / 2, k_Mode->height / 2);
 	}
 
-	void Window::MaximizeWindow() {
-		glfwMaximizeWindow(m_Window);
+	void Window::MaximizeWindow(bool reset) {
+		if (reset && IsMaximized()) {
+			glfwRestoreWindow(m_Window);
+		}
+		else {
+			glfwMaximizeWindow(m_Window);
+		}
+
 		glfwGetWindowSize(m_Window, &m_Width, &m_Height);
 	}
 
 	void Window::MinimizeWindow() {
 		glfwIconifyWindow(m_Window);
 		glfwGetWindowSize(m_Window, &m_Width, &m_Height);
+	}
+
+	void Window::RestoreWindow() {
+		glfwRestoreWindow(m_Window);
 	}
 
 	bool Window::IsMaximized() const {

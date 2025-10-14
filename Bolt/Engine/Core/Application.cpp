@@ -37,10 +37,7 @@ namespace Bolt {
 			m_Window.value().MinimizeWindow();
 		}
 		if (Input::GetKeyDown(KeyCode::F11)) {
-			if (!m_Window.value().IsMaximized())
-				m_Window.value().MaximizeWindow();
-			else
-				m_Window.value().MinimizeWindow();
+			m_Window.value().MaximizeWindow(true);
 		}
 	}
 
