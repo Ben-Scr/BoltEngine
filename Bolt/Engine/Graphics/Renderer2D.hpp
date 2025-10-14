@@ -14,15 +14,15 @@ namespace Bolt {
 
     enum GLCullingModes {
         GLNone = 0,
-        GLFrontLeft = 0x0400,   // Achtung: diese Werte sind keine gültigen glCullFace Modi
+        GLFrontLeft = 0x0400,   // Achtung: diese Werte sind keine gltigen glCullFace Modi
         GLFrontRight = 0x0401,
         GLBackLeft = 0x0402,
         GLBackRight = 0x0403,
-        GLFront = 0x0404,       // gültig
-        GLBack = 0x0405,        // gültig
+        GLFront = 0x0404,       // gltig
+        GLBack = 0x0405,        // gltig
         GLLeft = 0x0406,
         GLRight = 0x0407,
-        GLFrontAndBackT = 0x0408 // gültig (GL_FRONT_AND_BACK)
+        GLFrontAndBackT = 0x0408 // gltig (GL_FRONT_AND_BACK)
     };
 
     struct GLInitProperties {

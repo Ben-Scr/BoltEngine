@@ -15,6 +15,9 @@ namespace Bolt {
 	}
 
 	void Camera2D::UpdateViewport() {
+		if (!Camera2D::m_Viewport) {
+			return;
+		}
 		m_ViewportWidth = Camera2D::m_Viewport->GetWidth();
 		m_ViewportHeight = Camera2D::m_Viewport->GetHeight();
 		UpdateProj();
@@ -24,6 +27,15 @@ namespace Bolt {
 		return m_ProjMat * m_ViewMat;
 	}
 
+	void Camera2D::SetSharedViewport(const std::shared_ptr<Viewport>& viewport)
+	{
+		m_Viewport = viewport;
+	}
+
+	std::shared_ptr<Viewport> Camera2D::GetSharedViewport()
+	{
+		return m_Viewport;
+	}
 
 	void Camera2D::UpdateProj() {
 		const float aspect = float(m_ViewportWidth) / float(m_ViewportHeight);

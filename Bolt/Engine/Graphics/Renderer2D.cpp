@@ -35,7 +35,11 @@ namespace Bolt {
 			return;
 		}
 
-		m_Viewport = std::make_unique<Viewport>();
+		m_Viewport = Camera2D::GetSharedViewport();
+		if (!m_Viewport) {
+			m_Viewport = std::make_shared<Viewport>();
+		}
+		Camera2D::SetSharedViewport(m_Viewport);
 
 		// Clear-Farbe (r, g, b, a)
 		Color c = glInitProps.BackgroundColor;
@@ -121,22 +125,25 @@ namespace Bolt {
 	void Renderer2D::BeginFrame() {
 		GLFWwindow* win = glfwGetCurrentContext();
 
-		if (win) {
-			glfwGetFramebufferSize(win, &m_Viewport->m_Width, &m_Viewport->m_Height);
-			glViewport(0, 0, m_Viewport->m_Width, m_Viewport->m_Height);
+		if (!m_Viewport) {
+			m_Viewport = std::make_shared<Viewport>();
 		}
 
+		Camera2D::SetSharedViewport(m_Viewport);
 
-		// Sicherstellen, dass der Viewport immer valide Dimensionen hat.
-		m_Viewport->m_Width = Max(m_Viewport->m_Width, 1);
-		m_Viewport->m_Height = Max(m_Viewport->m_Height, 1);
-
-		if (!Camera2D::m_Viewport) {
-			Camera2D::m_Viewport = std::make_shared<Viewport>(m_Viewport->m_Width, m_Viewport->m_Height);
+		int framebufferWidth = m_Viewport->GetWidth();
+		int framebufferHeight = m_Viewport->GetHeight();
+		if (win) {
+			glfwGetFramebufferSize(win, &framebufferWidth, &framebufferHeight);
+			glViewport(0, 0, framebufferWidth, framebufferHeight);
 		}
 		else {
-			Camera2D::m_Viewport->SetSize(m_Viewport->m_Width, m_Viewport->m_Height);
+			Logger::Warning("Window", "No Window Open");
 		}
+
+
+		m_Viewport->SetSize(framebufferWidth, framebufferHeight);
+		Camera2D::SetSharedViewport(m_Viewport);
 
 
 		glClear(GL_COLOR_BUFFER_BIT);

@@ -3,6 +3,7 @@
 #include "../Collections/AABB.hpp"
 
 #include <glm/glm.hpp>
+#include <memory>
 
 namespace Bolt {
 	class Viewport;
@@ -10,7 +11,7 @@ namespace Bolt {
 	class Camera2D {
 	public:
 		Camera2D() = default;
- 
+
 		static Camera2D* Main();
 
 		void UpdateViewport();
@@ -37,6 +38,8 @@ namespace Bolt {
 		glm::mat4 GetViewProjectionMatrix() const;
 		const glm::mat4 GetViewMatrix() const { return m_ViewMat; }
 		const glm::mat4 GetProjectionMatrix() const { return m_ProjMat; }
+		static void SetSharedViewport(const std::shared_ptr<Viewport>& viewport);
+		static std::shared_ptr<Viewport> GetSharedViewport();
 		void ApplyToView(uint16_t viewId);
 
 		float ViewportWidth() const { return static_cast<float>(m_ViewportWidth); }
@@ -63,8 +66,5 @@ namespace Bolt {
 		static std::shared_ptr<Viewport> m_Viewport;
 
 		friend class Scene;
-		friend class Application;
-		friend class Renderer2D;
-		friend class GameSystem;
 	};
 }
