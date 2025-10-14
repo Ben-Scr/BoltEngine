@@ -10,6 +10,8 @@ namespace Bolt {
 	public:
 		void Run();
 		void BeginFrame();
+		void BeginFixedFrame();
+		void EndFixedFrame();
 		void EndFrame();
 	private:
 		void Initialize();
@@ -18,5 +20,6 @@ namespace Bolt {
 		std::optional<Renderer2D> m_Renderer2D;
 		std::optional<PhysicsSystem> m_PhysicsSystem;
 		static std::shared_ptr<Viewport> s_Viewport;
+		static float s_TargetFramerate;
 	};
 }

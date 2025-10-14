@@ -3,6 +3,7 @@
 
 namespace Bolt {
 	Window* Window::s_ActiveWindow = nullptr;
+	bool Window::s_IsVsync = true;
 
 	Window::Window(int width, int height, const std::string& title)
 		: m_Width{ width }, m_Height{ height }, m_Title{ title } {

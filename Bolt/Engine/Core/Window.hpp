@@ -26,7 +26,8 @@ namespace Bolt {
 		float GetAspect() const { return static_cast<float>(m_Width) / static_cast<float>(m_Height); }
 		Vec2Int GetSize() const { return { m_Width, m_Height }; }
 
-		static void SetVsync(bool enabled) { glfwSwapInterval(enabled ? 1 : 0); };
+		static void SetVsync(bool enabled) { glfwSwapInterval(enabled ? 1 : 0); s_IsVsync = enabled; };
+		static bool IsVsync() { return s_IsVsync; }
 		void SetWindowResizeable(bool enabled) { glfwWindowHint(GLFW_RESIZABLE, enabled ? GLFW_TRUE : GLFW_FALSE); }
 		void SetWindowMoveable(bool enabled) { glfwWindowHint(GLFW_DECORATED, enabled ? GLFW_TRUE : GLFW_FALSE); }
 
@@ -42,6 +43,7 @@ namespace Bolt {
 		void CenterWindow();
 		void FocusWindow();
 
+		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_Window,title.c_str()); }
 		std::string GetTitle() const { return m_Title; }
 		int GetWidth()  const { return m_Width; }
 		int GetHeight() const { return m_Height; }
@@ -80,6 +82,7 @@ namespace Bolt {
 		bool m_Resizeable;
 		bool m_Moveable;
 		bool m_Fullscreen;
+		static bool s_IsVsync;
 
 		friend class Application;
 	};
