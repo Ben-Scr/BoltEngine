@@ -5,9 +5,12 @@
 #include "Components/Transform2D.hpp"
 #include "Graphics/Camera2D.hpp"
 #include "Graphics/Texture2D.hpp"
+#include "Components/Rigidbody2D.hpp"
+#include "Components/BoxCollider2D.hpp"
 #include "Graphics/TextureManager.hpp"
 #include "Collections/Viewport.hpp"
 #include <memory>
+#include <optional>
 
 namespace Bolt {
 	void GameSystem::Awake(Scene& scene) {
@@ -16,6 +19,7 @@ namespace Bolt {
 
 	void GameSystem::Start(Scene& scene) {
 		Entity entity = scene.CreateRenderableEntity();
+		ent.emplace(entity);
 
 		auto handle = TextureManager::LoadTexture("Assets/Textures/Square.png", Filter::Trilinear, Wrap::Clamp, Wrap::Clamp);
 
@@ -23,6 +27,8 @@ namespace Bolt {
 		sp.TextureHandle = handle;
 		sp.Color = Color::Red();
 		entity.GetComponent<Transform2D>().Scale = { 0.5, 1 };
+		entity.AddComponent<Rigidbody2D>();
+		entity.AddComponent<BoxCollider2D>();
 
 
 		Entity camEntity = scene.CreateEntity();

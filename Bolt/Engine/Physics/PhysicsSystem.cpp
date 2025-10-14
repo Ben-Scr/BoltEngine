@@ -11,7 +11,7 @@ namespace Bolt {
 	Box2DWorld PhysicsSystem::s_MainWorld{};
 
 	void PhysicsSystem::FixedUpdate(float dt) {
-		if (!s_IsEnabled)return;
+		if (!s_IsEnabled) return;
 
 		s_MainWorld.Step(dt);
 		s_MainWorld.GetDispatcher().Process(s_MainWorld.GetWorldID());

@@ -18,7 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -27,9 +26,7 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>BoltEngine</ProjectName>
   </PropertyGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -56,11 +53,9 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
-
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -73,9 +68,7 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-
   <PropertyGroup Label="UserMacros" />
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LibraryPath>C:\Users\benso\source\repos\Bolt\External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
@@ -96,7 +89,6 @@
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
     <IncludePath>C:\Users\benso\source\repos\Bolt\External\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -113,7 +105,6 @@
       <AdditionalDependencies>glfw3.lib;opengl32.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -132,7 +123,6 @@
       <AdditionalDependencies>glfw3.lib;opengl32.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -149,7 +139,6 @@
       <AdditionalDependencies>glfw3.lib;opengl32.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -168,7 +157,6 @@
       <AdditionalDependencies>glfw3.lib;opengl32.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-
   <!-- ===== Sources (deduplicated) ===== -->
   <ItemGroup>
     <ClCompile Include="Engine\Audio\Audio.cpp" />
@@ -180,6 +168,8 @@
     <ClCompile Include="Engine\Components\Rigidbody2D.cpp" />
     <ClCompile Include="Engine\Components\Transform2D.cpp" />
     <ClCompile Include="Engine\Core\Application.cpp" />
+    <ClCompile Include="Engine\Core\Input.cpp" />
+    <ClCompile Include="Engine\Core\Time.cpp" />
     <ClCompile Include="Engine\Core\Window.cpp" />
     <ClCompile Include="Engine\Debugging\Logger.cpp" />
     <ClCompile Include="Engine\GameSystem.cpp" />
@@ -225,7 +215,6 @@
     <ClCompile Include="Engine\Scene\SceneDefinition.cpp" />
     <ClCompile Include="Engine\Scene\SceneManager.cpp" />
   </ItemGroup>
-
   <!-- ===== Headers (deduplicated) ===== -->
   <ItemGroup>
     <ClInclude Include="Engine\Audio\Audio.hpp" />
@@ -249,6 +238,8 @@
     <ClInclude Include="Engine\Components\Transform2D.hpp" />
     <ClInclude Include="Engine\Core\Application.hpp" />
     <ClInclude Include="Engine\Core\Input.hpp" />
+    <ClInclude Include="Engine\Core\KeyCodes.hpp" />
+    <ClInclude Include="Engine\Core\Time.hpp" />
     <ClInclude Include="Engine\Core\Window.hpp" />
     <ClInclude Include="Engine\Debugging\Logger.hpp" />
     <ClInclude Include="Engine\GameSystem.hpp" />
@@ -285,7 +276,6 @@
     <ClInclude Include="Engine\Utils\Serializer.hpp" />
     <ClInclude Include="Engine\Utils\Timer.hpp" />
   </ItemGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

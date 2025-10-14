@@ -54,9 +54,6 @@
     <ClCompile Include="Engine\Core\Window.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Debug\Logger.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Scene\Entity.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -219,6 +216,15 @@
     <ClCompile Include="Engine\Scene\SceneManager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Debugging\Logger.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Core\Input.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Core\Time.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\pch.hpp">
@@ -290,9 +296,6 @@
     <ClInclude Include="Engine\Core\Window.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Debug\Logger.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Utils\Random.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -555,6 +558,15 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Utils\Timer.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Debugging\Logger.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\KeyCodes.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\Time.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

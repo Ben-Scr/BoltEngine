@@ -170,6 +170,7 @@ namespace Bolt {
 
 #pragma region  CAMERA
 		Camera2D* camera2D = Camera2D::Main();
+		camera2D->UpdateViewport();
 
 		if (camera2D == nullptr) {
 			Logger::Error("Camera 2D", "There is no main camera");
