@@ -13,5 +13,6 @@ namespace Bolt {
 		void Initialize();
 		std::optional<Window> m_Window;
 		std::optional<Renderer2D> m_Renderer2D;
+		static std::shared_ptr<Viewport> s_Viewport;
 	};
 }

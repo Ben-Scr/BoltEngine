@@ -1,6 +1,5 @@
 #include "../pch.hpp"
 #include "TextureManager.hpp"
-#include "../Debug/Logger.hpp"
 
 namespace Bolt {
     std::array<std::string, 7> TextureManager::s_DefaultTextures = {

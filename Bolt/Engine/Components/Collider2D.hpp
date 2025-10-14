@@ -1,6 +1,6 @@
 #pragma once
 #include "Rigidbody2D.hpp"
-#include "../Debug/Logger.hpp"
+#include "../Debugging/Logger.hpp"
 #include "../Physics/PhysicsSystem.hpp"
 #include "../Scene/EntityHandle.hpp"
 #include <box2d/box2d.h>

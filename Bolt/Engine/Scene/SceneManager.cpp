@@ -1,7 +1,6 @@
 #include "../pch.hpp"
 #include "../Scene/SceneManager.hpp"
 #include "../Scene/Scene.hpp"
-#include "../Debug/Logger.hpp"
 
 #include "../Components/Rigidbody2D.hpp"
 #include "../Components/BoxCollider2D.hpp"

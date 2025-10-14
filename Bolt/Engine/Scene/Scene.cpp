@@ -2,7 +2,6 @@
 #include "../Scene/Scene.hpp"
 #include "../Scene/Entity.hpp"
 
-#include "../Debug/Logger.hpp"
 #include "../Audio/AudioSource.hpp"
 
 #include "../Components/Rigidbody2D.hpp"

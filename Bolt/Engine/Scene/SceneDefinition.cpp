@@ -1,6 +1,5 @@
 #include "../pch.hpp"
 #include "../Scene/SceneDefinition.hpp"
-#include "../Debug/Logger.hpp"
 #include "../Scene/Scene.hpp"
 
 

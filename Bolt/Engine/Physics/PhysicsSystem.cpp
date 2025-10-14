@@ -4,7 +4,6 @@
 #include "../Physics/Box2DWorld.hpp"
 #include "../Scene/SceneManager.hpp"
 #include "../Scene/Scene.hpp"
-#include "../Debug/Logger.hpp"
 
 
 namespace Bolt {
