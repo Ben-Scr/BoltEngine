@@ -1,5 +1,5 @@
-#include "Bolt/btpch.hpp"
-#include "Bolt/Core/Time.hpp"
+#include "../pch.hpp"
+#include "Time.hpp"
 
 namespace Bolt {
 	float Time::s_TimeScale = 1.f;

@@ -19,8 +19,6 @@ namespace Bolt {
 
 	void GameSystem::Start(Scene& scene) {
 		Entity entity = scene.CreateRenderableEntity();
-		ent.emplace(entity);
-
 		auto handle = TextureManager::LoadTexture("Assets/Textures/Square.png", Filter::Trilinear, Wrap::Clamp, Wrap::Clamp);
 
 		SpriteRenderer& sp = entity.GetComponent<SpriteRenderer>();

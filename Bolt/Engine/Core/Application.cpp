@@ -1,6 +1,8 @@
 #include "../pch.hpp"
 #include "Application.hpp"
 #include "../Scene/SceneManager.hpp"
+#include "Time.hpp"
+#include "Input.hpp"
 
 
 namespace Bolt {
@@ -16,9 +18,11 @@ namespace Bolt {
 	}
 
 	void Application::BeginFrame() {
+
 		m_PhysicsSystem.value().FixedUpdate(0.01f);
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
+		Input::Update();
 	}
 
 	void Application::EndFrame() {

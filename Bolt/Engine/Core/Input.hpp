@@ -1,5 +1,6 @@
 #pragma once
 #include "KeyCodes.hpp"
+#include <GLFW/glfw3.h>
 
 namespace Bolt { class Application; }
 
@@ -63,8 +64,8 @@ namespace Bolt {
         }
 
 
-        static void OnKeyDown(sapp_keycode k) { if (k >= 0 && k < k_KeyCount) s_CurrentKeyStates[k] = true; }
-        static void OnKeyUp(sapp_keycode k) { if (k >= 0 && k < k_KeyCount) s_CurrentKeyStates[k] = false; }
+        static void OnKeyDown(int k) { if (k >= 0 && k < k_KeyCount) s_CurrentKeyStates[k] = true; }
+        static void OnKeyUp(int k) { if (k >= 0 && k < k_KeyCount) s_CurrentKeyStates[k] = false; }
         static void OnMouseDown(int btn) { if (btn >= 0 && btn < k_MouseCount) s_CurrentMouseButtons[btn] = true; }
         static void OnMouseUp(int btn) { if (btn >= 0 && btn < k_MouseCount) s_CurrentMouseButtons[btn] = false; }
         static void OnScroll(float delta) { s_ScrollValue += delta; }
@@ -74,7 +75,7 @@ namespace Bolt {
             s_MousePosition = pos;
         }
 
-        static const int k_KeyCount = SAPP_KEYCODE_MENU + 1;
+        static const int k_KeyCount = GLFW_KEY_MENU + 1;
         static const int k_MouseCount = 8;
 
         static bool  s_CurrentKeyStates[k_KeyCount];
