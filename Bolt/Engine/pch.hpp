@@ -33,6 +33,6 @@
 
 #include "Math/Common.hpp"
 #include "Core/Input.hpp"
-#include "Debug/Logger.hpp"
+#include "Debugging/Logger.hpp"
 
 #include "Components/Tags.hpp"

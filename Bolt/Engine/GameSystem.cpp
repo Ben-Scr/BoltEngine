@@ -18,8 +18,10 @@ namespace Bolt {
 
 		auto handle = TextureManager::LoadTexture("Assets/Textures/Square.png",Filter::Trilinear, Wrap::Clamp, Wrap::Clamp);
 
-		entity.GetComponent<SpriteRenderer>().TextureHandle = handle;
-		entity.GetComponent<Transform2D>().Scale = {128, 128};
+		SpriteRenderer& sp = entity.GetComponent<SpriteRenderer>();
+		sp.TextureHandle = handle;
+		sp.Color = Color::Red();
+		entity.GetComponent<Transform2D>().Scale = {1, 1};
 
 
 		Entity camEntity = scene.CreateEntity();
