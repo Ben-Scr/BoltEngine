@@ -64,10 +64,6 @@ namespace Bolt {
 		m_WorldViewportAABB = AABB::Create(m_Transform->Position, worldViewport / 2.f);
 	}
 
-	void Camera2D::ApplyToView(uint16_t viewId) {
-		//bgfx::setViewTransform(viewId, m_ViewMat, m_ProjMat);
-	}
-
 	Vec2 Camera2D::WorldViewPort() const {
 		float aspectRatio = static_cast<float>(m_ViewportWidth) / static_cast<float>(m_ViewportHeight);
 		float worldHeight = 2.0f * (m_OrthographicSize / m_Zoom);

@@ -176,9 +176,6 @@ namespace Bolt {
 			return;
 		}
 
-		//camera2D->Init(*camera2D->m_Transform);
-
-
 		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
 		if (u_MVP >= 0) glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(vp));
 #pragma endregion

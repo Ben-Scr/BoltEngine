@@ -38,10 +38,6 @@ namespace Bolt {
     class Renderer2D {
     public:
         void Initialize(const GLInitProperties& glInitProps);
-        void DrawSprite(Vec2 position, Vec2 scale, float rotZ, Color color,
-            const Texture2D* texture = nullptr,
-            Vec2 uvOffset = { 0.0f, 0.0f },
-            Vec2 uvScale = { 1.0f, 1.0f });
         void BeginFrame();
         void EndFrame();
         void RenderScenes();

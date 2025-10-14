@@ -35,7 +35,6 @@ namespace Bolt {
 
 		if (viewport) {
 			camera2D->UpdateViewport();
-			camera2D->SetOrthographicSize(0.5f * static_cast<float>(viewport->GetHeight()));
 		}
 	}
 

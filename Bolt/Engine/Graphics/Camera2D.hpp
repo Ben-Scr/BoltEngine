@@ -40,7 +40,6 @@ namespace Bolt {
 		const glm::mat4 GetProjectionMatrix() const { return m_ProjMat; }
 		static void SetSharedViewport(const std::shared_ptr<Viewport>& viewport);
 		static std::shared_ptr<Viewport> GetSharedViewport();
-		void ApplyToView(uint16_t viewId);
 
 		float ViewportWidth() const { return static_cast<float>(m_ViewportWidth); }
 		float ViewportHeight() const { return static_cast<float>(m_ViewportHeight); }
