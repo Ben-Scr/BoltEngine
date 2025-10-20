@@ -23,5 +23,7 @@ namespace Bolt {
 				tf.Rotation = rb.GetRotation();
 			}
 		}
+
+		Logger::Message("Update phys");
 	}
 }

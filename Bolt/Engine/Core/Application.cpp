@@ -13,13 +13,12 @@ namespace Bolt {
 	{
 		Initialize();
 
-		// Main loop
 		while (!m_Window.value().ShouldClose()) {
 			m_LoopedThisFrame = false;
 			using Clock = std::chrono::high_resolution_clock;
 			using Duration = Clock::duration;
 
-			float fixedUpdateAccumulator = 0.0f;
+			static float fixedUpdateAccumulator = 0.0f;
 
 
 			Duration TARGET_FRAME_TIME = std::chrono::duration_cast<Duration>(std::chrono::duration<double>(1.0 / s_TargetFramerate));
@@ -40,37 +39,35 @@ namespace Bolt {
 
 			fixedUpdateAccumulator += Time::GetDeltaTime();
 			while (fixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
-				{
-					try {
-						BeginFixedFrame();
-					}
-					catch (std::runtime_error e) {
-						Logger::Error(e.what());
-					}
+				try {
+
+					BeginFixedFrame();
 				}
+				catch (std::runtime_error e) {
+					Logger::Error(e.what());
+				}
+
 
 				fixedUpdateAccumulator -= Time::s_FixedDeltaTime;
 			}
 
-			if (m_LoopedThisFrame) continue;
+			if (m_LoopedThisFrame)
+			{
+				lastTime = frameStart;
+				continue;
+			}
 
 			BeginFrame();
 			EndFrame();
 
-			lastTime = frameStart;
 
+			lastTime = frameStart;
 			m_LoopedThisFrame = true;
 		}
 	}
 
 	void Application::BeginFrame() {
 		CoreInput();
-		Logger::Message(std::to_string(Time::GetSimulatedElapsedTime()));
-
-		int width = 0, height = 0;
-		glfwGetWindowSize(m_Window.value().GLFWWindow(), &width, &height);
-		Window::s_MainViewport = Viewport(width, height);
-		m_Window.value().UpdateViewport();
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
 	}

@@ -37,6 +37,7 @@
 /* PHYSICS */
 #include "Physics/Collision2D.hpp"
 #include "Physics/PhysicsUtility.hpp"
+#include "Physics/Box2DWorld.hpp"
 
 /* SCENE */
 #include "Scene/Scene.hpp"

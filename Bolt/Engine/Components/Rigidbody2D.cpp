@@ -56,7 +56,7 @@ namespace Bolt {
 
 	void Rigidbody2D::SetTransform(const Transform2D& tr) { b2Body_SetTransform(m_BodyId, b2Vec2(tr.Position.x, tr.Position.y), tr.GetB2Rotation()); }
 
-	float Rigidbody2D::GetRotation() const { return b2Rot_GetAngle(b2Body_GetRotation(m_BodyId)); }
+	float Rigidbody2D::GetRotation() const { return -b2Rot_GetAngle(b2Body_GetRotation(m_BodyId)); }
 
 	void Rigidbody2D::Enable(bool enabled) {
 		if (enabled)
