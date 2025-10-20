@@ -24,6 +24,7 @@ namespace Bolt {
 		static const Color White() { return Color(1.0f, 1.0f, 1.0f); }
 		static const Color Black() { return Color(0.0f, 0.0f, 0.0f); }
 		static const Color Gray() { return Color(0.5f, 0.5f, 0.5f); }
+		static const Color Background() { return Color(0.35f, 0.35f, 0.35f); }
 		static const Color Transparent() { return Color(0.0f, 0.0f, 0.0f, 0.0f); }
 
 		inline uint32_t RGBA32() const {

@@ -39,7 +39,7 @@ namespace Bolt {
 	}
 
 	void Camera2D::UpdateView() {
-		const float rotZ = m_Transform->Rotation; // ggf. glm::radians(...)
+		const float rotZ = m_Transform->Rotation;
 		glm::mat4 camModel(1.0f);
 		camModel = glm::translate(camModel, glm::vec3(m_Transform->Position.x, m_Transform->Position.y, 0.0f));
 		camModel = glm::rotate(camModel, rotZ, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -66,7 +66,7 @@ namespace Bolt {
 		const float yNdc = 1.0f - (2.0f * pos.y / float(m_ViewportHeight));
 
 		const float zNear = 0.0f, zFar = 100.0f;
-		const float zNdc = -(zFar + zNear) / (zFar - zNear); // bei near=0, far=100 -> -1
+		const float zNdc = -(zFar + zNear) / (zFar - zNear);
 
 		const glm::vec4 clip(xNdc, yNdc, zNdc, 1.0f);
 

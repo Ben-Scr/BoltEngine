@@ -24,7 +24,6 @@ namespace Bolt {
 		auto & app = Application::Instance();
 
 		if (!app.m_LoopedThisFrame) {
-			Logger::Message("Refresh Window");
 			app.m_LoopedThisFrame = true;
 			app.BeginFrame();
 			app.EndFrame();

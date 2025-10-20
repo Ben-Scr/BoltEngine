@@ -29,10 +29,22 @@ namespace Bolt {
 	}
 
 	void GameSystem::Update(Scene& scene) {
-		Vec2 mousePos = Camera2D::Main()->ScreenToWorld(Input::MousePosition());
+		Camera2D& camera2D = *Camera2D::Main();
+		Vec2 mousePos = camera2D.ScreenToWorld(Input::MousePosition());
 
 		if (Input::GetKeyDown(KeyCode::E)) {
 			CreateEntity(scene,Transform2D::FromPosition(mousePos), handle);
 		}
+
+		if (Input::GetMouse(1)) {
+			Vec2 delta = Input::MouseDelta() * Time::GetDeltaTime() * camera2D.GetOrthographicSize() * 0.5f;
+			delta.x *= -1.f;
+			Vec2 targetPos = camera2D.GetPosition() + delta;
+			camera2D.SetPosition(targetPos);
+		}
+
+		float delta = Input::ScrollValue() * Time::GetDeltaTime() * camera2D.GetOrthographicSize() * -2.f;
+		float targetSize = camera2D.GetOrthographicSize() + delta;
+		camera2D.SetOrthographicSize(targetSize);
 	}
 }

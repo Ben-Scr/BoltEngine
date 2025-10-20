@@ -111,7 +111,7 @@ namespace Bolt {
 
 		m_Renderer2D.emplace(Renderer2D());
 
-		GLInitProperties glInitProps = GLInitProperties(Color{ 0.3f, 0.3f, 0.3f }, true, GLCullingModes::GLBack);
+		GLInitProperties glInitProps = GLInitProperties(Color::Background(), true, GLCullingModes::GLBack);
 		m_Renderer2D.value().Initialize(glInitProps);
 
 		SceneManager::Initialize();
