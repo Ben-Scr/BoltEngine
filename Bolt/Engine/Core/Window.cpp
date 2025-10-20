@@ -4,15 +4,18 @@
 namespace Bolt {
 	Window* Window::s_ActiveWindow = nullptr;
 	bool Window::s_IsVsync = true;
+	Viewport Window::s_MainViewport;
 
 	Window::Window(int width, int height, const std::string& title)
-		: m_Width{ width }, m_Height{ height }, m_Title{ title } {
+		: m_Title{ title } {
+		s_MainViewport = Viewport{ width, height };
 		InitWindow();
 	}
 
 	Window::Window(const GLFWWindowProperties& windowProps)
-		: m_Width{ windowProps.Width }, m_Height{ windowProps.Height }, m_Title{ windowProps.Title }, m_Fullscreen{ windowProps.Fullscreen },
+		: m_Title{ windowProps.Title }, m_Fullscreen{ windowProps.Fullscreen },
 		m_Resizeable{ m_Resizeable }, m_Moveable{ windowProps.Moveable }, m_BackgroundColor{ windowProps.BackgroundColor } {
+		s_MainViewport = Viewport{ windowProps.Width, windowProps.Height };
 		InitWindow();
 	}
 
@@ -36,7 +39,7 @@ namespace Bolt {
 			MaximizeWindow();
 		}
 		else {
-			m_Window = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), nullptr, nullptr);
+			m_Window = glfwCreateWindow(s_MainViewport.Width, s_MainViewport.Height, m_Title.c_str(), nullptr, nullptr);
 			CenterWindow();
 		}
 
@@ -132,12 +135,12 @@ namespace Bolt {
 			glfwMaximizeWindow(m_Window);
 		}
 
-		glfwGetWindowSize(m_Window, &m_Width, &m_Height);
+		glfwGetWindowSize(m_Window, &s_MainViewport.Width, &s_MainViewport.Height);
 	}
 
 	void Window::MinimizeWindow() {
 		glfwIconifyWindow(m_Window);
-		glfwGetWindowSize(m_Window, &m_Width, &m_Height);
+		glfwGetWindowSize(m_Window, &s_MainViewport.Width, &s_MainViewport.Height);
 	}
 
 	void Window::RestoreWindow() {
@@ -155,16 +158,16 @@ namespace Bolt {
 	void Window::SetWindowResizedCallback(GLFWwindow* window, int WIDTH, int HEIGHT) {
 		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 		_window->m_WindowResized = true;
-		_window->m_Width = WIDTH;
-		_window->m_Height = HEIGHT;
+		_window->s_MainViewport.Width = WIDTH;
+		_window->s_MainViewport.Height = HEIGHT;
 		_window->UpdateViewport();
 	}
 
 	void Window::UpdateViewport() {
-		glViewport(0, 0, m_Width, m_Height);
+		glViewport(0, 0, s_MainViewport.Width, s_MainViewport.Height);
 	}
 
 	void Window::UpdateWindowSize() {
-		glfwGetWindowSize(m_Window, &m_Width, &m_Height);
+		glfwGetWindowSize(m_Window, &s_MainViewport.Width, &s_MainViewport.Height);
 	}
 }

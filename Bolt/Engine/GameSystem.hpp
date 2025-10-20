@@ -1,5 +1,5 @@
 #pragma once
-#include "Scene/ISystem.hpp"
+#include "Bolt.hpp"
 
 namespace Bolt {
 	class GameSystem : public ISystem {

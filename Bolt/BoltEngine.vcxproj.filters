@@ -183,9 +183,6 @@
     <ClCompile Include="Engine\Graphics\TextureManager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Debug\Logger.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Core\Application.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -500,9 +497,6 @@
     <ClInclude Include="Engine\Graphics\TextureManager.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Debug\Logger.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Core\Application.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -567,6 +561,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Core\Time.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Bolt.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

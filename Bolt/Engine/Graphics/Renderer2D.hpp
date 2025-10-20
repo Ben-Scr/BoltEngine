@@ -14,15 +14,15 @@ namespace Bolt {
 
     enum GLCullingModes {
         GLNone = 0,
-        GLFrontLeft = 0x0400,   // Achtung: diese Werte sind keine gltigen glCullFace Modi
+        GLFrontLeft = 0x0400,
         GLFrontRight = 0x0401,
         GLBackLeft = 0x0402,
         GLBackRight = 0x0403,
-        GLFront = 0x0404,       // gltig
-        GLBack = 0x0405,        // gltig
+        GLFront = 0x0404,     
+        GLBack = 0x0405,
         GLLeft = 0x0406,
         GLRight = 0x0407,
-        GLFrontAndBackT = 0x0408 // gltig (GL_FRONT_AND_BACK)
+        GLFrontAndBack = 0x0408
     };
 
     struct GLInitProperties {
@@ -46,11 +46,7 @@ namespace Bolt {
     private:
         void Shutdown();
 
-        // GL-Objekte
         unsigned m_VAO{ 0 }, m_VBO{ 0 }, m_EBO{ 0 };
-        unsigned m_WhiteTex{ 0 };
-        std::shared_ptr<Viewport> m_Viewport;
-
         int u_MVP{ -1 }, u_spritePos{ -1 }, u_Scale{ -1 }, u_Rotation{ -1 };
         int u_UVOffset{ -1 }, u_UVScale{ -1 }, u_PremultipliedAlpha{ -1 }, u_AlphaCutoff{ -1 };
 

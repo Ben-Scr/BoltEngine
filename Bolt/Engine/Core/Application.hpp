@@ -13,6 +13,9 @@ namespace Bolt {
 		void BeginFixedFrame();
 		void EndFixedFrame();
 		void EndFrame();
+
+		static float GetTargetFramerate() { return s_TargetFramerate; }
+		static void SetTargetFramerate(float framerate) { s_TargetFramerate = framerate; }
 	private:
 		void Initialize();
 		void CoreInput();

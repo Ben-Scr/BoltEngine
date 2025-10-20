@@ -6,7 +6,7 @@
 
 
 namespace Bolt {
-	float Application::s_TargetFramerate = 14400;
+	float Application::s_TargetFramerate = 144;
 
 	void Application::Run()
 	{
@@ -15,12 +15,12 @@ namespace Bolt {
 		// Main loop
 		while (!m_Window.value().ShouldClose()) {
 			using Clock = std::chrono::high_resolution_clock;
-			using Dur = Clock::duration;
+			using Duration = Clock::duration;
 
 			float fixedUpdateAccumulator = 0.0f;
 
 
-			Dur TARGET_FRAME_TIME = std::chrono::duration_cast<Dur>(std::chrono::duration<double>(1.0 / s_TargetFramerate));
+			Duration TARGET_FRAME_TIME = std::chrono::duration_cast<Duration>(std::chrono::duration<double>(1.0 / s_TargetFramerate));
 			static auto lastTime = Clock::now();
 			auto const nextFrameTime = lastTime + TARGET_FRAME_TIME;
 
@@ -59,13 +59,21 @@ namespace Bolt {
 
 	void Application::BeginFrame() {
 		CoreInput();
-		m_PhysicsSystem.value().FixedUpdate(0.01f);
+		Logger::Message(std::to_string(Time::GetSimulatedElapsedTime()));
+
+		int width = 0, height = 0;
+		glfwGetWindowSize(m_Window.value().GLFWWindow(), &width, &height);
+		Window::s_MainViewport = Viewport(width, height);
+		m_Window.value().UpdateViewport();
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
-		Time::Update(0.01f);
 	}
 
 	void Application::BeginFixedFrame() {
+		SceneManager::FixedUpdateScenes();
+		m_PhysicsSystem.value().FixedUpdate(Time::GetFixedDeltaTime());
+	}
+	void Application::EndFixedFrame() {
 
 	}
 

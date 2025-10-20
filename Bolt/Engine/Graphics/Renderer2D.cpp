@@ -13,33 +13,12 @@
 #include <cmath>
 
 namespace Bolt {
-
-	// Hilfsfunktionen
-	static unsigned createWhiteTexture1x1() {
-		unsigned tex = 0;
-		unsigned char white[4] = { 255,255,255,255 };
-		glGenTextures(1, &tex);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, white);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		return tex;
-	}
-
 	void Renderer2D::Initialize(const GLInitProperties& glInitProps) {
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			Logger::Error("Glad failed to load");
 			return;
 		}
 
-		m_Viewport = Camera2D::GetSharedViewport();
-		if (!m_Viewport) {
-			m_Viewport = std::make_shared<Viewport>();
-		}
-		Camera2D::SetSharedViewport(m_Viewport);
 
 		// Clear-Farbe (r, g, b, a)
 		Color c = glInitProps.BackgroundColor;
@@ -92,14 +71,11 @@ namespace Bolt {
 
 		glBindVertexArray(0);
 
-		// 1x1 Weißtextur als Fallback
-		m_WhiteTex = createWhiteTexture1x1();
-
-		// Shader vorbereiten + Uniform-Locations holen
 		if (!m_Sprite2DShader.value().IsValid()) {
 			Logger::Error("[Renderer2D] Sprite shader invalid.");
 			return;
 		}
+
 		glUseProgram(m_Sprite2DShader.value().GetHandle());
 		u_MVP = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uMVP");
 		u_spritePos = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uSpritePos");
@@ -110,10 +86,11 @@ namespace Bolt {
 		u_PremultipliedAlpha = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uPremultipliedAlpha");
 		u_AlphaCutoff = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uAlphaCutoff");
 
-		// Textur Sampler auf Einheit 0
+
 		int locTex = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uTexture");
 		if (locTex >= 0) glUniform1i(locTex, 0);
-		// Standardwerte
+
+		// Default values
 		if (u_UVOffset >= 0) glUniform2f(u_UVOffset, 0.0f, 0.0f);
 		if (u_UVScale >= 0) glUniform2f(u_UVScale, 1.0f, 1.0f);
 		if (u_PremultipliedAlpha >= 0) glUniform1i(u_PremultipliedAlpha, 0);
@@ -124,28 +101,6 @@ namespace Bolt {
 
 	void Renderer2D::BeginFrame() {
 		GLFWwindow* win = glfwGetCurrentContext();
-
-		if (!m_Viewport) {
-			m_Viewport = std::make_shared<Viewport>();
-		}
-
-		Camera2D::SetSharedViewport(m_Viewport);
-
-		int framebufferWidth = m_Viewport->GetWidth();
-		int framebufferHeight = m_Viewport->GetHeight();
-		if (win) {
-			glfwGetFramebufferSize(win, &framebufferWidth, &framebufferHeight);
-			glViewport(0, 0, framebufferWidth, framebufferHeight);
-		}
-		else {
-			Logger::Warning("Window", "No Window Open");
-		}
-
-
-		m_Viewport->SetSize(framebufferWidth, framebufferHeight);
-		Camera2D::SetSharedViewport(m_Viewport);
-
-
 		glClear(GL_COLOR_BUFFER_BIT);
 		RenderScenes();
 	}
@@ -168,7 +123,7 @@ namespace Bolt {
 
 		m_Sprite2DShader.value().Submit(0);
 
-#pragma region  CAMERA
+		/* Camera Region */
 		Camera2D* camera2D = Camera2D::Main();
 		camera2D->UpdateViewport();
 
@@ -179,7 +134,7 @@ namespace Bolt {
 
 		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
 		if (u_MVP >= 0) glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(vp));
-#pragma endregion
+		/* Camera Region End */
 
 		for (const auto& [ent, tr, spriteRenderer] : scene.GetRegistry().view<Transform2D, SpriteRenderer>().each()) {
 			if (u_spritePos >= 0) glUniform2f(u_spritePos, tr.Position.x, tr.Position.y);
@@ -197,17 +152,16 @@ namespace Bolt {
 			glActiveTexture(GL_TEXTURE0);
 			Texture2D& texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
 
-			
+
 
 			if (texture.IsValid())
 				texture.Submit(0);           // bindet GL_TEXTURE_2D
+
 			else
 			{
 				Logger::Warning("Invalid Texture");
-				glBindTexture(GL_TEXTURE_2D, m_WhiteTex);
 			}
 
-			// Hinweis: uTexture wurde bereits in Initialize auf 0 gesetzt.
 
 			// 7) Draw
 			glBindVertexArray(m_VAO);
@@ -223,7 +177,7 @@ namespace Bolt {
 		if (m_EBO) { glDeleteBuffers(1, &m_EBO); m_EBO = 0; }
 		if (m_VBO) { glDeleteBuffers(1, &m_VBO); m_VBO = 0; }
 		if (m_VAO) { glDeleteVertexArrays(1, &m_VAO); m_VAO = 0; }
-		if (m_WhiteTex) { glDeleteTextures(1, &m_WhiteTex); m_WhiteTex = 0; }
+		if (m_VAO) { glDeleteVertexArrays(1, &m_VAO); m_VAO = 0; }
 	}
 
 }

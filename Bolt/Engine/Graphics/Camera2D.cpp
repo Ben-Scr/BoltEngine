@@ -1,6 +1,7 @@
 #include "../pch.hpp"
 #include "../Graphics/Camera2D.hpp"
 #include "../Collections/Viewport.hpp"
+#include "../Core/Window.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -8,33 +9,21 @@
 
 namespace Bolt {
 	Camera2D* Camera2D::s_Main = nullptr;
-	std::shared_ptr<Viewport> Camera2D::m_Viewport;
 
 	Camera2D* Camera2D::Main() {
 		return s_Main;
 	}
 
 	void Camera2D::UpdateViewport() {
-		if (!Camera2D::m_Viewport) {
-			return;
-		}
-		m_ViewportWidth = Camera2D::m_Viewport->GetWidth();
-		m_ViewportHeight = Camera2D::m_Viewport->GetHeight();
+		auto vp = Window::GetMainViewport();
+		m_ViewportWidth = vp.Width;
+		m_ViewportHeight = vp.Height;
+
 		UpdateProj();
 	}
 
 	glm::mat4 Camera2D::GetViewProjectionMatrix() const {
 		return m_ProjMat * m_ViewMat;
-	}
-
-	void Camera2D::SetSharedViewport(const std::shared_ptr<Viewport>& viewport)
-	{
-		m_Viewport = viewport;
-	}
-
-	std::shared_ptr<Viewport> Camera2D::GetSharedViewport()
-	{
-		return m_Viewport;
 	}
 
 	void Camera2D::UpdateProj() {

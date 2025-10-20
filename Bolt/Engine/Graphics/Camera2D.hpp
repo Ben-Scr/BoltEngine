@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace Bolt {
-	class Viewport;
+	struct Viewport;
 
 	class Camera2D {
 	public:
@@ -38,8 +38,6 @@ namespace Bolt {
 		glm::mat4 GetViewProjectionMatrix() const;
 		const glm::mat4 GetViewMatrix() const { return m_ViewMat; }
 		const glm::mat4 GetProjectionMatrix() const { return m_ProjMat; }
-		static void SetSharedViewport(const std::shared_ptr<Viewport>& viewport);
-		static std::shared_ptr<Viewport> GetSharedViewport();
 
 		float ViewportWidth() const { return static_cast<float>(m_ViewportWidth); }
 		float ViewportHeight() const { return static_cast<float>(m_ViewportHeight); }
@@ -62,7 +60,6 @@ namespace Bolt {
 		glm::mat4 m_ViewMat{};
 		glm::mat4 m_ProjMat{};
 		AABB m_WorldViewportAABB;
-		static std::shared_ptr<Viewport> m_Viewport;
 
 		friend class Scene;
 	};

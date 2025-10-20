@@ -221,6 +221,7 @@
     <ClInclude Include="Engine\Audio\AudioHandle.hpp" />
     <ClInclude Include="Engine\Audio\AudioManager.hpp" />
     <ClInclude Include="Engine\Audio\AudioSource.hpp" />
+    <ClInclude Include="Engine\Bolt.hpp" />
     <ClInclude Include="Engine\Collections\AABB.hpp" />
     <ClInclude Include="Engine\Collections\Color.hpp" />
     <ClInclude Include="Engine\Collections\Mat2.hpp" />

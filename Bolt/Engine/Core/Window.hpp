@@ -2,6 +2,7 @@
 #include "../Core/Input.hpp"
 #include "../Collections/Vec2.hpp"
 #include "../Collections/Color.hpp"
+#include "../Collections/Viewport.hpp"
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -23,8 +24,8 @@ namespace Bolt {
 		Window(const GLFWWindowProperties& windowProps);
 
 		GLFWwindow* GLFWWindow() const { return m_Window; }
-		float GetAspect() const { return static_cast<float>(m_Width) / static_cast<float>(m_Height); }
-		Vec2Int GetSize() const { return { m_Width, m_Height }; }
+		float GetAspect() const { return s_MainViewport.GetAspect(); }
+		Vec2Int GetSize() const { return s_MainViewport.GetSize(); }
 
 		static void SetVsync(bool enabled) { glfwSwapInterval(enabled ? 1 : 0); s_IsVsync = enabled; };
 		static bool IsVsync() { return s_IsVsync; }
@@ -44,12 +45,13 @@ namespace Bolt {
 		void FocusWindow();
 
 		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_Window,title.c_str()); }
-		std::string GetTitle() const { return m_Title; }
-		int GetWidth()  const { return m_Width; }
-		int GetHeight() const { return m_Height; }
+		std::string GetTitle() const { return std::string(glfwGetWindowTitle(m_Window)); }
+		int GetWidth()  const { return s_MainViewport.Width; }
+		int GetHeight() const { return s_MainViewport.Height; }
 
 		void Destroy();
 		static Window& Main() { return *s_ActiveWindow; }
+		static Viewport GetMainViewport() { return s_MainViewport; };
 
 	private:
 		void InitWindow();
@@ -75,8 +77,7 @@ namespace Bolt {
 		const GLFWvidmode* k_Mode = nullptr;
 
 		bool m_WindowResized = false;
-
-		int m_Width, m_Height;
+		static Viewport s_MainViewport;
 		std::string m_Title;
 		Color m_BackgroundColor;
 		bool m_Resizeable;
