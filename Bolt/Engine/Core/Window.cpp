@@ -1,5 +1,6 @@
 #include "../pch.hpp"
 #include "Window.hpp"
+#include "Application.hpp"
 
 namespace Bolt {
 	Window* Window::s_ActiveWindow = nullptr;
@@ -17,6 +18,17 @@ namespace Bolt {
 		m_Resizeable{ m_Resizeable }, m_Moveable{ windowProps.Moveable }, m_BackgroundColor{ windowProps.BackgroundColor } {
 		s_MainViewport = Viewport{ windowProps.Width, windowProps.Height };
 		InitWindow();
+	}
+
+	void Window::RefreshCallback(GLFWwindow* window) {
+		auto & app = Application::Instance();
+
+		if (!app.m_LoopedThisFrame) {
+			app.m_LoopedThisFrame = true;
+			app.BeginFrame();
+			app.EndFrame();
+			app.m_LoopedThisFrame = false;
+		}
 	}
 
 	void Window::InitWindow() {
@@ -57,6 +69,8 @@ namespace Bolt {
 		if (m_Resizeable) {
 			glfwSetFramebufferSizeCallback(m_Window, SetWindowResizedCallback);
 		}
+
+		glfwSetWindowRefreshCallback(m_Window, RefreshCallback);
 
 		glfwSwapInterval(SetVsync ? 1 : 0); // V-Sync
 		UpdateWindowSize();

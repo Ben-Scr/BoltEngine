@@ -64,6 +64,7 @@ namespace Bolt {
 		bool ShouldClose() const { return glfwWindowShouldClose(m_Window); }
 		Vec2Int GetScreenCenter() const;
 
+		static void RefreshCallback(GLFWwindow* window);
 		static void SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		static void SetMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 		static void SetCursorPositionCallback(GLFWwindow* window, double xPos, double yPos);

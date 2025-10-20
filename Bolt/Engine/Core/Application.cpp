@@ -7,6 +7,7 @@
 
 namespace Bolt {
 	float Application::s_TargetFramerate = 144;
+	Application* Application::s_Instance = nullptr;
 
 	void Application::Run()
 	{
@@ -14,6 +15,7 @@ namespace Bolt {
 
 		// Main loop
 		while (!m_Window.value().ShouldClose()) {
+			m_LoopedThisFrame = false;
 			using Clock = std::chrono::high_resolution_clock;
 			using Duration = Clock::duration;
 
@@ -50,10 +52,14 @@ namespace Bolt {
 				fixedUpdateAccumulator -= Time::s_FixedDeltaTime;
 			}
 
+			if (m_LoopedThisFrame) continue;
+
 			BeginFrame();
 			EndFrame();
 
 			lastTime = frameStart;
+
+			m_LoopedThisFrame = true;
 		}
 	}
 
