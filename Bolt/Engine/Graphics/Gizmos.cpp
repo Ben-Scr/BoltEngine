@@ -3,7 +3,7 @@
 #include "Camera2D.hpp"
 
 namespace Bolt {
-	std::vector<Box> Gizmos::s_Boxes;
+	std::vector<Square> Gizmos::s_Squares;
 	std::vector<Circle> Gizmos::s_Circles;
 	std::vector<Line> Gizmos::s_Lines;
 	size_t Gizmos::s_MaxVertices = 100000;
@@ -24,7 +24,7 @@ namespace Bolt {
 		s_Circles.emplace_back(Circle{ center,radius,segments, s_Color });
 	}
 
-	void Gizmos::DrawBox(const Vec2& center, const Vec2& scale, float degrees) {
+	void Gizmos::DrawSquare(const Vec2& center, const Vec2& scale, float degrees) {
 		if (!s_IsEnabled || s_RegisteredVertices + k_BoxVertices >= s_MaxVertices)
 			return;
 
@@ -34,7 +34,7 @@ namespace Bolt {
 			return;
 
 		s_RegisteredVertices += k_BoxVertices;
-		s_Boxes.emplace_back(Box{ center, scale / 2.f, Radians<float>(degrees), s_Color });
+		s_Squares.emplace_back(Square{ center, scale / 2.f, Radians<float>(degrees), s_Color });
 	}
 
 	void Gizmos::DrawLine(const Vec2& start, const Vec2& end) {
@@ -50,7 +50,7 @@ namespace Bolt {
 	}
 
 	void Gizmos::Clear() {
-		s_Boxes.clear();
+		s_Squares.clear();
 		s_Lines.clear(); 
 		s_Circles.clear();
 		s_RegisteredVertices = 0; 

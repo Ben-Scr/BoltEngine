@@ -1,6 +1,6 @@
 #pragma once
 
 namespace Bolt {
-    enum  class ShapeType { Box, Circle, Polygon };
+    enum  class ShapeType { Square, Circle, Polygon };
     enum class BodyType { Static, Kinematic, Dynamic };
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "../Graphics/Renderer2D.hpp"
+#include "../Graphics/GizmoRenderer.hpp"
 #include "Window.hpp"
 #include <optional>
 #include "../Physics/PhysicsSystem.hpp"
@@ -28,6 +29,7 @@ namespace Bolt {
 		static Application* s_Instance;
 		std::optional<Window> m_Window;
 		std::optional<Renderer2D> m_Renderer2D;
+		std::optional<GizmoRenderer> m_GizmoRenderer;
 		std::optional<PhysicsSystem> m_PhysicsSystem;
 		static std::shared_ptr<Viewport> s_Viewport;
 		static float s_TargetFramerate;

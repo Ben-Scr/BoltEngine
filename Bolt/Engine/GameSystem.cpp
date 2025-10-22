@@ -22,7 +22,6 @@ namespace Bolt {
 	}
 
 	void GameSystem::Start(Scene& scene) {
-
 		blockTexture = TextureManager::LoadTexture("Assets/Textures/block.png", Filter::Point, Wrap::Clamp, Wrap::Clamp);
 		squareTexture = TextureManager::GetDefaultTexture(DefaultTexture::Square);
 		Entity camEntity = scene.CreateEntity();
@@ -31,6 +30,7 @@ namespace Bolt {
 	}
 
 	void GameSystem::Update(Scene& scene) {
+		Gizmos::DrawSquare(Vec2(0, 0), Vec2(1, 1), 0);
 		Camera2D& camera2D = *Camera2D::Main();
 		Vec2 mousePos = camera2D.ScreenToWorld(Input::MousePosition());
 

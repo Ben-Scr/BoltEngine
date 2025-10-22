@@ -66,25 +66,29 @@ namespace Bolt {
 		}
 	}
 
+
 	void Application::BeginFrame() {
 		CoreInput();
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
+		m_GizmoRenderer.value().BeginFrame();
 	}
 
 	void Application::BeginFixedFrame() {
 		SceneManager::FixedUpdateScenes();
 		m_PhysicsSystem.value().FixedUpdate(Time::GetFixedDeltaTime());
 	}
-	void Application::EndFixedFrame() {
-
-	}
 
 	void Application::EndFrame() {
 		m_Renderer2D.value().EndFrame();
+		m_GizmoRenderer.value().EndFrame();
 		m_Window.value().SwapBuffers();
 		Input::Update();
 		glfwPollEvents();
+	}
+
+	void Application::EndFixedFrame() {
+
 	}
 
 	void Application::CoreInput() {
@@ -113,6 +117,9 @@ namespace Bolt {
 
 		GLInitProperties glInitProps = GLInitProperties(Color::Background(), true, GLCullingModes::GLBack);
 		m_Renderer2D.value().Initialize(glInitProps);
+
+		m_GizmoRenderer.emplace();
+		m_GizmoRenderer.value().Initialize();
 
 		SceneManager::Initialize();
 		m_PhysicsSystem.emplace(PhysicsSystem());

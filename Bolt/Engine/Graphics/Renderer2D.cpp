@@ -66,7 +66,7 @@ namespace Bolt {
 
 		m_SpriteShader.Bind();
 
-		/* Camera Region */
+		/* Camera 2D Region */
 		Camera2D* camera2D = Camera2D::Main();
 		camera2D->UpdateViewport();
 		AABB viewportAABB = camera2D->GetViewportAABB();
@@ -78,7 +78,7 @@ namespace Bolt {
 
 		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
 		m_SpriteShader.SetMVP(vp);
-		/* Camera Region End */
+		/* Camera 2D Region End */
 
 		int renderingSprites = 0;
 
@@ -113,7 +113,9 @@ namespace Bolt {
 			m_QuadMesh.Unbind();
 		}
 
+#if 0
 		Logger::Message("Rendering " + std::to_string(renderingSprites) + " Sprites");
+#endif
 
 		m_SpriteShader.Unbind();
 	}

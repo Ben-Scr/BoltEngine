@@ -157,7 +157,7 @@ namespace Bolt {
 			boxCollider.m_BodyId = PhysicsSystem::GetMainPhysicsWorld().CreateBody(entity, *this, BodyType::Static);
 		}
 
-		boxCollider.m_ShapeId = PhysicsSystem::GetMainPhysicsWorld().CreateShape(entity, *this, boxCollider.m_BodyId, ShapeType::Box);
+		boxCollider.m_ShapeId = PhysicsSystem::GetMainPhysicsWorld().CreateShape(entity, *this, boxCollider.m_BodyId, ShapeType::Square);
 	}
 
 	void Scene::OnBoxCollider2DComponentDestroy(entt::registry& registry, EntityHandle entity) {

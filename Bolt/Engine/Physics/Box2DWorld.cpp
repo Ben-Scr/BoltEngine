@@ -48,7 +48,7 @@ namespace Bolt {
 		shapeDef.material.friction = 0.3f;
 		shapeDef.material.restitution = 0.f;
 
-		if (shapeType == ShapeType::Box) {
+		if (shapeType == ShapeType::Square) {
 
 			b2Polygon b2Polygon = b2MakeBox(0.5f * transform.Scale.x, 0.5f * transform.Scale.y);
 			shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &b2Polygon);

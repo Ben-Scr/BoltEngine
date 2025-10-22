@@ -4,13 +4,13 @@
 #include <memory>
 #include <vector>
 
-namespace bgfx { struct VertexLayout; }
+#include <cstdint>
 
 namespace Bolt {
     class Camera2D;
     struct PosColorVertex;
     class Shader;
-    
+
     struct PosColorVertex { float x, y, z; uint32_t color; };
 
     class GizmoRenderer {
@@ -27,12 +27,14 @@ namespace Bolt {
 
         static bool m_IsInitialized;
         static std::unique_ptr<Shader> m_GizmoShader;
-        static bgfx::VertexLayout m_GizmoLayout;
-
-
         static std::vector<PosColorVertex> m_GizmoVertices;
         static std::vector<uint16_t> m_GizmoIndices;
 
         static uint16_t m_GizmoViewId;
+
+        static unsigned int m_VAO;
+        static unsigned int m_VBO;
+        static unsigned int m_EBO;
+        static int m_uMVP;
     };
 }
