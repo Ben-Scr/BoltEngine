@@ -3,8 +3,8 @@ Gameengine (in development)
 
 ## Screenshots
 <p align="center">
-  <img src="Docs/ScreenShot1.png" width="45%" alt="Screenshot 1">
-  <img src="Docs/ScreenShot1.png.png" width="45%" alt="Screenshot 2">
+  <img src="Bolt/Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 1">
+  <img src="Bolt/Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 2">
 </p>
 
 ## External Libraries / API's
