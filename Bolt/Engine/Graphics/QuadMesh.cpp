@@ -1,51 +1,76 @@
 #include "../pch.hpp"
 #include "QuadMesh.hpp"
+#include <glad/glad.h>
 
 namespace Bolt {
+    namespace {
+        struct V2UV {
+            float x, y;
+            float u, v;
+        };
 
-	//struct PosTexVertexLocal { float x, y, z; float u, v; };
+        constexpr V2UV QUAD_VERTICES[4] = {
+            {-0.5f, -0.5f, 0.0f, 0.0f},
+            { 0.5f, -0.5f, 1.0f, 0.0f},
+            { 0.5f,  0.5f, 1.0f, 1.0f},
+            {-0.5f,  0.5f, 0.0f, 1.0f},
+        };
 
+        constexpr unsigned short QUAD_INDICES[6] = { 0, 1, 2, 0, 2, 3 };
+    }
 
-	//static const PosTexVertexLocal s_UnitQuad[4] = {
-	//{ -0.5f, 0.5f, 0.0f, 0.0f, 0.0f }, 
-	//{ -0.5f, -0.5f, 0.0f, 0.0f, 1.0f }, 
-	//{ 0.5f, -0.5f, 0.0f, 1.0f, 1.0f }, 
-	//{ 0.5f, 0.5f, 0.0f, 1.0f, 0.0f }, 
-	//};
+    void QuadMesh::Initialize() {
+        if (m_VAO != 0) {
+            return;
+        }
 
+        glGenVertexArrays(1, &m_VAO);
+        glGenBuffers(1, &m_VBO);
+        glGenBuffers(1, &m_EBO);
 
-	//static const uint16_t s_Indices[6] = { 0,1,3, 3,1,2 };
+        glBindVertexArray(m_VAO);
 
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(QUAD_VERTICES), QUAD_VERTICES, GL_STATIC_DRAW);
 
-	//bool QuadMesh::Init(const bgfx::VertexLayout& layout) {
-	//	if (bgfx::isValid(m_VB) || bgfx::isValid(m_IB)) return true;
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(QUAD_INDICES), QUAD_INDICES, GL_STATIC_DRAW);
 
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(V2UV), reinterpret_cast<void*>(offsetof(V2UV, x)));
 
-	//	m_VB = bgfx::createVertexBuffer(
-	//		bgfx::makeRef(s_UnitQuad, sizeof(s_UnitQuad)),
-	//		layout
-	//	);
-	//	if (!bgfx::isValid(m_VB)) {
-	//		Logger::Error( "[QuadMesh] Failed to create vertex buffer\n");
-	//		return false;
-	//	}
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(V2UV), reinterpret_cast<void*>(offsetof(V2UV, u)));
 
+        glDisableVertexAttribArray(2);
 
-	//	m_IB = bgfx::createIndexBuffer(bgfx::makeRef(s_Indices, sizeof(s_Indices)));
-	//	if (!bgfx::isValid(m_IB)) {
-	//		Logger::Error("[QuadMesh] Failed to create index buffer\n");
-	//		bgfx::destroy(m_VB);
-	//		m_VB = BGFX_INVALID_HANDLE;
-	//		return false;
-	//	}
+        glBindVertexArray(0);
+    }
 
+    void QuadMesh::Bind() const {
+        glBindVertexArray(m_VAO);
+    }
 
-	//	return true;
-	//}
+    void QuadMesh::Unbind() const {
+        glBindVertexArray(0);
+    }
 
+    void QuadMesh::Draw() const {
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
+    }
 
-	//void QuadMesh::Shutdown() {
-	//	if (bgfx::isValid(m_VB)) { bgfx::destroy(m_VB); m_VB = BGFX_INVALID_HANDLE; }
-	//	if (bgfx::isValid(m_IB)) { bgfx::destroy(m_IB); m_IB = BGFX_INVALID_HANDLE; }
-	//}
+    void QuadMesh::Shutdown() {
+        if (m_EBO) {
+            glDeleteBuffers(1, &m_EBO);
+            m_EBO = 0;
+        }
+        if (m_VBO) {
+            glDeleteBuffers(1, &m_VBO);
+            m_VBO = 0;
+        }
+        if (m_VAO) {
+            glDeleteVertexArrays(1, &m_VAO);
+            m_VAO = 0;
+        }
+    }
 }

@@ -187,6 +187,7 @@
     <ClCompile Include="Engine\Graphics\Renderer2D.cpp" />
     <ClCompile Include="Engine\Graphics\RenderResources.cpp" />
     <ClCompile Include="Engine\Graphics\Shader.cpp" />
+    <ClCompile Include="Engine\Graphics\SpriteShaderProgram.cpp" />
     <ClCompile Include="Engine\Graphics\Texture2D.cpp" />
     <ClCompile Include="Engine\Graphics\TextureManager.cpp" />
     <ClCompile Include="Engine\main.cpp">
@@ -252,6 +253,7 @@
     <ClInclude Include="Engine\Graphics\Renderer2D.hpp" />
     <ClInclude Include="Engine\Graphics\RenderResources.hpp" />
     <ClInclude Include="Engine\Graphics\Shader.hpp" />
+    <ClInclude Include="Engine\Graphics\SpriteShaderProgram.hpp" />
     <ClInclude Include="Engine\Graphics\Texture2D.hpp" />
     <ClInclude Include="Engine\Graphics\TextureHandle.hpp" />
     <ClInclude Include="Engine\Graphics\TextureManager.hpp" />

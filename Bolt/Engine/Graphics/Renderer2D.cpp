@@ -35,70 +35,15 @@ namespace Bolt {
 			glDisable(GL_CULL_FACE);
 		}
 
-		m_Sprite2DShader.emplace(Shader{ "Assets/Shader/sprite2d.vert.glsl", "Assets/Shader/sprite2d.frag.glsl" });
-
-
-		struct V2UV { float x, y, u, v; };
-		const V2UV verts[4] = {
-			{-0.5f, -0.5f, 0.0f, 0.0f},
-			{ 0.5f, -0.5f, 1.0f, 0.0f},
-			{ 0.5f,  0.5f, 1.0f, 1.0f},
-			{-0.5f,  0.5f, 0.0f, 1.0f},
-		};
-		const unsigned short idx[6] = { 0,1,2, 0,2,3 };
-
-		glGenVertexArrays(1, &m_VAO);
-		glGenBuffers(1, &m_VBO);
-		glGenBuffers(1, &m_EBO);
-
-		glBindVertexArray(m_VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
-
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(V2UV), (void*)offsetof(V2UV, x));
-
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(V2UV), (void*)offsetof(V2UV, u));
-
-
-		glDisableVertexAttribArray(2);
-
-		glBindVertexArray(0);
-
-		if (!m_Sprite2DShader.value().IsValid()) {
+		m_QuadMesh.Initialize();
+		m_SpriteShader.Initialize();
+		if (!m_SpriteShader.IsValid()) {
 			Logger::Error("[Renderer2D] Sprite shader invalid.");
 			return;
 		}
-
-		glUseProgram(m_Sprite2DShader.value().GetHandle());
-		u_MVP = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uMVP");
-		u_spritePos = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uSpritePos");
-		u_Scale = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uScale");
-		u_Rotation = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uRotation");
-		u_UVOffset = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uUVOffset");
-		u_UVScale = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uUVScale");
-		u_PremultipliedAlpha = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uPremultipliedAlpha");
-		u_AlphaCutoff = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uAlphaCutoff");
-
-
-		int locTex = glGetUniformLocation(m_Sprite2DShader.value().GetHandle(), "uTexture");
-		if (locTex >= 0) glUniform1i(locTex, 0);
-
-		// Default values
-		if (u_UVOffset >= 0) glUniform2f(u_UVOffset, 0.0f, 0.0f);
-		if (u_UVScale >= 0) glUniform2f(u_UVScale, 1.0f, 1.0f);
-		if (u_PremultipliedAlpha >= 0) glUniform1i(u_PremultipliedAlpha, 0);
-		if (u_AlphaCutoff >= 0) glUniform1f(u_AlphaCutoff, 0.0f);
-
-		glUseProgram(0);
 	}
 
 	void Renderer2D::BeginFrame() {
-		GLFWwindow* win = glfwGetCurrentContext();
 		glClear(GL_COLOR_BUFFER_BIT);
 		RenderScenes();
 	}
@@ -114,16 +59,17 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScene(Scene& scene) {
-		if (!m_Sprite2DShader.value().IsValid()) {
+		if (!m_SpriteShader.IsValid()) {
 			Logger::Error("Shader", "Invalid Sprite 2D Shader");
 			return;
 		}
 
-		m_Sprite2DShader.value().Submit(0);
+		m_SpriteShader.Bind();
 
 		/* Camera Region */
 		Camera2D* camera2D = Camera2D::Main();
 		camera2D->UpdateViewport();
+		AABB viewportAABB = camera2D->GetViewportAABB();
 
 		if (camera2D == nullptr) {
 			Logger::Error("Camera 2D", "There is no main camera");
@@ -131,19 +77,21 @@ namespace Bolt {
 		}
 
 		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
-		if (u_MVP >= 0) glUniformMatrix4fv(u_MVP, 1, GL_FALSE, glm::value_ptr(vp));
+		m_SpriteShader.SetMVP(vp);
 		/* Camera Region End */
 
+		int renderingSprites = 0;
+
 		for (const auto& [ent, tr, spriteRenderer] : scene.GetRegistry().view<Transform2D, SpriteRenderer>().each()) {
-			if (u_spritePos >= 0) glUniform2f(u_spritePos, tr.Position.x, tr.Position.y);
-			if (u_Scale >= 0) glUniform2f(u_Scale, tr.Scale.x, tr.Scale.y);
-			if (u_Rotation >= 0) glUniform1f(u_Rotation, tr.Rotation);
+			if (!AABB::Intersects(viewportAABB, AABB::FromTransform(tr)))
+				continue;
 
+			renderingSprites++;
 
-			glVertexAttrib4f(2, spriteRenderer.Color.r, spriteRenderer.Color.g, spriteRenderer.Color.b, spriteRenderer.Color.a);
-
-			if (u_UVOffset >= 0) glUniform2f(u_UVOffset, 0, 0);
-			if (u_UVScale >= 0) glUniform2f(u_UVScale, 1, 1);
+			m_SpriteShader.SetSpritePosition(tr.Position);
+			m_SpriteShader.SetScale(tr.Scale);
+			m_SpriteShader.SetRotation(tr.Rotation);
+			m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
 
 			glActiveTexture(GL_TEXTURE0);
 			Texture2D& texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
@@ -151,7 +99,7 @@ namespace Bolt {
 
 
 			if (texture.IsValid())
-				texture.Submit(0);           // bindet GL_TEXTURE_2D
+				texture.Submit(0);
 
 			else
 			{
@@ -159,19 +107,19 @@ namespace Bolt {
 			}
 
 
-			glBindVertexArray(m_VAO);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-			glBindVertexArray(0);
+			m_QuadMesh.Bind();
+			m_SpriteShader.SetVertexColor(spriteRenderer.Color);
+			m_QuadMesh.Draw();
+			m_QuadMesh.Unbind();
 		}
 
+		Logger::Message("Rendering " + std::to_string(renderingSprites) + " Sprites");
 
-		glUseProgram(0);
+		m_SpriteShader.Unbind();
 	}
 
 	void Renderer2D::Shutdown() {
-		if (m_EBO) { glDeleteBuffers(1, &m_EBO); m_EBO = 0; }
-		if (m_VBO) { glDeleteBuffers(1, &m_VBO); m_VBO = 0; }
-		if (m_VAO) { glDeleteVertexArrays(1, &m_VAO); m_VAO = 0; }
-		if (m_VAO) { glDeleteVertexArrays(1, &m_VAO); m_VAO = 0; }
+		m_QuadMesh.Shutdown();
+		m_SpriteShader.Shutdown();
 	}
 }

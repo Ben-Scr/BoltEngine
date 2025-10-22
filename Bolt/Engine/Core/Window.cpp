@@ -21,14 +21,16 @@ namespace Bolt {
 	}
 
 	void Window::RefreshCallback(GLFWwindow* window) {
-		auto & app = Application::Instance();
+		auto& app = Application::Instance();
 
-		if (!app.m_LoopedThisFrame) {
-			app.m_LoopedThisFrame = true;
-			app.BeginFrame();
-			app.EndFrame();
-			app.m_LoopedThisFrame = false;
+		static bool isFirst = false;
+		if (!isFirst) {
+			isFirst = true;
+			return;
 		}
+
+		app.m_Renderer2D.value().BeginFrame();
+		app.m_Window.value().SwapBuffers();
 	}
 
 	void Window::InitWindow() {

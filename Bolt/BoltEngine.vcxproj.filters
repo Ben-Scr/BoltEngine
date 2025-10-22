@@ -222,6 +222,9 @@
     <ClCompile Include="Engine\Core\Time.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Graphics\SpriteShaderProgram.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\pch.hpp">
@@ -564,6 +567,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Bolt.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Graphics\SpriteShaderProgram.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

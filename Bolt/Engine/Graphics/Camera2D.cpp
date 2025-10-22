@@ -20,6 +20,7 @@ namespace Bolt {
 		m_ViewportHeight = vp.Height;
 
 		UpdateProj();
+		UpdateViewportAABB();
 	}
 
 	glm::mat4 Camera2D::GetViewProjectionMatrix() const {

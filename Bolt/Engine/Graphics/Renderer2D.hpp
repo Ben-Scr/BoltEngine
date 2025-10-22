@@ -5,6 +5,8 @@
 
 
 #include "Texture2D.hpp"
+#include "QuadMesh.hpp"
+#include "SpriteShaderProgram.hpp"
 #include "Shader.hpp"
 #include <cstdint>
 #include <optional>
@@ -46,10 +48,7 @@ namespace Bolt {
     private:
         void Shutdown();
 
-        unsigned m_VAO{ 0 }, m_VBO{ 0 }, m_EBO{ 0 };
-        int u_MVP{ -1 }, u_spritePos{ -1 }, u_Scale{ -1 }, u_Rotation{ -1 };
-        int u_UVOffset{ -1 }, u_UVScale{ -1 }, u_PremultipliedAlpha{ -1 }, u_AlphaCutoff{ -1 };
-
-        std::optional<Shader> m_Sprite2DShader;
+        QuadMesh m_QuadMesh;
+        SpriteShaderProgram m_SpriteShader;
     };
 }
