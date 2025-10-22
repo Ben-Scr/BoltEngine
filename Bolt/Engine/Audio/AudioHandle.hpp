@@ -8,7 +8,7 @@ namespace Bolt {
         static constexpr HandleType INVALID_HANDLE = 0;
 
         AudioHandle() : m_handle(INVALID_HANDLE) {}
-        explicit AudioHandle(HandleType handle) : m_handle(handle) {}
+        explicit AudioHandle(HandleType blockTexture) : m_handle(blockTexture) {}
 
         bool IsValid() const { return m_handle != INVALID_HANDLE; }
         HandleType GetHandle() const { return m_handle; }

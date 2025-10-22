@@ -70,24 +70,24 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LibraryPath>C:\Users\benso\source\repos\Bolt\External\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>C:\Users\benso\source\repos\Bolt\External\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LibraryPath>C:\Users\benso\source\repos\Bolt\External\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>C:\Users\benso\source\repos\Bolt\External\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>C:\Users\benso\source\repos\Bolt\External\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>C:\Users\benso\source\repos\Bolt\External\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>C:\Users\benso\source\repos\Bolt\External\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>C:\Users\benso\source\repos\Bolt\External\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

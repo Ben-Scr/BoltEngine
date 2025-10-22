@@ -48,16 +48,16 @@ namespace Bolt {
 
             static TextureHandle LoadTexture(const std::string& path, Filter filter = Filter::Point, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
             static TextureHandle GetDefaultTexture(DefaultTexture type);
-            static void UnloadTexture(TextureHandle handle);
+            static void UnloadTexture(TextureHandle blockTexture);
             static TextureHandle GetTextureHandle(const std::string& name);
-            static Texture2D& GetTexture(TextureHandle handle);
+            static Texture2D& GetTexture(TextureHandle blockTexture);
             static std::vector<TextureHandle> GetLoadedHandles();
             static void UnloadAll(bool defaultTextures = false);
 
-            static bool IsValid(TextureHandle handle) {
-                return handle.index < s_Textures.size() &&
-                    s_Textures[handle.index].IsValid &&
-                    s_Textures[handle.index].Generation == handle.generation;
+            static bool IsValid(TextureHandle blockTexture) {
+                return blockTexture.index < s_Textures.size() &&
+                    s_Textures[blockTexture.index].IsValid &&
+                    s_Textures[blockTexture.index].Generation == blockTexture.generation;
             }
 
         private:

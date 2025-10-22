@@ -89,29 +89,29 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::PlayOneShotLimited(const AudioHandle& handle, float volume, float priority) {
-		if (!s_IsInitialized || !handle.IsValid()) {
+	void AudioManager::PlayOneShotLimited(const AudioHandle& blockTexture, float volume, float priority) {
+		if (!s_IsInitialized || !blockTexture.IsValid()) {
 			return;
 		}
 
-		if (!CanPlaySound(handle, priority)) {
+		if (!CanPlaySound(blockTexture, priority)) {
 			return;
 		}
 
 
-		if (IsThrottled(handle)) {
+		if (IsThrottled(blockTexture)) {
 			return;
 		}
 
 
 		if (s_soundsPlayedThisFrame < s_maxSoundsPerFrame && s_activeSoundCount < s_maxConcurrentSounds) {
-			PlayOneShot(handle, volume);
+			PlayOneShot(blockTexture, volume);
 			s_soundsPlayedThisFrame++;
-			ThrottleSound(handle);
+			ThrottleSound(blockTexture);
 		}
 		else {
 			SoundRequest request;
-			request.Handle = handle;
+			request.Handle = blockTexture;
 			request.Volume = volume;
 			request.Priority = priority;
 			request.Is3D = false;
@@ -121,24 +121,24 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::PlayOneShotAtPositionLimited(const AudioHandle& handle, const glm::vec3& position,
+	void AudioManager::PlayOneShotAtPositionLimited(const AudioHandle& blockTexture, const glm::vec3& position,
 		float volume, float priority) {
-		if (!s_IsInitialized || !handle.IsValid()) {
+		if (!s_IsInitialized || !blockTexture.IsValid()) {
 			return;
 		}
 
-		if (!CanPlaySound(handle, priority) || IsThrottled(handle)) {
+		if (!CanPlaySound(blockTexture, priority) || IsThrottled(blockTexture)) {
 			return;
 		}
 
 		if (s_soundsPlayedThisFrame < s_maxSoundsPerFrame && s_activeSoundCount < s_maxConcurrentSounds) {
-			PlayOneShotAtPosition(handle, position, volume);
+			PlayOneShotAtPosition(blockTexture, position, volume);
 			s_soundsPlayedThisFrame++;
-			ThrottleSound(handle);
+			ThrottleSound(blockTexture);
 		}
 		else {
 			SoundRequest request;
-			request.Handle = handle;
+			request.Handle = blockTexture;
 			request.Volume = volume;
 			request.Priority = priority;
 			request.Position = position;
@@ -150,15 +150,15 @@ namespace Bolt {
 	}
 
 	void AudioManager::PlayBatchOneShots(const std::vector<std::pair<AudioHandle, float>>& sounds) {
-		for (const auto& [handle, volume] : sounds) {
+		for (const auto& [blockTexture, volume] : sounds) {
 			if (s_soundsPlayedThisFrame >= s_maxSoundsPerFrame) {
 				break; 
 			}
-			PlayOneShotLimited(handle, volume, 1.0f);
+			PlayOneShotLimited(blockTexture, volume, 1.0f);
 		}
 	}
 
-	bool AudioManager::CanPlaySound(const AudioHandle& handle, float priority) {
+	bool AudioManager::CanPlaySound(const AudioHandle& blockTexture, float priority) {
 		if (priority >= 2.0f) {
 			return true;
 		}
@@ -213,14 +213,14 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::ThrottleSound(const AudioHandle& handle) {
-		auto& limitData = s_soundLimits[handle.GetHandle()];
+	void AudioManager::ThrottleSound(const AudioHandle& blockTexture) {
+		auto& limitData = s_soundLimits[blockTexture.GetHandle()];
 		limitData.LastPlayTime = std::chrono::steady_clock::now();
 		limitData.FramePlayCount++;
 	}
 
-	bool AudioManager::IsThrottled(const AudioHandle& handle) {
-		auto it = s_soundLimits.find(handle.GetHandle());
+	bool AudioManager::IsThrottled(const AudioHandle& blockTexture) {
+		auto it = s_soundLimits.find(blockTexture.GetHandle());
 		if (it == s_soundLimits.end()) {
 			return false;
 		}
@@ -257,21 +257,21 @@ namespace Bolt {
 			return AudioHandle();
 		}
 
-		AudioHandle::HandleType handle = GenerateHandle();
-		s_audioMap[handle] = std::move(audio);
-		return AudioHandle(handle);
+		AudioHandle::HandleType blockTexture = GenerateHandle();
+		s_audioMap[blockTexture] = std::move(audio);
+		return AudioHandle(blockTexture);
 	}
 
-	void AudioManager::UnloadAudio(const AudioHandle& handle) {
-		if (!handle.IsValid()) {
+	void AudioManager::UnloadAudio(const AudioHandle& blockTexture) {
+		if (!blockTexture.IsValid()) {
 			return;
 		}
 
-		auto it = s_audioMap.find(handle.GetHandle());
+		auto it = s_audioMap.find(blockTexture.GetHandle());
 		if (it != s_audioMap.end()) {
 
 			for (auto& instance : s_soundInstances) {
-				if (instance.IsValid && instance.AudioHandle == handle) {
+				if (instance.IsValid && instance.AudioHandle == blockTexture) {
 					ma_sound_stop(&instance.Sound);
 					ma_sound_uninit(&instance.Sound);
 					instance.IsValid = false;
@@ -410,12 +410,12 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::PlayOneShot(const AudioHandle& handle, float volume) {
-		if (!s_IsInitialized || !handle.IsValid()) {
+	void AudioManager::PlayOneShot(const AudioHandle& blockTexture, float volume) {
+		if (!s_IsInitialized || !blockTexture.IsValid()) {
 			return;
 		}
 
-		const Audio* audio = GetAudio(handle);
+		const Audio* audio = GetAudio(blockTexture);
 		if (!audio) {
 			return;
 		}
@@ -435,12 +435,12 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::PlayOneShotAtPosition(const AudioHandle& handle, const glm::vec3& position, float volume) {
-		if (!s_IsInitialized || !handle.IsValid()) {
+	void AudioManager::PlayOneShotAtPosition(const AudioHandle& blockTexture, const glm::vec3& position, float volume) {
+		if (!s_IsInitialized || !blockTexture.IsValid()) {
 			return;
 		}
 
-		const Audio* audio = GetAudio(handle);
+		const Audio* audio = GetAudio(blockTexture);
 		if (!audio) {
 			return;
 		}
@@ -459,20 +459,20 @@ namespace Bolt {
 		}
 	}
 
-	bool AudioManager::IsAudioLoaded(const AudioHandle& handle) {
-		if (!handle.IsValid()) {
+	bool AudioManager::IsAudioLoaded(const AudioHandle& blockTexture) {
+		if (!blockTexture.IsValid()) {
 			return false;
 		}
 
-		return s_audioMap.find(handle.GetHandle()) != s_audioMap.end();
+		return s_audioMap.find(blockTexture.GetHandle()) != s_audioMap.end();
 	}
 
-	const Audio* AudioManager::GetAudio(const AudioHandle& handle) {
-		if (!handle.IsValid()) {
+	const Audio* AudioManager::GetAudio(const AudioHandle& blockTexture) {
+		if (!blockTexture.IsValid()) {
 			return nullptr;
 		}
 
-		auto it = s_audioMap.find(handle.GetHandle());
+		auto it = s_audioMap.find(blockTexture.GetHandle());
 		return (it != s_audioMap.end()) ? it->second.get() : nullptr;
 	}
 

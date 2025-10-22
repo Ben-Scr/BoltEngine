@@ -2,13 +2,14 @@
 #include "GameSystem.hpp"
 
 namespace Bolt {
-	TextureHandle handle;
+	TextureHandle blockTexture;
+	TextureHandle squareTexture;
 
 	void GameSystem::Awake(Scene& scene) {
 		TextureManager::Initialize();
 	}
 
-	void CreateEntity(Scene& scene,Transform2D transform, TextureHandle tex, BodyType bodyType = BodyType::Dynamic) {
+	void CreateEntity(Scene& scene,Transform2D transform, TextureHandle tex, BodyType bodyType = BodyType::Dynamic, Color color = Color::White()) {
 		Entity entity = scene.CreateRenderableEntity();
 		entity.GetComponent<Transform2D>() = transform;
 		auto& collider = entity.AddComponent<BoxCollider2D>();
@@ -22,10 +23,11 @@ namespace Bolt {
 
 	void GameSystem::Start(Scene& scene) {
 
-		handle = TextureManager::LoadTexture("Assets/Textures/block.png", Filter::Point, Wrap::Clamp, Wrap::Clamp);
+		blockTexture = TextureManager::LoadTexture("Assets/Textures/block.png", Filter::Point, Wrap::Clamp, Wrap::Clamp);
+		squareTexture = TextureManager::GetDefaultTexture(DefaultTexture::Square);
 		Entity camEntity = scene.CreateEntity();
 		Camera2D& camera2D = camEntity.AddComponent<Camera2D>();
-		CreateEntity(scene, Transform2D::FromPosition(Vec2(0, -1)), handle, BodyType::Static);
+		CreateEntity(scene, Transform2D(Vec2(0, -1), Vec2(100, 1), 0), squareTexture, BodyType::Static, Color(1, 0, 0, 1));
 	}
 
 	void GameSystem::Update(Scene& scene) {
@@ -33,7 +35,7 @@ namespace Bolt {
 		Vec2 mousePos = camera2D.ScreenToWorld(Input::MousePosition());
 
 		if (Input::GetKeyDown(KeyCode::E)) {
-			CreateEntity(scene,Transform2D::FromPosition(mousePos), handle);
+			CreateEntity(scene,Transform2D(mousePos), blockTexture);
 		}
 
 		if (Input::GetMouse(1)) {

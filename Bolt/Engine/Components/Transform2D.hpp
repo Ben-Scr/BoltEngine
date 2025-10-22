@@ -7,14 +7,14 @@ namespace Bolt {
 	class Transform2D {
     public:
 		Vec2 Position{ 0.0f, 0.0f };
-		float Rotation{ 0.0f };   // Note: Rotation angle in radians
 		Vec2 Scale{ 1.0f, 1.0f };
+        float Rotation{ 0.0f };   // Note: Rotation angle in radians
 
 
 		Transform2D() = default;
         Transform2D(const Vec2& position) : Position{ position } {};
         Transform2D(const Vec2& position, float rotation) : Position{ position }, Rotation{ rotation } {};
-        Transform2D(const Vec2& position, float rotation, const Vec2& scale) : Position{ position }, Rotation{ rotation }, Scale{scale} {};
+        Transform2D(const Vec2& position, const Vec2& scale, float rotation) : Position{ position }, Scale{scale}, Rotation{ rotation } {};
 
         static Transform2D FromPosition(const Vec2& pos);
         static Transform2D FromScale(const Vec2& scale);
@@ -55,7 +55,7 @@ namespace Bolt {
 
 
         Transform2D operator*(float scalar) const {
-            return Transform2D(Position * scalar, Rotation * scalar, Scale * scalar);
+            return Transform2D(Position * scalar, Scale * scalar, Rotation * scalar);
         }
         Transform2D& operator*=(float scalar) {
             Position *= scalar;

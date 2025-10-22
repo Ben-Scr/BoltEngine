@@ -22,7 +22,7 @@ namespace Bolt {
 
 
 		static AudioHandle LoadAudio(const std::string& filepath);
-		static void UnloadAudio(const AudioHandle& handle);
+		static void UnloadAudio(const AudioHandle& blockTexture);
 		static void UnloadAllAudio();
 
 
@@ -39,12 +39,12 @@ namespace Bolt {
 		static float GetMasterVolume() { return s_masterVolume; }
 
 
-		static void PlayOneShot(const AudioHandle& handle, float volume = 1.0f);
-		static void PlayOneShotAtPosition(const AudioHandle& handle, const glm::vec3& position, float volume = 1.0f);
+		static void PlayOneShot(const AudioHandle& blockTexture, float volume = 1.0f);
+		static void PlayOneShotAtPosition(const AudioHandle& blockTexture, const glm::vec3& position, float volume = 1.0f);
 
 
-		static void PlayOneShotLimited(const AudioHandle& handle, float volume = 1.0f, float priority = 1.0f);
-		static void PlayOneShotAtPositionLimited(const AudioHandle& handle, const glm::vec3& position,
+		static void PlayOneShotLimited(const AudioHandle& blockTexture, float volume = 1.0f, float priority = 1.0f);
+		static void PlayOneShotAtPositionLimited(const AudioHandle& blockTexture, const glm::vec3& position,
 			float volume = 1.0f, float priority = 1.0f);
 
 
@@ -56,8 +56,8 @@ namespace Bolt {
 		static uint32_t GetActiveSoundCount();
 
 
-		static bool IsAudioLoaded(const AudioHandle& handle);
-		static const Audio* GetAudio(const AudioHandle& handle);
+		static bool IsAudioLoaded(const AudioHandle& blockTexture);
+		static const Audio* GetAudio(const AudioHandle& blockTexture);
 
 
 		struct SoundInstance {
@@ -108,10 +108,10 @@ namespace Bolt {
 		static std::unordered_map<AudioHandle::HandleType, SoundLimitData> s_soundLimits;
 
 
-		static bool CanPlaySound(const AudioHandle& handle, float priority);
+		static bool CanPlaySound(const AudioHandle& blockTexture, float priority);
 		static void ProcessSoundQueue();
-		static void ThrottleSound(const AudioHandle& handle);
-		static bool IsThrottled(const AudioHandle& handle);
+		static void ThrottleSound(const AudioHandle& blockTexture);
+		static bool IsThrottled(const AudioHandle& blockTexture);
 
 
 		static std::unordered_map<AudioHandle::HandleType, std::unique_ptr<Audio>> s_audioMap;

@@ -28,24 +28,24 @@ namespace Bolt {
 		}
 		template<typename TComponent, typename... Args>
 			requires (!std::is_empty_v<TComponent>)
-		TComponent& AddComponent(EntityHandle handle, Args&&... args) {
-			return ComponentUtils::AddComponent<TComponent>(m_Registry, handle, std::forward<Args>(args)...);
+		TComponent& AddComponent(EntityHandle blockTexture, Args&&... args) {
+			return ComponentUtils::AddComponent<TComponent>(m_Registry, blockTexture, std::forward<Args>(args)...);
 		}
 
 		template<typename TTag>
 			requires std::is_empty_v<TTag>
-		void AddComponent(EntityHandle handle) {
-			ComponentUtils::AddComponent<TTag>(m_Registry, handle);
+		void AddComponent(EntityHandle blockTexture) {
+			ComponentUtils::AddComponent<TTag>(m_Registry, blockTexture);
 		}
 
 		template<typename TComponent>
-		bool HasComponent(EntityHandle handle) const {
-			return ComponentUtils::HasComponent<TComponent>(m_Registry, handle);
+		bool HasComponent(EntityHandle blockTexture) const {
+			return ComponentUtils::HasComponent<TComponent>(m_Registry, blockTexture);
 		}
 
 		template<typename... TComponent>
-		bool HasAnyComponent(EntityHandle handle) const {
-			return ComponentUtils::HasAnyComponent<TComponent...>(m_Registry, handle);
+		bool HasAnyComponent(EntityHandle blockTexture) const {
+			return ComponentUtils::HasAnyComponent<TComponent...>(m_Registry, blockTexture);
 		}
 
 		template<typename... TComponent, typename... TEntity>
@@ -54,24 +54,24 @@ namespace Bolt {
 		}
 
 		template<typename TComponent>
-		TComponent& GetComponent(EntityHandle handle) {
-			return ComponentUtils::GetComponent<TComponent>(m_Registry, handle);
+		TComponent& GetComponent(EntityHandle blockTexture) {
+			return ComponentUtils::GetComponent<TComponent>(m_Registry, blockTexture);
 		}
 
 		template<typename TComponent>
-		const TComponent& GetComponent(EntityHandle handle) const {
-			return ComponentUtils::GetComponent<TComponent>(m_Registry, handle);
+		const TComponent& GetComponent(EntityHandle blockTexture) const {
+			return ComponentUtils::GetComponent<TComponent>(m_Registry, blockTexture);
 		}
 
 		template<typename TComponent>
-		bool TryGetComponent(EntityHandle handle, TComponent*& out) {
-			out = ComponentUtils::TryGetComponent<TComponent>(m_Registry, handle);
+		bool TryGetComponent(EntityHandle blockTexture, TComponent*& out) {
+			out = ComponentUtils::TryGetComponent<TComponent>(m_Registry, blockTexture);
 			return out != nullptr;
 		}
 
 		template<typename TComponent>
-		void removeComponent(EntityHandle handle) {
-			ComponentUtils::RemoveComponent<TComponent>(m_Registry, handle);
+		void removeComponent(EntityHandle blockTexture) {
+			ComponentUtils::RemoveComponent<TComponent>(m_Registry, blockTexture);
 		}
 
 		template<typename TComponent>

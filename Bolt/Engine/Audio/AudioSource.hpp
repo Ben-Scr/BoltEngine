@@ -25,7 +25,7 @@ namespace Bolt {
 		void SetMinDistance(float distance);
 		void SetMaxDistance(float distance);
 		void SetAttenuationModel(int model);
-		void SetAudioHandle(const AudioHandle& handle);
+		void SetAudioHandle(const AudioHandle& blockTexture);
 
 	    void PlayOneShot();
 		void FadeIn(float duration);

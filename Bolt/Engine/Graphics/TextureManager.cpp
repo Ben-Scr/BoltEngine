@@ -112,20 +112,20 @@ namespace Bolt {
         return TextureHandle(static_cast<uint16_t>(index), s_Textures[index].Generation);
     }
 
-    void TextureManager::UnloadTexture(TextureHandle handle) {
-        if (handle.index >= s_Textures.size()) {
-            Logger::Warning("Invalid texture handle index: " + std::to_string(handle.index));
+    void TextureManager::UnloadTexture(TextureHandle blockTexture) {
+        if (blockTexture.index >= s_Textures.size()) {
+            Logger::Warning("Invalid texture handle index: " + std::to_string(blockTexture.index));
             return;
         }
 
-        TextureEntry& entry = s_Textures[handle.index];
+        TextureEntry& entry = s_Textures[blockTexture.index];
 
-        if (!entry.IsValid || entry.Generation != handle.generation) {
+        if (!entry.IsValid || entry.Generation != blockTexture.generation) {
             Logger::Warning("Texture handle is outdated or invalid");
             return;
         }
 
-        if (handle.index < s_DefaultTextures.size()) {
+        if (blockTexture.index < s_DefaultTextures.size()) {
             Logger::Warning("Cannot unload default texture");
             return;
         }
@@ -133,17 +133,17 @@ namespace Bolt {
         entry.Texture.Destroy();
         entry.IsValid = false;
         entry.Name.clear();
-        s_FreeIndices.push(handle.index);
+        s_FreeIndices.push(blockTexture.index);
     }
 
     TextureHandle TextureManager::GetTextureHandle(const std::string& name) {
-        auto handle = FindTextureByPath(name);
+        auto blockTexture = FindTextureByPath(name);
 
-        if (handle.index == kInvalidIndex) {
+        if (blockTexture.index == kInvalidIndex) {
             throw std::runtime_error("Texture with name " + name + " doesn't exist.");
         }
 
-        return handle;
+        return blockTexture;
     }
 
     std::vector<TextureHandle> TextureManager::GetLoadedHandles() {
@@ -159,24 +159,24 @@ namespace Bolt {
         return handles;
     }
 
-    Texture2D& TextureManager::GetTexture(TextureHandle handle) {
-        if (handle.index >= s_Textures.size()) {
+    Texture2D& TextureManager::GetTexture(TextureHandle blockTexture) {
+        if (blockTexture.index >= s_Textures.size()) {
             throw std::runtime_error(
-                "TextureHandle index " + std::to_string(handle.index) +
+                "TextureHandle index " + std::to_string(blockTexture.index) +
                 " out of range (max: " + std::to_string(s_Textures.size() - 1) + ")"
             );
         }
 
-        TextureEntry& entry = s_Textures[handle.index];
+        TextureEntry& entry = s_Textures[blockTexture.index];
 
         if (!entry.IsValid) {
-            throw std::runtime_error("Texture at index " + std::to_string(handle.index) + " is not valid");
+            throw std::runtime_error("Texture at index " + std::to_string(blockTexture.index) + " is not valid");
         }
 
-        if (entry.Generation != handle.generation) {
+        if (entry.Generation != blockTexture.generation) {
             throw std::runtime_error(
                 "Invalid texture entry: entry generation " + std::to_string(entry.Generation) +
-                " != handle generation " + std::to_string(handle.generation)
+                " != handle generation " + std::to_string(blockTexture.generation)
             );
         }
 
