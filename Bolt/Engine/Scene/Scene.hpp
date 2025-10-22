@@ -70,7 +70,7 @@ namespace Bolt {
 		}
 
 		template<typename TComponent>
-		void removeComponent(EntityHandle blockTexture) {
+		void RemoveComponent(EntityHandle blockTexture) {
 			ComponentUtils::RemoveComponent<TComponent>(m_Registry, blockTexture);
 		}
 
@@ -181,7 +181,7 @@ namespace Bolt {
 		const SceneDefinition* GetDefinition() const { return m_Definition; }
 
 	private:
-		Scene(const std::string& name, const SceneDefinition* definition, bool isPersistent);
+		Scene(const std::string& name, const SceneDefinition* definition, bool IsPersistent);
 
 		void OnTransform2DComponentConstruct(entt::registry& registry, EntityHandle entity);
 		void OnRigidBody2DComponentConstruct(entt::registry& registry, EntityHandle entity);

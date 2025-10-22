@@ -23,4 +23,8 @@ namespace Bolt {
         LeftAlt = 342, LeftSuper = 343, RightShift = 344, RightControl = 345,
         RightAlt = 346, RightSuper = 347, Menu = 348
     };
+
+    enum class MouseKeyCode : uint8_t {
+        Left = 0, Right = 1, Middle = 2, Back = 3, Revert = 4, Button6 = 5, Button7 = 6, Button8 = 7
+    };
 }

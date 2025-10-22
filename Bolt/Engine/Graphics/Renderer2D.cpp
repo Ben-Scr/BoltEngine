@@ -19,16 +19,14 @@ namespace Bolt {
 			return;
 		}
 
-
-		// Clear-Farbe (r, g, b, a)
 		Color c = glInitProps.BackgroundColor;
 		glClearColor(c.r, c.g, c.b, c.a);
 
-		// Blending für Alpha
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		// Culling optional
+
 		if (glInitProps.EnableCulling) {
 			glEnable(GL_CULL_FACE);
 			glCullFace(glInitProps.CullingMode);
@@ -60,13 +58,13 @@ namespace Bolt {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(idx), idx, GL_STATIC_DRAW);
 
-		glEnableVertexAttribArray(0); // aPos
+		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(V2UV), (void*)offsetof(V2UV, x));
 
-		glEnableVertexAttribArray(1); // aUV
+		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(V2UV), (void*)offsetof(V2UV, u));
 
-		// aColor (location = 2) setzen wir pro-Draw als **konstantes** Attribut
+
 		glDisableVertexAttribArray(2);
 
 		glBindVertexArray(0);
@@ -141,14 +139,12 @@ namespace Bolt {
 			if (u_Scale >= 0) glUniform2f(u_Scale, tr.Scale.x, tr.Scale.y);
 			if (u_Rotation >= 0) glUniform1f(u_Rotation, tr.Rotation);
 
-			// 4) Farbe als konstantes Attribut (location = 2)
+
 			glVertexAttrib4f(2, spriteRenderer.Color.r, spriteRenderer.Color.g, spriteRenderer.Color.b, spriteRenderer.Color.a);
 
-			// 5) UV-Ausschnitt (für Atlas/Spritesheet)
 			if (u_UVOffset >= 0) glUniform2f(u_UVOffset, 0, 0);
 			if (u_UVScale >= 0) glUniform2f(u_UVScale, 1, 1);
 
-			// 6) Textur an Unit 0
 			glActiveTexture(GL_TEXTURE0);
 			Texture2D& texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
 
@@ -163,7 +159,6 @@ namespace Bolt {
 			}
 
 
-			// 7) Draw
 			glBindVertexArray(m_VAO);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 			glBindVertexArray(0);
@@ -179,5 +174,4 @@ namespace Bolt {
 		if (m_VAO) { glDeleteVertexArrays(1, &m_VAO); m_VAO = 0; }
 		if (m_VAO) { glDeleteVertexArrays(1, &m_VAO); m_VAO = 0; }
 	}
-
 }

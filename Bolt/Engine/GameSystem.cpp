@@ -18,7 +18,7 @@ namespace Bolt {
 
 		SpriteRenderer& sp = entity.GetComponent<SpriteRenderer>();
 		sp.TextureHandle = tex;
-		sp.Color = Color::White();
+		sp.Color = color;
 	}
 
 	void GameSystem::Start(Scene& scene) {
@@ -27,7 +27,7 @@ namespace Bolt {
 		squareTexture = TextureManager::GetDefaultTexture(DefaultTexture::Square);
 		Entity camEntity = scene.CreateEntity();
 		Camera2D& camera2D = camEntity.AddComponent<Camera2D>();
-		CreateEntity(scene, Transform2D(Vec2(0, -1), Vec2(100, 1), 0), squareTexture, BodyType::Static, Color(1, 0, 0, 1));
+		CreateEntity(scene, Transform2D(Vec2(0, -1), Vec2(100, 1), 0), blockTexture, BodyType::Static, Color(1, 0, 0, 1));
 	}
 
 	void GameSystem::Update(Scene& scene) {
@@ -38,8 +38,8 @@ namespace Bolt {
 			CreateEntity(scene,Transform2D(mousePos), blockTexture);
 		}
 
-		if (Input::GetMouse(1)) {
-			Vec2 delta = Input::MouseDelta() * Time::GetDeltaTime() * camera2D.GetOrthographicSize() * 0.5f;
+		if (Input::GetMouse(MouseKeyCode::Left)) {
+			Vec2 delta = Input::MouseDelta() * Time::GetDeltaTime() * camera2D.GetOrthographicSize() * 0.75f;
 			delta.x *= -1.f;
 			Vec2 targetPos = camera2D.GetPosition() + delta;
 			camera2D.SetPosition(targetPos);

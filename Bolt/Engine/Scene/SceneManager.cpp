@@ -52,7 +52,7 @@ namespace Bolt {
         auto newScene = definition->Instantiate();
 
 
-        for (const auto& callback : definition->m_loadCallbacks) {
+        for (const auto& callback : definition->m_LoadCallbacks) {
             callback(*newScene);
         }
 
@@ -76,7 +76,7 @@ namespace Bolt {
         auto newScene = definition->Instantiate();
 
 
-        for (const auto& callback : definition->m_loadCallbacks) {
+        for (const auto& callback : definition->m_LoadCallbacks) {
             callback(*newScene);
         }
 
@@ -132,7 +132,7 @@ namespace Bolt {
         Scene* scene = it->get();
 
         if (scene->m_Definition) {
-            for (const auto& callback : scene->m_Definition->m_unloadCallbacks) {
+            for (const auto& callback : scene->m_Definition->m_UnloadCallbacks) {
                 callback(*scene);
             }
         }
@@ -257,7 +257,7 @@ namespace Bolt {
 
     void SceneManager::InitializeStartupScenes() {
         for (const auto& [name, definition] : s_SceneDefinitions) {
-            if (definition->isStartupScene()) {
+            if (definition->IsStartupScene()) {
                 try {
                     if (s_ActiveScene == nullptr) {
                         LoadScene(name);

@@ -8,6 +8,7 @@
 
 namespace Bolt { class Application; class Window; }
 
+
 namespace Bolt {
     class Input {
     public:
@@ -15,26 +16,28 @@ namespace Bolt {
         friend class Window;
 
         // Keyboard
-        static bool GetKey(KeyCode k) {
-            int i = static_cast<int>(k);
+        static bool GetKey(KeyCode keycode) {
+            int i = static_cast<int>(keycode);
             return (i >= 0 && i < k_KeyCount) ? s_CurrentKeyStates[i] : false;
         }
-        static bool GetKeyDown(KeyCode k) {
-            int i = static_cast<int>(k);
+        static bool GetKeyDown(KeyCode keycode) {
+            int i = static_cast<int>(keycode);
             return (i >= 0 && i < k_KeyCount)
                 && s_CurrentKeyStates[i] && !s_PreviousKeyStates[i];
         }
-        static bool GetKeyUp(KeyCode k) {
-            int i = static_cast<int>(k);
+        static bool GetKeyUp(KeyCode keycode) {
+            int i = static_cast<int>(keycode);
             return (i >= 0 && i < k_KeyCount)
                 && !s_CurrentKeyStates[i] && s_PreviousKeyStates[i];
         }
 
         // Mouse
-        static bool GetMouse(int btn) {
+        static bool GetMouse(MouseKeyCode keycode) {
+            uint8_t btn = static_cast<uint8_t>(keycode);
             return (btn >= 0 && btn < k_MouseCount) ? s_CurrentMouseButtons[btn] : false;
         }
-        static bool GetMouseDown(int btn) {
+        static bool GetMouseDown(MouseKeyCode keycode) {
+            uint8_t btn = static_cast<uint8_t>(keycode);
             return (btn >= 0 && btn < k_MouseCount)
                 && s_CurrentMouseButtons[btn] && !s_PreviousMouseButtons[btn];
         }

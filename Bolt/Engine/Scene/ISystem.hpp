@@ -16,5 +16,6 @@ namespace Bolt {
     private:
         bool m_Enabled = true;
         friend class Scene;
+        friend class SceneDefinition;
     };
 }

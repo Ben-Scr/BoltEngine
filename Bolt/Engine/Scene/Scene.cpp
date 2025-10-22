@@ -99,10 +99,10 @@ namespace Bolt {
 		}
 	}
 
-	Scene::Scene(const std::string& name, const SceneDefinition* definition, bool isPersistent)
+	Scene::Scene(const std::string& name, const SceneDefinition* definition, bool IsPersistent)
 		: m_Name(name)
 		, m_Definition(definition)
-		, m_Persistent(isPersistent)
+		, m_Persistent(IsPersistent)
 		, m_IsLoaded(false) {
 
 		m_Registry.on_construct<Rigidbody2D>().connect<&Scene::OnRigidBody2DComponentConstruct>(this);
