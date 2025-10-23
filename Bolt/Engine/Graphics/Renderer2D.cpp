@@ -46,14 +46,19 @@ namespace Bolt {
 		m_SpriteShader.Bind();
 
 		// Camera 2D Region
+
+
 		Camera2D* camera2D = Camera2D::Main();
-		camera2D->UpdateViewport();
-		AABB viewportAABB = camera2D->GetViewportAABB();
+
+
 
 		if (camera2D == nullptr) {
-			Logger::Error("Camera 2D", "There is no main camera");
+			Logger::Error("Camera2D", "There is no main camera");
 			return;
 		}
+
+		camera2D->UpdateViewport();
+		AABB viewportAABB = camera2D->GetViewportAABB();
 
 		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
 		m_SpriteShader.SetMVP(vp);

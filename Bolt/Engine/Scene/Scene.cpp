@@ -18,7 +18,7 @@ namespace Bolt {
 	// Note: Creates an entity with a Transform2D component
 	Entity Scene::CreateEntity()  {
 		auto entityHandle = CreateEntityHandle();
-		AddComponent<Transform2D>(entityHandle);
+		//AddComponent<Transform2D>(entityHandle);
 		return Entity(entityHandle, m_Registry);
 	}
 

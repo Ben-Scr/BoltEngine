@@ -13,7 +13,7 @@ namespace Bolt {
 	Color Gizmos::s_Color = { 0.f, 1.f, 0.f, 1.f };
 
 	void Gizmos::DrawCircle(const Vec2& center, float radius, int segments) {
-		if (!s_IsEnabled || s_RegisteredVertices + segments >= s_MaxVertices)
+		if (!Camera2D::Main() || !s_IsEnabled || s_RegisteredVertices + segments >= s_MaxVertices)
 			return;
 
 		AABB circleAABB = AABB::Create(center, Vec2(radius));
@@ -25,7 +25,7 @@ namespace Bolt {
 	}
 
 	void Gizmos::DrawSquare(const Vec2& center, const Vec2& scale, float degrees) {
-		if (!s_IsEnabled || s_RegisteredVertices + k_BoxVertices >= s_MaxVertices)
+		if (!Camera2D::Main() || !s_IsEnabled || s_RegisteredVertices + k_BoxVertices >= s_MaxVertices)
 			return;
 
 		float radiant = Radians<float>(degrees);
@@ -38,7 +38,7 @@ namespace Bolt {
 	}
 
 	void Gizmos::DrawLine3D(const Vec2& start, const Vec2& end) {
-		if (!s_IsEnabled || s_RegisteredVertices + k_LineVertices >= s_MaxVertices)
+		if (!Camera2D::Main() || !s_IsEnabled || s_RegisteredVertices + k_LineVertices >= s_MaxVertices)
 			return;
 
 		const auto camAABB = Camera2D::Main()->GetViewportAABB();

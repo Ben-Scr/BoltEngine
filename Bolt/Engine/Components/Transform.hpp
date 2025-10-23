@@ -7,20 +7,20 @@ namespace Bolt {
     class Transform {
     public:
         Transform() = default;
-        explicit Transform(const glm::vec3& position) : Position(position) {}
-        Transform(const glm::vec3& position, const glm::quat& rotation)
+        explicit Transform(const Vec3& position) : Position(position) {}
+        Transform(const Vec3& position, const glm::quat& rotation)
             : Position(position), Rotation(rotation) {
         }
-        Transform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
-            : Position(position), Rotation(rotation), Scale(scale) {
+        Transform(const Vec3& position, const Vec3& scale, const glm::quat& rotation)
+            : Position(position), Scale(scale), Rotation(rotation) {
         }
 
-        glm::vec3 Position{ 0.0f, 0.0f, 0.0f };
+        Vec3 Position{ 0.0f, 0.0f, 0.0f };
+        Vec3 Scale{ 1.0f, 1.0f, 1.0f };
         glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
-        glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
 
-        void SetEulerAngles(const glm::vec3& eulerAnglesRadians);
-        glm::vec3 GetEulerAngles() const;
+        void SetEulerAngles(const Vec3& eulerAnglesRadians);
+        Vec3 GetEulerAngles() const;
 
         glm::mat4 GetModelMatrix() const;
         glm::mat3 GetNormalMatrix() const;

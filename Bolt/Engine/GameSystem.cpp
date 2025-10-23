@@ -9,7 +9,7 @@ namespace Bolt {
 
 	}
 
-	void CreateEntity(Scene& scene,Transform2D transform, TextureHandle tex, BodyType bodyType = BodyType::Dynamic, Color color = Color::White()) {
+	void CreateEntity(Scene& scene, Transform2D transform, TextureHandle tex, BodyType bodyType = BodyType::Dynamic, Color color = Color::White()) {
 		Entity entity = scene.CreateRenderableEntity();
 		entity.GetComponent<Transform2D>() = transform;
 		auto& collider = entity.AddComponent<BoxCollider2D>();
@@ -24,18 +24,27 @@ namespace Bolt {
 	void GameSystem::Start(Scene& scene) {
 		blockTexture = TextureManager::LoadTexture("Assets/Textures/block.png", Filter::Point, Wrap::Clamp, Wrap::Clamp);
 		squareTexture = TextureManager::GetDefaultTexture(DefaultTexture::Square);
+		//Entity camEntity = scene.CreateEntity();
+		//Camera2D& camera2D = camEntity.AddComponent<Camera2D>();
 		Entity camEntity = scene.CreateEntity();
-		Camera2D& camera2D = camEntity.AddComponent<Camera2D>();
+		Camera& camera = camEntity.AddComponent<Camera>();
 		CreateEntity(scene, Transform2D(Vec2(0, -1), Vec2(100, 1), 0), blockTexture, BodyType::Static, Color(1, 0, 0, 1));
+
+		Entity cubeEntity = scene.CreateEntity();
+		cubeEntity.AddComponent<Transform>(Transform(Vec3(0, 0, 10), Vec3(1,1,1), Vec3(0,0,0)));
+		MeshRenderer& meshRenderer = cubeEntity.AddComponent<MeshRenderer>();
 	}
 
 	void GameSystem::Update(Scene& scene) {
 		Gizmos::DrawSquare(Vec2(0, 0), Vec2(1, 1), 0);
 		Camera2D& camera2D = *Camera2D::Main();
+
+		if (Camera2D::Main() == nullptr)return;
+
 		Vec2 mousePos = camera2D.ScreenToWorld(Input::MousePosition());
 
 		if (Input::GetKeyDown(KeyCode::E)) {
-			CreateEntity(scene,Transform2D(mousePos), blockTexture);
+			CreateEntity(scene, Transform2D(mousePos), blockTexture);
 		}
 
 		if (Input::GetMouse(MouseKeyCode::Left)) {

@@ -11,6 +11,7 @@ namespace Bolt {
     Camera::Camera() {
         UpdateProjectionMatrix();
         UpdateViewMatrix();
+        s_Main = this;
     }
 
     Camera* Camera::Main() {

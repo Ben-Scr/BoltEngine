@@ -73,6 +73,7 @@ namespace Bolt {
 		CoreInput();
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
+		m_Renderer.value().BeginFrame();
 		m_GizmoRenderer.value().BeginFrame();
 	}
 
@@ -83,6 +84,7 @@ namespace Bolt {
 
 	void Application::EndFrame() {
 		m_Renderer2D.value().EndFrame();
+		m_Renderer.value().EndFrame();
 		m_GizmoRenderer.value().EndFrame();
 		m_Window.value().SwapBuffers();
 		Input::Update();
