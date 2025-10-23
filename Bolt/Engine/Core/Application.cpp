@@ -72,7 +72,7 @@ namespace Bolt {
 	void Application::BeginFrame() {
 		CoreInput();
 		SceneManager::UpdateScenes();
-		//m_Renderer2D.value().BeginFrame();
+		m_Renderer2D.value().BeginFrame();
 		m_Renderer.value().BeginFrame();
 		m_GizmoRenderer.value().BeginFrame();
 	}
@@ -83,7 +83,7 @@ namespace Bolt {
 	}
 
 	void Application::EndFrame() {
-		//m_Renderer2D.value().EndFrame();
+		m_Renderer2D.value().EndFrame();
 		m_Renderer.value().EndFrame();
 		m_GizmoRenderer.value().EndFrame();
 		m_Window.value().SwapBuffers();
@@ -110,10 +110,11 @@ namespace Bolt {
 	}
 
 	void Application::Initialize() {
-		m_Window.emplace(Window(GLFWWindowProperties()));
+		m_Window.emplace(Window(GLFWWindowProperties(800,800, "Hello World", false, false, true)));
 		m_Window.value().SetVsync(true);
+		m_Window.value().SetWindowResizeable(true);
 
-		OpenGL::Initialize(GLInitProperties(Color::Background(), true, GLCullingModes::GLBack));
+		OpenGL::Initialize(GLInitProperties(Color::Black(), false, GLCullingMode::GLNone));
 
 		m_Renderer2D.emplace(Renderer2D());
 		m_Renderer2D.value().Initialize();

@@ -16,6 +16,10 @@ namespace Bolt {
 		bool Moveable{true};
 		bool Fullscreen{false};
 		Color BackgroundColor;
+
+		GLFWWindowProperties(int width, int height, const std::string& title, bool resizeable, bool moveable, bool fullscreen)
+			: Width{ width }, Height{ height }, Title{ title }, Resizeable{ resizeable }, Moveable{ moveable }, Fullscreen{ fullscreen }
+		{ }
 	};
 
 	class Window {

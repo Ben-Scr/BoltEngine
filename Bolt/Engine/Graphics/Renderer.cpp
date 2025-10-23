@@ -15,7 +15,7 @@
 
 namespace Bolt {
     namespace {
-        const glm::vec3 DEFAULT_LIGHT_DIRECTION = glm::normalize(glm::vec3(-0.5f, -1.0f, -0.3f));
+        const glm::vec3 DEFAULT_LIGHT_DIRECTION = glm::normalize(glm::vec3(-0.5f, -0.5f, -0.3f));
         constexpr glm::vec3 DEFAULT_LIGHT_COLOR = glm::vec3(1.0f);
     }
 

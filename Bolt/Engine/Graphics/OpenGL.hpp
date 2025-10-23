@@ -5,7 +5,7 @@
 
 
 namespace Bolt {
-    enum GLCullingModes {
+    enum GLCullingMode {
         GLNone = 0,
         GLFrontLeft = 0x0400,
         GLFrontRight = 0x0401,
@@ -21,9 +21,9 @@ namespace Bolt {
     struct GLInitProperties {
         Color BackgroundColor;
         bool EnableCulling;
-        GLCullingModes CullingMode;
+        GLCullingMode CullingMode;
 
-        GLInitProperties(Color backgroundColor, bool enableCulling, GLCullingModes cullMode)
+        GLInitProperties(Color backgroundColor, bool enableCulling, GLCullingMode cullMode)
             : BackgroundColor{ backgroundColor }, EnableCulling{ enableCulling }, CullingMode{ cullMode } {
         }
     };

@@ -15,7 +15,7 @@ namespace Bolt {
 
 	Window::Window(const GLFWWindowProperties& windowProps)
 		: m_Title{ windowProps.Title }, m_Fullscreen{ windowProps.Fullscreen },
-		m_Resizeable{ m_Resizeable }, m_Moveable{ windowProps.Moveable }, m_BackgroundColor{ windowProps.BackgroundColor } {
+		m_Resizeable{ windowProps.Resizeable }, m_Moveable{ windowProps.Moveable }, m_BackgroundColor{ windowProps.BackgroundColor } {
 		s_MainViewport = Viewport{ windowProps.Width, windowProps.Height };
 		InitWindow();
 	}
