@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace Bolt {
@@ -29,6 +30,10 @@ namespace Bolt {
         void Shutdown();
 
         bool IsValid() const { return m_VAO != 0 && m_VertexCount > 0; }
+
+        static std::shared_ptr<Mesh> Cube();
+        static std::shared_ptr<Mesh> Sphere();
+        static std::shared_ptr<Mesh> Quad();
 
     private:
         void Release();
