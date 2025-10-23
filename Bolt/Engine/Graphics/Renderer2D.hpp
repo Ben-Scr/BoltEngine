@@ -3,7 +3,6 @@
 #include "..\Collections\Color.hpp"
 #include "..\Collections\Viewport.hpp"
 
-
 #include "Texture2D.hpp"
 #include "QuadMesh.hpp"
 #include "SpriteShaderProgram.hpp"

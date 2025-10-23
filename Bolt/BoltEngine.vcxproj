@@ -183,9 +183,7 @@
     <ClCompile Include="Engine\Graphics\GizmoRenderer.cpp" />
     <ClCompile Include="Engine\Graphics\Gizmos.cpp" />
     <ClCompile Include="Engine\Graphics\QuadMesh.cpp" />
-    <ClCompile Include="Engine\Graphics\RenderContext.cpp" />
     <ClCompile Include="Engine\Graphics\Renderer2D.cpp" />
-    <ClCompile Include="Engine\Graphics\RenderResources.cpp" />
     <ClCompile Include="Engine\Graphics\Shader.cpp" />
     <ClCompile Include="Engine\Graphics\SpriteShaderProgram.cpp" />
     <ClCompile Include="Engine\Graphics\Texture2D.cpp" />
@@ -196,7 +194,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Engine\Math\VectorMath.cpp" />
     <ClCompile Include="Engine\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.hpp</PrecompiledHeaderFile>
@@ -249,9 +246,7 @@
     <ClInclude Include="Engine\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Engine\Graphics\Gizmos.hpp" />
     <ClInclude Include="Engine\Graphics\QuadMesh.hpp" />
-    <ClInclude Include="Engine\Graphics\RenderContext.hpp" />
     <ClInclude Include="Engine\Graphics\Renderer2D.hpp" />
-    <ClInclude Include="Engine\Graphics\RenderResources.hpp" />
     <ClInclude Include="Engine\Graphics\Shader.hpp" />
     <ClInclude Include="Engine\Graphics\SpriteShaderProgram.hpp" />
     <ClInclude Include="Engine\Graphics\Texture2D.hpp" />
@@ -275,7 +270,7 @@
     <ClInclude Include="Engine\Scene\Scene.hpp" />
     <ClInclude Include="Engine\Scene\SceneDefinition.hpp" />
     <ClInclude Include="Engine\Scene\SceneManager.hpp" />
-    <ClInclude Include="Engine\Utils\Random.hpp" />
+    <ClInclude Include="Engine\Math\Random.hpp" />
     <ClInclude Include="Engine\Utils\Serializer.hpp" />
     <ClInclude Include="Engine\Utils\Timer.hpp" />
   </ItemGroup>

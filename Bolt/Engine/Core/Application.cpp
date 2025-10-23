@@ -59,7 +59,7 @@ namespace Bolt {
 
 			BeginFrame();
 			EndFrame();
-
+			glfwPollEvents();
 
 			lastTime = frameStart;
 			m_LoopedThisFrame = true;
@@ -84,7 +84,6 @@ namespace Bolt {
 		m_GizmoRenderer.value().EndFrame();
 		m_Window.value().SwapBuffers();
 		Input::Update();
-		glfwPollEvents();
 	}
 
 	void Application::EndFixedFrame() {

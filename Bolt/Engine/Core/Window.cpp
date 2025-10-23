@@ -29,8 +29,8 @@ namespace Bolt {
 			return;
 		}
 
-		app.m_Renderer2D.value().BeginFrame();
-		app.m_Window.value().SwapBuffers();
+		app.BeginFrame(); 
+		app.EndFrame();
 	}
 
 	void Window::InitWindow() {
@@ -171,11 +171,13 @@ namespace Bolt {
 		return glfwGetWindowAttrib(m_Window, GLFW_ICONIFIED);
 	}
 
-	void Window::SetWindowResizedCallback(GLFWwindow* window, int WIDTH, int HEIGHT) {
-		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-		_window->m_WindowResized = true;
-		_window->s_MainViewport.Width = WIDTH;
-		_window->s_MainViewport.Height = HEIGHT;
+	void Window::SetWindowResizedCallback(GLFWwindow* window, int width, int height) {
+		Window* _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+
+		if (_window == nullptr) return;
+
+		_window->s_MainViewport.Width = width;
+		_window->s_MainViewport.Height = height;
 		_window->UpdateViewport();
 	}
 

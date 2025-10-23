@@ -2,8 +2,9 @@
 #include "TextureManager.hpp"
 
 namespace Bolt {
-    std::array<std::string, 7> TextureManager::s_DefaultTextures = {
+    std::array<std::string, 8> TextureManager::s_DefaultTextures = {
            "Assets/Textures/Square.png",
+           "Assets/Textures/Pixel.png",
            "Assets/Textures/Circle.png",
            "Assets/Textures/Capsule.png",
            "Assets/Textures/IsometricDiamond.png",
@@ -22,7 +23,10 @@ namespace Bolt {
 
     void TextureManager::Initialize() {
         if (s_IsInitialized)
+        {
+            Logger::Warning("TextureManager", "Already Initialized");
             return;
+        }
 
         s_Textures.clear();
         while (!s_FreeIndices.empty()) {
@@ -48,7 +52,7 @@ namespace Bolt {
 
     TextureHandle TextureManager::LoadTexture(const std::string& path, Filter filter, Wrap u, Wrap v) {
         if (!s_IsInitialized) {
-            Logger::Error("Call TextureManager::Initialize() before loading textures.");
+            Logger::Error("TextureManager", "Call TextureManager::Initialize() before loading textures.");
             return { kInvalidIndex, 0 };
         }
 
@@ -67,7 +71,7 @@ namespace Bolt {
             entry.Texture = Texture2D(path.c_str(), filter, u, v);
 
             if (!entry.Texture.IsValid()) {
-                Logger::Error("Failed to load texture: " + path);
+                Logger::Error("TextureManager", "Failed to load texture at path: " + path);
                 entry.IsValid = false;
                 s_FreeIndices.push(index);
                 return { kInvalidIndex, 0 };
@@ -84,7 +88,7 @@ namespace Bolt {
             entry.Texture = Texture2D(path.c_str(), filter, u, v);
 
             if (!entry.Texture.IsValid()) {
-                Logger::Error("Failed to load texture: " + path);
+                Logger::Error("TextureManager", "Failed to load texture at path: " + path);
                 return { kInvalidIndex, 0 };
             }
 
@@ -102,11 +106,11 @@ namespace Bolt {
         int index = static_cast<int>(type);
 
         if (index < 0 || index >= static_cast<int>(s_DefaultTextures.size())) {
-            throw std::runtime_error("Invalid DefaultTexture enum index");
+            Logger::Warning("TextureManager", "Invalid DefaultTexture enum index");
         }
 
         if (!s_IsInitialized) {
-            throw std::runtime_error("Default textures not loaded. Call TextureManager::Initialize() first.");
+            Logger::Warning("TextureManager", "Default textures not loaded. Call TextureManager::Initialize() first.");
         }
 
         return TextureHandle(static_cast<uint16_t>(index), s_Textures[index].Generation);
@@ -114,19 +118,19 @@ namespace Bolt {
 
     void TextureManager::UnloadTexture(TextureHandle blockTexture) {
         if (blockTexture.index >= s_Textures.size()) {
-            Logger::Warning("Invalid texture handle index: " + std::to_string(blockTexture.index));
+            Logger::Warning("TextureManager", "Invalid texture handle index: " + std::to_string(blockTexture.index));
             return;
         }
 
         TextureEntry& entry = s_Textures[blockTexture.index];
 
         if (!entry.IsValid || entry.Generation != blockTexture.generation) {
-            Logger::Warning("Texture handle is outdated or invalid");
+            Logger::Warning("TextureManager", "Texture handle is outdated or invalid");
             return;
         }
 
         if (blockTexture.index < s_DefaultTextures.size()) {
-            Logger::Warning("Cannot unload default texture");
+            Logger::Warning("TextureManager", "Cannot unload default texture");
             return;
         }
 
@@ -140,7 +144,7 @@ namespace Bolt {
         auto blockTexture = FindTextureByPath(name);
 
         if (blockTexture.index == kInvalidIndex) {
-            throw std::runtime_error("Texture with name " + name + " doesn't exist.");
+            Logger::Warning("TextureManager", "Texture with name " + name + " doesn't exist.");
         }
 
         return blockTexture;
@@ -161,7 +165,7 @@ namespace Bolt {
 
     Texture2D& TextureManager::GetTexture(TextureHandle blockTexture) {
         if (blockTexture.index >= s_Textures.size()) {
-            throw std::runtime_error(
+            Logger::Warning("TextureManager",
                 "TextureHandle index " + std::to_string(blockTexture.index) +
                 " out of range (max: " + std::to_string(s_Textures.size() - 1) + ")"
             );
@@ -170,11 +174,11 @@ namespace Bolt {
         TextureEntry& entry = s_Textures[blockTexture.index];
 
         if (!entry.IsValid) {
-            throw std::runtime_error("Texture at index " + std::to_string(blockTexture.index) + " is not valid");
+            Logger::Warning("TextureManager", "Texture at index " + std::to_string(blockTexture.index) + " is not valid");
         }
 
         if (entry.Generation != blockTexture.generation) {
-            throw std::runtime_error(
+            Logger::Warning("TextureManager",
                 "Invalid texture entry: entry generation " + std::to_string(entry.Generation) +
                 " != handle generation " + std::to_string(blockTexture.generation)
             );
@@ -191,7 +195,7 @@ namespace Bolt {
             entry.Texture = Texture2D(texPath.c_str(), Filter::Point, Wrap::Clamp, Wrap::Clamp);
 
             if (!entry.Texture.IsValid()) {
-                throw std::runtime_error("Failed to load default texture: " + texPath);
+                Logger::Warning("TextureManager", "Failed to load default texture at path: " + texPath);
             }
 
             entry.Generation = 0;

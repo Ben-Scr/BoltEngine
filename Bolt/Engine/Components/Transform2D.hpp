@@ -8,7 +8,7 @@ namespace Bolt {
     public:
 		Vec2 Position{ 0.0f, 0.0f };
 		Vec2 Scale{ 1.0f, 1.0f };
-        float Rotation{ 0.0f };   // Note: Rotation angle in radians
+        float Rotation{ 0.0f };   // Rotation angle in radians
 
 
 		Transform2D() = default;
@@ -22,7 +22,7 @@ namespace Bolt {
         float GetRotationDegrees() const;
         glm::mat3 GetModelMatrix() const;
 
-        // Note: Only used internally by Box2D
+        // Only used internally by Box2D
         b2Rot GetB2Rotation() const;
         bool operator==(const Transform2D& other) const {
             return Position == other.Position
@@ -33,7 +33,7 @@ namespace Bolt {
             return !(*this == other);
         }
 
-        // Error: Wrong code, will be fixed.
+        // Wrong code, will be fixed.
         Transform2D operator+(const Transform2D& other) const {
             return Transform2D(Position + other.Position);
         }

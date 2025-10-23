@@ -33,6 +33,7 @@ namespace Bolt {
 
         enum class DefaultTexture : uint8_t {
             Square,
+            Pixel,
             Circle,
             Capsule,
             IsometricDiamond,
@@ -64,7 +65,7 @@ namespace Bolt {
             static TextureHandle FindTextureByPath(const std::string& path);
             static void LoadDefaultTextures();
 
-            static std::array<std::string, 7> s_DefaultTextures;
+            static std::array<std::string, 8> s_DefaultTextures;
             static std::vector<TextureEntry> s_Textures;
             static std::queue<uint16_t> s_FreeIndices;
             static bool s_IsInitialized;

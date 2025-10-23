@@ -1,6 +1,6 @@
 #pragma once
 #include "../Collections/Vec2.hpp"
-#include "../Utils/Random.hpp"
+#include "Random.hpp"
 #include "Trigonometry.hpp"
 #include "glm/glm.hpp"
 

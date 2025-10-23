@@ -201,7 +201,7 @@ namespace Bolt {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_GizmoIndices.size() * sizeof(uint16_t)), m_GizmoIndices.data(), GL_DYNAMIC_DRAW);
 
-        m_GizmoShader->Submit(m_GizmoViewId);
+        m_GizmoShader->Submit();
 
         if (Camera2D::Main()) {
             glm::mat4 mvp = Camera2D::Main()->GetViewProjectionMatrix();

@@ -50,7 +50,7 @@ namespace Bolt {
 		int GetHeight() const { return s_MainViewport.Height; }
 
 		void Destroy();
-		static Window& Main() { return *s_ActiveWindow; }
+		static Window* Main() { return s_ActiveWindow; }
 		static Viewport GetMainViewport() { return s_MainViewport; };
 
 	private:
@@ -58,9 +58,7 @@ namespace Bolt {
 		void UpdateViewport();
 		void UpdateWindowSize();
 		void SwapBuffers() const { glfwSwapBuffers(m_Window); }
-		void ResetWindowResizedFlag() { m_WindowResized = false; }
 
-		bool IsWindowResized() const { return m_WindowResized; }
 		bool ShouldClose() const { return glfwWindowShouldClose(m_Window); }
 		Vec2Int GetScreenCenter() const;
 
@@ -77,7 +75,6 @@ namespace Bolt {
 		GLFWmonitor* m_Monitor = nullptr;
 		const GLFWvidmode* k_Mode = nullptr;
 
-		bool m_WindowResized = false;
 		static Viewport s_MainViewport;
 		std::string m_Title;
 		Color m_BackgroundColor;

@@ -37,7 +37,7 @@ namespace Bolt {
 		s_Squares.emplace_back(Square{ center, scale / 2.f, Radians<float>(degrees), s_Color });
 	}
 
-	void Gizmos::DrawLine(const Vec2& start, const Vec2& end) {
+	void Gizmos::DrawLine3D(const Vec2& start, const Vec2& end) {
 		if (!s_IsEnabled || s_RegisteredVertices + k_LineVertices >= s_MaxVertices)
 			return;
 

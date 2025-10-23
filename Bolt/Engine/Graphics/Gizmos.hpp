@@ -8,17 +8,21 @@ namespace Bolt {
 	struct Circle { Vec2 Center; float Radius; int Segments; Color Color; };
 	struct Line { Vec2 Start; Vec2 End; Color Color; };
 
+	struct Box { Vec3 Center, HalfExtents; float Radiant; Color Color; };
+	struct Sphere { Vec3 Center; float Radius; int Segments; Color Color; };
+	struct Line3D { Vec3 Start; Vec3 End; Color Color; };
+
 	class Gizmos {
 	public:
-		/* 2D */
+		// 2D
 		static void DrawSquare(const Vec2& center, const Vec2& scale, float degrees);
-		static void DrawLine(const Vec2& start, const Vec2& end);
+		static void DrawLine3D(const Vec2& start, const Vec2& end);
 		static void DrawCircle(const Vec2& center, float radius, int segments = 32);
 
-		/* 3D */
+		// 3D
 		static void DrawBox(const Vec3& center, const Vec3& scale, const Vec3& rotation);
 		static void DrawSphere(const Vec3& center, const float radius);
-		static void DrawLine(const Vec3& start, const Vec3& end);
+		static void DrawLine3D(const Vec3& start, const Vec3& end);
 
 		static void SetEnabled(bool enabled) { s_IsEnabled = enabled; }
 		static bool IsEnabled() { return s_IsEnabled; }

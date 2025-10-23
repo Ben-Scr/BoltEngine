@@ -7,8 +7,11 @@ namespace Bolt {
 	class Logger {
 	public:
 		static void Message(const std::string& message, const std::source_location& loc = std::source_location::current());
+		static void Message(const std::string& topic, const std::string& message, const std::source_location& loc = std::source_location::current());
+
 		static void Warning(const std::string& message, const std::source_location& loc = std::source_location::current());
 		static void Warning(const std::string& topic, const std::string& message, const std::source_location& loc = std::source_location::current());
+
 		static void Error(const std::string& message, const std::source_location& loc = std::source_location::current());
 		static void Error(const std::string& topic, const std::string& message, const std::source_location& loc = std::source_location::current());
 	};

@@ -20,9 +20,9 @@ namespace Bolt {
 		static float GetTimeScale() { return s_TimeScale; }
 		static void SetTimeScale(float scale);
 
-		// Info: Realtime elapsed time
+		// Realtime elapsed time
 		static float GetElapsedTime();
-		// Info: Elapsed time based on timescale
+		// Elapsed time based on timescale
 		static float GetSimulatedElapsedTime();
 
 	private:

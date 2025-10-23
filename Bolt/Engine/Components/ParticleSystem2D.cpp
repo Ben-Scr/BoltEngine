@@ -1,6 +1,6 @@
 #include "../pch.hpp"
 #include "../Components/ParticleSystem2D.hpp"
-#include "../Utils/Random.hpp"
+#include "../Math/Random.hpp"
 
 namespace Bolt {
 	void ParticleSystem2D::Update(float deltaTime) {

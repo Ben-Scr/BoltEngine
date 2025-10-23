@@ -45,7 +45,7 @@ namespace Bolt {
     }
 
     void AudioSource::SetVolume(float volume) {
-        m_Volume = std::max(0.0f, volume); 
+        m_Volume = Max(0.0f, volume);
 
         if (m_instanceId != 0) {
             auto* instance = AudioManager::GetSoundInstance(m_instanceId);
@@ -57,7 +57,7 @@ namespace Bolt {
     }
 
     void AudioSource::SetPitch(float pitch) {
-        m_Pitch = std::max(0.01f, pitch);
+        m_Pitch = Max(0.01f, pitch);
 
         if (m_instanceId != 0) {
             auto* instance = AudioManager::GetSoundInstance(m_instanceId);
@@ -126,7 +126,7 @@ namespace Bolt {
     }
 
     void AudioSource::SetMinDistance(float distance) {
-        m_MinDistance = std::max(0.0f, distance);
+        m_MinDistance = Max(0.0f, distance);
 
 
         if (m_Spatial && m_instanceId != 0) {
@@ -138,7 +138,7 @@ namespace Bolt {
     }
 
     void AudioSource::SetMaxDistance(float distance) {
-        m_MaxDistance = std::max(m_MinDistance, distance);
+        m_MaxDistance = Max(m_MinDistance, distance);
 
 
         if (m_Spatial && m_instanceId != 0) {
@@ -162,7 +162,7 @@ namespace Bolt {
             }
         }
         else {
-            std::cerr << "AudioSource: Invalid attenuation model: " << model << ". Valid range is 0-4." << std::endl;
+           Logger::Error("AudioManager", "AudioSource: Invalid attenuation model: " + std::to_string(model) + ".Valid range is 0 - 4.");
         }
     }
 

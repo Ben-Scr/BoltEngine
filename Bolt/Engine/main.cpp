@@ -7,10 +7,6 @@
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
 
-std::filesystem::path getAssetsPath() {
-    auto exePath = std::filesystem::current_path();
-    return exePath / "Assets";
-}
 
 int main() {
     Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Test");

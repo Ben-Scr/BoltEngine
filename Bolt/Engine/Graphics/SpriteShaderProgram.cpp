@@ -38,7 +38,7 @@ namespace Bolt {
 
     void SpriteShaderProgram::Bind() const {
         if (IsValid()) {
-            m_Shader->Submit(0);
+            m_Shader->Submit();
         }
     }
 

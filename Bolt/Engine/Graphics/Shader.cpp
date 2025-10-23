@@ -5,26 +5,28 @@
 #include <cstdlib>
 
 namespace Bolt {
-
-    // Hilfsfunktion: Datei vollständig lesen
-    static bool readFileToString(const std::string& path, std::string& out) {
+    static bool ReadFileToString(const std::string& path, std::string& out) {
         FILE* f = nullptr;
         fopen_s(&f, path.c_str(), "rb");
+
         if (!f) return false;
+
         std::fseek(f, 0, SEEK_END);
         long size = std::ftell(f);
         std::fseek(f, 0, SEEK_SET);
+
         if (size <= 0) { std::fclose(f); return false; }
         out.resize(static_cast<size_t>(size));
         size_t read = std::fread(out.data(), 1, static_cast<size_t>(size), f);
         std::fclose(f);
+
         return read == static_cast<size_t>(size);
     }
 
-    GLuint Shader::loadAndCompile(GLenum type, const std::string& path) {
+    GLuint Shader::LoadAndCompile(GLenum type, const std::string& path) {
         std::string src;
-        if (!readFileToString(path, src)) {
-            Logger::Error(std::string("[Shader] Path not found or empty: ") + path);
+        if (!ReadFileToString(path, src)) {
+            Logger::Error("Shader", std::string("Path not found or empty: ") + path);
             return 0;
         }
 
@@ -37,7 +39,6 @@ namespace Bolt {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
 
         if (ok != GL_TRUE) {
-            // Log abrufen
             GLint logLen = 0;
             glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLen);
             std::vector<GLchar> log(std::max(1, logLen));
@@ -45,7 +46,7 @@ namespace Bolt {
 
             const char* typeStr = (type == GL_VERTEX_SHADER) ? "vertex" :
                 (type == GL_FRAGMENT_SHADER) ? "fragment" : "unknown";
-            Logger::Error(std::string("[Shader] Compile failed (") + typeStr + "): " + path + "\n" + log.data());
+            Logger::Error("Shader", std::string("Compile failed (") + typeStr + "): " + path + "\n" + log.data());
 
             glDeleteShader(shader);
             return 0;
@@ -55,10 +56,10 @@ namespace Bolt {
     }
 
     Shader::Shader(const std::string& vsPath, const std::string& fsPath) {
-        GLuint vs = loadAndCompile(GL_VERTEX_SHADER, vsPath);
+        GLuint vs = LoadAndCompile(GL_VERTEX_SHADER, vsPath);
         if (vs == 0) return;
 
-        GLuint fs = loadAndCompile(GL_FRAGMENT_SHADER, fsPath);
+        GLuint fs = LoadAndCompile(GL_FRAGMENT_SHADER, fsPath);
         if (fs == 0) { glDeleteShader(vs); return; }
 
         m_Program = glCreateProgram();
@@ -66,7 +67,6 @@ namespace Bolt {
         glAttachShader(m_Program, fs);
         glLinkProgram(m_Program);
 
-        // Shader-Objekte können nach dem Linken gelöscht werden
         glDeleteShader(vs);
         glDeleteShader(fs);
 
@@ -78,7 +78,7 @@ namespace Bolt {
             std::vector<GLchar> log(std::max(1, logLen));
             glGetProgramInfoLog(m_Program, logLen, nullptr, log.data());
 
-            Logger::Error(std::string("[Shader] Program link failed: ") + vsPath + " + " + fsPath + "\n" + log.data());
+            Logger::Error("Shader", std::string("Program link failed : ") + vsPath + " + " + fsPath + "\n" + log.data());
 
             glDeleteProgram(m_Program);
             m_Program = 0;
@@ -115,7 +115,7 @@ namespace Bolt {
         return *this;
     }
 
-    void Shader::Submit(uint16_t /*view*/) const {
+    void Shader::Submit() const {
         if (IsValid()) {
             glUseProgram(m_Program);
         }
