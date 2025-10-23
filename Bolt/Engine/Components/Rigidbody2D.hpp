@@ -40,7 +40,7 @@ namespace Bolt {
 
 		float GetRotation() const;
 
-		void Enable(bool enabled);
+		void SetEnabled(bool enabled);
 
 		b2BodyId GetBodyHandle() const;
 		bool IsValid() const;

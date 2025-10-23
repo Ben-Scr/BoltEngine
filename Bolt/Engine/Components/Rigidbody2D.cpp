@@ -58,7 +58,7 @@ namespace Bolt {
 
 	float Rigidbody2D::GetRotation() const { return -b2Rot_GetAngle(b2Body_GetRotation(m_BodyId)); }
 
-	void Rigidbody2D::Enable(bool enabled) {
+	void Rigidbody2D::SetEnabled(bool enabled) {
 		if (enabled)
 			b2Body_Enable(m_BodyId);
 		else

@@ -216,6 +216,15 @@
     <ClCompile Include="Engine\Graphics\SpriteShaderProgram.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Components\Transform.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Graphics\Camera.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Graphics\Renderer.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\pch.hpp">
@@ -555,6 +564,15 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Graphics\SpriteShaderProgram.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Components\Transform.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Graphics\Camera.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Graphics\Renderer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
