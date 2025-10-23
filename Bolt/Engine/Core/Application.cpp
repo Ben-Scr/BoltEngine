@@ -114,7 +114,7 @@ namespace Bolt {
 		m_Window.value().SetVsync(true);
 		m_Window.value().SetWindowResizeable(true);
 
-		OpenGL::Initialize(GLInitProperties(Color::Black(), false, GLCullingMode::GLNone));
+		OpenGL::Initialize(GLInitProperties(Color::Black(), true, GLCullingMode::GLBack));
 
 		m_Renderer2D.emplace(Renderer2D());
 		m_Renderer2D.value().Initialize();

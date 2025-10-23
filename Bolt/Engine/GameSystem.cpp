@@ -41,7 +41,7 @@ namespace Bolt {
 		for (int x = 0; x < length; x++) {
 			for (int y = 0; y < length; y++) {
 				for (int z = 0; z < length; z++) {
-					Create3DEntity(scene, Transform(Vec3(x, y, z + 10), Vec3(1, 1, 1), Vec3(0)), Mesh::Cube(), Color::White());
+					Create3DEntity(scene, Transform(Vec3(x, y, z + 10), Vec3(1, 1, 1), Vec3(0)), Mesh::Sphere(), Color::White());
 				}
 			}
 		}

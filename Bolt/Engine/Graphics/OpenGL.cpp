@@ -16,6 +16,9 @@ namespace Bolt {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		// 3D Only
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 
 		if (glInitProps.EnableCulling) {
 			glEnable(GL_CULL_FACE);
