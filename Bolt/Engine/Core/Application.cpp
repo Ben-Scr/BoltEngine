@@ -1,6 +1,8 @@
 #include "../pch.hpp"
 #include "Application.hpp"
 #include "../Scene/SceneManager.hpp"
+#include "../Graphics/TextureManager.hpp"
+#include "../Graphics/OpenGL.hpp"
 #include "Time.hpp"
 #include "Input.hpp"
 
@@ -106,21 +108,23 @@ namespace Bolt {
 	}
 
 	void Application::Initialize() {
-
-		GLFWWindowProperties windowProps;
-
-		m_Window.emplace(Window(windowProps));
+		m_Window.emplace(Window(GLFWWindowProperties()));
 		m_Window.value().SetVsync(true);
 
-		m_Renderer2D.emplace(Renderer2D());
+		OpenGL::Initialize(GLInitProperties(Color::Background(), true, GLCullingModes::GLBack));
 
-		GLInitProperties glInitProps = GLInitProperties(Color::Background(), true, GLCullingModes::GLBack);
-		m_Renderer2D.value().Initialize(glInitProps);
+		m_Renderer2D.emplace(Renderer2D());
+		m_Renderer2D.value().Initialize();
+
+		m_Renderer.emplace(Renderer());
+		m_Renderer.value().Initialize();
 
 		m_GizmoRenderer.emplace();
 		m_GizmoRenderer.value().Initialize();
 
-		SceneManager::Initialize();
 		m_PhysicsSystem.emplace(PhysicsSystem());
+
+		TextureManager::Initialize();
+		SceneManager::Initialize();
 	}
 }

@@ -13,32 +13,11 @@
 #include <cmath>
 
 namespace Bolt {
-	void Renderer2D::Initialize(const GLInitProperties& glInitProps) {
-		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-			Logger::Error("Glad failed to load");
-			return;
-		}
-
-		Color c = glInitProps.BackgroundColor;
-		glClearColor(c.r, c.g, c.b, c.a);
-
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-		if (glInitProps.EnableCulling) {
-			glEnable(GL_CULL_FACE);
-			glCullFace(glInitProps.CullingMode);
-		}
-		else {
-			glDisable(GL_CULL_FACE);
-		}
-
+	void Renderer2D::Initialize() {
 		m_QuadMesh.Initialize();
 		m_SpriteShader.Initialize();
 		if (!m_SpriteShader.IsValid()) {
-			Logger::Error("[Renderer2D] Sprite shader invalid.");
+			Logger::Error("Renderer2D", "Sprite shader invalid.");
 			return;
 		}
 	}

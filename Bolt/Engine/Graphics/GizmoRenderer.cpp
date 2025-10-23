@@ -47,7 +47,7 @@ namespace Bolt {
             "Assets/Shader/gizmo.frag.glsl");
 
         if (!m_GizmoShader || !m_GizmoShader->IsValid()) {
-            Logger::Error("[GizmoRenderer] Failed to load gizmo shader");
+            Logger::Error("GizmoRenderer", "Failed to load gizmo shader");
             m_GizmoShader.reset();
             return false;
         }
@@ -109,7 +109,7 @@ namespace Bolt {
     }
 
     void GizmoRenderer::OnResize(int /*w*/, int /*h*/) {
-        // No explicit resize handling is required for the OpenGL gizmo renderer.
+        
     }
 
     void GizmoRenderer::BeginFrame(uint16_t viewId) {

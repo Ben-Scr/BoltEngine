@@ -1,44 +1,28 @@
 #include "../pch.hpp"
 #include "../Components/Transform.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 namespace Bolt {
+    void Transform::SetEulerAngles(const glm::vec3& eulerAnglesRadians) {
+        Rotation = glm::quat(eulerAnglesRadians);
+    }
 
-	Transform Transform::FromPosition(const Vec3& pos) {
-		Transform tr;
-		tr.Position = pos;
-		return tr;
-	}
-	Transform Transform::FromScale(const Vec3& scale) {
-		Transform tr;
-		tr.Scale = scale;
-		return tr;
-	}
+    glm::vec3 Transform::GetEulerAngles() const {
+        return glm::eulerAngles(Rotation);
+    }
 
+    glm::mat4 Transform::GetModelMatrix() const {
+        glm::mat4 translation = glm::translate(glm::mat4(1.0f), Position);
+        glm::mat4 rotationMat = glm::toMat4(Rotation);
+        glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), Scale);
+        return translation * rotationMat * scaleMat;
+    }
 
-	glm::mat3 Transform2D::GetModelMatrix() const {
-		const float s = glm::sin(Rotation);
-		const float c = glm::cos(Rotation);
-
-		glm::mat3 rotMatrix{
-			{ c,  s, 0.0f },
-			{ -s, c, 0.0f },
-			{ 0.0f, 0.0f, 1.0f }
-		};
-
-
-		glm::mat3 scaleMat{
-			{ Scale.x, 0.0f,   0.0f },
-			{ 0.0f,   Scale.y, 0.0f },
-			{ 0.0f,   0.0f,    1.0f }
-		};
-
-		glm::mat3 transMat{
-			{ 1.0f, 0.0f, 0.0f },
-			{ 0.0f, 1.0f, 0.0f },
-			{ Position.x, Position.y, 1.0f }
-		};
-
-
-		return transMat * rotMatrix * scaleMat;
-	}
+    glm::mat3 Transform::GetNormalMatrix() const {
+        glm::mat4 model = GetModelMatrix();
+        return glm::transpose(glm::inverse(glm::mat3(model)));
+    }
 }

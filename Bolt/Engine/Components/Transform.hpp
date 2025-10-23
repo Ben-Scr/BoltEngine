@@ -1,69 +1,28 @@
 #pragma once
-#include "../Collections/Vec2.hpp"
-#include <box2d/types.h>
 
-namespace glm {
-   struct mat3;
-}
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace Bolt {
-
     class Transform {
     public:
-        Vec3 Position{ 0.0f, 0.0f, 0.0f };
-        Vec3 Scale{ 1.0f, 1.0f, 1.0f };
-        Vec3 Rotation{ 0.0f, 0.0f, 0.0f };
-
-
         Transform() = default;
-        Transform(const Vec3& position) : Position{ position } {};
-        Transform(const Vec3& position, const Vec3& rotation) : Position{ position }, Rotation{ rotation } {};
-        Transform(const Vec3& position, const Vec3& scale, const Vec3& rotation) : Position{ position }, Scale{ scale }, Rotation{ rotation } {};
-
-        static Transform FromPosition(const Vec3& pos);
-        static Transform FromScale(const Vec3& scale);
-
-
-        glm::mat3 GetModelMatrix() const;
-
-        bool operator==(const Transform& other) const {
-            return Position == other.Position
-                && Rotation == other.Rotation
-                && Scale == other.Scale;
+        explicit Transform(const glm::vec3& position) : Position(position) {}
+        Transform(const glm::vec3& position, const glm::quat& rotation)
+            : Position(position), Rotation(rotation) {
         }
-        bool operator!=(const Transform& other) const {
-            return !(*this == other);
+        Transform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
+            : Position(position), Rotation(rotation), Scale(scale) {
         }
 
+        glm::vec3 Position{ 0.0f, 0.0f, 0.0f };
+        glm::quat Rotation{ 1.0f, 0.0f, 0.0f, 0.0f };
+        glm::vec3 Scale{ 1.0f, 1.0f, 1.0f };
 
-        Transform operator+(const Transform& other) const {
-            return Transform(Position + other.Position);
-        }
-        Transform operator-(const Transform& other) const {
-            return Transform(Position - other.Position);
-        }
-        Transform& operator+=(const Transform& other) {
-            Position += other.Position;
-            Rotation += other.Rotation;
-            Scale += other.Scale;
-            return *this;
-        }
-        Transform& operator-=(const Transform& other) {
-            Position -= other.Position;
-            Rotation -= other.Rotation;
-            Scale -= other.Scale;
-            return *this;
-        }
+        void SetEulerAngles(const glm::vec3& eulerAnglesRadians);
+        glm::vec3 GetEulerAngles() const;
 
-
-        Transform operator*(float scalar) const {
-            return Transform(Position * scalar, Scale * scalar, Rotation * scalar);
-        }
-        Transform& operator*=(float scalar) {
-            Position *= scalar;
-            Rotation *= scalar;
-            Scale *= scalar;
-            return *this;
-        }
+        glm::mat4 GetModelMatrix() const;
+        glm::mat3 GetNormalMatrix() const;
     };
 }

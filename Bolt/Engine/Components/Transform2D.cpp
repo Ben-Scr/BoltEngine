@@ -16,6 +16,7 @@ namespace Bolt {
 
 
 	float Transform2D::GetRotationDegrees() const { return Degrees(Rotation); }
+
 	glm::mat3 Transform2D::GetModelMatrix() const {
 		const float s = glm::sin(Rotation);
 		const float c = glm::cos(Rotation);

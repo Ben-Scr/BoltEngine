@@ -6,7 +6,7 @@ namespace Bolt {
 	TextureHandle squareTexture;
 
 	void GameSystem::Awake(Scene& scene) {
-		TextureManager::Initialize();
+
 	}
 
 	void CreateEntity(Scene& scene,Transform2D transform, TextureHandle tex, BodyType bodyType = BodyType::Dynamic, Color color = Color::White()) {

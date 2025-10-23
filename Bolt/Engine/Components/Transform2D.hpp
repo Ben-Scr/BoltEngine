@@ -22,7 +22,7 @@ namespace Bolt {
         float GetRotationDegrees() const;
         glm::mat3 GetModelMatrix() const;
 
-        // Only used internally by Box2D
+        // Used internally for Box2D
         b2Rot GetB2Rotation() const;
         bool operator==(const Transform2D& other) const {
             return Position == other.Position

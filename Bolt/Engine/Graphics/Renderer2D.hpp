@@ -13,32 +13,10 @@
 namespace Bolt {
     class Scene;
 
-    enum GLCullingModes {
-        GLNone = 0,
-        GLFrontLeft = 0x0400,
-        GLFrontRight = 0x0401,
-        GLBackLeft = 0x0402,
-        GLBackRight = 0x0403,
-        GLFront = 0x0404,     
-        GLBack = 0x0405,
-        GLLeft = 0x0406,
-        GLRight = 0x0407,
-        GLFrontAndBack = 0x0408
-    };
-
-    struct GLInitProperties {
-        Color BackgroundColor;
-        bool EnableCulling;
-        GLCullingModes CullingMode;
-
-        GLInitProperties(Color backgroundColor, bool enableCulling, GLCullingModes cullMode)
-            : BackgroundColor{ backgroundColor }, EnableCulling{ enableCulling }, CullingMode{ cullMode } {
-        }
-    };
-
+ 
     class Renderer2D {
     public:
-        void Initialize(const GLInitProperties& glInitProps);
+        void Initialize();
         void BeginFrame();
         void EndFrame();
         void RenderScenes();
