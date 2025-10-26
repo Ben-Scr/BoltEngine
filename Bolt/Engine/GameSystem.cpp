@@ -20,6 +20,6 @@ namespace Bolt {
 	}
 
 	void GameSystem::Update(Scene& scene) {
-	
+
 	}
 }

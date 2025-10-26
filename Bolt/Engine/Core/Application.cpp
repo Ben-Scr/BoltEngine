@@ -108,11 +108,11 @@ namespace Bolt {
 	}
 
 	void Application::Initialize() {
-		m_Window.emplace(Window(GLFWWindowProperties(800,800, "Hello World", false, false, true)));
+		m_Window.emplace(Window(GLFWWindowProperties(800,800, "Hello World", false, false, false)));
 		m_Window.value().SetVsync(true);
 		m_Window.value().SetWindowResizeable(true);
 
-		OpenGL::Initialize(GLInitProperties(Color::Black(), true, GLCullingMode::GLBack));
+		OpenGL::Initialize(GLInitProperties(Color::Background(), true, GLCullingMode::GLBack));
 
 		m_Renderer2D.emplace(Renderer2D());
 		m_Renderer2D.value().Initialize();
