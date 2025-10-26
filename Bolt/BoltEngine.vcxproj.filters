@@ -141,9 +141,6 @@
     <ClCompile Include="Engine\Components\Transform2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Math\VectorMath.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Graphics\Camera2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -156,13 +153,7 @@
     <ClCompile Include="Engine\Graphics\QuadMesh.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Graphics\RenderContext.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Graphics\Renderer2D.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Graphics\RenderResources.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Graphics\Shader.cpp">
@@ -214,18 +205,6 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Graphics\SpriteShaderProgram.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Components\Transform.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Graphics\Camera.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Graphics\Renderer.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine\Graphics\Mesh.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Graphics\OpenGL.cpp">
@@ -479,13 +458,7 @@
     <ClInclude Include="Engine\Graphics\QuadMesh.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Graphics\RenderContext.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Graphics\Renderer2D.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Graphics\RenderResources.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Graphics\Shader.hpp">
@@ -548,9 +521,6 @@
     <ClInclude Include="Engine\Scene\SceneManager.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Utils\Random.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Utils\Serializer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -570,21 +540,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Graphics\SpriteShaderProgram.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Components\Transform.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Graphics\Camera.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Graphics\Renderer.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Components\MeshRenderer.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Graphics\Mesh.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Graphics\OpenGL.hpp">

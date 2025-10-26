@@ -166,7 +166,6 @@
     <ClCompile Include="Engine\Components\Collider2D.cpp" />
     <ClCompile Include="Engine\Components\ParticleSystem2D.cpp" />
     <ClCompile Include="Engine\Components\Rigidbody2D.cpp" />
-    <ClCompile Include="Engine\Components\Transform.cpp" />
     <ClCompile Include="Engine\Components\Transform2D.cpp" />
     <ClCompile Include="Engine\Core\Application.cpp" />
     <ClCompile Include="Engine\Core\Input.cpp" />
@@ -180,14 +179,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Engine\Graphics\Camera.cpp" />
     <ClCompile Include="Engine\Graphics\Camera2D.cpp" />
     <ClCompile Include="Engine\Graphics\GizmoRenderer.cpp" />
     <ClCompile Include="Engine\Graphics\Gizmos.cpp" />
-    <ClCompile Include="Engine\Graphics\Mesh.cpp" />
     <ClCompile Include="Engine\Graphics\OpenGL.cpp" />
     <ClCompile Include="Engine\Graphics\QuadMesh.cpp" />
-    <ClCompile Include="Engine\Graphics\Renderer.cpp" />
     <ClCompile Include="Engine\Graphics\Renderer2D.cpp" />
     <ClCompile Include="Engine\Graphics\Shader.cpp" />
     <ClCompile Include="Engine\Graphics\SpriteShaderProgram.cpp" />
@@ -239,7 +235,6 @@
     <ClInclude Include="Engine\Components\Rigidbody2D.hpp" />
     <ClInclude Include="Engine\Components\SpriteRenderer.hpp" />
     <ClInclude Include="Engine\Components\Tags.hpp" />
-    <ClInclude Include="Engine\Components\Transform.hpp" />
     <ClInclude Include="Engine\Components\Transform2D.hpp" />
     <ClInclude Include="Engine\Core\Application.hpp" />
     <ClInclude Include="Engine\Core\Input.hpp" />
@@ -248,15 +243,11 @@
     <ClInclude Include="Engine\Core\Window.hpp" />
     <ClInclude Include="Engine\Debugging\Logger.hpp" />
     <ClInclude Include="Engine\GameSystem.hpp" />
-    <ClInclude Include="Engine\Graphics\Camera.hpp" />
     <ClInclude Include="Engine\Graphics\Camera2D.hpp" />
     <ClInclude Include="Engine\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Engine\Graphics\Gizmos.hpp" />
-    <ClInclude Include="Engine\Graphics\Mesh.hpp" />
-    <ClInclude Include="Engine\Components\MeshRenderer.hpp" />
     <ClInclude Include="Engine\Graphics\OpenGL.hpp" />
     <ClInclude Include="Engine\Graphics\QuadMesh.hpp" />
-    <ClInclude Include="Engine\Graphics\Renderer.hpp" />
     <ClInclude Include="Engine\Graphics\Renderer2D.hpp" />
     <ClInclude Include="Engine\Graphics\Shader.hpp" />
     <ClInclude Include="Engine\Graphics\SpriteShaderProgram.hpp" />

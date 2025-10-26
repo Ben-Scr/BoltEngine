@@ -15,8 +15,6 @@
 #include "Components/Transform2D.hpp"
 #include "Components/ParticleSystem2D.hpp"
 #include "Components/Tags.hpp"
-#include "Components/MeshRenderer.hpp"
-#include "Components/Transform.hpp"
 
 // CORE
 #include "Core/Input.hpp"
@@ -32,8 +30,6 @@
 #include "Graphics/TextureManager.hpp"
 #include "Graphics/Gizmos.hpp"
 #include "Graphics/Camera2D.hpp"
-#include "Graphics/Camera.hpp"
-#include "Graphics/Mesh.hpp"
 
 // MATH
 #include "Math/Common.hpp"
