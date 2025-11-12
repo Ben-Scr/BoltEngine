@@ -6,7 +6,7 @@
 
 
 namespace Bolt {
-	Entity Entity::null{ entt::null, nullptr };
+	Entity Entity::Null{ entt::null, nullptr };
 
 	EntityHandle Entity::GetHandle() const {
 		return m_EntityHandle;

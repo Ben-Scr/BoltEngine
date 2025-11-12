@@ -13,7 +13,7 @@ namespace Bolt {
 
 		Transform2D() = default;
         Transform2D(const Vec2& position) : Position{ position } {};
-        Transform2D(const Vec2& position, float rotation) : Position{ position }, Rotation{ rotation } {};
+        Transform2D(const Vec2& position, const Vec2& scale) : Position{ position }, Scale{ scale } {};
         Transform2D(const Vec2& position, const Vec2& scale, float rotation) : Position{ position }, Scale{scale}, Rotation{ rotation } {};
 
         static Transform2D FromPosition(const Vec2& pos);

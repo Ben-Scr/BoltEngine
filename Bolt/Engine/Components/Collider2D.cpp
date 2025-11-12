@@ -14,7 +14,7 @@ namespace Bolt {
 	float Collider2D::GetRotationDegrees() {
 		return Degrees<float>(b2Rot_GetAngle(b2Body_GetRotation(m_BodyId)));
 	}
-	float Collider2D::GetRotationAngle() {
+	float Collider2D::GetRotationRadiant() {
 		return  b2Rot_GetAngle(b2Body_GetRotation(m_BodyId));
 	}
 

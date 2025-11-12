@@ -11,7 +11,7 @@ namespace Bolt {
 
 		static void Destroy(Entity entity);
 		void Destroy();
-		static Entity null;
+		static Entity Null;
 
 
 		template<typename TComponent, typename... Args>

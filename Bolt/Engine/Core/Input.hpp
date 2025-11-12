@@ -41,6 +41,9 @@ namespace Bolt {
             return (btn >= 0 && btn < k_MouseCount)
                 && s_CurrentMouseButtons[btn] && !s_PreviousMouseButtons[btn];
         }
+        static Vec2 GetAxis() {
+            return s_Axis;
+        }
         
         static Vec2 MousePosition() { return s_MousePosition; }
         static Vec2 MouseDelta() { return s_MouseDelta; }
