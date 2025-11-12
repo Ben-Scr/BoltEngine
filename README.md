@@ -1,11 +1,5 @@
 # Bolt Engine
-Gameengine (in development)
-
-## Screenshots
-<p align="center">
-  <img src="Bolt/Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 1">
-  <img src="Bolt/Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 2">
-</p>
+Gamee/Rendering Engine (in development)
 
 ## External Libraries / API's
 - OpenGL - Rendering API
@@ -16,3 +10,9 @@ Gameengine (in development)
 - Cereal - Serialization Library
 - ENTT - ECS Library
 - Miniaudio - Multiplatform Audio Library
+
+## Screenshots
+<p align="center">
+  <img src="Bolt/Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 1">
+  <img src="Bolt/Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 2">
+</p>
