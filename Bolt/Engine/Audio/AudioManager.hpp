@@ -33,23 +33,10 @@ namespace Bolt {
 
 
 		static void SetMasterVolume(float volume);
-		static void SetListenerPosition(const glm::vec3& position);
-		static void SetListenerVelocity(const glm::vec3& velocity);
-		static void SetListenerOrientation(const glm::vec3& forward, const glm::vec3& up);
 		static float GetMasterVolume() { return s_masterVolume; }
 
 
-		static void PlayOneShot(const AudioHandle& blockTexture, float volume = 1.0f);
-		static void PlayOneShotAtPosition(const AudioHandle& blockTexture, const glm::vec3& position, float volume = 1.0f);
-
-
-		static void PlayOneShotLimited(const AudioHandle& blockTexture, float volume = 1.0f, float priority = 1.0f);
-		static void PlayOneShotAtPositionLimited(const AudioHandle& blockTexture, const glm::vec3& position,
-			float volume = 1.0f, float priority = 1.0f);
-
-
-		static void PlayBatchOneShots(const std::vector<std::pair<AudioHandle, float>>& sounds);
-
+		static void PlayOneShot(const AudioHandle& audioHandle, float volume = 1.0f);
 
 		static void SetMaxConcurrentSounds(uint32_t maxSounds);
 		static void SetMaxSoundsPerFrame(uint32_t maxPerFrame);
@@ -122,10 +109,6 @@ namespace Bolt {
 
 
 		static float s_masterVolume;
-		static glm::vec3 s_listenerPosition;
-		static glm::vec3 s_listenerVelocity;
-		static glm::vec3 s_listenerForward;
-		static glm::vec3 s_listenerUp;
 
 
 		static AudioHandle::HandleType GenerateHandle();

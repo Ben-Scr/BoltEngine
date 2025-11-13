@@ -15,10 +15,6 @@ namespace Bolt {
 	std::vector<AudioManager::SoundInstance> AudioManager::s_soundInstances;
 	std::vector<uint32_t> AudioManager::s_freeInstanceIndices;
 	float AudioManager::s_masterVolume = 1.0f;
-	glm::vec3 AudioManager::s_listenerPosition{ 0.0f };
-	glm::vec3 AudioManager::s_listenerVelocity{ 0.0f };
-	glm::vec3 AudioManager::s_listenerForward{ 0.0f, 0.0f, -1.0f };
-	glm::vec3 AudioManager::s_listenerUp{ 0.0f, 1.0f, 0.0f };
 
 	uint32_t AudioManager::s_maxConcurrentSounds = MAX_CONCURRENT_SOUNDS;
 	uint32_t AudioManager::s_maxSoundsPerFrame = MAX_SOUNDS_PER_FRAME;
@@ -89,87 +85,18 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::PlayOneShotLimited(const AudioHandle& blockTexture, float volume, float priority) {
-		if (!s_IsInitialized || !blockTexture.IsValid()) {
-			return;
-		}
-
-		if (!CanPlaySound(blockTexture, priority)) {
-			return;
-		}
-
-
-		if (IsThrottled(blockTexture)) {
-			return;
-		}
-
-
-		if (s_soundsPlayedThisFrame < s_maxSoundsPerFrame && s_activeSoundCount < s_maxConcurrentSounds) {
-			PlayOneShot(blockTexture, volume);
-			s_soundsPlayedThisFrame++;
-			ThrottleSound(blockTexture);
-		}
-		else {
-			SoundRequest request;
-			request.Handle = blockTexture;
-			request.Volume = volume;
-			request.Priority = priority;
-			request.Is3D = false;
-			request.RequestTime = std::chrono::steady_clock::now();
-
-			s_soundQueue.push(request);
-		}
-	}
-
-	void AudioManager::PlayOneShotAtPositionLimited(const AudioHandle& blockTexture, const glm::vec3& position,
-		float volume, float priority) {
-		if (!s_IsInitialized || !blockTexture.IsValid()) {
-			return;
-		}
-
-		if (!CanPlaySound(blockTexture, priority) || IsThrottled(blockTexture)) {
-			return;
-		}
-
-		if (s_soundsPlayedThisFrame < s_maxSoundsPerFrame && s_activeSoundCount < s_maxConcurrentSounds) {
-			PlayOneShotAtPosition(blockTexture, position, volume);
-			s_soundsPlayedThisFrame++;
-			ThrottleSound(blockTexture);
-		}
-		else {
-			SoundRequest request;
-			request.Handle = blockTexture;
-			request.Volume = volume;
-			request.Priority = priority;
-			request.Position = position;
-			request.Is3D = true;
-			request.RequestTime = std::chrono::steady_clock::now();
-
-			s_soundQueue.push(request);
-		}
-	}
-
-	void AudioManager::PlayBatchOneShots(const std::vector<std::pair<AudioHandle, float>>& sounds) {
-		for (const auto& [blockTexture, volume] : sounds) {
-			if (s_soundsPlayedThisFrame >= s_maxSoundsPerFrame) {
-				break; 
-			}
-			PlayOneShotLimited(blockTexture, volume, 1.0f);
-		}
-	}
-
 	bool AudioManager::CanPlaySound(const AudioHandle& blockTexture, float priority) {
 		if (priority >= 2.0f) {
 			return true;
 		}
 
-	
+
 		if (s_activeSoundCount >= s_maxConcurrentSounds) {
-			return priority > 1.5f; 
+			return priority > 1.5f;
 		}
 
 		if (s_soundsPlayedThisFrame >= s_maxSoundsPerFrame) {
-			return priority > 1.8f; 
+			return priority > 1.8f;
 		}
 
 		return true;
@@ -201,11 +128,11 @@ namespace Bolt {
 
 
 			if (request.Is3D) {
-				PlayOneShotAtPosition(request.Handle, request.Position, request.Volume);
+				Logger::Warning("There is no support for 3D Audio");
 			}
-			else {
-				PlayOneShot(request.Handle, request.Volume);
-			}
+
+			PlayOneShot(request.Handle, request.Volume);
+
 
 			s_soundsPlayedThisFrame++;
 			ThrottleSound(request.Handle);
@@ -233,7 +160,7 @@ namespace Bolt {
 	}
 
 	void AudioManager::SetMaxConcurrentSounds(uint32_t maxSounds) {
-		s_maxConcurrentSounds = Min(maxSounds, 128u); 
+		s_maxConcurrentSounds = Min(maxSounds, 128u);
 	}
 
 	void AudioManager::SetMaxSoundsPerFrame(uint32_t maxPerFrame) {
@@ -307,7 +234,7 @@ namespace Bolt {
 
 		uint32_t instanceId = CreateSoundInstance(source.GetAudioHandle());
 		if (instanceId == 0) {
-			std::cerr << "AudioManager: Failed to create sound instance" << std::endl;
+			Logger::Error("AudioManager: Failed to create sound instance");
 			return;
 		}
 
@@ -318,27 +245,12 @@ namespace Bolt {
 			ma_sound_set_volume(&instance->Sound, source.GetVolume() * s_masterVolume);
 			ma_sound_set_pitch(&instance->Sound, source.GetPitch());
 			ma_sound_set_looping(&instance->Sound, source.IsLooping());
-
-			if (source.IsSpatial()) {
-				ma_sound_set_positioning(&instance->Sound, ma_positioning_absolute);
-				const auto& pos = source.GetPosition();
-				ma_sound_set_position(&instance->Sound, pos.x, pos.y, pos.z);
-
-				const auto& vel = source.GetVelocity();
-				ma_sound_set_velocity(&instance->Sound, vel.x, vel.y, vel.z);
-
-				ma_sound_set_min_distance(&instance->Sound, source.GetMinDistance());
-				ma_sound_set_max_distance(&instance->Sound, source.GetMaxDistance());
-				ma_sound_set_attenuation_model(&instance->Sound, static_cast<ma_attenuation_model>(source.GetAttenuationModel()));
-			}
-			else {
-				ma_sound_set_positioning(&instance->Sound, ma_positioning_relative);
-			}
+			ma_sound_set_positioning(&instance->Sound, ma_positioning_relative);
 
 
 			ma_result result = ma_sound_start(&instance->Sound);
 			if (result != MA_SUCCESS) {
-				std::cerr << "AudioManager: Failed to start sound playback. Error: " << result << std::endl;
+				Logger::Error("AudioManager: Failed to start sound playback. Error: " + result);
 				DestroySoundInstance(instanceId);
 				source.SetInstanceId(0);
 			}
@@ -384,38 +296,12 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::SetListenerPosition(const glm::vec3& position) {
-		s_listenerPosition = position;
-
-		if (s_IsInitialized) {
-			ma_engine_listener_set_position(&s_Engine, 0, position.x, position.y, position.z);
-		}
-	}
-
-	void AudioManager::SetListenerVelocity(const glm::vec3& velocity) {
-		s_listenerVelocity = velocity;
-
-		if (s_IsInitialized) {
-			ma_engine_listener_set_velocity(&s_Engine, 0, velocity.x, velocity.y, velocity.z);
-		}
-	}
-
-	void AudioManager::SetListenerOrientation(const glm::vec3& forward, const glm::vec3& up) {
-		s_listenerForward = forward;
-		s_listenerUp = up;
-
-		if (s_IsInitialized) {
-			ma_engine_listener_set_direction(&s_Engine, 0, forward.x, forward.y, forward.z);
-			ma_engine_listener_set_world_up(&s_Engine, 0, up.x, up.y, up.z);
-		}
-	}
-
-	void AudioManager::PlayOneShot(const AudioHandle& blockTexture, float volume) {
-		if (!s_IsInitialized || !blockTexture.IsValid()) {
+	void AudioManager::PlayOneShot(const AudioHandle& audioHandle, float volume) {
+		if (!s_IsInitialized || !audioHandle.IsValid()) {
 			return;
 		}
 
-		const Audio* audio = GetAudio(blockTexture);
+		const Audio* audio = GetAudio(audioHandle);
 		if (!audio) {
 			return;
 		}
@@ -435,36 +321,12 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::PlayOneShotAtPosition(const AudioHandle& blockTexture, const glm::vec3& position, float volume) {
-		if (!s_IsInitialized || !blockTexture.IsValid()) {
-			return;
-		}
-
-		const Audio* audio = GetAudio(blockTexture);
-		if (!audio) {
-			return;
-		}
-
-		ma_sound sound;
-		ma_result result = ma_sound_init_from_file(&s_Engine, audio->GetFilepath().c_str(), 0, nullptr, nullptr, &sound);
-
-		if (result == MA_SUCCESS) {
-			ma_sound_set_volume(&sound, volume * s_masterVolume);
-			ma_sound_set_positioning(&sound, ma_positioning_absolute);
-			ma_sound_set_position(&sound, position.x, position.y, position.z);
-			ma_sound_start(&sound);
-		}
-		else {
-			std::cerr << "AudioManager: Failed to create positioned one-shot sound. Error: " << result << std::endl;
-		}
-	}
-
-	bool AudioManager::IsAudioLoaded(const AudioHandle& blockTexture) {
-		if (!blockTexture.IsValid()) {
+	bool AudioManager::IsAudioLoaded(const AudioHandle& audioHandle) {
+		if (!audioHandle.IsValid()) {
 			return false;
 		}
 
-		return s_audioMap.find(blockTexture.GetHandle()) != s_audioMap.end();
+		return s_audioMap.find(audioHandle.GetHandle()) != s_audioMap.end();
 	}
 
 	const Audio* AudioManager::GetAudio(const AudioHandle& blockTexture) {

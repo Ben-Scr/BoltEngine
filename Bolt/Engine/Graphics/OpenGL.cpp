@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 
 namespace Bolt {
-	void OpenGL::Initialize(const GLInitProperties& glInitProps) {
+	void OpenGL::Initialize(const GLInitProperties2D& glInitProps) {
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			Logger::Error("OpenGL", "Glad failed to load");
 			return;

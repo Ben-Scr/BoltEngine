@@ -38,13 +38,16 @@ namespace Bolt {
 
 		if (isADeadly || isBDeadly) {
 			BoxCollider2D& collider2D = m_PlayerEntity.GetComponent<BoxCollider2D>();
-			collider2D.SetScale(Vec2(0,0), activeScene);
+			collider2D.SetLayer(0);
 		}
-
-		Logger::Message("Collided");
 	}
 
 	void GameSystem::Start(Scene& scene) {
+
+		AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
+		AudioSource source{ handle };
+		AudioManager::PlayAudioSource(source);
+
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(0, -3), Vec2(100, 1)), BodyType::Static);
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Cyan());
 
@@ -67,14 +70,12 @@ namespace Bolt {
 		Vec2 input = Input::GetAxis() * speed;
 		rb2D.SetVelocity(Vec2(input.x, rb2D.GetVelocity().y));
 
-		Gizmos::SetColor(Color::Blue());
-
 		if (Input::GetKeyDown(KeyCode::Space)) {
 			rb2D.SetVelocity(Vec2(rb2D.GetVelocity().x, 5));
 		}
 
 		for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
-			Gizmos::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationRadiant());
+			Gizmos::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationDegrees());
 		}
 	}
 }

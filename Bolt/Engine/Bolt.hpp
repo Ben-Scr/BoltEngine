@@ -39,6 +39,13 @@
 #include "Physics/PhysicsUtility.hpp"
 #include "Physics/Box2DWorld.hpp"
 
+// AUDIO
+#include "Audio/Audio.hpp"
+#include "Audio/AudioManager.hpp"
+#include "Audio/AudioSource.hpp"
+#include "Audio/AudioHandle.hpp"
+
+
 // SCENE
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"

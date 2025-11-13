@@ -3,6 +3,7 @@
 #include "../Scene/SceneManager.hpp"
 #include "../Graphics/TextureManager.hpp"
 #include "../Graphics/OpenGL.hpp"
+#include "../Audio/AudioManager.hpp"
 #include "Time.hpp"
 #include "Input.hpp"
 
@@ -112,7 +113,7 @@ namespace Bolt {
 		m_Window.value().SetVsync(false);
 		m_Window.value().SetWindowResizeable(true);
 
-		OpenGL::Initialize(GLInitProperties(Color::Background(), true, GLCullingMode::GLBack));
+		OpenGL::Initialize(GLInitProperties2D(Color::Background(), true, GLCullingMode::GLBack));
 
 		m_Renderer2D.emplace(Renderer2D());
 		m_Renderer2D.value().Initialize();
@@ -123,6 +124,9 @@ namespace Bolt {
 		m_PhysicsSystem.emplace(PhysicsSystem());
 
 		TextureManager::Initialize();
+		AudioManager::Initialize();
+
+		// As last since it calls Awake() + Start() on all systems
 		SceneManager::Initialize();
 	}
 }

@@ -18,6 +18,7 @@ namespace Bolt {
 		bool IsValid();
 		void SetFriction(float friction);
 		void SetBounciness(float bounciness);
+		void SetLayer(uint64_t layer);
 
 		Vec2 GetBodyPosition();
 		float GetRotationDegrees();

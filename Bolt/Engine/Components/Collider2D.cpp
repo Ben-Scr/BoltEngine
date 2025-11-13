@@ -6,6 +6,11 @@ namespace Bolt {
 	bool Collider2D::IsValid() { return b2Body_IsValid(m_BodyId) && b2Shape_IsValid(m_ShapeId); }
 	void Collider2D::SetFriction(float friction) { b2Shape_SetFriction(m_ShapeId, friction); }
 	void Collider2D::SetBounciness(float bounciness) { b2Shape_SetRestitution(m_ShapeId, bounciness); }
+	void Collider2D::SetLayer(uint64_t layer) {
+		b2Filter filter = b2Shape_GetFilter(m_ShapeId);
+		filter.maskBits = layer;
+		b2Shape_SetFilter(m_ShapeId, filter);
+	}
 
 	Vec2 Collider2D::GetBodyPosition() {
 		b2Vec2 position = b2Body_GetPosition(m_BodyId);

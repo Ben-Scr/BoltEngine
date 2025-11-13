@@ -18,12 +18,12 @@ namespace Bolt {
         GLFrontAndBack = 0x0408
     };
 
-    struct GLInitProperties {
+    struct GLInitProperties2D {
         Color BackgroundColor;
         bool EnableCulling;
         GLCullingMode CullingMode;
 
-        GLInitProperties(Color backgroundColor, bool enableCulling, GLCullingMode cullMode)
+        GLInitProperties2D(Color backgroundColor, bool enableCulling, GLCullingMode cullMode)
             : BackgroundColor{ backgroundColor }, EnableCulling{ enableCulling }, CullingMode{ cullMode } {
         }
     };
@@ -32,6 +32,6 @@ namespace Bolt {
 
 	class OpenGL {
 	public:
-		static void Initialize(const GLInitProperties& glInitProps);
+		static void Initialize(const GLInitProperties2D& glInitProps);
 	};
 }
