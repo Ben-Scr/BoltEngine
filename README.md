@@ -1,5 +1,5 @@
 # Bolt Engine
-C++ Windows Game Engine (in development)
+C++ Windows Compatible Game Engine/Library (in development)
 
 ## External Libraries / API's
 - [OpenGL](https://www.opengl.org/) - Rendering API
