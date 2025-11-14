@@ -14,6 +14,7 @@ namespace Bolt {
 	void CreatePhysicsEntity(Scene& scene, Transform2D transform, BodyType bodyType, Color color = Color::White()) {
 		Entity blockEntity = scene.CreateEntity();
 	    blockEntity.AddComponent<Tag>();
+		blockEntity.AddComponent<DisabledTag>();
 		SpriteRenderer& sp = blockEntity.AddComponent<SpriteRenderer>();
 		sp.TextureHandle = blockTex;
 		sp.Color = color;
@@ -46,7 +47,8 @@ namespace Bolt {
 
 		AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
 		AudioSource source{ handle };
-		AudioManager::PlayAudioSource(source);
+		source.SetVolume(0.1f);
+		source.Play();
 
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(0, -3), Vec2(100, 1)), BodyType::Static);
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Cyan());

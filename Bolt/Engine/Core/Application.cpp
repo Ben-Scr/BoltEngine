@@ -73,6 +73,7 @@ namespace Bolt {
 
 	void Application::BeginFrame() {
 		CoreInput();
+		AudioManager::Update();
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
 		m_GizmoRenderer.value().BeginFrame();

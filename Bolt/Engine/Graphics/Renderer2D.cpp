@@ -5,6 +5,7 @@
 #include "../Collections/Viewport.hpp"
 #include "../Scene/SceneManager.hpp"
 #include "../Components/SpriteRenderer.hpp"
+#include "../Components/Tags.hpp"
 #include "../Scene/Scene.hpp"
 #include "../Graphics/TextureManager.hpp"
 #include <glm/gtc/type_ptr.hpp>
@@ -46,11 +47,7 @@ namespace Bolt {
 		m_SpriteShader.Bind();
 
 		// Camera 2D Region
-
-
 		Camera2D* camera2D = Camera2D::Main();
-
-
 
 		if (camera2D == nullptr) {
 			Logger::Error("Camera2D", "There is no main camera");
@@ -66,7 +63,7 @@ namespace Bolt {
 
 		int renderingSprites = 0;
 
-		for (const auto& [ent, tr, spriteRenderer] : scene.GetRegistry().view<Transform2D, SpriteRenderer>().each()) {
+		for (const auto& [ent, tr, spriteRenderer] : scene.GetRegistry().view<Transform2D, SpriteRenderer>(entt::exclude<DisabledTag>).each()) {
 			if (!AABB::Intersects(viewportAABB, AABB::FromTransform(tr)))
 				continue;
 
@@ -84,7 +81,6 @@ namespace Bolt {
 
 			if (texture.IsValid())
 				texture.Submit(0);
-
 			else
 			{
 				Logger::Warning("Invalid Texture");
@@ -100,7 +96,6 @@ namespace Bolt {
 #if 0
 		Logger::Message("Rendering " + std::to_string(renderingSprites) + " Sprites");
 #endif
-
 		m_SpriteShader.Unbind();
 	}
 

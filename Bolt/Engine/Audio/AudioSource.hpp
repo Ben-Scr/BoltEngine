@@ -14,6 +14,7 @@ namespace Bolt {
 		void Pause();
 		void Stop();
 		void Resume();
+		void Destroy();
 
 
 		void SetVolume(float volume);
@@ -29,9 +30,9 @@ namespace Bolt {
 		bool IsLooping() const { return m_Loop; }
 		bool IsPlaying() const;
 		bool IsPaused() const;
+		bool IsValid() const;
 
 		const AudioHandle& GetAudioHandle() const { return m_audioHandle; }
-
 
 		uint32_t GetInstanceId() const { return m_instanceId; }
 		void SetInstanceId(uint32_t id) { m_instanceId = id; }

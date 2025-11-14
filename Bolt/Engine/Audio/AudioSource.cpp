@@ -12,15 +12,15 @@ namespace Bolt {
 
 	void AudioSource::Play() {
 		if (!m_audioHandle.IsValid()) {
-			Logger::Error("AudioSource: Cannot play - invalid audio handle");
+			Logger::Error("AudioSource", "Cannot play invalid audio handle");
 			return;
 		}
-
 		AudioManager::PlayAudioSource(*this);
 	}
 
 	void AudioSource::Pause() {
 		if (m_instanceId == 0) {
+			Logger::Error("AudioSource", "Cannot pause invalid audio handle");
 			return;
 		}
 
@@ -30,6 +30,7 @@ namespace Bolt {
 
 	void AudioSource::Stop() {
 		if (m_instanceId == 0) {
+			Logger::Error("AudioSource", "Cannot stop invalid audio handle");
 			return;
 		}
 
@@ -38,10 +39,20 @@ namespace Bolt {
 
 	void AudioSource::Resume() {
 		if (m_instanceId == 0) {
+			Logger::Error("AudioSource", "Cannot resume invalid audio handle");
 			return;
 		}
 
 		AudioManager::ResumeAudioSource(*this);
+	}
+
+	void AudioSource::Destroy() {
+		if (m_instanceId == 0) {
+			Logger::Error("AudioSource", "Cannot destroy invalid audio handle");
+			return;
+		}
+
+		AudioManager::DestroySoundInstance(m_instanceId);
 	}
 
 	void AudioSource::SetVolume(float volume) {
@@ -122,4 +133,6 @@ namespace Bolt {
 
 		AudioManager::PlayOneShot(m_audioHandle, m_Volume);
 	}
+
+	bool AudioSource::IsValid() const { return m_audioHandle.IsValid(); }
 }

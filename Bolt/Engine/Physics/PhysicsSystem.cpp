@@ -18,7 +18,7 @@ namespace Bolt {
 
 		for (auto& scene : SceneManager::s_LoadedScenes)
 		{
-			for (auto [ent, rb, tf] : scene->GetRegistry().view<Rigidbody2D, Transform2D>().each()) {
+			for (auto [ent, rb, tf] : scene->GetRegistry().view<Rigidbody2D, Transform2D>(entt::exclude<DisabledTag>).each()) {
 				tf.Position = rb.GetPosition();
 				tf.Rotation = rb.GetRotation();
 			}

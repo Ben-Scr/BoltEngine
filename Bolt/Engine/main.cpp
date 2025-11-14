@@ -9,9 +9,8 @@
 
 
 int main() {
-   // Bolt::SceneDefinition& def2 = Bolt::SceneManager::RegisterScene("Static Scene");
-  //  Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Test");
-   // def.AddSystem<Bolt::GameSystem>();
+    Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Test");
+    def.AddSystem<Bolt::GameSystem>();
 
     Bolt::Application app{};
     app.Run();

@@ -21,11 +21,11 @@ namespace Bolt {
 		b2QueryFilter filter = b2DefaultQueryFilter();
 
 		struct Qb {
-			Vec2           ctr;
-			OverlapMode         mode;
+			Vec2 ctr;
+			OverlapMode mode;
 			std::optional<entt::entity> first;
 			std::optional<entt::entity> nearest;
-			float               bestDist2 = std::numeric_limits<float>::max();
+			float  bestDist2 = std::numeric_limits<float>::max();
 
 			static bool Report(b2ShapeId sId, void* ctx) {
 				auto* self = static_cast<Qb*>(ctx);
