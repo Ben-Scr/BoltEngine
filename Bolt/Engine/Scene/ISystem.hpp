@@ -11,6 +11,10 @@ namespace Bolt {
         virtual void Start(Scene& scene) {}
         virtual void OnDisable(Scene& scene) {}
         virtual void OnDestroy(Scene& scene) {}
+
+        virtual void OnApplicationInitialize(Scene& scene) {}
+        virtual void OnApplicationExit(Scene& scene) {}
+
         bool IsEnabled() { return m_Enabled; }
         virtual ~ISystem() = default;
     private:

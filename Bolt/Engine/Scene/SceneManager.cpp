@@ -11,7 +11,8 @@ namespace Bolt {
     Scene* SceneManager::s_ActiveScene = nullptr;
 
     void SceneManager::Initialize() {
-        LoadScene("Test");
+        auto& firstPair = *s_SceneDefinitions.begin();
+        LoadScene(firstPair.first);
     }
 
     SceneDefinition& SceneManager::RegisterScene(const std::string& name) {

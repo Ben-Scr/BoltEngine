@@ -45,6 +45,7 @@ namespace Bolt {
 				try {
 
 					BeginFixedFrame();
+					EndFixedFrame();
 				}
 				catch (std::runtime_error e) {
 					Logger::Error(e.what());
@@ -113,7 +114,7 @@ namespace Bolt {
 		m_Window.value().SetVsync(false);
 		m_Window.value().SetWindowResizeable(true);
 
-		OpenGL::Initialize(GLInitProperties2D(Color::Background(), true, GLCullingMode::GLBack));
+		OpenGL::Initialize(GLInitProperties2D(Color::Background(), GLCullingMode::GLBack));
 
 		m_Renderer2D.emplace(Renderer2D());
 		m_Renderer2D.value().Initialize();
@@ -126,7 +127,7 @@ namespace Bolt {
 		TextureManager::Initialize();
 		AudioManager::Initialize();
 
-		// As last since it calls Awake() + Start() on all systems
+		// Initialize as last since it calls Awake() + Start() on all systems
 		SceneManager::Initialize();
 	}
 }

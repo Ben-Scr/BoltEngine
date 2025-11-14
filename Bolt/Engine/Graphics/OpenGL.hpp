@@ -20,11 +20,10 @@ namespace Bolt {
 
     struct GLInitProperties2D {
         Color BackgroundColor;
-        bool EnableCulling;
         GLCullingMode CullingMode;
 
-        GLInitProperties2D(Color backgroundColor, bool enableCulling, GLCullingMode cullMode)
-            : BackgroundColor{ backgroundColor }, EnableCulling{ enableCulling }, CullingMode{ cullMode } {
+        GLInitProperties2D(const Color& backgroundColor, GLCullingMode cullMode)
+            : BackgroundColor{ backgroundColor }, CullingMode{ cullMode } {
         }
     };
 
@@ -32,6 +31,11 @@ namespace Bolt {
 
 	class OpenGL {
 	public:
-		static void Initialize(const GLInitProperties2D& glInitProps);
+		static bool Initialize(const GLInitProperties2D& glInitProps);
+        static void BlendFunc(GLenum sFactor, GLenum dFactor);
+        static void Enable(GLenum glEnum);
+        static void Disable(GLenum glEnum);
+        static void CullFace(GLCullingMode cullingMode);
+        static void SetBackgroundColor(const Color& backgroundColor);
 	};
 }

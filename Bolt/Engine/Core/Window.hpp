@@ -33,17 +33,18 @@ namespace Bolt {
 
 		static void SetVsync(bool enabled) { glfwSwapInterval(enabled ? 1 : 0); s_IsVsync = enabled; };
 		static bool IsVsync() { return s_IsVsync; }
+
 		void SetWindowResizeable(bool enabled) { glfwWindowHint(GLFW_RESIZABLE, enabled ? GLFW_TRUE : GLFW_FALSE); }
 		void SetWindowMoveable(bool enabled) { glfwWindowHint(GLFW_DECORATED, enabled ? GLFW_TRUE : GLFW_FALSE); }
-
 
 
 		bool IsMaximized() const;
 		bool IsMinimized() const;
 
+		// If reset = true the window will be automatically reseted if it's already maximized
 		void MaximizeWindow(bool reset = false);
-		void RestoreWindow();
 		void MinimizeWindow();
+		void RestoreWindow();
 
 		void CenterWindow();
 		void FocusWindow();
