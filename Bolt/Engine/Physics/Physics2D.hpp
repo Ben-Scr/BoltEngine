@@ -24,7 +24,7 @@ namespace Bolt {
 	public:
 		static std::optional<EntityHandle> OverlapCircle(const Vec2& center, float radius, OverlapMode mode);
 		static std::optional<EntityHandle> OverlapBox(const Vec2& center, const Vec2& halfExtents, float degrees, OverlapMode mode);
-		static std::optional<RaycastHit2D> Raycast(const Vec2& origin, Vec2& direction, float maxDistance);
+		static std::optional<RaycastHit2D> Raycast(const Vec2& origin, const Vec2& direction, float maxDistance);
 		static std::vector<EntityHandle> OverlapCircleAll(const Vec2& center, float radius);
 		static std::vector<EntityHandle> overlapBoxAll(const Vec2& center, const Vec2& halfExtents, float degrees);
 	};

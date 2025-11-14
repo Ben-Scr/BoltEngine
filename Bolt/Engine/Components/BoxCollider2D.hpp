@@ -10,6 +10,7 @@ namespace Bolt {
 		BoxCollider2D() = default;
 
 		void SetScale(const Vec2& scale, const Scene& scene);
+		void SetEnabled(bool enabled);
 		Vec2 GetScale();
 		Vec2 GetLocalScale(const Scene& scene);
 

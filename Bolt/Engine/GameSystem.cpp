@@ -4,32 +4,11 @@
 #include "Components/Tags.hpp"
 
 namespace Bolt {
-	TextureHandle blockTex;
+
 
 	void GameSystem::Awake(Scene& scene) {
 		blockTex = TextureManager::LoadTexture("Assets/Textures/block.png");
 	}
-
-	template<typename Tag>
-	void CreatePhysicsEntity(Scene& scene, Transform2D transform, BodyType bodyType, Color color = Color::White()) {
-		Entity blockEntity = scene.CreateEntity();
-	    blockEntity.AddComponent<Tag>();
-		blockEntity.AddComponent<DisabledTag>();
-		SpriteRenderer& sp = blockEntity.AddComponent<SpriteRenderer>();
-		sp.TextureHandle = blockTex;
-		sp.Color = color;
-		auto& tr = blockEntity.GetComponent<Transform2D>();
-		tr = transform;
-
-		auto& collider = blockEntity.AddComponent<BoxCollider2D>();
-		auto& rb2D = blockEntity.AddComponent<Rigidbody2D>();
-		rb2D.SetBodyType(bodyType);
-	}
-	void CreateCamera(Scene& scene) {
-		Entity cameraEnt = scene.CreateEntity();
-		Camera2D& camera2D = cameraEnt.AddComponent<Camera2D>();
-	}
-
 
 	void GameSystem::OnCollisionEnter(const Collision2D& collision2D) {
 		Scene& activeScene = SceneManager::GetActiveScene();
@@ -47,21 +26,22 @@ namespace Bolt {
 
 		AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
 		AudioSource source{ handle };
-		source.SetVolume(0.1f);
+		source.SetVolume(1.f);
 		source.Play();
 
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(0, -3), Vec2(100, 1)), BodyType::Static);
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Cyan());
 
 		CreatePhysicsEntity<DeadlyTag>(scene, Transform2D(Vec2(-2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Red());
-		CreateCamera(scene);
+		scene.CreateCamera();
 
 		m_PlayerEntity = scene.CreateEntity();
 		auto& spriteRenderer = m_PlayerEntity.AddComponent<SpriteRenderer>();
 		m_PlayerEntity.AddComponent<Rigidbody2D>();
-		auto& rb2D = m_PlayerEntity.AddComponent<BoxCollider2D>();
-		rb2D.SetRegisterContacts(true); 
-		rb2D.OnCollisionEnter([this](const Collision2D& collision) {
+
+		auto& boxCollider2D = m_PlayerEntity.AddComponent<BoxCollider2D>();
+		boxCollider2D.SetRegisterContacts(true); 
+		boxCollider2D.OnCollisionEnter([this](const Collision2D& collision) {
 			this->OnCollisionEnter(collision);
 			});
 	}
@@ -72,7 +52,9 @@ namespace Bolt {
 		Vec2 input = Input::GetAxis() * speed;
 		rb2D.SetVelocity(Vec2(input.x, rb2D.GetVelocity().y));
 
-		if (Input::GetKeyDown(KeyCode::Space)) {
+		bool isGrounded = Physics2D::Raycast(rb2D.GetPosition(), Down(), 0.6f).has_value();
+
+		if (Input::GetKey(KeyCode::Space) && isGrounded) {
 			rb2D.SetVelocity(Vec2(rb2D.GetVelocity().x, 5));
 		}
 

@@ -22,6 +22,12 @@ namespace Bolt {
 		return Entity(entityHandle, m_Registry);
 	}
 
+	// Note: Creates an entity with a Camera2D component
+	Entity Scene::CreateCamera() {
+		Entity entity = CreateEntity();
+		Camera2D& camera2D = entity.AddComponent<Camera2D>();
+	}
+
 	// Note: Creates an entity with a Transform2D and SpriteRenderer component
 	Entity Scene::CreateRenderableEntity() {
 		Entity entity = CreateEntity();
@@ -117,6 +123,7 @@ namespace Bolt {
 
 	void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, EntityHandle entity)
 	{
+		bool isEnabled = !registry.all_of<DisabledTag>(entity);
 		Rigidbody2D& rb2D = registry.get<Rigidbody2D>(entity);
 
 		// Info: Check if there is any 2d Collider attached to the entity
@@ -128,6 +135,8 @@ namespace Bolt {
 		else {
 			rb2D.m_BodyId = PhysicsSystem::GetMainPhysicsWorld().CreateBody(entity, *this, BodyType::Dynamic);
 		}
+
+		rb2D.SetEnabled(isEnabled);
 	}
 
 	void Scene::OnRigidBody2DComponentDestroy(entt::registry& registry, EntityHandle entity) {
@@ -144,6 +153,7 @@ namespace Bolt {
 	}
 
 	void Scene::OnBoxCollider2DComponentConstruct(entt::registry& registry, EntityHandle entity) {
+		bool isEnabled = !registry.all_of<DisabledTag>(entity);
 		BoxCollider2D& boxCollider = GetComponent<BoxCollider2D>(entity);
 
 		// Info: Check if the collider already has the Rigidbody2D component
@@ -158,6 +168,7 @@ namespace Bolt {
 		}
 
 		boxCollider.m_ShapeId = PhysicsSystem::GetMainPhysicsWorld().CreateShape(entity, *this, boxCollider.m_BodyId, ShapeType::Square);
+		boxCollider.SetEnabled(isEnabled);
 	}
 
 	void Scene::OnBoxCollider2DComponentDestroy(entt::registry& registry, EntityHandle entity) {

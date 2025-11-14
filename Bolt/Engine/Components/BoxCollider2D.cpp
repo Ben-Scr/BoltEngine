@@ -10,6 +10,13 @@ namespace Bolt {
 		b2Shape_SetPolygon(m_ShapeId, &polygon);
 	}
 
+	void BoxCollider2D::SetEnabled(bool enabled) {
+		if (enabled)
+			b2Body_Enable(m_BodyId);
+		else
+			b2Body_Disable(m_BodyId);
+	}
+
 	Vec2 BoxCollider2D::GetScale() {
 		b2ShapeType shapeType = b2Shape_GetType(m_ShapeId);
 

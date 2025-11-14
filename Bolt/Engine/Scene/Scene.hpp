@@ -10,6 +10,7 @@ namespace Bolt {
 		//Scene& operator=(const Scene&) = delete;
 
 		Entity CreateEntity();
+		Entity CreateCamera();
 		Entity CreateRenderableEntity();
 		EntityHandle CreateEntityHandle();
 

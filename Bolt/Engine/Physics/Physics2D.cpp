@@ -117,7 +117,7 @@ namespace Bolt {
 
 		return (mode == OverlapMode::First ? qb.first : qb.nearest);
 	}
-	std::optional<RaycastHit2D> Physics2D::Raycast(const Vec2& origin, Vec2& direction, float maxDistance) {
+	std::optional<RaycastHit2D> Physics2D::Raycast(const Vec2& origin,const Vec2& direction, float maxDistance) {
 		auto& phys = PhysicsSystem::GetMainPhysicsWorld();
 		b2WorldId world = phys.m_WorldId;
 
@@ -144,6 +144,7 @@ namespace Bolt {
 		hit.distance = r.fraction * maxDistance;
 		return hit;
 	}
+
 	std::vector<EntityHandle> Physics2D::OverlapCircleAll(const Vec2& center, float radius) {
 		auto& phys = PhysicsSystem::GetMainPhysicsWorld();
 		b2WorldId world = phys.m_WorldId;

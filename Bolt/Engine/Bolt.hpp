@@ -38,6 +38,7 @@
 #include "Physics/Collision2D.hpp"
 #include "Physics/PhysicsUtility.hpp"
 #include "Physics/Box2DWorld.hpp"
+#include "Physics/Physics2D.hpp"
 
 // AUDIO
 #include "Audio/Audio.hpp"
