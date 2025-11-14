@@ -3,6 +3,7 @@
 #include "../Scene/SceneManager.hpp"
 #include "../Graphics/TextureManager.hpp"
 #include "../Graphics/OpenGL.hpp"
+#include "../Core/SingleInstance.hpp"
 #include "../Audio/AudioManager.hpp"
 #include "Time.hpp"
 #include "Input.hpp"
@@ -11,18 +12,16 @@
 namespace Bolt {
 	float Application::s_TargetFramerate = 144;
 	Application* Application::s_Instance = nullptr;
-	bool Application::s_ForceSingleInstance = false;
+	bool Application::s_ForceSingleInstance = false; 
 
 	void Application::Run()
 	{
 		if (s_ForceSingleInstance) {
-			static std::mutex mtx;
-			if (!instanceMutex) {
-				instanceMutex = std::make_unique<std::mutex>();
-			}
+			static SingleInstance instance("MeinProgrammMutex123");
 
-			if (!instanceMutex->try_lock()) {
-				Logger::Message("Eine Instanz läuft bereits!");
+			if (instance.IsAlreadyRunning())
+			{
+				Logger::Error("A Instance is already running!");
 				return;
 			}
 		}

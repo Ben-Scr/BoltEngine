@@ -5,6 +5,8 @@
 #include <optional>
 #include "../Physics/PhysicsSystem.hpp"
 
+#include <mutex>
+
 namespace Bolt {
 
 	class Application {
@@ -31,7 +33,6 @@ namespace Bolt {
 
 	private:
 		static bool s_ForceSingleInstance;
-		static std::unique_ptr<std::mutex> instanceMutex;
 
 		void Initialize();
 		void CoreInput();

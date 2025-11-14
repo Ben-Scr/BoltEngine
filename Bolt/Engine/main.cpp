@@ -12,6 +12,8 @@ int main() {
     Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Test");
     def.AddSystem<Bolt::GameSystem>();
 
+
+    Bolt::Application::SetForceSingleInstance(false);
     Bolt::Application app{};
     app.Run();
     return 0;

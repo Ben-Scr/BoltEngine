@@ -239,6 +239,7 @@
     <ClInclude Include="Engine\Core\Application.hpp" />
     <ClInclude Include="Engine\Core\Input.hpp" />
     <ClInclude Include="Engine\Core\KeyCodes.hpp" />
+    <ClInclude Include="Engine\Core\SingleInstance.hpp" />
     <ClInclude Include="Engine\Core\Time.hpp" />
     <ClInclude Include="Engine\Core\Window.hpp" />
     <ClInclude Include="Engine\Debugging\Logger.hpp" />

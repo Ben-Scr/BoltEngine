@@ -545,5 +545,8 @@
     <ClInclude Include="Engine\Graphics\OpenGL.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Core\SingleInstance.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
