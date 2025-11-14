@@ -2,14 +2,14 @@
 C++ Windows Game Engine (in development)
 
 ## External Libraries / API's
-- OpenGL - Rendering API
-- STB - Graphics Image Library
-- GLM - Graphics Math Library
-- GLFW - Window Library
-- Box2D - 2D Physics Library/Engine
-- Cereal - Serialization Library
-- ENTT - ECS Library
-- Miniaudio - Multiplatform Audio Library
+- [OpenGL](https://www.opengl.org/) - Rendering API
+- [STB](https://github.com/nothings/stb) - Graphics Image Library
+- [GLM](https://github.com/g-truc/glm) - Graphics Math Library
+- [GLFW](https://github.com/glfw/glfw) - Window Library
+- [Box2D](https://github.com/erincatto/box2d) - 2D Physics Library/Engine
+- [Cereal](https://github.com/USCiLab/cereal) - Serialization Library
+- [ENTT](https://github.com/skypjack/entt) - ECS Library
+- [Miniaudio](https://github.com/mackron/miniaudio) - Multiplatform Audio Library
 
 ## Screenshots
 <p align="center">
