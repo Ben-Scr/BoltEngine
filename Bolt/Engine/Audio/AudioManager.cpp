@@ -26,12 +26,13 @@ namespace Bolt {
 
 	bool AudioManager::Initialize() {
 		if (s_IsInitialized) {
+			Logger::Warning("AudioManager", "Already Initialized");
 			return true;
 		}
 
 		ma_result result = ma_engine_init(nullptr, &s_Engine);
 		if (result != MA_SUCCESS) {
-			std::cerr << "AudioManager: Failed to initialize miniaudio engine. Error: " << result << std::endl;
+			Logger::Error("AudioManager", "Failed to initialize miniaudio engine. Error: " + result);
 			return false;
 		}
 
