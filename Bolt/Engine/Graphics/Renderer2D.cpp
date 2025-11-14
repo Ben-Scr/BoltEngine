@@ -5,13 +5,14 @@
 #include "../Collections/Viewport.hpp"
 #include "../Scene/SceneManager.hpp"
 #include "../Components/SpriteRenderer.hpp"
+#include "../Components/ParticleSystem2D.hpp";
 #include "../Components/Tags.hpp"
+
 #include "../Scene/Scene.hpp"
 #include "../Graphics/TextureManager.hpp"
+
 #include <glm/gtc/type_ptr.hpp>
 #include <GLFW/glfw3.h>
-#include <vector>
-#include <cmath>
 
 namespace Bolt {
 	void Renderer2D::Initialize() {
@@ -83,7 +84,7 @@ namespace Bolt {
 				texture.Submit(0);
 			else
 			{
-				Logger::Warning("Invalid Texture");
+				Logger::Warning("SpriteRenderer", "Invalid Texture");
 			}
 
 
@@ -91,6 +92,32 @@ namespace Bolt {
 			m_SpriteShader.SetVertexColor(spriteRenderer.Color);
 			m_QuadMesh.Draw();
 			m_QuadMesh.Unbind();
+		}
+
+		for (const auto& [ent, particleSystem] : scene.GetRegistry().view<ParticleSystem2D>(entt::exclude<DisabledTag>).each()) {
+			glActiveTexture(GL_TEXTURE0);
+			Texture2D& texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
+			if (texture.IsValid())
+				texture.Submit(0);
+			else
+			{
+				Logger::Warning("ParticleSystem2D", "Invalid Texture");
+			}
+
+			for (const auto& particle : particleSystem.GetParticles()) {
+				if (!AABB::Intersects(viewportAABB, AABB::FromTransform(particle.Transform)))
+					continue;
+
+				m_SpriteShader.SetSpritePosition(particle.Transform.Position);
+				m_SpriteShader.SetScale(particle.Transform.Scale);
+				m_SpriteShader.SetRotation(particle.Transform.Rotation);
+				m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
+
+				m_QuadMesh.Bind();
+				m_SpriteShader.SetVertexColor(particle.Color);
+				m_QuadMesh.Draw();
+				m_QuadMesh.Unbind();
+		   }
 		}
 
 #if 0

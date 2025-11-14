@@ -26,7 +26,7 @@ namespace Bolt {
 
 	struct RenderingSettings {
 		uint32_t MaxParticles{ 1000 };
-		Color Color;
+		Color Color{ Color::White() };
 		short SortingOrder{ 0 };
 		uint8_t SortingLayer{ 0 };
 	};
@@ -99,5 +99,6 @@ namespace Bolt {
 		TextureHandle m_TextureHandle;
 
 		friend class Scene;
+		friend class Renderer2D;
 	};
 }

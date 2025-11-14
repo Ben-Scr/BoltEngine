@@ -18,10 +18,20 @@ namespace Bolt {
 		
 		static float GetTargetFramerate() { return s_TargetFramerate; }
 		static void SetTargetFramerate(float framerate) { s_TargetFramerate = framerate; }
+
+		static void SetForceSingleInstance(bool value) {
+			s_ForceSingleInstance = value;
+		}
+		static bool GetForceSingleInstance() {
+			return s_ForceSingleInstance;
+		}
+
 		static Application& Instance() { return *s_Instance; };
 		bool m_LoopedThisFrame = false;
 
 	private:
+		static bool s_ForceSingleInstance;
+		static std::unique_ptr<std::mutex> instanceMutex;
 
 		void Initialize();
 		void CoreInput();

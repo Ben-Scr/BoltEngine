@@ -11,9 +11,22 @@
 namespace Bolt {
 	float Application::s_TargetFramerate = 144;
 	Application* Application::s_Instance = nullptr;
+	bool Application::s_ForceSingleInstance = false;
 
 	void Application::Run()
 	{
+		if (s_ForceSingleInstance) {
+			static std::mutex mtx;
+			if (!instanceMutex) {
+				instanceMutex = std::make_unique<std::mutex>();
+			}
+
+			if (!instanceMutex->try_lock()) {
+				Logger::Message("Eine Instanz läuft bereits!");
+				return;
+			}
+		}
+
 		Initialize();
 
 		while (!m_Window.value().ShouldClose()) {
