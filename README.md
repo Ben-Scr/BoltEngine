@@ -1,5 +1,5 @@
 # Bolt Engine
-Game/Rendering Engine (in development)
+Game Engine (in development)
 
 ## External Libraries / API's
 - OpenGL - Rendering API
