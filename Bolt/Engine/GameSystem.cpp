@@ -2,6 +2,7 @@
 #include "GameSystem.hpp"
 #include "Core/Window.hpp"
 #include "Components/Tags.hpp"
+#include "Graphics/OpenGL.hpp"
 
 namespace Bolt {
 
@@ -25,7 +26,6 @@ namespace Bolt {
 		auto& pts2D = activeScene.GetComponent<ParticleSystem2D>(particleEntity);
 		pts2D.ParticleSettings.LifeTime = 5;
 		pts2D.ParticleSettings.UseGravity = true;
-		pts2D.ParticleSettings.Gravity = Vec2{10.f, 10.f};
 		pts2D.SetTexture(blockTex);
 		Transform2D& transform2D = activeScene.GetComponent<Transform2D>(particleEntity);
 
@@ -33,6 +33,8 @@ namespace Bolt {
 		pts2D.ParticleSettings.Scale = 0.1f;
 		pts2D.ParticleSettings.UseRandomColors = true;
 		pts2D.Emit(100);
+
+		OpenGL::SetBackgroundColor(Color(Random::Range(0.f, 1.f), Random::Range(0.f, 1.f), Random::Range(0.f, 1.f)));
 	}
 
 	void GameSystem::Start(Scene& scene) {

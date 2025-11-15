@@ -9,7 +9,7 @@
 
 
 int main() {
-    Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Test");
+    Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
     def.AddSystem<Bolt::GameSystem>();
 
 
