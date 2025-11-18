@@ -42,7 +42,7 @@ namespace Bolt {
 		AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
 		AudioSource source{ handle };
 		source.SetVolume(0.1f);
-		source.Play();
+		source.Play(); 
 
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(0, -3), Vec2(100, 1)), BodyType::Static);
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Cyan());
