@@ -6,7 +6,6 @@
 
 namespace Bolt {
 
-
 	void GameSystem::Awake(Scene& scene) {
 		blockTex = TextureManager::LoadTexture("Assets/Textures/block.png");
 	}
@@ -41,7 +40,7 @@ namespace Bolt {
 
 		AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
 		AudioSource source{ handle };
-		source.SetVolume(1.f);
+		source.SetVolume(0.1f);
 		source.Play();
 
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(0, -3), Vec2(100, 1)), BodyType::Static);
