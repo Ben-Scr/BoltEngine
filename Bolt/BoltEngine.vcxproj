@@ -274,6 +274,14 @@
     <ClInclude Include="Engine\Scene\SceneDefinition.hpp" />
     <ClInclude Include="Engine\Scene\SceneManager.hpp" />
     <ClInclude Include="Engine\Math\Random.hpp" />
+    <ClInclude Include="Engine\Utils\CommandBuffer.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Engine\Utils\Event.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Engine\Utils\Serializer.hpp" />
     <ClInclude Include="Engine\Utils\Timer.hpp" />
   </ItemGroup>

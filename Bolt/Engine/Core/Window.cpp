@@ -21,16 +21,12 @@ namespace Bolt {
 	}
 
 	void Window::RefreshCallback(GLFWwindow* window) {
-		auto& app = Application::Instance();
+		Application* app = Application::GetInstance();
 
-		static bool isFirst = false;
-		if (!isFirst) {
-			isFirst = true;
-			return;
-		}
+		if (app == nullptr) return;
 
-		app.BeginFrame(); 
-		app.EndFrame();
+		app->BeginFrame(); 
+		app->EndFrame();
 	}
 
 	void Window::InitWindow() {
@@ -74,7 +70,7 @@ namespace Bolt {
 
 		glfwSetWindowRefreshCallback(m_Window, RefreshCallback);
 
-		glfwSwapInterval(SetVsync ? 1 : 0); // V-Sync
+		glfwSwapInterval(SetVsync ? 1 : 0);
 		UpdateWindowSize();
 		s_ActiveWindow = this;
 	}
@@ -99,7 +95,6 @@ namespace Bolt {
 			break;
 		}
 	}
-
 	void Window::SetMouseButtonCallback(GLFWwindow*, int button, int action, int) {
 		switch (action) {
 		case GLFW_PRESS:
@@ -112,11 +107,9 @@ namespace Bolt {
 			break;
 		}
 	}
-
 	void Window::SetCursorPositionCallback(GLFWwindow*, double xPos, double yPos) {
 		Input::OnMouseMove(xPos, yPos);
 	}
-
 	void Window::SetScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 		(void)window;
 		(void)xoffset;

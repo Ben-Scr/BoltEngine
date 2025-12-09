@@ -7,14 +7,16 @@
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
 
+#include "Utils/CommandBuffer.hpp"
+
 
 int main() {
-    Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
-    def.AddSystem<Bolt::GameSystem>();
+	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
+	def.AddSystem<Bolt::GameSystem>();
 
 
-    Bolt::Application::SetForceSingleInstance(false);
-    Bolt::Application app{};
-    app.Run();
-    return 0;
+	Bolt::Application::SetForceSingleInstance(false);
+	Bolt::Application app{};
+	app.Run();
+	return 0;
 }

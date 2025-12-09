@@ -9,7 +9,6 @@ namespace Bolt {
 
 	float Time::s_FixedDeltaTime = 1.0f / 50.f;
 	float Time::s_TargetFPS = 144.f;
-	float Time::s_MaxPossibleFPS = 0.f;
 	float Time::s_UpdateDeltaTime = 1.0f / s_TargetFPS;
 
 	std::chrono::steady_clock::duration Time::s_FrameDuration = std::chrono::duration_cast<std::chrono::steady_clock::duration>(

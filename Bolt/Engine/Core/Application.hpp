@@ -19,6 +19,8 @@ namespace Bolt {
 		void EndFrame();
 		
 		static float GetTargetFramerate() { return s_TargetFramerate; }
+		static float GetMaxPossibleFPS() { return s_MaxPossibleFPS; }
+
 		static void SetTargetFramerate(float framerate) { s_TargetFramerate = framerate; }
 
 		static void SetForceSingleInstance(bool value) {
@@ -28,8 +30,7 @@ namespace Bolt {
 			return s_ForceSingleInstance;
 		}
 
-		static Application& Instance() { return *s_Instance; };
-		bool m_LoopedThisFrame = false;
+		static Application* GetInstance() { return s_Instance; };
 
 	private:
 		static bool s_ForceSingleInstance;
@@ -43,7 +44,9 @@ namespace Bolt {
 		std::optional<GizmoRenderer> m_GizmoRenderer;
 		std::optional<PhysicsSystem> m_PhysicsSystem;
 		static std::shared_ptr<Viewport> s_Viewport;
+
 		static float s_TargetFramerate;
+		static float s_MaxPossibleFPS;
 
 		friend class Window;
 	};

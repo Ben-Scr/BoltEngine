@@ -1,7 +1,6 @@
 #pragma once
 
 // std includes
-
 #include <iostream>
 #include <array>
 #include <cstddef>

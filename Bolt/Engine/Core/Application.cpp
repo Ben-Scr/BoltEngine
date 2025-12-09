@@ -11,13 +11,15 @@
 
 namespace Bolt {
 	float Application::s_TargetFramerate = 144;
+	float Application::s_MaxPossibleFPS = 0;
+
 	Application* Application::s_Instance = nullptr;
 	bool Application::s_ForceSingleInstance = false; 
 
 	void Application::Run()
 	{
 		if (s_ForceSingleInstance) {
-			static SingleInstance instance("MeinProgrammMutex123");
+			static SingleInstance instance("Programm");
 
 			if (instance.IsAlreadyRunning())
 			{
@@ -29,12 +31,11 @@ namespace Bolt {
 		Initialize();
 
 		while (!m_Window.value().ShouldClose()) {
-			m_LoopedThisFrame = false;
+
 			using Clock = std::chrono::high_resolution_clock;
-			using Duration = Clock::duration;
+			using Duration = std::chrono::high_resolution_clock::duration;
 
 			static float fixedUpdateAccumulator = 0.0f;
-
 
 			Duration TARGET_FRAME_TIME = std::chrono::duration_cast<Duration>(std::chrono::duration<double>(1.0 / s_TargetFramerate));
 			static auto lastTime = Clock::now();
@@ -63,14 +64,7 @@ namespace Bolt {
 					Logger::Error(e.what());
 				}
 
-
 				fixedUpdateAccumulator -= Time::s_FixedDeltaTime;
-			}
-
-			if (m_LoopedThisFrame)
-			{
-				lastTime = frameStart;
-				continue;
 			}
 
 			BeginFrame();
@@ -78,7 +72,6 @@ namespace Bolt {
 			glfwPollEvents();
 
 			lastTime = frameStart;
-			m_LoopedThisFrame = true;
 		}
 	}
 
