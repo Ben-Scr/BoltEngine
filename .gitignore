@@ -9,7 +9,6 @@
 *.user
 *.userosscache
 *.sln.docstates
-*.vscode
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -166,6 +165,7 @@ AutoTest.Net/
 
 # Installshield output folder
 [Ee]xpress/
+.vscode
 
 # DocProject is a documentation generator add-in
 DocProject/buildhelp/
