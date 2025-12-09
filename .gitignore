@@ -165,7 +165,7 @@ AutoTest.Net/
 
 # Installshield output folder
 [Ee]xpress/
-.vscode
+.vscode/
 
 # DocProject is a documentation generator add-in
 DocProject/buildhelp/
