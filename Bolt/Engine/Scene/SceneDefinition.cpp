@@ -4,35 +4,38 @@
 
 
 namespace Bolt {
-	std::unique_ptr<Scene> SceneDefinition::Instantiate() const {
-		auto scene = std::unique_ptr<Scene>(
-			new Scene(m_Name, this, m_IsPersistent)
-		);
+	std::shared_ptr<Scene> SceneDefinition::Instantiate() const {
+		std::shared_ptr<Scene> scene(new Scene(m_Name, this, m_IsPersistent));
 
 		for (const auto& factory : m_SystemFactories) {
 			try {
 				auto system = factory();
+
 				if (system) {
+					system->SetScene(scene);
 					scene->m_Systems.push_back(std::move(system));
 				}
 				else {
-					Logger::Error("Failed to create system for scene with name " + m_Name);
+					throw "";
 				}
 			}
-			catch (const std::exception& e) {
-				Logger::Error("Exception creating system for scene with name '" +
-					m_Name + "': " + e.what());
+			catch (...) {
+				throw SceneExeption("Failed creating system for scene with name '" +
+					m_Name + "'");
 			}
 		}
-
 
 		for (const auto& callback : m_InitializeCallbacks) {
 			try {
 				callback(*scene);
 			}
 			catch (const std::exception& e) {
-				Logger::Error("Exception in initialize callback for scene with name '" +
+				throw SceneExeption("Exception in initialize callback for scene with name '" +
 					m_Name + "': " + e.what());
+			}
+			catch (...) {
+				throw SceneExeption("Unknown Exception in initialize callback for scene with name '" +
+					m_Name + "'");
 			}
 		}
 

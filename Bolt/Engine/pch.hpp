@@ -41,6 +41,7 @@
 
 // Debugging
 #include "Debugging/Logger.hpp"
+#include "Debugging/Exeptions.hpp"
 
 // Components
 #include "Components/Tags.hpp"

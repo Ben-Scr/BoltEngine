@@ -35,7 +35,7 @@ namespace Bolt {
 
 	void Renderer2D::RenderScenes() {
 		for (const std::string& sceneName : SceneManager::GetLoadedSceneNames()) {
-			RenderScene(SceneManager::GetLoadedScene(sceneName));
+			RenderScene(*SceneManager::GetLoadedScene(sceneName).lock());
 		}
 	}
 

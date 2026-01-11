@@ -26,6 +26,7 @@ namespace Bolt {
 	Entity Scene::CreateCamera() {
 		Entity entity = CreateEntity();
 		Camera2D& camera2D = entity.AddComponent<Camera2D>();
+		return entity;
 	}
 
 	// Note: Creates an entity with a Transform2D and SpriteRenderer component
@@ -44,7 +45,7 @@ namespace Bolt {
 		for (auto& s : m_Systems)
 		{
 			try {
-				s->Awake(*this);
+				s->Awake();
 			}
 			catch (const std::runtime_error& e) {
 				Logger::Error(e.what());
@@ -55,7 +56,7 @@ namespace Bolt {
 	void Scene::StartSystems() {
 		for (auto& s : m_Systems) {
 			try {
-				s->Start(*this);
+				s->Start();
 			}
 			catch (const std::runtime_error& e) {
 				Logger::Error(e.what());
@@ -69,7 +70,7 @@ namespace Bolt {
 			if (s->m_Enabled)
 			{
 				try {
-					s->Update(*this);
+					s->Update();
 				}
 				catch (std::runtime_error e) {
 					Logger::Error(e.what());
@@ -83,7 +84,7 @@ namespace Bolt {
 		{
 			if (s->m_Enabled) {
 				try {
-					s->FixedUpdate(*this);
+					s->FixedUpdate();
 				}
 				catch (const std::runtime_error& e) {
 					Logger::Error(e.what());
@@ -97,7 +98,7 @@ namespace Bolt {
 		{
 			try
 			{
-				s->OnDestroy(*this);
+				s->OnDestroy();
 			}
 			catch (const std::runtime_error& e) {
 				Logger::Error(e.what());

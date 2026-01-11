@@ -9,8 +9,8 @@ namespace Bolt {
     class Scene;
     class ISystem;
 
-
     class SceneDefinition {
+        friend class Scene;
         friend class SceneManager;
 
     public:
@@ -76,12 +76,10 @@ namespace Bolt {
         bool IsPersistent() const { return m_IsPersistent; }
 
     private:
-        friend class Scene;
-        friend class SceneManager;
-
         std::string m_Name;
         std::vector<std::function<std::unique_ptr<ISystem>()>> m_SystemFactories;
         std::vector<std::type_index> m_SystemTypes;
+
         std::vector<std::function<void(Scene&)>> m_InitializeCallbacks;
         std::vector<std::function<void(Scene&)>> m_LoadCallbacks;
         std::vector<std::function<void(Scene&)>> m_UnloadCallbacks;
@@ -89,7 +87,6 @@ namespace Bolt {
         bool m_IsStartupScene = false;
         bool m_IsPersistent = false;
 
-
-        std::unique_ptr<Scene> Instantiate() const;
+        std::shared_ptr<Scene> Instantiate() const;
     };
 }

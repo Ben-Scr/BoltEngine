@@ -15,7 +15,7 @@ int main() {
 	def.AddSystem<Bolt::GameSystem>();
 
 
-	Bolt::Application::SetForceSingleInstance(false);
+	Bolt::Application::SetForceSingleInstance(true);
 	Bolt::Application app{};
 	app.Run();
 	return 0;

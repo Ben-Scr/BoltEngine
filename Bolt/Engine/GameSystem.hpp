@@ -5,9 +5,10 @@ namespace Bolt {
 
 	class GameSystem : public ISystem {
 	public:
-		virtual void Awake(Scene& scene);
-		virtual void Start(Scene& scene);
-		virtual void Update(Scene& scene);
+		virtual void Awake();
+		virtual void Start();
+		virtual void Update();
+
 		void OnCollisionEnter(const Collision2D& collision);
 
 		template<typename TTag>
@@ -24,6 +25,8 @@ namespace Bolt {
 			auto& rb2D = blockEntity.AddComponent<Rigidbody2D>();
 			rb2D.SetBodyType(bodyType);
 		}
+
+		void DrawGizmos();
 
 	private:
 		Entity m_CameraEntity{ Entity::Null };

@@ -242,6 +242,7 @@
     <ClInclude Include="Engine\Core\SingleInstance.hpp" />
     <ClInclude Include="Engine\Core\Time.hpp" />
     <ClInclude Include="Engine\Core\Window.hpp" />
+    <ClInclude Include="Engine\Debugging\Exeptions.hpp" />
     <ClInclude Include="Engine\Debugging\Logger.hpp" />
     <ClInclude Include="Engine\GameSystem.hpp" />
     <ClInclude Include="Engine\Graphics\Camera2D.hpp" />

@@ -14,6 +14,8 @@ namespace Bolt {
 
 		static void Error(const std::string& message, const std::source_location& loc = std::source_location::current());
 		static void Error(const std::string& topic, const std::string& message, const std::source_location& loc = std::source_location::current());
+
+		static std::string ToString(const std::string& topic, const std::string& message, const std::source_location& loc = std::source_location::current());
 	};
 
 	inline void Print(const std::string& message, const std::source_location& loc = std::source_location::current()) {

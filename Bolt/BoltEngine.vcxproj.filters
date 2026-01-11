@@ -554,5 +554,8 @@
     <ClInclude Include="Engine\Utils\CommandBuffer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Debugging\Exeptions.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

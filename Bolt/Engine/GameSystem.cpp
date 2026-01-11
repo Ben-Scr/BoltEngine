@@ -6,12 +6,12 @@
 
 namespace Bolt {
 
-	void GameSystem::Awake(Scene& scene) {
+	void GameSystem::Awake() {
 		blockTex = TextureManager::LoadTexture("Assets/Textures/block.png");
 	}
 
 	void GameSystem::OnCollisionEnter(const Collision2D& collision2D) {
-		Scene& activeScene = SceneManager::GetActiveScene();
+		Scene& activeScene = *SceneManager::GetActiveScene();
 
 		bool isADeadly = activeScene.HasComponent<DeadlyTag>(collision2D.entityA);
 		bool isBDeadly = activeScene.HasComponent<DeadlyTag>(collision2D.entityB);
@@ -36,8 +36,9 @@ namespace Bolt {
 		OpenGL::SetBackgroundColor(Color(Random::Range(0.f, 1.f), Random::Range(0.f, 1.f), Random::Range(0.f, 1.f)));
 	}
 
-	void GameSystem::Start(Scene& scene) {
-
+	void GameSystem::Start() {
+		Scene& scene = GetScene();
+		
 		AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
 		AudioSource source{ handle };
 		source.SetVolume(0.1f);
@@ -65,7 +66,14 @@ namespace Bolt {
 			});
 	}
 
-	void GameSystem::Update(Scene& scene) {
+	void GameSystem::Update() {
+		Scene& scene = GetScene();
+
+		if (Input::GetKeyDown(KeyCode::R)) {
+			SceneManager::ReloadScene(scene.GetName());
+			return;
+		}
+
 		auto& pts2D = scene.GetSingletonComponent<ParticleSystem2D>();
 		pts2D.Update(Time::GetDeltaTime());
 
@@ -80,8 +88,23 @@ namespace Bolt {
 			rb2D.SetVelocity(Vec2(rb2D.GetVelocity().x, 5));
 		}
 
+		DrawGizmos();
+	}
+
+	void GameSystem::DrawGizmos() {
+		Scene& scene = GetScene();
+
+		Gizmos::SetColor(Color::Green());
+
 		for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
 			Gizmos::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationDegrees());
+		}
+
+		Gizmos::SetColor(Color::Gray());
+
+		for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
+			AABB aabb = AABB::FromTransform(tr);
+			Gizmos::DrawSquare(tr.Position, aabb.Scale(), 0);
 		}
 	}
 }

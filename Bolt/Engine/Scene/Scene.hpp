@@ -5,9 +5,12 @@
 namespace Bolt {
 	class SceneDefinition;
 	class Scene {
+		friend class SceneManager;
+		friend class SceneDefinition;
+		friend class Application;
+
 	public:
 		Scene(const Scene&) = delete;
-		//Scene& operator=(const Scene&) = delete;
 
 		Entity CreateEntity();
 		Entity CreateCamera();
@@ -213,9 +216,5 @@ namespace Bolt {
 
 		bool m_IsLoaded = false;
 		bool m_Persistent = false;
-
-		friend class SceneManager;
-		friend class SceneDefinition;
-		friend class Application;
 	};
 }

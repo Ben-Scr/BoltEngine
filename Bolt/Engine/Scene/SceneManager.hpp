@@ -15,17 +15,17 @@ namespace Bolt {
     class SceneManager {
     public:
         static SceneDefinition& RegisterScene(const std::string& name);
-        static Scene& LoadScene(const std::string& name);
+        static std::weak_ptr<Scene> LoadScene(const std::string& name);
 
-        static Scene& LoadSceneAdditive(const std::string& name);
-        static Scene& ReloadScene(const std::string name);
+        static std::weak_ptr<Scene> LoadSceneAdditive(const std::string& name);
+        static std::weak_ptr<Scene> ReloadScene(const std::string name);
 
 
         static void UnloadScene(const std::string& name);
         static void UnloadAllScenes(bool includePersistent = false);
 
-        static Scene& GetLoadedScene(const std::string& name);
-        static Scene& GetActiveScene();
+        static std::weak_ptr<Scene> GetLoadedScene(const std::string& name);
+        static Scene* GetActiveScene();
 
         static void SetActiveScene(const std::string& name);
 
@@ -43,7 +43,7 @@ namespace Bolt {
         static void InitializeStartupScenes();
 
         static std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> s_SceneDefinitions;
-        static std::vector<std::unique_ptr<Scene>> s_LoadedScenes;
+        static std::vector<std::shared_ptr<Scene>> s_LoadedScenes;
         static Scene* s_ActiveScene;
 
         friend class Application;

@@ -23,7 +23,7 @@ namespace Bolt {
 
 			if (instance.IsAlreadyRunning())
 			{
-				Logger::Error("A Instance is already running!");
+				Logger::Error("An Instance of this app is already running!");
 				return;
 			}
 		}

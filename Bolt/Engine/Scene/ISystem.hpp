@@ -1,25 +1,30 @@
 #pragma once
 
 namespace Bolt {
-    class Scene;
+	class Scene;
 
-    class ISystem {
-    public:
-        virtual void Update(Scene& scene) {}
-        virtual void FixedUpdate(Scene& scene) {}
-        virtual void Awake(Scene& scene) {}
-        virtual void Start(Scene& scene) {}
-        virtual void OnDisable(Scene& scene) {}
-        virtual void OnDestroy(Scene& scene) {}
+	class ISystem {
+	public:
+		virtual void Update() {}
+		virtual void FixedUpdate() {}
+		virtual void Awake() {}
+		virtual void Start() {}
+		virtual void OnDisable() {}
+		virtual void OnDestroy() {}
 
-        virtual void OnApplicationInitialize(Scene& scene) {}
-        virtual void OnApplicationExit(Scene& scene) {}
+		virtual void OnApplicationInitialize() {}
+		virtual void OnApplicationExit() {}
 
-        bool IsEnabled() { return m_Enabled; }
-        virtual ~ISystem() = default;
-    private:
-        bool m_Enabled = true;
-        friend class Scene;
-        friend class SceneDefinition;
-    };
+		bool IsEnabled() { return m_Enabled; }
+		virtual ~ISystem() = default;
+
+		void SetScene(std::weak_ptr<Scene> scene) { m_Scene = scene; }
+		Scene& GetScene() { return *m_Scene.lock(); }
+
+	private:
+		std::weak_ptr<Scene> m_Scene;
+		bool m_Enabled = true;
+		friend class Scene;
+		friend class SceneDefinition;
+	};
 }

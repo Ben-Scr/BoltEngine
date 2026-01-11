@@ -22,4 +22,10 @@ namespace Bolt {
 	void Logger::Error(const std::string& topic, const std::string& message, const std::source_location& loc) {
 		std::cout << "[Error][" << topic << "] " << message << '\n';
 	}
+
+	std::string Logger::ToString(const std::string& topic, const std::string& message, const std::source_location& loc) {
+		std::ostringstream  oss;
+		oss << "[Error][" << topic << "] " << message << '\n';
+		return oss.str();
+	}
 }

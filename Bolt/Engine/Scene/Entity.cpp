@@ -17,7 +17,7 @@ namespace Bolt {
 	}
 
 	Entity Entity::Create() {
-		Scene& activeScene = SceneManager::GetActiveScene();
+		Scene& activeScene = *SceneManager::GetActiveScene();
 
 		if (!activeScene.IsLoaded()) {
 			throw std::runtime_error("There is no active Scene Loaded");
