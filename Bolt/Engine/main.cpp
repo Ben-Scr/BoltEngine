@@ -16,7 +16,7 @@ int main() {
 
 
 	Bolt::Application::SetForceSingleInstance(true);
-	Bolt::Application app{};
+	Bolt::Application app{"Test"};
 	app.Run();
 	return 0;
 }

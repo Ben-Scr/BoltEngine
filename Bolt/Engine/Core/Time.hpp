@@ -23,6 +23,8 @@ namespace Bolt {
 		// Note: Elapsed time based on timescale
 		static float GetSimulatedElapsedTime();
 
+		static int GetFrameCount() { return s_FrameCount; }
+
 	private:
 		static void Update(float deltaTime);
 		static float s_DeltaTime;

@@ -15,15 +15,16 @@ namespace Bolt {
 
 	Application* Application::s_Instance = nullptr;
 	bool Application::s_ForceSingleInstance = false; 
+	std::string Application::s_Name = "App";
 
 	void Application::Run()
 	{
 		if (s_ForceSingleInstance) {
-			static SingleInstance instance("Programm");
+			static SingleInstance instance(s_Name);
 
 			if (instance.IsAlreadyRunning())
 			{
-				Logger::Error("An Instance of this app is already running!");
+				Logger::Error("Application", "An Instance of this app is already running!");
 				return;
 			}
 		}
@@ -82,6 +83,7 @@ namespace Bolt {
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
 		m_GizmoRenderer.value().BeginFrame();
+		Logger::Message(std::to_string(Time::Get) + " Frame");
 	}
 
 	void Application::BeginFixedFrame() {
@@ -94,6 +96,7 @@ namespace Bolt {
 		m_GizmoRenderer.value().EndFrame();
 		m_Window.value().SwapBuffers();
 		Input::Update();
+		Time::s_FrameCount++;
 	}
 
 	void Application::EndFixedFrame() {
@@ -116,8 +119,10 @@ namespace Bolt {
 	}
 
 	void Application::Initialize() {
+		Logger::Message("Application", "Initializing Application");
+
 		m_Window.emplace(Window(GLFWWindowProperties(800,800, "Hello World", true, true, false)));
-		m_Window.value().SetVsync(false);
+		m_Window.value().SetVsync(true);
 		m_Window.value().SetWindowResizeable(true);
 
 		OpenGL::Initialize(GLInitProperties2D(Color::Background(), GLCullingMode::GLBack));
