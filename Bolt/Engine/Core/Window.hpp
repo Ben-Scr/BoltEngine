@@ -37,7 +37,6 @@ namespace Bolt {
 		void SetWindowResizeable(bool enabled) { glfwWindowHint(GLFW_RESIZABLE, enabled ? GLFW_TRUE : GLFW_FALSE); }
 		void SetWindowMoveable(bool enabled) { glfwWindowHint(GLFW_DECORATED, enabled ? GLFW_TRUE : GLFW_FALSE); }
 
-
 		bool IsMaximized() const;
 		bool IsMinimized() const;
 
@@ -67,6 +66,7 @@ namespace Bolt {
 		bool ShouldClose() const { return glfwWindowShouldClose(m_Window); }
 		Vec2Int GetScreenCenter() const;
 
+		static void FocusCallback(GLFWwindow* window, int focused);
 		static void RefreshCallback(GLFWwindow* window);
 		static void SetKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 		static void SetMouseButtonCallback(GLFWwindow* window, int button, int action, int mods);

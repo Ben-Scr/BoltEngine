@@ -5,12 +5,20 @@ namespace Bolt {
 
 	class ISystem {
 	public:
+		// Info: Gets called every frame
 		virtual void Update() {}
+
+		// Info: Gets called every fixed frame
 		virtual void FixedUpdate() {}
+
+		// Info: Gets called when scene is created
 		virtual void Awake() {}
+
+		// Info: Gets called when scene is created
 		virtual void Start() {}
 		virtual void OnDisable() {}
 		virtual void OnDestroy() {}
+		virtual void OnPaused() {}
 
 		virtual void OnApplicationInitialize() {}
 		virtual void OnApplicationExit() {}

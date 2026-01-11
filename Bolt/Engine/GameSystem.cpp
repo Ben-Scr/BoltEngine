@@ -75,6 +75,7 @@ namespace Bolt {
 		}
 
 		auto& pts2D = scene.GetSingletonComponent<ParticleSystem2D>();
+		pts2D.Emit(1);
 		pts2D.Update(Time::GetDeltaTime());
 
 		float speed = 5.0f;

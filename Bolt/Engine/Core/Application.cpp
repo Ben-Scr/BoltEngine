@@ -13,8 +13,11 @@ namespace Bolt {
 	float Application::s_TargetFramerate = 144;
 	float Application::s_MaxPossibleFPS = 0;
 
+	bool Application::s_ShouldQuit = false;
+	bool Application::s_IsPaused = false;
+
 	Application* Application::s_Instance = nullptr;
-	bool Application::s_ForceSingleInstance = false; 
+	bool Application::s_ForceSingleInstance = false;
 	std::string Application::s_Name = "App";
 
 	void Application::Run()
@@ -57,9 +60,10 @@ namespace Bolt {
 			fixedUpdateAccumulator += Time::GetDeltaTime();
 			while (fixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
 				try {
-
-					BeginFixedFrame();
-					EndFixedFrame();
+					if (!s_IsPaused) {
+						BeginFixedFrame();
+						EndFixedFrame();
+					}
 				}
 				catch (std::runtime_error e) {
 					Logger::Error(e.what());
@@ -68,10 +72,15 @@ namespace Bolt {
 				fixedUpdateAccumulator -= Time::s_FixedDeltaTime;
 			}
 
-			BeginFrame();
-			EndFrame();
-			glfwPollEvents();
+			if (!s_IsPaused) {
+				BeginFrame();
+				EndFrame();
+			}
+			else {
+				SceneManager::UpdateScenes();
+			}
 
+			glfwPollEvents();
 			lastTime = frameStart;
 		}
 	}
@@ -83,7 +92,6 @@ namespace Bolt {
 		SceneManager::UpdateScenes();
 		m_Renderer2D.value().BeginFrame();
 		m_GizmoRenderer.value().BeginFrame();
-		Logger::Message(std::to_string(Time::Get) + " Frame");
 	}
 
 	void Application::BeginFixedFrame() {
@@ -121,7 +129,7 @@ namespace Bolt {
 	void Application::Initialize() {
 		Logger::Message("Application", "Initializing Application");
 
-		m_Window.emplace(Window(GLFWWindowProperties(800,800, "Hello World", true, true, false)));
+		m_Window.emplace(Window(GLFWWindowProperties(800, 800, "Hello World", true, true, false)));
 		m_Window.value().SetVsync(true);
 		m_Window.value().SetWindowResizeable(true);
 

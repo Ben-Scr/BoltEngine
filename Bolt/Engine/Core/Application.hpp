@@ -12,10 +12,10 @@ namespace Bolt {
 	class Application {
 	public:
 		Application() { Application::s_Instance = this; };
-		Application(std::string name) 
+		Application(std::string name)
 		{
 			s_Name = name;
-			Application::s_Instance = this; 
+			Application::s_Instance = this;
 		};
 
 		void Run();
@@ -41,9 +41,29 @@ namespace Bolt {
 
 		static Application* GetInstance() { return s_Instance; }
 
+		static void Quit() { s_ShouldQuit = true; }
+		static void Pause(bool paused) {
+			if (s_IsPaused == paused) return;
+
+			static int fpsBefore = Application::s_TargetFramerate;
+
+			if (paused)
+			{
+				fpsBefore = Application::s_TargetFramerate;
+				Application::SetTargetFramerate(5);
+			}
+			else
+				Application::SetTargetFramerate(fpsBefore);
+
+			s_IsPaused = paused;
+		}
+		static const bool IsPaused() { return s_IsPaused; }
+
 	private:
 		static bool s_ForceSingleInstance;
 		static std::string s_Name;
+		static bool s_ShouldQuit;
+		static bool s_IsPaused;
 
 		void Initialize();
 		void CoreInput();

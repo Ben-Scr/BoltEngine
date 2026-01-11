@@ -29,6 +29,20 @@ namespace Bolt {
 		app->EndFrame();
 	}
 
+	void Window::FocusCallback(GLFWwindow* window, int focused) {
+	
+
+		if (focused == 1) {
+			
+			Application::Pause(false);
+			Logger::Message("Focused " + std::to_string(focused));
+		}
+		else if(focused == 0)  {
+			Application::Pause(true);
+			Logger::Message("Unfocused " + std::to_string(focused));
+		}
+	}
+
 	void Window::InitWindow() {
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -63,6 +77,7 @@ namespace Bolt {
 		glfwSetMouseButtonCallback(m_Window, SetMouseButtonCallback);
 		glfwSetCursorPosCallback(m_Window, SetCursorPositionCallback);
 		glfwSetScrollCallback(m_Window, SetScrollCallback);
+		glfwSetWindowFocusCallback(m_Window, FocusCallback);
 
 		if (m_Resizeable) {
 			glfwSetFramebufferSizeCallback(m_Window, SetWindowResizedCallback);
