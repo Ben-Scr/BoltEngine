@@ -14,11 +14,17 @@ namespace Bolt {
 		// Info: Gets called when scene is created
 		virtual void Awake() {}
 
-		// Info: Gets called when scene is created
+		// Info: Gets called when scene is created after awake
 		virtual void Start() {}
+
+		// Info: Gets called when system is disabled
 		virtual void OnDisable() {}
+
+		// Info: Gets called when system is destroyed
 		virtual void OnDestroy() {}
-		virtual void OnPaused() {}
+
+		// Info: Gets called when Application is paused
+		virtual void OnApplicationPaused() {}
 
 		virtual void OnApplicationInitialize() {}
 		virtual void OnApplicationExit() {}

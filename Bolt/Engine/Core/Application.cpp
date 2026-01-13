@@ -64,6 +64,10 @@ namespace Bolt {
 						BeginFixedFrame();
 						EndFixedFrame();
 					}
+					else {
+						//BeginFixedFrame();
+						//EndFixedFrame();
+					}
 				}
 				catch (std::runtime_error e) {
 					Logger::Error(e.what());
@@ -77,7 +81,8 @@ namespace Bolt {
 				EndFrame();
 			}
 			else {
-				SceneManager::UpdateScenes();
+				//BeginFrame();
+				//EndFrame();
 			}
 
 			glfwPollEvents();
