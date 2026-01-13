@@ -3,6 +3,7 @@
 #include "Core/Window.hpp"
 #include "Components/Tags.hpp"
 #include "Graphics/OpenGL.hpp"
+#include "Core/Application.hpp"
 
 namespace Bolt {
 
@@ -72,6 +73,13 @@ namespace Bolt {
 		if (Input::GetKeyDown(KeyCode::R)) {
 			SceneManager::ReloadScene(scene.GetName());
 			return;
+		}
+
+		if (Input::GetKeyDown(KeyCode::P)) {
+			Application::Pause(!Application::IsPaused());
+		}
+		if (Input::GetKeyDown(KeyCode::Q)) {
+			Application::Quit();
 		}
 
 		auto& pts2D = scene.GetSingletonComponent<ParticleSystem2D>();

@@ -45,3 +45,6 @@
 
 // Components
 #include "Components/Tags.hpp"
+
+//Utils
+#include "Utils/Timer.hpp"

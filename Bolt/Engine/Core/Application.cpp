@@ -35,6 +35,9 @@ namespace Bolt {
 		Initialize();
 
 		while (!m_Window.value().ShouldClose()) {
+			if (s_ShouldQuit) {
+				break;
+			}
 
 			using Clock = std::chrono::high_resolution_clock;
 			using Duration = std::chrono::high_resolution_clock::duration;
@@ -132,26 +135,41 @@ namespace Bolt {
 	}
 
 	void Application::Initialize() {
-		Logger::Message("Application", "Initializing Application");
-
+		Timer timer = Timer::Start();
 		m_Window.emplace(Window(GLFWWindowProperties(800, 800, "Hello World", true, true, false)));
 		m_Window.value().SetVsync(true);
 		m_Window.value().SetWindowResizeable(true);
+		Logger::Message("GLFWWindow", "Initialization took " + timer.ToString());
 
+		timer.Reset();
 		OpenGL::Initialize(GLInitProperties2D(Color::Background(), GLCullingMode::GLBack));
+		Logger::Message("OpenGL", "Initialization took " + timer.ToString());
 
+		timer.Reset();
 		m_Renderer2D.emplace(Renderer2D());
 		m_Renderer2D.value().Initialize();
+		Logger::Message("Renderer2D", "Initialization took " + timer.ToString());
 
+		timer.Reset();
 		m_GizmoRenderer.emplace();
 		m_GizmoRenderer.value().Initialize();
+		Logger::Message("GizmoRenderer", "Initialization took " + timer.ToString());
 
+		timer.Reset();
 		m_PhysicsSystem.emplace(PhysicsSystem());
+		Logger::Message("PhysicsSystem", "Initialization took " + timer.ToString());
 
+		timer.Reset();
 		TextureManager::Initialize();
-		AudioManager::Initialize();
+		Logger::Message("TextureManager", "Initialization took " + timer.ToString());
 
+		timer.Reset();
+		//AudioManager::Initialize();
+		Logger::Message("AudioManager", "Initialization took " + timer.ToString());
+
+		timer.Reset();
 		// Initialize as last since it calls Awake() + Start() on all systems
 		SceneManager::Initialize();
+		Logger::Message("SceneManager", "Initialization took " + timer.ToString());
 	}
 }
