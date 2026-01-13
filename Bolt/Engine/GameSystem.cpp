@@ -11,6 +11,10 @@ namespace Bolt {
 		blockTex = TextureManager::LoadTexture("Assets/Textures/block.png");
 	}
 
+	void OnQuit() {
+		Logger::Message("Quit");
+	}
+
 	void GameSystem::OnCollisionEnter(const Collision2D& collision2D) {
 		Scene& activeScene = *SceneManager::GetActiveScene();
 
@@ -38,6 +42,8 @@ namespace Bolt {
 	}
 
 	void GameSystem::Start() {
+		auto id = Application::OnApplicationQuit.Add(OnQuit);
+
 		Scene& scene = GetScene();
 		
 		//AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
@@ -65,6 +71,8 @@ namespace Bolt {
 		boxCollider2D.OnCollisionEnter([this](const Collision2D& collision) {
 			this->OnCollisionEnter(collision);
 			});
+
+		Application::OnApplicationQuit.Remove(id);
 	}
 
 	void GameSystem::Update() {
@@ -82,6 +90,8 @@ namespace Bolt {
 			Application::Quit();
 		}
 
+		if (Application::IsPaused())return;
+		
 		auto& pts2D = scene.GetSingletonComponent<ParticleSystem2D>();
 		pts2D.Emit(1);
 		pts2D.Update(Time::GetDeltaTime());

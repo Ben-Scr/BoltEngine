@@ -4,8 +4,7 @@
 #include "Window.hpp"
 #include <optional>
 #include "../Physics/PhysicsSystem.hpp"
-
-#include <mutex>
+#include  "../Utils/Event.hpp"
 
 namespace Bolt {
 
@@ -45,27 +44,41 @@ namespace Bolt {
 		static void Pause(bool paused) {
 			if (s_IsPaused == paused) return;
 
-			static int fpsBefore = Application::s_TargetFramerate;
+			//static int fpsBefore = Application::s_TargetFramerate;
 
 			if (paused)
 			{
-				fpsBefore = Application::s_TargetFramerate;
-				Application::SetTargetFramerate(5);
+				//fpsBefore = Application::s_TargetFramerate;
+				//Application::SetTargetFramerate(5);
 			}
-			else
-				Application::SetTargetFramerate(fpsBefore);
+			//else
+			//	Application::SetTargetFramerate(fpsBefore);
 
 			s_IsPaused = paused;
 		}
 		static const bool IsPaused() { return s_IsPaused; }
 
+
+		static Event<> OnApplicationQuit;
+		static Event<> OnApplicationInitialize;
+
+		static Event<bool> OnApplicationFocus;
+		static Event<bool> OnApplicationPause;
+
+		static Event<> OnApplicationBeginFrame;
+		static Event<> OnApplicationEndFrame;
+
 	private:
-		static bool s_ForceSingleInstance;
 		static std::string s_Name;
+
+		static bool s_ForceSingleInstance;
 		static bool s_ShouldQuit;
 		static bool s_IsPaused;
 
+		static const double k_PausedTargetFrameRate;
+
 		void Initialize();
+		void Shutdown();
 		void CoreInput();
 
 		static Application* s_Instance;

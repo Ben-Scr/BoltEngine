@@ -25,7 +25,7 @@ namespace Bolt {
 
         CollisionDispatcher& GetDispatcher();
         b2WorldId GetWorldID() { return m_WorldId; }
-
+        void Destroy();
     private:
         b2WorldId m_WorldId;
         CollisionDispatcher m_Dispatcher{};

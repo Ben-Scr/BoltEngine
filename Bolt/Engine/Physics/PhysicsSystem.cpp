@@ -12,7 +12,7 @@ namespace Bolt {
 
 	void PhysicsSystem::FixedUpdate(float dt) {
 		if (!s_IsEnabled) return;
-
+        
 		s_MainWorld.Step(dt);
 		s_MainWorld.GetDispatcher().Process(s_MainWorld.GetWorldID());
 
@@ -23,5 +23,9 @@ namespace Bolt {
 				tf.Rotation = rb.GetRotation();
 			}
 		}
+	}
+
+	void PhysicsSystem::Shutdown() {
+		s_MainWorld.Destroy();
 	}
 }

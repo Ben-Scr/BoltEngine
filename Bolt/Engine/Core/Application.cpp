@@ -12,6 +12,10 @@
 namespace Bolt {
 	float Application::s_TargetFramerate = 144;
 	float Application::s_MaxPossibleFPS = 0;
+	const double Application::k_PausedTargetFrameRate = 10;
+
+	Event<> Application::OnApplicationQuit;
+
 
 	bool Application::s_ShouldQuit = false;
 	bool Application::s_IsPaused = false;
@@ -32,19 +36,19 @@ namespace Bolt {
 			}
 		}
 
+		Logger::Message("Initializing Application");
+		Timer timer = Timer::Start();
 		Initialize();
+		Logger::Message("Application", "Initialization took " + timer.ToString());
 
-		while (!m_Window.value().ShouldClose()) {
-			if (s_ShouldQuit) {
-				break;
-			}
-
+		while (!m_Window.value().ShouldClose() && !s_ShouldQuit) {
 			using Clock = std::chrono::high_resolution_clock;
 			using Duration = std::chrono::high_resolution_clock::duration;
 
 			static float fixedUpdateAccumulator = 0.0f;
 
-			Duration TARGET_FRAME_TIME = std::chrono::duration_cast<Duration>(std::chrono::duration<double>(1.0 / s_TargetFramerate));
+			double targetFrameRate = s_IsPaused ? k_PausedTargetFrameRate : s_TargetFramerate;
+			Duration TARGET_FRAME_TIME = std::chrono::duration_cast<Duration>(std::chrono::duration<double>(1.0 / targetFrameRate));
 			static auto lastTime = Clock::now();
 			auto const nextFrameTime = lastTime + TARGET_FRAME_TIME;
 
@@ -61,16 +65,10 @@ namespace Bolt {
 			Time::Update(deltaTime);
 
 			fixedUpdateAccumulator += Time::GetDeltaTime();
-			while (fixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
+			while (!s_IsPaused && fixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
 				try {
-					if (!s_IsPaused) {
-						BeginFixedFrame();
-						EndFixedFrame();
-					}
-					else {
-						//BeginFixedFrame();
-						//EndFixedFrame();
-					}
+					BeginFixedFrame();
+					EndFixedFrame();
 				}
 				catch (std::runtime_error e) {
 					Logger::Error(e.what());
@@ -79,18 +77,15 @@ namespace Bolt {
 				fixedUpdateAccumulator -= Time::s_FixedDeltaTime;
 			}
 
-			if (!s_IsPaused) {
-				BeginFrame();
-				EndFrame();
-			}
-			else {
-				//BeginFrame();
-				//EndFrame();
-			}
+			BeginFrame();
+			EndFrame();
+
 
 			glfwPollEvents();
 			lastTime = frameStart;
 		}
+
+		Shutdown();
 	}
 
 
@@ -98,8 +93,12 @@ namespace Bolt {
 		CoreInput();
 		AudioManager::Update();
 		SceneManager::UpdateScenes();
-		m_Renderer2D.value().BeginFrame();
-		m_GizmoRenderer.value().BeginFrame();
+
+		if (!s_IsPaused) {
+			m_Renderer2D.value().BeginFrame();
+			m_GizmoRenderer.value().BeginFrame();
+		}
+
 	}
 
 	void Application::BeginFixedFrame() {
@@ -108,9 +107,12 @@ namespace Bolt {
 	}
 
 	void Application::EndFrame() {
-		m_Renderer2D.value().EndFrame();
-		m_GizmoRenderer.value().EndFrame();
-		m_Window.value().SwapBuffers();
+		if (!s_IsPaused) {
+			m_Renderer2D.value().EndFrame();
+			m_GizmoRenderer.value().EndFrame();
+			m_Window.value().SwapBuffers();
+		}
+
 		Input::Update();
 		Time::s_FrameCount++;
 	}
@@ -171,5 +173,15 @@ namespace Bolt {
 		// Initialize as last since it calls Awake() + Start() on all systems
 		SceneManager::Initialize();
 		Logger::Message("SceneManager", "Initialization took " + timer.ToString());
+	}
+
+	void Application::Shutdown() {
+		OnApplicationQuit.Invoke();
+
+		m_PhysicsSystem.value().Shutdown();
+		m_GizmoRenderer.value().Shutdown();
+		m_Renderer2D.value().Shutdown();
+
+		m_Window.value().Destroy();
 	}
 }

@@ -20,7 +20,9 @@ namespace Bolt {
 	void Box2DWorld::Step(float dt) {
 		b2World_Step(m_WorldId, dt, 5);
 	}
-
+	void Box2DWorld::Destroy() {
+		b2DestroyWorld(m_WorldId);
+	}
 
 	b2BodyId Box2DWorld::CreateBody(EntityHandle nativeEntity, Scene& scene, BodyType bodyType) {
 		Transform2D& tr = scene.GetComponent<Transform2D>(nativeEntity);

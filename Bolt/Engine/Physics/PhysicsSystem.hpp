@@ -6,6 +6,8 @@ namespace Bolt {
 	class PhysicsSystem {
 	public:
 		void FixedUpdate(float dt);
+		void Shutdown();
+
 		static Box2DWorld& GetMainPhysicsWorld() { return s_MainWorld; }
 		static bool IsEnabled() { return s_IsEnabled; };
 		static void SetEnabled(bool enabled) { s_IsEnabled = enabled; }
