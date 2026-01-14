@@ -82,8 +82,13 @@ namespace Bolt {
 			BeginFrame();
 			EndFrame();
 
+			if (Input::GetKey(KeyCode::D) && Input::GetKey(KeyCode::LeftSuper))
+				Logger::Message("Minimize");
+			else
+			{
+				glfwPollEvents();
+			}
 
-			glfwPollEvents();
 			lastTime = frameStart;
 		}
 

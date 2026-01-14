@@ -13,8 +13,10 @@
 int main() {
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
 	def.AddSystem<Bolt::GameSystem>();
+
 	Bolt::Application::SetForceSingleInstance(true);
-	Bolt::Application app{ "Test" };
+
+	Bolt::Application app;
 	app.Run();
 	return 0;
 }

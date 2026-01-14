@@ -110,16 +110,7 @@ namespace Bolt {
 	}
 
 	void GameSystem::OnApplicationPaused() {
-		Logger::Message("Is Paused");
 
-		Window& w = Application::GetWindow();
-		w.CenterWindow();
-		w.FocusWindow();
-		w.RestoreWindow();
-
-		if (Input::GetKeyDown(KeyCode::P)) {
-			Application::Pause(!Application::IsPaused());
-		}
 	}
 
 	void GameSystem::DrawGizmos() {
