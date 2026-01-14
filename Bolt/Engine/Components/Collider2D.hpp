@@ -37,7 +37,7 @@ namespace Bolt {
 			}
 
 			ContactBeginCallback cb(callback);
-			PhysicsSystem::GetMainPhysicsWorld().GetDispatcher().RegisterBegin(m_ShapeId, std::move(cb));
+			PhysicsSystem2D::GetMainPhysicsWorld().GetDispatcher().RegisterBegin(m_ShapeId, std::move(cb));
 		}
 		template<typename F>
 		void OnCollisionExit(F&& callback) {
@@ -48,7 +48,7 @@ namespace Bolt {
 				);
 			}
 
-			PhysicsSystem::GetMainPhysicsWorld().GetDispatcher().RegisterEnd(m_ShapeId, std::forward<F>(callback));
+			PhysicsSystem2D::GetMainPhysicsWorld().GetDispatcher().RegisterEnd(m_ShapeId, std::forward<F>(callback));
 		}
 		template<typename F>
 		void OnCollisionHit(F&& callback) {
@@ -59,7 +59,7 @@ namespace Bolt {
 				);
 			}
 
-			PhysicsSystem::GetMainPhysicsWorld().GetDispatcher().RegisterHit(m_ShapeId, std::forward<F>(callback));
+			PhysicsSystem2D::GetMainPhysicsWorld().GetDispatcher().RegisterHit(m_ShapeId, std::forward<F>(callback));
 		}
 
 		void EnableRotation(bool enabled);

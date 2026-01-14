@@ -14,284 +14,288 @@
 #include "SceneDefinition.hpp"
 
 namespace Bolt {
-    std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> SceneManager::s_SceneDefinitions;
-    std::vector<std::shared_ptr<Scene>> SceneManager::s_LoadedScenes;
-    Scene* SceneManager::s_ActiveScene;
+	std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> SceneManager::s_SceneDefinitions;
+	std::vector<std::shared_ptr<Scene>> SceneManager::s_LoadedScenes;
+	Scene* SceneManager::s_ActiveScene;
 
-    void SceneManager::Initialize() {
-        try {
-            auto& firstPair = *s_SceneDefinitions.begin();
-            std::string firstSceneName = firstPair.first;
-            LoadScene(firstSceneName);
+	void SceneManager::Initialize() {
+		try {
+			auto& firstPair = *s_SceneDefinitions.begin();
+			std::string firstSceneName = firstPair.first;
+			LoadScene(firstSceneName);
 
-            Logger::Message("SceneManager", "Loaded Scene \"" + firstSceneName + "\"");
-        }
-        catch (const SceneExeption& e) {
-            Logger::Error("SceneManager", e.what());
-        }
-        catch (...) {
-            Logger::Error("SceneManager", "Unknown exeption");
-        }
-    }
+			Logger::Message("SceneManager", "Loaded Scene '" + firstSceneName + "'");
+		}
+		catch (const SceneExeption& e) {
+			Logger::Error("SceneManager", e.what());
+		}
+		catch (...) {
+			Logger::Error("SceneManager", "Unknown exeption");
+		}
+	}
 
-    SceneDefinition& SceneManager::RegisterScene(const std::string& name) {
-        auto it = s_SceneDefinitions.find(name);
-        if (it != s_SceneDefinitions.end()) {
-            throw SceneExeption("Scene definition with name '" + name +
-                "' already exists. (Returning existing definition for modification)");
-            return *it->second;
-        }
+	void SceneManager::Shutdown() {
+		SceneManager::UnloadAllScenes();
+	}
 
-        auto definition = std::make_unique<SceneDefinition>(name);
-        SceneDefinition& ref = *definition;
+	SceneDefinition& SceneManager::RegisterScene(const std::string& name) {
+		auto it = s_SceneDefinitions.find(name);
+		if (it != s_SceneDefinitions.end()) {
+			throw SceneExeption("Scene definition with name '" + name +
+				"' already exists. (Returning existing definition for modification)");
+		}
 
-        s_SceneDefinitions[name] = std::move(definition);
-        return ref;
-    }
+		auto definition = std::make_unique<SceneDefinition>(name);
+		SceneDefinition& ref = *definition;
 
-    std::weak_ptr<Scene> SceneManager::LoadScene(const std::string& name) {
-        auto defIt = s_SceneDefinitions.find(name);
+		s_SceneDefinitions[name] = std::move(definition);
+		return ref;
+	}
 
-        if (defIt == s_SceneDefinitions.end()) {
-            throw SceneExeption("Scene definition '" + name +
-                "' not found. Call SceneManager::RegisterScene() first.");
-        }
+	std::weak_ptr<Scene> SceneManager::LoadScene(const std::string& name) {
+		auto defIt = s_SceneDefinitions.find(name);
 
-        auto loadedIt = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
-            [&name](const std::shared_ptr<Scene>& scene) {
-                return scene->GetName() == name;
-            });
+		if (defIt == s_SceneDefinitions.end()) {
+			throw SceneExeption("Scene definition '" + name +
+				"' not found. Call SceneManager::RegisterScene() first.");
+		}
 
-        if (loadedIt != s_LoadedScenes.end()) {
-            throw SceneExeption("Scene '" + name +
-                "' is already loaded. Use LoadSceneAdditive() for multiple instances.");
-        }
+		auto loadedIt = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
+			[&name](const std::shared_ptr<Scene>& scene) {
+				return scene->GetName() == name;
+			});
 
-        UnloadAllScenes(false);
+		if (loadedIt != s_LoadedScenes.end()) {
+			throw SceneExeption("Scene '" + name +
+				"' is already loaded. Use LoadSceneAdditive() for multiple instances.");
+		}
 
-        SceneDefinition* definition = defIt->second.get();
-        std::shared_ptr newScene = definition->Instantiate();
+		UnloadAllScenes(false);
 
-        for (const auto& callback : definition->m_LoadCallbacks) {
-            callback(*newScene);
-        }
+		SceneDefinition* definition = defIt->second.get();
+		std::shared_ptr newScene = definition->Instantiate();
 
-        newScene->m_IsLoaded = true;
+		for (const auto& callback : definition->m_LoadCallbacks) {
+			callback(*newScene);
+		}
 
-        s_ActiveScene = &*newScene;
-        s_LoadedScenes.push_back(std::move(newScene));
+		newScene->m_IsLoaded = true;
 
-        if (s_ActiveScene == nullptr)
-            throw "Scene is null";
+		s_ActiveScene = &*newScene;
+		s_LoadedScenes.push_back(std::move(newScene));
 
-        return std::weak_ptr(newScene);
-    }
+		if (s_ActiveScene == nullptr)
+			throw "Scene is null";
 
-    std::weak_ptr<Scene> SceneManager::LoadSceneAdditive(const std::string& name) {
-        auto defIt = s_SceneDefinitions.find(name);
-        if (defIt == s_SceneDefinitions.end()) {
-            throw SceneExeption("Scene definition '" + name +
-                "' not found. Call SceneManager::RegisterScene() first.");
-        }
+		return std::weak_ptr<Scene>(s_LoadedScenes.back());
+	}
 
-        SceneDefinition* definition = defIt->second.get();
-        std::shared_ptr newScene = definition->Instantiate();
+	std::weak_ptr<Scene> SceneManager::LoadSceneAdditive(const std::string& name) {
+		auto defIt = s_SceneDefinitions.find(name);
+		if (defIt == s_SceneDefinitions.end()) {
+			throw SceneExeption("Scene definition '" + name +
+				"' not found. Call SceneManager::RegisterScene() first.");
+		}
 
-        for (const auto& callback : definition->m_LoadCallbacks) {
-            callback(*newScene);
-        }
+		SceneDefinition* definition = defIt->second.get();
+		std::shared_ptr newScene = definition->Instantiate();
 
-        newScene->m_IsLoaded = true;
+		for (const auto& callback : definition->m_LoadCallbacks) {
+			callback(*newScene);
+		}
 
-        s_LoadedScenes.push_back(std::move(newScene));
+		newScene->m_IsLoaded = true;
+
+		if (s_ActiveScene == nullptr) {
+			s_ActiveScene = newScene.get();
+		}
+
+		s_LoadedScenes.push_back(std::move(newScene));
+		return std::weak_ptr(s_LoadedScenes.back());
+	}
+
+	std::weak_ptr<Scene> SceneManager::ReloadScene(const std::string name) {
+		std::shared_ptr<Scene> scene = GetLoadedScene(name).lock();
+
+		bool wasActive = s_ActiveScene == scene.get();
+
+		UnloadScene(name);
+
+		if (wasActive) {
+			return LoadScene(name);
+		}
+		else {
+			return LoadSceneAdditive(name);
+		}
+	}
+
+	void SceneManager::UnloadScene(const std::string& name) {
+		auto it = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
+			[&name](const std::shared_ptr<Scene>& scene) {
+				return scene->GetName() == name;
+			});
+
+		if (it == s_LoadedScenes.end()) {
+			throw SceneExeption("Scene '" + name + "' is not loaded.");
+		}
+
+		Scene* scene = it->get();
+
+		if (scene->m_Definition) {
+			for (const auto& callback : scene->m_Definition->m_UnloadCallbacks) {
+				callback(*scene);
+			}
+		}
+
+		scene->m_IsLoaded = false;
 
 
-        if (s_ActiveScene == nullptr) {
-            s_ActiveScene = newScene.get();
-        }
+		scene->DestroyScene();
+		scene->m_Registry.clear();
 
-        return std::weak_ptr(newScene);
-    }
+		if (s_ActiveScene == scene) {
+			s_ActiveScene = nullptr;
 
-    std::weak_ptr<Scene> SceneManager::ReloadScene(const std::string name) {
-        std::shared_ptr<Scene> scene = GetLoadedScene(name).lock();
+			for (const auto& loadedScene : s_LoadedScenes) {
+				if (loadedScene.get() != scene && loadedScene->IsLoaded()) {
+					s_ActiveScene = loadedScene.get();
+					break;
+				}
+			}
+		}
 
-        bool wasActive = s_ActiveScene == scene.get();
+		s_LoadedScenes.erase(it);
+	}
 
-        UnloadScene(name);
+	void SceneManager::UnloadAllScenes(bool includePersistent) {
+		ForeachLoadedScene([](const Scene& scene) {
+			UnloadScene(scene.GetName());
+		});
+	}
 
-        if (wasActive) {
-            return LoadScene(name);
-        }
-        else {
-            return LoadSceneAdditive(name);
-        }
-    }
+	std::vector<std::weak_ptr<Scene>> SceneManager::GetLoadedScenes() {
+		std::vector<std::weak_ptr<Scene>> loadedScenes;
+		loadedScenes.reserve(s_LoadedScenes.size());
 
-    void SceneManager::UnloadScene(const std::string& name) {
-        auto it = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
-            [&name](const std::shared_ptr<Scene>& scene) {
-                return scene->GetName() == name;
-            });
+		for (const std::shared_ptr<Scene>& scene : s_LoadedScenes) {
+			loadedScenes.emplace_back(scene);
+		}
 
-        if (it == s_LoadedScenes.end()) {
-            throw SceneExeption("Scene '" + name + "' is not loaded.");
-        }
+		return loadedScenes;
+	}
 
-        Scene* scene = it->get();
+	std::weak_ptr<Scene> SceneManager::GetLoadedScene(const std::string& name) {
+		auto it = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
+			[&name](const std::shared_ptr<Scene>& scene) {
+				return scene->GetName() == name;
+			});
 
-        if (scene->m_Definition) {
-            for (const auto& callback : scene->m_Definition->m_UnloadCallbacks) {
-                callback(*scene);
-            }
-        }
+		if (it == s_LoadedScenes.end()) {
+			throw SceneExeption("Scene '" + name + "' is not loaded.");
+		}
 
-        scene->m_IsLoaded = false;
+		return std::weak_ptr(*it);
+	}
 
+	Scene* SceneManager::GetActiveScene() {
+		if (s_ActiveScene == nullptr) {
+			throw SceneExeption("Active scene is null");
+		}
 
-        scene->DestroyScene();
-        scene->m_Registry.clear();
+		return s_ActiveScene;
+	}
 
-        if (&*s_ActiveScene == scene) {
-            s_ActiveScene = nullptr;
+	void SceneManager::SetActiveScene(const std::string& name) {
+		auto it = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
+			[&name](const std::shared_ptr<Scene>& scene) {
+				return scene->GetName() == name;
+			});
 
-            for (auto& loadedScene : s_LoadedScenes) {
-                if (loadedScene.get() != scene && loadedScene->IsLoaded()) {
-                    s_ActiveScene = loadedScene.get();
-                    break;
-                }
-            }
-        }
+		if (it == s_LoadedScenes.end()) {
+			throw SceneExeption("Scene '" + name +
+				"' is not loaded. Load it first before setting as active.");
+		}
 
-        s_LoadedScenes.erase(it);
-    }
+		s_ActiveScene = it._Ptr->get();
+	}
 
-    void SceneManager::UnloadAllScenes(bool includePersistent) {
-        std::vector<std::string> scenesToUnload;
+	bool SceneManager::HasSceneDefinition(const std::string& name) {
+		return s_SceneDefinitions.find(name) != s_SceneDefinitions.end();
+	}
 
-        for (const auto& scene : s_LoadedScenes) {
-            if (includePersistent || !scene->IsPersistent()) {
-                scenesToUnload.push_back(scene->GetName());
-            }
-        }
+	bool SceneManager::IsSceneLoaded(const std::string& name) {
+		return std::any_of(s_LoadedScenes.begin(), s_LoadedScenes.end(),
+			[&name](const std::shared_ptr<Scene>& scene) {
+				return scene->GetName() == name;
+			});
+	}
 
-        for (const auto& name : scenesToUnload) {
-            UnloadScene(name);
-        }
-    }
+	std::vector<std::string> SceneManager::GetRegisteredSceneNames() {
+		std::vector<std::string> names;
+		names.reserve(s_SceneDefinitions.size());
 
-    std::weak_ptr<Scene> SceneManager::GetLoadedScene(const std::string& name) {
-        auto it = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
-            [&name](const std::shared_ptr<Scene>& scene) {
-                return scene->GetName() == name;
-            });
+		for (const auto& [name, def] : s_SceneDefinitions) {
+			names.push_back(name);
+		}
 
-        if (it == s_LoadedScenes.end()) {
-            throw SceneExeption("Scene '" + name + "' is not loaded.");
-        }
+		return names;
+	}
 
-        return std::weak_ptr(*it);
-    }
+	std::vector<std::string> SceneManager::GetLoadedSceneNames() {
+		std::vector<std::string> names;
+		names.reserve(s_LoadedScenes.size());
 
-    Scene* SceneManager::GetActiveScene() {
-        if (s_ActiveScene == nullptr) {
-            throw SceneExeption("Active scene is null");
-        }
+		for (const auto& scene : s_LoadedScenes) {
+			names.push_back(scene->GetName());
+		}
 
-        return s_ActiveScene;
-    }
+		return names;
+	}
 
-    void SceneManager::SetActiveScene(const std::string& name) {
-        auto it = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
-            [&name](const std::shared_ptr<Scene>& scene) {
-                return scene->GetName() == name;
-            });
+	void SceneManager::UpdateScenes() {
+		for (auto& scene : s_LoadedScenes) {
+			if (scene->IsLoaded()) {
+				scene->UpdateSystems();
+			}
+		}
+	}
 
-        if (it == s_LoadedScenes.end()) {
-            throw SceneExeption("Scene '" + name +
-                "' is not loaded. Load it first before setting as active.");
-        }
+	void SceneManager::OnApplicationPaused() {
+		for (auto& scene : s_LoadedScenes) {
+			if (scene->IsLoaded()) {
+				scene->OnApplicationPausedSystems();
+			}
+		}
+	}
 
-        s_ActiveScene = it._Ptr->get();
-    }
+	void SceneManager::FixedUpdateScenes() {
+		for (auto& scene : s_LoadedScenes) {
+			if (scene->IsLoaded()) {
+				scene->FixedUpdateSystems();
+			}
+		}
+	}
 
-    bool SceneManager::HasSceneDefinition(const std::string& name) {
-        return s_SceneDefinitions.find(name) != s_SceneDefinitions.end();
-    }
-
-    bool SceneManager::IsSceneLoaded(const std::string& name) {
-        return std::any_of(s_LoadedScenes.begin(), s_LoadedScenes.end(),
-            [&name](const std::shared_ptr<Scene>& scene) {
-                return scene->GetName() == name;
-            });
-    }
-
-    std::vector<std::string> SceneManager::GetRegisteredSceneNames() {
-        std::vector<std::string> names;
-        names.reserve(s_SceneDefinitions.size());
-
-        for (const auto& [name, def] : s_SceneDefinitions) {
-            names.push_back(name);
-        }
-
-        return names;
-    }
-
-    std::vector<std::string> SceneManager::GetLoadedSceneNames() {
-        std::vector<std::string> names;
-        names.reserve(s_LoadedScenes.size());
-
-        for (const auto& scene : s_LoadedScenes) {
-            names.push_back(scene->GetName());
-        }
-
-        return names;
-    }
-
-    void SceneManager::UpdateScenes() {
-        for (auto& scene : s_LoadedScenes) {
-            if (scene->IsLoaded()) {
-                scene->UpdateSystems();
-            }
-        }
-    }
-
-    void SceneManager::OnApplicationPaused() {
-        for (auto& scene : s_LoadedScenes) {
-            if (scene->IsLoaded()) {
-                scene->OnApplicationPausedSystems();
-            }
-        }
-    }
-
-    void SceneManager::FixedUpdateScenes() {
-        for (auto& scene : s_LoadedScenes) {
-            if (scene->IsLoaded()) {
-                scene->FixedUpdateSystems();
-            }
-        }
-    }
-
-    void SceneManager::InitializeStartupScenes() {
-        for (const auto& [name, definition] : s_SceneDefinitions) {
-            if (definition->IsStartupScene()) {
-                try {
-                    if (s_ActiveScene == nullptr) {
-                        LoadScene(name);
-                    }
-                    else {
-                        LoadSceneAdditive(name);
-                    }
-                }
-                catch (const std::exception& e) {
-                    Logger::Error("Failed to load startup scene with name '" +
-                        name + "': " + e.what());
-                }
-                catch (...) {
-                    Logger::Error("Failed to load startup scene with name '" +
-                        name + "'");
-                }
-            }
-        }
-    }
+	void SceneManager::InitializeStartupScenes() {
+		for (const auto& [name, definition] : s_SceneDefinitions) {
+			if (definition->IsStartupScene()) {
+				try {
+					if (s_ActiveScene == nullptr) {
+						LoadScene(name);
+					}
+					else {
+						LoadSceneAdditive(name);
+					}
+				}
+				catch (const std::exception& e) {
+					Logger::Error("Failed to load startup scene with name '" +
+						name + "': " + e.what());
+				}
+				catch (...) {
+					Logger::Error("Failed to load startup scene with name '" +
+						name + "'");
+				}
+			}
+		}
+	}
 }

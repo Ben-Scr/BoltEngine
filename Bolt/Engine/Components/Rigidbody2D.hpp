@@ -52,7 +52,7 @@ namespace Bolt {
 
 		friend class BoxCollider2D;
 		friend class Collider2D;
-		friend class PhysicsSystem;
+		friend class PhysicsSystem2D;
 		friend class Physics2D;
 		friend class Scene;
 	};

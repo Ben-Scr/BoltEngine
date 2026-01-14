@@ -2,12 +2,12 @@
 #include <chrono>
 #include <string>
 
-using Clock = std::chrono::high_resolution_clock;
-using TimePoint = std::chrono::time_point<Clock>;
-using Duration = std::chrono::duration<double>;
-
 namespace Bolt {
         class Timer {
+            using Clock = std::chrono::high_resolution_clock;
+            using TimePoint = std::chrono::time_point<Clock>;
+            using Duration = std::chrono::duration<double>;
+
         public:
             static Timer Start() {
                 return Timer(Clock::now());

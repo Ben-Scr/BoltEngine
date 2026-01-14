@@ -11,7 +11,7 @@ namespace Bolt {
         void BeginFrame();
         void EndFrame();
         void RenderScenes();
-        void RenderScene(Scene& scene);
+        void RenderScene(const Scene& scene);
         void Shutdown();
 
     private:

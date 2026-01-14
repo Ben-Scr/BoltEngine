@@ -23,10 +23,16 @@ namespace Bolt {
 	void Window::RefreshCallback(GLFWwindow* window) {
 		Application* app = Application::GetInstance();
 
+		Logger::Message("Refreshing");
+
 		if (app == nullptr) return;
 
-		app->BeginFrame(); 
-		app->EndFrame();
+		app->m_Renderer2D->BeginFrame();
+		app->m_GizmoRenderer2D->BeginFrame();
+		app->m_GizmoRenderer2D->EndFrame();
+		app->m_Renderer2D->EndFrame();
+
+		app->m_Window->SwapBuffers();
 	}
 
 	void Window::FocusCallback(GLFWwindow* window, int focused) {
@@ -145,6 +151,10 @@ namespace Bolt {
 
 	void Window::Destroy() {
 		glfwDestroyWindow(m_Window);
+		m_Window = nullptr;
+	}
+	void Window::Shutdown() {
+		glfwTerminate();
 	}
 
 	Vec2Int Window::GetScreenCenter() const {

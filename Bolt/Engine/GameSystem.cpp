@@ -42,16 +42,19 @@ namespace Bolt {
 	}
 
 	void GameSystem::Start() {
-		auto id = Application::OnApplicationQuit.Add(OnQuit);
+		Application::OnApplicationQuit(OnQuit);
 
 		Scene& scene = GetScene();
-		
+
 		//AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
 		//AudioSource source{ handle };
 		//source.SetVolume(0.1f);
 		//source.Play();
 
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(0, -3), Vec2(100, 1)), BodyType::Static);
+		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(-49.5f, 47.5f), Vec2(1, 100)), BodyType::Static);
+		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(49.5f, 47.5f), Vec2(1, 100)), BodyType::Static);
+
 		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Cyan());
 
 		CreatePhysicsEntity<DeadlyTag>(scene, Transform2D(Vec2(-2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Red());
@@ -67,16 +70,13 @@ namespace Bolt {
 		m_PlayerEntity.AddComponent<Rigidbody2D>();
 
 		auto& boxCollider2D = m_PlayerEntity.AddComponent<BoxCollider2D>();
-		boxCollider2D.SetRegisterContacts(true); 
+		boxCollider2D.SetRegisterContacts(true);
 		boxCollider2D.OnCollisionEnter([this](const Collision2D& collision) {
 			this->OnCollisionEnter(collision);
 			});
-
-		Application::OnApplicationQuit.Remove(id);
 	}
 
 	void GameSystem::Update() {
-		return;
 		Scene& scene = GetScene();
 
 		if (Input::GetKeyDown(KeyCode::R)) {
@@ -90,10 +90,34 @@ namespace Bolt {
 		if (Input::GetKeyDown(KeyCode::Q)) {
 			Application::Quit();
 		}
-		
+
+		if (Input::GetKey(KeyCode::E)) {
+			auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
+			CreatePhysicsEntity<Tag>(scene, Transform2D(mousePos), BodyType::Dynamic);
+		}
+		if (Input::GetKeyDown(KeyCode::C)) {
+			auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
+
+			for (int x = 0; x < 50; x++)
+				for (int y = 0; y < 50; y++)
+					CreatePhysicsEntity<Tag>(scene, Transform2D(mousePos + Vec2(x, y)), BodyType::Dynamic);
+		}
+
+
+		Camera2D* mainCam = Camera2D::Main();
+
+		if (Input::GetMouse(MouseKeyCode::Right)) {
+			Vec2 dir = Input::GetMouseDelta();
+			dir.x *= -1;
+
+
+			mainCam->AddPosition(dir * Time::GetDeltaTime() * mainCam->GetOrthographicSize());
+		}
+
+		mainCam->AddOrthographicSize(-Input::ScrollValue() * Time::GetDeltaTime() * 100);
+
 		auto& pts2D = scene.GetSingletonComponent<ParticleSystem2D>();
 		pts2D.Emit(1);
-		pts2D.Update(Time::GetDeltaTime());
 
 		float speed = 5.0f;
 		auto& rb2D = m_PlayerEntity.GetComponent<Rigidbody2D>();
@@ -110,7 +134,9 @@ namespace Bolt {
 	}
 
 	void GameSystem::OnApplicationPaused() {
-
+		if (Input::GetKeyDown(KeyCode::P)) {
+			Application::Pause(!Application::IsPaused());
+		}
 	}
 
 	void GameSystem::DrawGizmos() {

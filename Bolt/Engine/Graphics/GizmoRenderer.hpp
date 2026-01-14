@@ -13,7 +13,7 @@ namespace Bolt {
 
     struct PosColorVertex { float x, y, z; uint32_t color; };
 
-    class GizmoRenderer {
+    class GizmoRenderer2D {
     public:
         static bool Initialize();
         static void Shutdown();

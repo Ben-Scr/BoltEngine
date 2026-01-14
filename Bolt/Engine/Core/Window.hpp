@@ -31,7 +31,7 @@ namespace Bolt {
 		float GetAspect() const { return s_MainViewport.GetAspect(); }
 		Vec2Int GetSize() const { return s_MainViewport.GetSize(); }
 
-		static void SetVsync(bool enabled) { glfwSwapInterval(enabled ? 1 : 0); s_IsVsync = enabled; };
+		static void SetVsync(bool enabled) { glfwSwapInterval(enabled); s_IsVsync = enabled; };
 		static bool IsVsync() { return s_IsVsync; }
 
 		void SetWindowResizeable(bool enabled) { glfwWindowHint(GLFW_RESIZABLE, enabled ? GLFW_TRUE : GLFW_FALSE); }
@@ -53,7 +53,12 @@ namespace Bolt {
 		int GetWidth()  const { return s_MainViewport.Width; }
 		int GetHeight() const { return s_MainViewport.Height; }
 
+		// Info: Destroys the window
 		void Destroy();
+
+		// Info: Terminates the GLFW library
+		static void Shutdown();
+
 		static Window* Main() { return s_ActiveWindow; }
 		static Viewport GetMainViewport() { return s_MainViewport; };
 

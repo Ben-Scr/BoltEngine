@@ -59,9 +59,12 @@ namespace Bolt {
 
 
 	class ParticleSystem2D {
+		friend class Scene;
+		friend class Renderer2D;
+		friend class ParticleUpdateSystem;
+
 	public:
 		ParticleSystem2D() = default;
-		void Update(float deltaTime);
 		void SetTexture(const TextureHandle& texture) { m_TextureHandle = texture; }
 		const TextureHandle& GetTextureHandle() const { return m_TextureHandle; }
 		void Emit(size_t count);
@@ -69,10 +72,13 @@ namespace Bolt {
 		std::span<const Particle> GetParticles() const noexcept { return m_Particles; }
 		bool IsPlaying() const { return m_IsEmitting; }
 
-		// Note: Enables both emitting and simulating
+		// Info: Enables both emitting and simulating
 		void Play() { m_IsEmitting = true; m_IsSimulating = true; }
 
-		// Note: Disables emitting but keeps simulating
+		// Info: Disables/Pauses emitting and simulating
+		void Pause() { m_IsEmitting = false; m_IsSimulating = false; }
+
+		// Info: Disables emitting but keeps simulating
 		void Stop() { m_IsEmitting = false; }
 
 		void SetIsSimulating(bool enabled) { m_IsSimulating = enabled; }
@@ -89,6 +95,7 @@ namespace Bolt {
 		RenderingSettings RenderingSettings;
 
 	private:
+		void Update();
 		std::vector<Particle> m_Particles;
 		std::vector<Burst> m_Bursts;
 
@@ -97,8 +104,5 @@ namespace Bolt {
 		bool m_IsEmitting{ false };
 		bool m_IsSimulating{ false };
 		TextureHandle m_TextureHandle;
-
-		friend class Scene;
-		friend class Renderer2D;
 	};
 }

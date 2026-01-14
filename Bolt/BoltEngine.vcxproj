@@ -213,6 +213,7 @@
     <ClCompile Include="Engine\Scene\Scene.cpp" />
     <ClCompile Include="Engine\Scene\SceneDefinition.cpp" />
     <ClCompile Include="Engine\Scene\SceneManager.cpp" />
+    <ClCompile Include="Engine\Systems\ParticleUpdateSystem.cpp" />
   </ItemGroup>
   <!-- ===== Headers (deduplicated) ===== -->
   <ItemGroup>
@@ -275,6 +276,7 @@
     <ClInclude Include="Engine\Scene\SceneDefinition.hpp" />
     <ClInclude Include="Engine\Scene\SceneManager.hpp" />
     <ClInclude Include="Engine\Math\Random.hpp" />
+    <ClInclude Include="Engine\Systems\ParticleUpdateSystem.hpp" />
     <ClInclude Include="Engine\Utils\CommandBuffer.hpp">
       <SubType>
       </SubType>

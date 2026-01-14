@@ -210,6 +210,9 @@
     <ClCompile Include="Engine\GameSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Systems\ParticleUpdateSystem.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\pch.hpp">
@@ -555,6 +558,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Debugging\Exeptions.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Systems\ParticleUpdateSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

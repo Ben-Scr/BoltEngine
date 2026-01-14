@@ -20,6 +20,6 @@ namespace Bolt {
 		void SetCenter(const Vec2& center, const Scene& scene);
 		Vec2 GetCenter();
 	private:
-		friend class PhysicsSystem;
+		friend class PhysicsSystem2D;
 	};
 }

@@ -149,7 +149,7 @@ namespace Bolt {
 			rb2D.SetBodyType(BodyType::Dynamic);
 		}
 		else {
-			rb2D.m_BodyId = PhysicsSystem::GetMainPhysicsWorld().CreateBody(entity, *this, BodyType::Dynamic);
+			rb2D.m_BodyId = PhysicsSystem2D::GetMainPhysicsWorld().CreateBody(entity, *this, BodyType::Dynamic);
 		}
 
 		rb2D.SetEnabled(isEnabled);
@@ -180,10 +180,10 @@ namespace Bolt {
 			boxCollider.m_BodyId = rb.GetBodyHandle();
 		}
 		else {
-			boxCollider.m_BodyId = PhysicsSystem::GetMainPhysicsWorld().CreateBody(entity, *this, BodyType::Static);
+			boxCollider.m_BodyId = PhysicsSystem2D::GetMainPhysicsWorld().CreateBody(entity, *this, BodyType::Static);
 		}
 
-		boxCollider.m_ShapeId = PhysicsSystem::GetMainPhysicsWorld().CreateShape(entity, *this, boxCollider.m_BodyId, ShapeType::Square);
+		boxCollider.m_ShapeId = PhysicsSystem2D::GetMainPhysicsWorld().CreateShape(entity, *this, boxCollider.m_BodyId, ShapeType::Square);
 		boxCollider.SetEnabled(isEnabled);
 	}
 

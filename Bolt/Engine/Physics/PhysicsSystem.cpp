@@ -7,10 +7,10 @@
 
 
 namespace Bolt {
-	bool PhysicsSystem::s_IsEnabled = true;
-	Box2DWorld PhysicsSystem::s_MainWorld{};
+	bool PhysicsSystem2D::s_IsEnabled = true;
+	Box2DWorld PhysicsSystem2D::s_MainWorld{};
 
-	void PhysicsSystem::FixedUpdate(float dt) {
+	void PhysicsSystem2D::FixedUpdate(float dt) {
 		if (!s_IsEnabled) return;
         
 		s_MainWorld.Step(dt);
@@ -25,7 +25,7 @@ namespace Bolt {
 		}
 	}
 
-	void PhysicsSystem::Shutdown() {
+	void PhysicsSystem2D::Shutdown() {
 		s_MainWorld.Destroy();
 	}
 }

@@ -45,8 +45,8 @@ namespace Bolt {
             return s_Axis;
         }
         
-        static Vec2 MousePosition() { return s_MousePosition; }
-        static Vec2 MouseDelta() { return s_MouseDelta; }
+        static Vec2 GetMousePosition() { return s_MousePosition; }
+        static Vec2 GetMouseDelta() { return s_MouseDelta; }
         static float ScrollValue() { return s_ScrollValue; }
 
     private:

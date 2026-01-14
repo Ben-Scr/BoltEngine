@@ -26,19 +26,19 @@ namespace Bolt {
 		}
 	}
 
-	bool GizmoRenderer::m_IsInitialized = false;
-	std::unique_ptr<Shader> GizmoRenderer::m_GizmoShader;
-	std::vector<PosColorVertex> GizmoRenderer::m_GizmoVertices;
-	std::vector<uint16_t> GizmoRenderer::m_GizmoIndices;
-	uint16_t GizmoRenderer::m_GizmoViewId = 1;
-	unsigned int GizmoRenderer::m_VAO = 0;
-	unsigned int GizmoRenderer::m_VBO = 0;
-	unsigned int GizmoRenderer::m_EBO = 0;
-	int GizmoRenderer::m_uMVP = -1;
+	bool GizmoRenderer2D::m_IsInitialized = false;
+	std::unique_ptr<Shader> GizmoRenderer2D::m_GizmoShader;
+	std::vector<PosColorVertex> GizmoRenderer2D::m_GizmoVertices;
+	std::vector<uint16_t> GizmoRenderer2D::m_GizmoIndices;
+	uint16_t GizmoRenderer2D::m_GizmoViewId = 1;
+	unsigned int GizmoRenderer2D::m_VAO = 0;
+	unsigned int GizmoRenderer2D::m_VBO = 0;
+	unsigned int GizmoRenderer2D::m_EBO = 0;
+	int GizmoRenderer2D::m_uMVP = -1;
 
 	static std::vector<UploadVertex> s_UploadBuffer;
 
-	bool GizmoRenderer::Initialize() {
+	bool GizmoRenderer2D::Initialize() {
 		if (m_IsInitialized)
 			return true;
 
@@ -81,7 +81,7 @@ namespace Bolt {
 		return true;
 	}
 
-	void GizmoRenderer::Shutdown() {
+	void GizmoRenderer2D::Shutdown() {
 		if (!m_IsInitialized)
 			return;
 
@@ -106,11 +106,11 @@ namespace Bolt {
 		m_IsInitialized = false;
 	}
 
-	void GizmoRenderer::OnResize(int /*w*/, int /*h*/) {
+	void GizmoRenderer2D::OnResize(int /*w*/, int /*h*/) {
 
 	}
 
-	void GizmoRenderer::BeginFrame(uint16_t viewId) {
+	void GizmoRenderer2D::BeginFrame(uint16_t viewId) {
 		if (!m_IsInitialized)
 			return;
 
@@ -119,7 +119,7 @@ namespace Bolt {
 		m_GizmoIndices.clear();
 	}
 
-	void GizmoRenderer::Render() {
+	void GizmoRenderer2D::Render() {
 		if (!m_IsInitialized || !Gizmos::s_IsEnabled)
 			return;
 
@@ -185,7 +185,7 @@ namespace Bolt {
 		Gizmos::Clear();
 	}
 
-	void GizmoRenderer::FlushGizmos() {
+	void GizmoRenderer2D::FlushGizmos() {
 		if (!m_IsInitialized || m_GizmoVertices.empty() || !m_GizmoShader || !m_GizmoShader->IsValid())
 			return;
 
@@ -215,7 +215,7 @@ namespace Bolt {
 		glUseProgram(0);
 	}
 
-	void GizmoRenderer::EndFrame() {
+	void GizmoRenderer2D::EndFrame() {
 		Render();
 	}
 }

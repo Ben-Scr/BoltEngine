@@ -10,7 +10,7 @@
 
 namespace Bolt {
 	std::optional<EntityHandle> Physics2D::OverlapCircle(const Vec2& center, float radius, OverlapMode mode) {
-		auto& phys = PhysicsSystem::GetMainPhysicsWorld();
+		auto& phys = PhysicsSystem2D::GetMainPhysicsWorld();
 		b2WorldId world = phys.m_WorldId;
 
 		b2ShapeProxy proxy{};
@@ -56,7 +56,7 @@ namespace Bolt {
 		return (mode == OverlapMode::First ? qb.first : qb.nearest);
 	}
 	std::optional<EntityHandle> Physics2D::OverlapBox(const Vec2& center, const Vec2& halfExtents, float degrees, OverlapMode mode) {
-		auto& phys = PhysicsSystem::GetMainPhysicsWorld();
+		auto& phys = PhysicsSystem2D::GetMainPhysicsWorld();
 		b2WorldId world = phys.m_WorldId;
 		float radians = Radians<float>(degrees);
 
@@ -118,7 +118,7 @@ namespace Bolt {
 		return (mode == OverlapMode::First ? qb.first : qb.nearest);
 	}
 	std::optional<RaycastHit2D> Physics2D::Raycast(const Vec2& origin,const Vec2& direction, float maxDistance) {
-		auto& phys = PhysicsSystem::GetMainPhysicsWorld();
+		auto& phys = PhysicsSystem2D::GetMainPhysicsWorld();
 		b2WorldId world = phys.m_WorldId;
 
 		b2Vec2 o{ origin.x, origin.y };
@@ -146,7 +146,7 @@ namespace Bolt {
 	}
 
 	std::vector<EntityHandle> Physics2D::OverlapCircleAll(const Vec2& center, float radius) {
-		auto& phys = PhysicsSystem::GetMainPhysicsWorld();
+		auto& phys = PhysicsSystem2D::GetMainPhysicsWorld();
 		b2WorldId world = phys.m_WorldId;
 
 		b2ShapeProxy proxy{};
@@ -174,7 +174,7 @@ namespace Bolt {
 		return results;
 	}
 	std::vector<EntityHandle> Physics2D::overlapBoxAll(const Vec2& center, const Vec2& halfExtents, float degrees) {
-		auto& phys = PhysicsSystem::GetMainPhysicsWorld();
+		auto& phys = PhysicsSystem2D::GetMainPhysicsWorld();
 		b2WorldId world = phys.m_WorldId;
 		float radians = Radians<float>(degrees);
 

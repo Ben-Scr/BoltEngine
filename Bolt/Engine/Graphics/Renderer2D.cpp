@@ -2,7 +2,6 @@
 #include "Renderer2D.hpp"
 #include "Camera2D.hpp"
 
-#include "../Collections/Viewport.hpp"
 #include "../Scene/SceneManager.hpp"
 #include "../Components/SpriteRenderer.hpp"
 #include "../Components/ParticleSystem2D.hpp";
@@ -11,13 +10,11 @@
 #include "../Scene/Scene.hpp"
 #include "../Graphics/TextureManager.hpp"
 
-#include <glm/gtc/type_ptr.hpp>
-#include <GLFW/glfw3.h>
-
 namespace Bolt {
 	void Renderer2D::Initialize() {
 		m_QuadMesh.Initialize();
 		m_SpriteShader.Initialize();
+
 		if (!m_SpriteShader.IsValid()) {
 			Logger::Error("Renderer2D", "Sprite shader invalid.");
 			return;
@@ -34,12 +31,16 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScenes() {
-		for (const std::string& sceneName : SceneManager::GetLoadedSceneNames()) {
-			RenderScene(*SceneManager::GetLoadedScene(sceneName).lock());
-		}
+		SceneManager::ForeachLoadedScene([&](const Scene& scene) {
+			RenderScene(scene);
+		});
+
+		//for (const std::string& sceneName : SceneManager::GetLoadedSceneNames()) {
+		//	RenderScene(*SceneManager::GetLoadedScene(sceneName).lock());
+		//}
 	}
 
-	void Renderer2D::RenderScene(Scene& scene) {
+	void Renderer2D::RenderScene(const Scene& scene) {
 		if (!m_SpriteShader.IsValid()) {
 			Logger::Error("Shader", "Invalid Sprite 2D Shader");
 			return;
@@ -78,8 +79,6 @@ namespace Bolt {
 			glActiveTexture(GL_TEXTURE0);
 			Texture2D& texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
 
-
-
 			if (texture.IsValid())
 				texture.Submit(0);
 			else
@@ -96,6 +95,7 @@ namespace Bolt {
 
 		for (const auto& [ent, particleSystem] : scene.GetRegistry().view<ParticleSystem2D>(entt::exclude<DisabledTag>).each()) {
 			glActiveTexture(GL_TEXTURE0);
+
 			Texture2D& texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
 			if (texture.IsValid())
 				texture.Submit(0);
@@ -117,7 +117,7 @@ namespace Bolt {
 				m_SpriteShader.SetVertexColor(particle.Color);
 				m_QuadMesh.Draw();
 				m_QuadMesh.Unbind();
-		   }
+			}
 		}
 
 #if 0

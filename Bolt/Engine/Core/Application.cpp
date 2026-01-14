@@ -9,12 +9,13 @@
 #include "Input.hpp"
 
 
+
 namespace Bolt {
-	float Application::s_TargetFramerate = 144;
-	float Application::s_MaxPossibleFPS = 0;
+	double Application::s_TargetFramerate = 50;
+	double Application::s_MaxPossibleFPS = 0;
 	const double Application::k_PausedTargetFrameRate = 10;
 
-	Event<> Application::OnApplicationQuit;
+	Event<> Application::s_OnApplicationQuit;
 
 
 	bool Application::s_ShouldQuit = false;
@@ -41,55 +42,56 @@ namespace Bolt {
 		Initialize();
 		Logger::Message("Application", "Initialization took " + timer.ToString());
 
-		while (!m_Window.value().ShouldClose() && !s_ShouldQuit) {
-			using Clock = std::chrono::high_resolution_clock;
-			using Duration = std::chrono::high_resolution_clock::duration;
+		m_LastFrameTime = Clock::now();
 
-			static float fixedUpdateAccumulator = 0.0f;
-
-			double targetFrameRate = s_IsPaused ? k_PausedTargetFrameRate : s_TargetFramerate;
-			Duration TARGET_FRAME_TIME = std::chrono::duration_cast<Duration>(std::chrono::duration<double>(1.0 / targetFrameRate));
-			static auto lastTime = Clock::now();
-			auto const nextFrameTime = lastTime + TARGET_FRAME_TIME;
-
+		while (!m_Window->ShouldClose() && !s_ShouldQuit) {
+			DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / GetTargetFramerate()));
 			auto now = Clock::now();
-			if (now + std::chrono::milliseconds(10) < nextFrameTime) {
-				std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
-			}
-			while (Clock::now() < nextFrameTime) {
-				_mm_pause();
-			}
-			auto frameStart = Clock::now();
 
-			float deltaTime = std::chrono::duration<float>(frameStart - lastTime).count();
+			// Info: CPU idling for fps cut if window isn't vsync
+			if(!m_Window->IsVsync())
+			{
+				auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
+
+				if (now + std::chrono::milliseconds(10) < nextFrameTime)
+					std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
+
+				while (Clock::now() < nextFrameTime) {
+					_mm_pause();
+				}
+			}
+
+			auto frameStart = Clock::now();
+			float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
 			Time::Update(deltaTime);
 
-			fixedUpdateAccumulator += Time::GetDeltaTime();
-			while (fixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
+			m_FixedUpdateAccumulator += Time::GetDeltaTime();
+
+			size_t i = 0;
+			while (m_FixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
 				try {
 					if (!s_IsPaused) {
+						if (++i > 10 && Time::GetDeltaTimeUnscaled() <= 10 && PhysicsSystem2D::IsEnabled()) {
+							m_FixedUpdateAccumulator = 0;
+							PhysicsSystem2D::SetEnabled(false);
+							throw std::overflow_error("Physics Overflow, Disabled Physics");
+						}
 						BeginFixedFrame();
 						EndFixedFrame();
 					}
 				}
 				catch (std::runtime_error e) {
 					Logger::Error(e.what());
+					break;
 				}
 
-				fixedUpdateAccumulator -= Time::s_FixedDeltaTime;
+				m_FixedUpdateAccumulator -= Time::s_FixedDeltaTime;
 			}
-
 			BeginFrame();
 			EndFrame();
+			glfwPollEvents();
 
-			if (Input::GetKey(KeyCode::D) && Input::GetKey(KeyCode::LeftSuper))
-				Logger::Message("Minimize");
-			else
-			{
-				glfwPollEvents();
-			}
-
-			lastTime = frameStart;
+			m_LastFrameTime = frameStart;
 		}
 
 		Shutdown();
@@ -102,8 +104,8 @@ namespace Bolt {
 		if (!s_IsPaused) {
 			AudioManager::Update();
 			SceneManager::UpdateScenes();
-			m_Renderer2D.value().BeginFrame();
-			m_GizmoRenderer.value().BeginFrame();
+			m_Renderer2D->BeginFrame();
+			m_GizmoRenderer2D->BeginFrame();
 		}
 		else {
 			SceneManager::OnApplicationPaused();
@@ -113,14 +115,14 @@ namespace Bolt {
 
 	void Application::BeginFixedFrame() {
 		SceneManager::FixedUpdateScenes();
-		m_PhysicsSystem.value().FixedUpdate(Time::GetFixedDeltaTime());
+		m_PhysicsSystem2D->FixedUpdate(Time::GetFixedDeltaTime());
 	}
 
 	void Application::EndFrame() {
 		if (!s_IsPaused) {
-			m_Renderer2D.value().EndFrame();
-			m_GizmoRenderer.value().EndFrame();
-			m_Window.value().SwapBuffers();
+			m_Renderer2D->EndFrame();
+			m_GizmoRenderer2D->EndFrame();
+			m_Window->SwapBuffers();
 		}
 
 		Input::Update();
@@ -133,24 +135,29 @@ namespace Bolt {
 
 	void Application::CoreInput() {
 		if (Input::GetKeyDown(KeyCode::Esc)) {
-			m_Window.value().MinimizeWindow();
+			m_Window->MinimizeWindow();
 		}
 		if (Input::GetKeyDown(KeyCode::F11)) {
-			m_Window.value().MaximizeWindow(true);
+			m_Window->MaximizeWindow(true);
 		}
 		if (Input::GetKeyDown(KeyCode::F12)) {
-			m_Window.value().SetVsync(!m_Window.value().IsVsync());
+			m_Window->SetVsync(!m_Window->IsVsync());
 		}
 
-		std::string fps = std::to_string(1.f / Time::GetDeltaTimeUnscaled()) + " FPS";
-		m_Window.value().SetTitle(fps);
+		std::string fps = std::to_string(1.f / Time::GetDeltaTime()) + " FPS";
+		m_Window->SetTitle(fps);
+	}
+
+	void Application::ResetTimePoints() {
+		m_LastFrameTime = Clock::now();
+		m_FixedUpdateAccumulator = 0;
 	}
 
 	void Application::Initialize() {
 		Timer timer = Timer::Start();
-		m_Window.emplace(Window(GLFWWindowProperties(800, 800, "Hello World", true, true, false)));
-		m_Window.value().SetVsync(true);
-		m_Window.value().SetWindowResizeable(true);
+		m_Window = std::make_unique<Window>(Window(GLFWWindowProperties(800, 800, "Hello World", true, true, false)));
+		m_Window->SetVsync(true);
+		m_Window->SetWindowResizeable(true);
 		Logger::Message("GLFWWindow", "Initialization took " + timer.ToString());
 
 		timer.Reset();
@@ -158,17 +165,17 @@ namespace Bolt {
 		Logger::Message("OpenGL", "Initialization took " + timer.ToString());
 
 		timer.Reset();
-		m_Renderer2D.emplace(Renderer2D());
-		m_Renderer2D.value().Initialize();
+		m_Renderer2D = std::make_unique<Renderer2D>();
+		m_Renderer2D->Initialize();
 		Logger::Message("Renderer2D", "Initialization took " + timer.ToString());
 
 		timer.Reset();
-		m_GizmoRenderer.emplace();
-		m_GizmoRenderer.value().Initialize();
+		m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
+		m_GizmoRenderer2D->Initialize();
 		Logger::Message("GizmoRenderer", "Initialization took " + timer.ToString());
 
 		timer.Reset();
-		m_PhysicsSystem.emplace(PhysicsSystem());
+		m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
 		Logger::Message("PhysicsSystem", "Initialization took " + timer.ToString());
 
 		timer.Reset();
@@ -186,12 +193,13 @@ namespace Bolt {
 	}
 
 	void Application::Shutdown() {
-		OnApplicationQuit.Invoke();
+		s_OnApplicationQuit.Invoke();
 
-		m_PhysicsSystem.value().Shutdown();
-		m_GizmoRenderer.value().Shutdown();
-		m_Renderer2D.value().Shutdown();
+		m_PhysicsSystem2D->Shutdown();
+		m_GizmoRenderer2D->Shutdown();
+		m_Renderer2D->Shutdown();
+		SceneManager::Shutdown();
 
-		m_Window.value().Destroy();
+		m_Window->Destroy();
 	}
 }

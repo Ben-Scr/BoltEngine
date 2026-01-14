@@ -52,7 +52,7 @@ namespace Bolt {
 		static size_t s_MaxVertices;
 		static size_t s_RegisteredVertices;
 
-		friend class GizmoRenderer;
+		friend class GizmoRenderer2D;
 		friend class Renderer2D;
 	};
 }

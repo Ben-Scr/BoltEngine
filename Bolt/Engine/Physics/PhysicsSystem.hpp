@@ -3,7 +3,7 @@
 namespace Bolt {
 	class Box2DWorld;
 
-	class PhysicsSystem {
+	class PhysicsSystem2D {
 	public:
 		void FixedUpdate(float dt);
 		void Shutdown();
