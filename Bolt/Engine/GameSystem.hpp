@@ -8,6 +8,7 @@ namespace Bolt {
 		virtual void Awake();
 		virtual void Start();
 		virtual void Update();
+		virtual void OnApplicationPaused();
 
 		void OnCollisionEnter(const Collision2D& collision);
 

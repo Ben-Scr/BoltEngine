@@ -203,6 +203,7 @@ namespace Bolt {
 		void AwakeSystems();
 		void StartSystems();
 		void UpdateSystems();
+		void OnApplicationPausedSystems();
 		void FixedUpdateSystems();
 		void DestroyScene();
 

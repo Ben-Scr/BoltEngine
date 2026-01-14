@@ -76,6 +76,7 @@ namespace Bolt {
 	}
 
 	void GameSystem::Update() {
+		return;
 		Scene& scene = GetScene();
 
 		if (Input::GetKeyDown(KeyCode::R)) {
@@ -89,8 +90,6 @@ namespace Bolt {
 		if (Input::GetKeyDown(KeyCode::Q)) {
 			Application::Quit();
 		}
-
-		if (Application::IsPaused())return;
 		
 		auto& pts2D = scene.GetSingletonComponent<ParticleSystem2D>();
 		pts2D.Emit(1);
@@ -108,6 +107,19 @@ namespace Bolt {
 		}
 
 		DrawGizmos();
+	}
+
+	void GameSystem::OnApplicationPaused() {
+		Logger::Message("Is Paused");
+
+		Window& w = Application::GetWindow();
+		w.CenterWindow();
+		w.FocusWindow();
+		w.RestoreWindow();
+
+		if (Input::GetKeyDown(KeyCode::P)) {
+			Application::Pause(!Application::IsPaused());
+		}
 	}
 
 	void GameSystem::DrawGizmos() {

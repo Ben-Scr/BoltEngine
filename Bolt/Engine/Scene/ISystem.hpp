@@ -23,7 +23,7 @@ namespace Bolt {
 		// Info: Gets called when system is destroyed
 		virtual void OnDestroy() {}
 
-		// Info: Gets called when Application is paused
+		// Info: Gets called when Application is paused (default: 10fps)
 		virtual void OnApplicationPaused() {}
 
 		virtual void OnApplicationInitialize() {}

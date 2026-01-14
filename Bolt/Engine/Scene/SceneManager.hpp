@@ -39,6 +39,7 @@ namespace Bolt {
     private:
         static void Initialize();
         static void UpdateScenes();
+        static void OnApplicationPaused();
         static void FixedUpdateScenes();
         static void InitializeStartupScenes();
 

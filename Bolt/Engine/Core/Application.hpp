@@ -41,23 +41,9 @@ namespace Bolt {
 		static Application* GetInstance() { return s_Instance; }
 
 		static void Quit() { s_ShouldQuit = true; }
-		static void Pause(bool paused) {
-			if (s_IsPaused == paused) return;
-
-			//static int fpsBefore = Application::s_TargetFramerate;
-
-			if (paused)
-			{
-				//fpsBefore = Application::s_TargetFramerate;
-				//Application::SetTargetFramerate(5);
-			}
-			//else
-			//	Application::SetTargetFramerate(fpsBefore);
-
-			s_IsPaused = paused;
-		}
+		static void Pause(bool paused) {s_IsPaused = paused;}
 		static const bool IsPaused() { return s_IsPaused; }
-
+		static Window& GetWindow() { return s_Instance->m_Window.value(); }
 
 		static Event<> OnApplicationQuit;
 		static Event<> OnApplicationInitialize;

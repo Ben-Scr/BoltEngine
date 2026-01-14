@@ -79,6 +79,21 @@ namespace Bolt {
 		}
 	}
 
+	void Scene::OnApplicationPausedSystems() {
+		for (auto& s : m_Systems)
+		{
+			if (s->m_Enabled)
+			{
+				try {
+					s->OnApplicationPaused();
+				}
+				catch (std::runtime_error e) {
+					Logger::Error(e.what());
+				}
+			}
+		}
+	}
+
 	void Scene::FixedUpdateSystems() {
 		for (auto& s : m_Systems)
 		{

@@ -65,10 +65,12 @@ namespace Bolt {
 			Time::Update(deltaTime);
 
 			fixedUpdateAccumulator += Time::GetDeltaTime();
-			while (!s_IsPaused && fixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
+			while (fixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
 				try {
-					BeginFixedFrame();
-					EndFixedFrame();
+					if (!s_IsPaused) {
+						BeginFixedFrame();
+						EndFixedFrame();
+					}
 				}
 				catch (std::runtime_error e) {
 					Logger::Error(e.what());
@@ -91,12 +93,15 @@ namespace Bolt {
 
 	void Application::BeginFrame() {
 		CoreInput();
-		AudioManager::Update();
-		SceneManager::UpdateScenes();
 
 		if (!s_IsPaused) {
+			AudioManager::Update();
+			SceneManager::UpdateScenes();
 			m_Renderer2D.value().BeginFrame();
 			m_GizmoRenderer.value().BeginFrame();
+		}
+		else {
+			SceneManager::OnApplicationPaused();
 		}
 
 	}

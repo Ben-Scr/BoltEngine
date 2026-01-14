@@ -256,6 +256,14 @@ namespace Bolt {
         }
     }
 
+    void SceneManager::OnApplicationPaused() {
+        for (auto& scene : s_LoadedScenes) {
+            if (scene->IsLoaded()) {
+                scene->OnApplicationPausedSystems();
+            }
+        }
+    }
+
     void SceneManager::FixedUpdateScenes() {
         for (auto& scene : s_LoadedScenes) {
             if (scene->IsLoaded()) {
