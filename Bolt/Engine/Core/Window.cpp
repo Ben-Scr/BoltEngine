@@ -23,8 +23,6 @@ namespace Bolt {
 	void Window::RefreshCallback(GLFWwindow* window) {
 		Application* app = Application::GetInstance();
 
-		Logger::Message("Refreshing");
-
 		if (app == nullptr) return;
 
 		app->m_Renderer2D->BeginFrame();

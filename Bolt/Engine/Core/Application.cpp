@@ -63,6 +63,13 @@ namespace Bolt {
 
 			auto frameStart = Clock::now();
 			float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
+
+			if (deltaTime >= 0.25f) {
+				std::cout << "Is more than 0.25f"  << '\n';
+				ResetTimePoints();
+				deltaTime =  0.0f;
+			}
+
 			Time::Update(deltaTime);
 
 			m_FixedUpdateAccumulator += Time::GetDeltaTime();
