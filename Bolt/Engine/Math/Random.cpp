@@ -7,6 +7,6 @@ namespace Bolt {
 		return Color(Range(0.f, 1.f), Range(0.f, 1.f), Range(0.f, 1.f));
 	}
 	bool Random::NextBool() {
-		return Range<std::uint8_t>(0, 1) == 0;
+		return Range<int>(0, 1) == 0;
 	}
 }
