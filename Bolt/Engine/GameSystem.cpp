@@ -16,6 +16,10 @@ namespace Bolt {
 	}
 
 	void GameSystem::OnCollisionEnter(const Collision2D& collision2D) {
+		for (size_t i = 0; i < 10; i++) {
+			Logger::Message(std::to_string(Random::NextBool()));
+		}
+
 		Scene& activeScene = *SceneManager::GetActiveScene();
 
 		bool isADeadly = activeScene.HasComponent<DeadlyTag>(collision2D.entityA);
@@ -38,7 +42,7 @@ namespace Bolt {
 		pts2D.ParticleSettings.UseRandomColors = true;
 		pts2D.Emit(100);
 
-		OpenGL::SetBackgroundColor(Color(Random::Range(0.f, 1.f), Random::Range(0.f, 1.f), Random::Range(0.f, 1.f)));
+		OpenGL::SetBackgroundColor(Random::NextColor());
 	}
 
 	void GameSystem::Start() {

@@ -16,6 +16,8 @@ void Unload(Bolt::Scene& scene) {
 }
 
 int main() {
+
+
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
 	def.AddSystem<Bolt::GameSystem>();
 	def.AddSystem<Bolt::ParticleUpdateSystem>();
