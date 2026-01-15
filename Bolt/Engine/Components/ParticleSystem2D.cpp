@@ -42,7 +42,6 @@ namespace Bolt {
 		if(!m_IsEmitting || count == 0)
 			return;
 
-		static Random rand;
 		const uint32_t maxParticles = RenderingSettings.MaxParticles;
 
 		if (m_Particles.size() >= maxParticles)
@@ -60,11 +59,11 @@ namespace Bolt {
 			std::visit([&](auto const& s) {
 				using T = std::decay_t<decltype(s)>;
 				if constexpr (std::is_same_v<T, CircleParams>) {
-					position = s.IsOnCircle ? RandomOnCircle(s.Radius, rand) : RandomInCircle(s.Radius, rand);
+					position = s.IsOnCircle ? RandomOnCircle(s.Radius) : RandomInCircle(s.Radius);
 					particle.Velocity = Normalized(position) * ParticleSettings.Speed;
 				}
 				else if constexpr (std::is_same_v<T, SquareParams>) {
-					position = Vec2(rand.Next(-s.HalfExtends.x, s.HalfExtends.x), rand.Next(-s.HalfExtends.y, s.HalfExtends.y));
+					position = Vec2(Random::NextFloat(-s.HalfExtends.x, s.HalfExtends.x), Random::NextFloat(-s.HalfExtends.y, s.HalfExtends.y));
 				}
 				}, Shape);
 
@@ -75,7 +74,7 @@ namespace Bolt {
 
 			particle.Transform.Position = position;
 			particle.Transform.Scale = scale;
-			particle.Color = ParticleSettings.UseRandomColors ? Bolt::Color(rand.Next(0.f, 1.f), rand.Next(0.f, 1.f), rand.Next(0.f, 1.f)) : RenderingSettings.Color;
+			particle.Color = ParticleSettings.UseRandomColors ? Bolt::Color(Random::NextFloat(0.f, 1.f), Random::NextFloat(0.f, 1.f), Random::NextFloat(0.f, 1.f)) : RenderingSettings.Color;
 			m_Particles.push_back(particle);
 
 			if (m_Particles.size() >= maxParticles)

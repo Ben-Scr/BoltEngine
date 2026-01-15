@@ -48,8 +48,8 @@ namespace Bolt {
 			DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / GetTargetFramerate()));
 			auto now = Clock::now();
 
-			// Info: CPU idling for fps cut if window isn't vsync
-			if(!m_Window->IsVsync())
+			// Info: CPU idling for fps cut if window isn't vsync or app is paused
+			if(!m_Window->IsVsync() || s_IsPaused)
 			{
 				auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
 

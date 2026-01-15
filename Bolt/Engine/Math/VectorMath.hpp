@@ -59,16 +59,16 @@ namespace Bolt {
 		return Vec2(std::cos(radians), std::sin(radians));
 	}
 
-	inline Vec2 RandomInCircle(float radius, Random& rand) noexcept {
+	inline Vec2 RandomInCircle(float radius) noexcept {
 		const float twoPi = 6.28318530717958647692f;
-		float theta = rand.Next(0.0f, twoPi);
-		float u = rand.Next(0.0f, 1.0f);
+		float theta = Random::NextFloat(0.0f, twoPi);
+		float u = Random::NextFloat(0.0f, 1.0f);
 		float r = radius * std::sqrt(u);
 		return FromAngle(theta) * r;
 	}
-	inline Vec2 RandomOnCircle(float radius, Random& rand) noexcept {
+	inline Vec2 RandomOnCircle(float radius) noexcept {
 		const float twoPi = 6.28318530717958647692f;
-		float theta = rand.Next(0.0f, twoPi);
+		float theta = Random::NextFloat(0.0f, twoPi);
 		return FromAngle(theta) * radius;
 	}
 }

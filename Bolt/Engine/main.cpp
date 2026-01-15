@@ -11,13 +11,7 @@
 #include "Utils/CommandBuffer.hpp"
 #include "Debugging/Logger.hpp"
 
-void Unload(Bolt::Scene& scene) {
-	std::cout << "Unload Scene " << scene.GetName();
-}
-
 int main() {
-
-
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
 	def.AddSystem<Bolt::GameSystem>();
 	def.AddSystem<Bolt::ParticleUpdateSystem>();
