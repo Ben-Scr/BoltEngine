@@ -65,7 +65,6 @@ namespace Bolt {
 			float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
 
 			if (deltaTime >= 0.25f) {
-				std::cout << "Is more than 0.25f"  << '\n';
 				ResetTimePoints();
 				deltaTime =  0.0f;
 			}
@@ -81,7 +80,7 @@ namespace Bolt {
 						if (++i > 10 && Time::GetDeltaTimeUnscaled() <= 10 && PhysicsSystem2D::IsEnabled()) {
 							m_FixedUpdateAccumulator = 0;
 							PhysicsSystem2D::SetEnabled(false);
-							throw std::overflow_error("Physics Overflow, Disabled Physics");
+							throw OverflowExepection("Physics Overflow, Disabled Physics");
 						}
 						BeginFixedFrame();
 						EndFixedFrame();

@@ -14,9 +14,9 @@
 #include "../Graphics/Camera2D.hpp"
 
 namespace Bolt {
-	
+
 	// Note: Creates an entity with a Transform2D component
-	Entity Scene::CreateEntity()  {
+	Entity Scene::CreateEntity() {
 		auto entityHandle = CreateEntityHandle();
 		AddComponent<Transform2D>(entityHandle);
 		return Entity(entityHandle, m_Registry);
@@ -42,31 +42,38 @@ namespace Bolt {
 	void Scene::DestroyEntity(EntityHandle nativeEntity) { m_Registry.destroy(nativeEntity); }
 
 	void Scene::AwakeSystems() {
-		for (auto& s : m_Systems)
-		{
-			try {
-				s->Awake();
-			}
-			catch (const std::runtime_error& e) {
-				Logger::Error(e.what());
+		for (size_t i = 0; i < m_Systems.size(); ++i) {
+			auto& s = m_Systems[i];
+			if (s->m_Enabled)
+			{
+				try {
+					s->Awake();
+				}
+				catch (std::runtime_error e) {
+					Logger::Error(e.what());
+				}
 			}
 		}
 	}
 
 	void Scene::StartSystems() {
-		for (auto& s : m_Systems) {
-			try {
-				s->Start();
-			}
-			catch (const std::runtime_error& e) {
-				Logger::Error(e.what());
+		for (size_t i = 0; i < m_Systems.size(); ++i) {
+			auto& s = m_Systems[i];
+			if (s->m_Enabled)
+			{
+				try {
+					s->Start();
+				}
+				catch (std::runtime_error e) {
+					Logger::Error(e.what());
+				}
 			}
 		}
 	}
 
 	void Scene::UpdateSystems() {
-		for (auto& s : m_Systems)
-		{
+		for (size_t i = 0; i < m_Systems.size(); ++i) {
+			auto& s = m_Systems[i];
 			if (s->m_Enabled)
 			{
 				try {
@@ -80,8 +87,8 @@ namespace Bolt {
 	}
 
 	void Scene::OnApplicationPausedSystems() {
-		for (auto& s : m_Systems)
-		{
+		for (size_t i = 0; i < m_Systems.size(); ++i) {
+			auto& s = m_Systems[i];
 			if (s->m_Enabled)
 			{
 				try {
@@ -95,13 +102,14 @@ namespace Bolt {
 	}
 
 	void Scene::FixedUpdateSystems() {
-		for (auto& s : m_Systems)
-		{
-			if (s->m_Enabled) {
+		for (size_t i = 0; i < m_Systems.size(); ++i) {
+			auto& s = m_Systems[i];
+			if (s->m_Enabled)
+			{
 				try {
 					s->FixedUpdate();
 				}
-				catch (const std::runtime_error& e) {
+				catch (std::runtime_error e) {
 					Logger::Error(e.what());
 				}
 			}
@@ -109,14 +117,16 @@ namespace Bolt {
 	}
 
 	void Scene::DestroyScene() {
-		for (auto& s : m_Systems)
-		{
-			try
+		for (size_t i = 0; i < m_Systems.size(); ++i) {
+			auto& s = m_Systems[i];
+			if (s->m_Enabled)
 			{
-				s->OnDestroy();
-			}
-			catch (const std::runtime_error& e) {
-				Logger::Error(e.what());
+				try {
+					s->OnDestroy();
+				}
+				catch (std::runtime_error e) {
+					Logger::Error(e.what());
+				}
 			}
 		}
 	}

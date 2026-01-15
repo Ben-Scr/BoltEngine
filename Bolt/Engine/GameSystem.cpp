@@ -16,10 +16,6 @@ namespace Bolt {
 	}
 
 	void GameSystem::OnCollisionEnter(const Collision2D& collision2D) {
-		for (size_t i = 0; i < 10; i++) {
-			Logger::Message(std::to_string(Random::NextBool()));
-		}
-
 		Scene& activeScene = *SceneManager::GetActiveScene();
 
 		bool isADeadly = activeScene.HasComponent<DeadlyTag>(collision2D.entityA);
@@ -46,7 +42,7 @@ namespace Bolt {
 	}
 
 	void GameSystem::Start() {
-		Application::OnApplicationQuit(OnQuit);
+		//Application::OnApplicationQuit(OnQuit);
 
 		Scene& scene = GetScene();
 

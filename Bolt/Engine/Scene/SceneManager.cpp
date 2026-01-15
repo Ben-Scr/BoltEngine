@@ -26,7 +26,7 @@ namespace Bolt {
 
 			Logger::Message("SceneManager", "Loaded Scene '" + firstSceneName + "'");
 		}
-		catch (const SceneExeption& e) {
+		catch (const std::runtime_error& e) {
 			Logger::Error("SceneManager", e.what());
 		}
 		catch (...) {
