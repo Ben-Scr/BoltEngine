@@ -213,6 +213,9 @@
     <ClCompile Include="Engine\Systems\ParticleUpdateSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Math\Random.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\pch.hpp">
@@ -557,10 +560,16 @@
     <ClInclude Include="Engine\Utils\CommandBuffer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Debugging\Exeptions.hpp">
+    <ClInclude Include="Engine\Debugging\Exceptions.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Systems\ParticleUpdateSystem.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Collections\Ids.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Utils\Eventbus.Hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

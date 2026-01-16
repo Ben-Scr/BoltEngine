@@ -32,8 +32,7 @@ namespace Bolt {
 
 			if (instance.IsAlreadyRunning())
 			{
-				Logger::Error("Application", "An Instance of this app is already running!");
-				return;
+				throw BoltException("BoltException", "An Instance of this app is already running!");
 			}
 		}
 
@@ -49,7 +48,7 @@ namespace Bolt {
 			auto now = Clock::now();
 
 			// Info: CPU idling for fps cut if window isn't vsync or app is paused
-			if(!m_Window->IsVsync() || s_IsPaused)
+			if (!m_Window->IsVsync() || s_IsPaused)
 			{
 				auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
 
@@ -66,7 +65,7 @@ namespace Bolt {
 
 			if (deltaTime >= 0.25f) {
 				ResetTimePoints();
-				deltaTime =  0.0f;
+				deltaTime = 0.0f;
 			}
 
 			Time::Update(deltaTime);
@@ -80,7 +79,7 @@ namespace Bolt {
 						if (++i > 10 && Time::GetDeltaTimeUnscaled() <= 10 && PhysicsSystem2D::IsEnabled()) {
 							m_FixedUpdateAccumulator = 0;
 							PhysicsSystem2D::SetEnabled(false);
-							throw OverflowExepection("Physics Overflow, Disabled Physics");
+							throw OverflowException("Physics Overflow, disabled Physics");
 						}
 						BeginFixedFrame();
 						EndFixedFrame();

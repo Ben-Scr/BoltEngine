@@ -41,7 +41,7 @@ namespace Bolt {
 	SceneDefinition& SceneManager::RegisterScene(const std::string& name) {
 		auto it = s_SceneDefinitions.find(name);
 		if (it != s_SceneDefinitions.end()) {
-			throw SceneExeption("Scene definition with name '" + name +
+			throw SceneException("Scene definition with name '" + name +
 				"' already exists. (Returning existing definition for modification)");
 		}
 
@@ -56,7 +56,7 @@ namespace Bolt {
 		auto defIt = s_SceneDefinitions.find(name);
 
 		if (defIt == s_SceneDefinitions.end()) {
-			throw SceneExeption("Scene definition '" + name +
+			throw SceneException("Scene definition '" + name +
 				"' not found. Call SceneManager::RegisterScene() first.");
 		}
 
@@ -66,7 +66,7 @@ namespace Bolt {
 			});
 
 		if (loadedIt != s_LoadedScenes.end()) {
-			throw SceneExeption("Scene '" + name +
+			throw SceneException("Scene '" + name +
 				"' is already loaded. Use LoadSceneAdditive() for multiple instances.");
 		}
 
@@ -93,7 +93,7 @@ namespace Bolt {
 	std::weak_ptr<Scene> SceneManager::LoadSceneAdditive(const std::string& name) {
 		auto defIt = s_SceneDefinitions.find(name);
 		if (defIt == s_SceneDefinitions.end()) {
-			throw SceneExeption("Scene definition '" + name +
+			throw SceneException("Scene definition '" + name +
 				"' not found. Call SceneManager::RegisterScene() first.");
 		}
 
@@ -136,7 +136,7 @@ namespace Bolt {
 			});
 
 		if (it == s_LoadedScenes.end()) {
-			throw SceneExeption("Scene '" + name + "' is not loaded.");
+			throw SceneException("Scene '" + name + "' is not loaded.");
 		}
 
 		Scene* scene = it->get();
@@ -191,7 +191,7 @@ namespace Bolt {
 			});
 
 		if (it == s_LoadedScenes.end()) {
-			throw SceneExeption("Scene '" + name + "' is not loaded.");
+			throw SceneException("Scene '" + name + "' is not loaded.");
 		}
 
 		return std::weak_ptr(*it);
@@ -199,7 +199,7 @@ namespace Bolt {
 
 	Scene* SceneManager::GetActiveScene() {
 		if (s_ActiveScene == nullptr) {
-			throw SceneExeption("Active scene is null");
+			throw SceneException("Active scene is null");
 		}
 
 		return s_ActiveScene;
@@ -212,7 +212,7 @@ namespace Bolt {
 			});
 
 		if (it == s_LoadedScenes.end()) {
-			throw SceneExeption("Scene '" + name +
+			throw SceneException("Scene '" + name +
 				"' is not loaded. Load it first before setting as active.");
 		}
 

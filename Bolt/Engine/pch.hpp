@@ -41,10 +41,11 @@
 
 // Debugging
 #include "Debugging/Logger.hpp"
-#include "Debugging/Exeptions.hpp"
+#include "Debugging/Exceptions.hpp"
 
 // Components
 #include "Components/Tags.hpp"
 
 //Utils
+#include "Utils/Event.hpp"
 #include "Utils/Timer.hpp"

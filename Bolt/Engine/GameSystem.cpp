@@ -11,10 +11,6 @@ namespace Bolt {
 		blockTex = TextureManager::LoadTexture("Assets/Textures/block.png");
 	}
 
-	void OnQuit() {
-		Logger::Message("Quit");
-	}
-
 	void GameSystem::OnCollisionEnter(const Collision2D& collision2D) {
 		Scene& activeScene = *SceneManager::GetActiveScene();
 
@@ -42,8 +38,6 @@ namespace Bolt {
 	}
 
 	void GameSystem::Start() {
-		//Application::OnApplicationQuit(OnQuit);
-
 		Scene& scene = GetScene();
 
 		//AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");
@@ -51,11 +45,11 @@ namespace Bolt {
 		//source.SetVolume(0.1f);
 		//source.Play();
 
-		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(0, -3), Vec2(100, 1)), BodyType::Static);
-		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(-49.5f, 47.5f), Vec2(1, 100)), BodyType::Static);
-		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(49.5f, 47.5f), Vec2(1, 100)), BodyType::Static);
+		CreatePhysicsEntity<IdTag>(scene, Transform2D(Vec2(0, -3), Vec2(100, 1)), BodyType::Static);
+		CreatePhysicsEntity<IdTag>(scene, Transform2D(Vec2(-49.5f, 47.5f), Vec2(1, 100)), BodyType::Static);
+		CreatePhysicsEntity<IdTag>(scene, Transform2D(Vec2(49.5f, 47.5f), Vec2(1, 100)), BodyType::Static);
 
-		CreatePhysicsEntity<Tag>(scene, Transform2D(Vec2(2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Cyan());
+		CreatePhysicsEntity<IdTag>(scene, Transform2D(Vec2(2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Cyan());
 
 		CreatePhysicsEntity<DeadlyTag>(scene, Transform2D(Vec2(-2, -2), Vec2(1, 1)), BodyType::Dynamic, Color::Red());
 		scene.CreateCamera();
@@ -93,14 +87,14 @@ namespace Bolt {
 
 		if (Input::GetKey(KeyCode::E)) {
 			auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
-			CreatePhysicsEntity<Tag>(scene, Transform2D(mousePos), BodyType::Dynamic);
+			CreatePhysicsEntity<IdTag>(scene, Transform2D(mousePos), BodyType::Dynamic);
 		}
 		if (Input::GetKeyDown(KeyCode::C)) {
 			auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
 
 			for (int x = 0; x < 50; x++)
 				for (int y = 0; y < 50; y++)
-					CreatePhysicsEntity<Tag>(scene, Transform2D(mousePos + Vec2(x, y)), BodyType::Dynamic);
+					CreatePhysicsEntity<IdTag>(scene, Transform2D(mousePos + Vec2(x, y)), BodyType::Dynamic);
 		}
 
 

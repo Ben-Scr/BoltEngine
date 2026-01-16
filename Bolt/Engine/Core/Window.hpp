@@ -17,6 +17,11 @@ namespace Bolt {
 		bool Fullscreen{false};
 		Color BackgroundColor;
 
+		GLFWWindowProperties() = default;
+
+		GLFWWindowProperties(int width, int height, const std::string& title)
+			: Width{ width }, Height{ height }, Title{ title }
+		{}
 		GLFWWindowProperties(int width, int height, const std::string& title, bool resizeable, bool moveable, bool fullscreen)
 			: Width{ width }, Height{ height }, Title{ title }, Resizeable{ resizeable }, Moveable{ moveable }, Fullscreen{ fullscreen }
 		{ }
@@ -25,7 +30,7 @@ namespace Bolt {
 	class Window {
 	public:
 		Window(int width, int height, const std::string& title);
-		Window(const GLFWWindowProperties& windowProps);
+		Window(const GLFWWindowProperties& props);
 
 		GLFWwindow* GLFWWindow() const { return m_Window; }
 		float GetAspect() const { return s_MainViewport.GetAspect(); }
@@ -63,7 +68,7 @@ namespace Bolt {
 		static Viewport GetMainViewport() { return s_MainViewport; };
 
 	private:
-		void InitWindow();
+		void InitWindow(const GLFWWindowProperties& props);
 		void UpdateViewport();
 		void UpdateWindowSize();
 		void SwapBuffers() const { glfwSwapBuffers(m_Window); }
@@ -86,11 +91,7 @@ namespace Bolt {
 		const GLFWvidmode* k_Mode = nullptr;
 
 		static Viewport s_MainViewport;
-		std::string m_Title;
 		Color m_BackgroundColor;
-		bool m_Resizeable;
-		bool m_Moveable;
-		bool m_Fullscreen;
 		static bool s_IsVsync;
 
 		friend class Application;

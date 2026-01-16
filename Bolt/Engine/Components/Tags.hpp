@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Bolt {
-	struct Tag {};
+	struct IdTag {};
 	struct StaticTag {};
 	struct DisabledTag {};
 	struct DeadlyTag{};

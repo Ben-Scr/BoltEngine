@@ -7,17 +7,18 @@ namespace Bolt {
 	bool Window::s_IsVsync = true;
 	Viewport Window::s_MainViewport;
 
-	Window::Window(int width, int height, const std::string& title)
-		: m_Title{ title } {
-		s_MainViewport = Viewport{ width, height };
-		InitWindow();
+	void Test(const std::string& t) {
+
 	}
 
-	Window::Window(const GLFWWindowProperties& windowProps)
-		: m_Title{ windowProps.Title }, m_Fullscreen{ windowProps.Fullscreen },
-		m_Resizeable{ windowProps.Resizeable }, m_Moveable{ windowProps.Moveable }, m_BackgroundColor{ windowProps.BackgroundColor } {
-		s_MainViewport = Viewport{ windowProps.Width, windowProps.Height };
-		InitWindow();
+	Window::Window(int width, int height, const std::string& title)
+    {
+		InitWindow(GLFWWindowProperties{ width , height, title });
+	}
+
+	Window::Window(const GLFWWindowProperties& props)
+	{
+		InitWindow(props);
 	}
 
 	void Window::RefreshCallback(GLFWwindow* window) {
@@ -47,7 +48,9 @@ namespace Bolt {
 		}
 	}
 
-	void Window::InitWindow() {
+	void Window::InitWindow(const GLFWWindowProperties& props) {
+		s_MainViewport = Viewport{ props.Width, props.Height };
+
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -55,19 +58,19 @@ namespace Bolt {
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-		glfwWindowHint(GLFW_DECORATED, m_Moveable);
-		glfwWindowHint(GLFW_RESIZABLE, m_Resizeable);
+		glfwWindowHint(GLFW_DECORATED, props.Moveable);
+		glfwWindowHint(GLFW_RESIZABLE, props.Resizeable);
 
 		m_Monitor = glfwGetPrimaryMonitor();
 		k_Mode = glfwGetVideoMode(m_Monitor);
 
 
-		if (m_Fullscreen) {
-			m_Window = glfwCreateWindow(k_Mode->width, k_Mode->height, m_Title.c_str(), nullptr, nullptr);
+		if (props.Fullscreen) {
+			m_Window = glfwCreateWindow(k_Mode->width, k_Mode->height, props.Title.c_str(), nullptr, nullptr);
 			MaximizeWindow();
 		}
 		else {
-			m_Window = glfwCreateWindow(s_MainViewport.Width, s_MainViewport.Height, m_Title.c_str(), nullptr, nullptr);
+			m_Window = glfwCreateWindow(s_MainViewport.Width, s_MainViewport.Height, props.Title.c_str(), nullptr, nullptr);
 			CenterWindow();
 		}
 
@@ -83,7 +86,7 @@ namespace Bolt {
 		glfwSetScrollCallback(m_Window, SetScrollCallback);
 		glfwSetWindowFocusCallback(m_Window, FocusCallback);
 
-		if (m_Resizeable) {
+		if (props.Resizeable) {
 			glfwSetFramebufferSizeCallback(m_Window, SetWindowResizedCallback);
 		}
 

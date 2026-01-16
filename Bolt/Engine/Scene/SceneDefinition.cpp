@@ -20,7 +20,7 @@ namespace Bolt {
 				}
 			}
 			catch (...) {
-				throw SceneExeption("Failed creating system for scene with name '" +
+				throw SceneException("Failed creating system for scene with name '" +
 					m_Name + "'");
 			}
 		}
@@ -30,11 +30,11 @@ namespace Bolt {
 				callback(*scene);
 			}
 			catch (const std::exception& e) {
-				throw SceneExeption("Exception in initialize callback for scene with name '" +
+				throw SceneException("Exception in initialize callback for scene with name '" +
 					m_Name + "': " + e.what());
 			}
 			catch (...) {
-				throw SceneExeption("Unknown Exception in initialize callback for scene with name '" +
+				throw SceneException("Unknown Exception in initialize callback for scene with name '" +
 					m_Name + "'");
 			}
 		}

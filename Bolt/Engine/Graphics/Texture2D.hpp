@@ -4,7 +4,6 @@
 #include <string>
 
 namespace Bolt {
-
 	enum class Filter { Point, Bilinear, Trilinear, Anisotropic };
 	enum class Wrap : uint32_t { Repeat = 0x2901, Clamp = 0x812F, Mirror = 0x8370, Border = 0x812D };
 

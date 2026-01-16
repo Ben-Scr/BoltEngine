@@ -224,6 +224,7 @@
     <ClInclude Include="Engine\Audio\AudioSource.hpp" />
     <ClInclude Include="Engine\Bolt.hpp" />
     <ClInclude Include="Engine\Collections\AABB.hpp" />
+    <ClInclude Include="Engine\Collections\Ids.hpp" />
     <ClInclude Include="Engine\Collections\Color.hpp" />
     <ClInclude Include="Engine\Collections\Mat2.hpp" />
     <ClInclude Include="Engine\Collections\Quaternion.hpp" />
@@ -244,7 +245,7 @@
     <ClInclude Include="Engine\Core\SingleInstance.hpp" />
     <ClInclude Include="Engine\Core\Time.hpp" />
     <ClInclude Include="Engine\Core\Window.hpp" />
-    <ClInclude Include="Engine\Debugging\Exeptions.hpp" />
+    <ClInclude Include="Engine\Debugging\Exceptions.hpp" />
     <ClInclude Include="Engine\Debugging\Logger.hpp" />
     <ClInclude Include="Engine\GameSystem.hpp" />
     <ClInclude Include="Engine\Graphics\Camera2D.hpp" />
@@ -286,6 +287,7 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="Engine\Utils\Eventbus.Hpp" />
     <ClInclude Include="Engine\Utils\Serializer.hpp" />
     <ClInclude Include="Engine\Utils\Timer.hpp" />
   </ItemGroup>
