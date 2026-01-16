@@ -160,6 +160,7 @@ namespace Bolt {
 
 	void Application::Initialize() {
 		Timer timer = Timer::Start();
+		Window::Initialize();
 		m_Window = std::make_unique<Window>(Window(GLFWWindowProperties(800, 800, "Hello World", true, true, false)));
 		m_Window->SetVsync(true);
 		m_Window->SetWindowResizeable(true);
@@ -206,5 +207,6 @@ namespace Bolt {
 		SceneManager::Shutdown();
 
 		m_Window->Destroy();
+		Window::Shutdown();
 	}
 }

@@ -34,6 +34,14 @@ namespace Bolt {
 		app->m_Window->SwapBuffers();
 	}
 
+	void Window::Initialize() {
+		glfwInit();
+	}
+
+	void Window::Shutdown() {
+		glfwTerminate();
+	}
+
 	void Window::FocusCallback(GLFWwindow* window, int focused) {
 	
 
@@ -51,7 +59,6 @@ namespace Bolt {
 	void Window::InitWindow(const GLFWWindowProperties& props) {
 		s_MainViewport = Viewport{ props.Width, props.Height };
 
-		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_SAMPLES, 8);
@@ -153,9 +160,6 @@ namespace Bolt {
 	void Window::Destroy() {
 		glfwDestroyWindow(m_Window);
 		m_Window = nullptr;
-	}
-	void Window::Shutdown() {
-		glfwTerminate();
 	}
 
 	Vec2Int Window::GetScreenCenter() const {

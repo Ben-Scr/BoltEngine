@@ -36,6 +36,12 @@ namespace Bolt {
 		float GetAspect() const { return s_MainViewport.GetAspect(); }
 		Vec2Int GetSize() const { return s_MainViewport.GetSize(); }
 
+		// Info: Initializes the GLFW library
+		static void Initialize();
+
+		// Info: Terminates the GLFW library
+		static void Shutdown();
+
 		static void SetVsync(bool enabled) { glfwSwapInterval(enabled); s_IsVsync = enabled; };
 		static bool IsVsync() { return s_IsVsync; }
 
@@ -60,9 +66,6 @@ namespace Bolt {
 
 		// Info: Destroys the window
 		void Destroy();
-
-		// Info: Terminates the GLFW library
-		static void Shutdown();
 
 		static Window* Main() { return s_ActiveWindow; }
 		static Viewport GetMainViewport() { return s_MainViewport; };
