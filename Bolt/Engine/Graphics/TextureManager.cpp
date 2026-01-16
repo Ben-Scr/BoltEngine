@@ -2,7 +2,7 @@
 #include "TextureManager.hpp"
 
 namespace Bolt {
-	std::array<std::string, 8> TextureManager::s_DefaultTextures = {
+	std::array<std::string,9> TextureManager::s_DefaultTextures = {
 		   "Assets/Textures/Square.png",
 		   "Assets/Textures/Pixel.png",
 		   "Assets/Textures/Circle.png",
@@ -10,7 +10,8 @@ namespace Bolt {
 		   "Assets/Textures/IsometricDiamond.png",
 		   "Assets/Textures/HexagonFlatTop.png",
 		   "Assets/Textures/HexagonPointedTop.png",
-		   "Assets/Textures/9sliced.png"
+		   "Assets/Textures/9sliced.png",
+			"Assets/Textures/Invisible.png"
 	};
 
 	std::vector<TextureEntry> TextureManager::s_Textures = {};
@@ -51,6 +52,11 @@ namespace Bolt {
 	TextureHandle TextureManager::LoadTexture(const std::string& path, Filter filter, Wrap u, Wrap v) {
 		if (!s_IsInitialized) {
 			Logger::Error("TextureManager", "Call TextureManager::Initialize() before loading textures.");
+			return { k_InvalidIndex, 0 };
+		}
+
+		if (!File::Exists(path)) {
+			Logger::Error("TextureManager", "File with path \'"+ path + "\' doesn't exist");
 			return { k_InvalidIndex, 0 };
 		}
 

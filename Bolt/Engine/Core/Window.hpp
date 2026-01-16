@@ -4,27 +4,32 @@
 #include "../Collections/Color.hpp"
 #include "../Collections/Viewport.hpp"
 
+#include <GLFW/glfw3native.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
 
 namespace Bolt {
+	class Texture2D;
+
 	struct GLFWWindowProperties {
-		int Width{ 800 }, Height{800};
+		int Width{ 800 }, Height{ 800 };
 		std::string Title{ "GLFW Window" };
-		bool Resizeable{true};
-		bool Moveable{true};
-		bool Fullscreen{false};
+		bool Resizeable{ true };
+		bool Moveable{ true };
+		bool Fullscreen{ false };
 		Color BackgroundColor;
 
 		GLFWWindowProperties() = default;
 
 		GLFWWindowProperties(int width, int height, const std::string& title)
 			: Width{ width }, Height{ height }, Title{ title }
-		{}
+		{
+		}
 		GLFWWindowProperties(int width, int height, const std::string& title, bool resizeable, bool moveable, bool fullscreen)
 			: Width{ width }, Height{ height }, Title{ title }, Resizeable{ resizeable }, Moveable{ moveable }, Fullscreen{ fullscreen }
-		{ }
+		{
+		}
 	};
 
 	class Window {
@@ -35,6 +40,11 @@ namespace Bolt {
 		GLFWwindow* GLFWWindow() const { return m_Window; }
 		float GetAspect() const { return s_MainViewport.GetAspect(); }
 		Vec2Int GetSize() const { return s_MainViewport.GetSize(); }
+		Vec2Int GetPosition() const {
+			Vec2Int pos;
+			glfwGetWindowPos(m_Window, &pos.x, &pos.y);
+			return pos;
+		}
 
 		// Info: Initializes the GLFW library
 		static void Initialize();
@@ -47,11 +57,34 @@ namespace Bolt {
 
 		void SetWindowResizeable(bool enabled) { glfwWindowHint(GLFW_RESIZABLE, enabled ? GLFW_TRUE : GLFW_FALSE); }
 		void SetWindowMoveable(bool enabled) { glfwWindowHint(GLFW_DECORATED, enabled ? GLFW_TRUE : GLFW_FALSE); }
+		void SetPosition(Vec2Int pos) { glfwSetWindowPos(m_Window, pos.x, pos.y); }
+		void SetSize(Vec2Int size) { glfwSetWindowSize(m_Window, size.x, size.y); }
+		void SetCursorPosition(Vec2 position) { glfwSetCursorPos(m_Window, (double)position.x, (double)position.y); }
+
+		Vec2 GetCursorPosition() const
+		{
+			double x, y;
+			glfwGetCursorPos(m_Window, &x, &y);
+			return Vec2(x, y);
+		}
+
+		void SetCursorLocked(bool enabled) {
+			glfwSetInputMode(m_Window, GLFW_CURSOR, enabled ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+		}
+
+		void SetCursorHidden(bool enabled) {
+			glfwSetInputMode(m_Window, GLFW_CURSOR, enabled ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
+		}
+
+
+		void SetCursorImage(const Texture2D& tex2D);
+		void SetWindowIcon(const Texture2D& tex2D);
 
 		bool IsMaximized() const;
 		bool IsMinimized() const;
+		bool IsFullScreen() const;
 
-		// If reset = true the window will be automatically reseted if it's already maximized
+		// Info: If reset equals true the window will automatically be restored if it's already maximized
 		void MaximizeWindow(bool reset = false);
 		void MinimizeWindow();
 		void RestoreWindow();
@@ -59,10 +92,16 @@ namespace Bolt {
 		void CenterWindow();
 		void FocusWindow();
 
-		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_Window,title.c_str()); }
+		// Info: If enabled equals true the window will become fullscreen else windowed
+		void SetFullScreen(bool enabled);
+		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_Window, title.c_str()); }
+
 		std::string GetTitle() const { return std::string(glfwGetWindowTitle(m_Window)); }
 		int GetWidth()  const { return s_MainViewport.Width; }
 		int GetHeight() const { return s_MainViewport.Height; }
+		GLFWmonitor* GetWindowMonitor() const;
+		static GLFWmonitor* GetMainMonitor();
+		const GLFWvidmode* GetVideomode() const { return k_Videomode; }
 
 		// Info: Destroys the window
 		void Destroy();
@@ -78,6 +117,7 @@ namespace Bolt {
 
 		bool ShouldClose() const { return glfwWindowShouldClose(m_Window); }
 		Vec2Int GetScreenCenter() const;
+		Vec2 GetWindowCenter() const;
 
 		static void FocusCallback(GLFWwindow* window, int focused);
 		static void RefreshCallback(GLFWwindow* window);
@@ -90,12 +130,17 @@ namespace Bolt {
 		static Window* s_ActiveWindow;
 
 		GLFWwindow* m_Window = nullptr;
-		GLFWmonitor* m_Monitor = nullptr;
-		const GLFWvidmode* k_Mode = nullptr;
+		GLFWcursor* m_Cursor = nullptr;
+		Vec2Int m_RestoreSize;
+		Vec2Int m_RestorePos;
+
+		static const GLFWvidmode* k_Videomode;
+
+		Color m_BackgroundColor;
 
 		static Viewport s_MainViewport;
-		Color m_BackgroundColor;
 		static bool s_IsVsync;
+		static bool s_IsInitialized;
 
 		friend class Application;
 	};

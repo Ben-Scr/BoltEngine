@@ -25,4 +25,8 @@ namespace Bolt {
 	public:
 		explicit OverflowException(const std::string& msg) : BoltException("OverflowException", msg) {}
 	};
+	class NotInitializedException : public BoltException {
+	public:
+		explicit NotInitializedException(const std::string& msg) : BoltException("NotInitializedException", msg) {}
+	};
 }

@@ -1,18 +1,23 @@
 #include "../pch.hpp"
 #include "Window.hpp"
 #include "Application.hpp"
+#include "../Graphics/Texture2D.hpp"
+
+#include <glad/glad.h>
 
 namespace Bolt {
 	Window* Window::s_ActiveWindow = nullptr;
 	bool Window::s_IsVsync = true;
 	Viewport Window::s_MainViewport;
+	bool Window::s_IsInitialized = false;
+	const GLFWvidmode* Window::k_Videomode = nullptr;
 
 	void Test(const std::string& t) {
 
 	}
 
 	Window::Window(int width, int height, const std::string& title)
-    {
+	{
 		InitWindow(GLFWWindowProperties{ width , height, title });
 	}
 
@@ -35,7 +40,13 @@ namespace Bolt {
 	}
 
 	void Window::Initialize() {
-		glfwInit();
+		int code = glfwInit();
+
+		if (code != GLFW_TRUE)
+			throw BoltException("GLFWException", "GLFW library couldn't initialize, error code \'" + std::to_string(code) + "'\'");
+
+		k_Videomode = glfwGetVideoMode(GetMainMonitor());
+		s_IsInitialized = true;
 	}
 
 	void Window::Shutdown() {
@@ -43,20 +54,21 @@ namespace Bolt {
 	}
 
 	void Window::FocusCallback(GLFWwindow* window, int focused) {
-	
-
-		if (focused == 1) {
-			
+		if ((bool)focused) {
 			Application::Pause(false);
 			Logger::Message("Focused " + std::to_string(focused));
 		}
-		else if(focused == 0)  {
-			Application::Pause(true);
+		else {
+			if (!Application::s_RunInBackground)
+				Application::Pause(true);
 			Logger::Message("Unfocused " + std::to_string(focused));
 		}
 	}
 
 	void Window::InitWindow(const GLFWWindowProperties& props) {
+		if (!s_IsInitialized)
+			throw NotInitializedException("The Window isn't initialized");
+
 		s_MainViewport = Viewport{ props.Width, props.Height };
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -68,12 +80,8 @@ namespace Bolt {
 		glfwWindowHint(GLFW_DECORATED, props.Moveable);
 		glfwWindowHint(GLFW_RESIZABLE, props.Resizeable);
 
-		m_Monitor = glfwGetPrimaryMonitor();
-		k_Mode = glfwGetVideoMode(m_Monitor);
-
-
 		if (props.Fullscreen) {
-			m_Window = glfwCreateWindow(k_Mode->width, k_Mode->height, props.Title.c_str(), nullptr, nullptr);
+			m_Window = glfwCreateWindow(k_Videomode->width, k_Videomode->height, props.Title.c_str(), nullptr, nullptr);
 			MaximizeWindow();
 		}
 		else {
@@ -81,7 +89,8 @@ namespace Bolt {
 			CenterWindow();
 		}
 
-		assert(m_Window && "Failed to create window!");
+		if (!m_Window)
+			throw BoltException("WindowException", "Failed to create window!");
 
 		glfwMakeContextCurrent(m_Window);
 		glfwSetWindowUserPointer(m_Window, this);
@@ -163,7 +172,11 @@ namespace Bolt {
 	}
 
 	Vec2Int Window::GetScreenCenter() const {
-		return Vec2Int(k_Mode->width / 2, k_Mode->height / 2);
+		return Vec2Int(k_Videomode->width / 2, k_Videomode->height / 2);
+	}
+	Vec2 Window::GetWindowCenter() const {
+		Vec2Int size = GetSize();
+		return Vec2(size.x / 2.f, size.y / 2.f);
 	}
 
 	void Window::MaximizeWindow(bool reset) {
@@ -177,6 +190,38 @@ namespace Bolt {
 		glfwGetWindowSize(m_Window, &s_MainViewport.Width, &s_MainViewport.Height);
 	}
 
+	void Window::SetFullScreen(bool enabled) {
+		bool isFullScreen = IsFullScreen();
+
+		if ((isFullScreen && enabled) || (!isFullScreen && !enabled))
+			return;
+
+		if (enabled) {
+			m_RestoreSize = GetSize();
+			m_RestorePos = GetPosition();
+		}
+
+		glfwSetWindowMonitor(
+			m_Window,
+			enabled ? GetMainMonitor() : NULL,
+			0, 0,
+			k_Videomode->width, k_Videomode->height,
+			k_Videomode->refreshRate
+		);
+
+		if (!enabled) {
+			SetSize(m_RestoreSize);
+			SetPosition(m_RestorePos);
+		}
+	}
+
+	bool Window::IsFullScreen()const {
+		return GetWindowMonitor() != nullptr;
+	}
+
+	GLFWmonitor* Window::GetWindowMonitor() const { return glfwGetWindowMonitor(m_Window); }
+	GLFWmonitor* Window::GetMainMonitor() { return glfwGetPrimaryMonitor(); }
+
 	void Window::MinimizeWindow() {
 		glfwIconifyWindow(m_Window);
 		glfwGetWindowSize(m_Window, &s_MainViewport.Width, &s_MainViewport.Height);
@@ -184,6 +229,43 @@ namespace Bolt {
 
 	void Window::RestoreWindow() {
 		glfwRestoreWindow(m_Window);
+	}
+
+	void Window::SetCursorImage(const Texture2D& tex2D) {
+		ImageData* imgData = tex2D.GetImageData();
+		imgData->Width;
+		imgData->Height;
+
+		GLFWimage img;
+		img.width = imgData->Width;
+		img.height = imgData->Height;
+		img.pixels = imgData->Pixels;
+
+		int xhot = 0;
+		int yhot = 0;
+
+		GLFWcursor* newCursor = glfwCreateCursor(&img, xhot, yhot);
+		if (!newCursor)
+			return;
+
+		glfwSetCursor(m_Window, newCursor);
+
+		if (m_Cursor)
+			glfwDestroyCursor(m_Cursor);
+
+		m_Cursor = newCursor;
+	}
+
+	void Window::SetWindowIcon(const Texture2D& tex2D) {
+		ImageData* imgData = tex2D.GetImageData();
+		imgData->FlipVerticalRGBA();
+
+		GLFWimage img;
+		img.width = imgData->Width;
+		img.height = imgData->Height;
+		img.pixels = imgData->Pixels;
+
+		glfwSetWindowIcon(m_Window, 1, &img);
 	}
 
 	bool Window::IsMaximized() const {

@@ -66,7 +66,7 @@ namespace Bolt {
 		static bool s_IsInitialized;
 
 		struct SoundRequest {
-			AudioHandle Handle;
+			AudioHandle GetHandle;
 			float Volume;
 			float Priority;
 			glm::vec3 Position;

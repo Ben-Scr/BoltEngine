@@ -26,10 +26,12 @@ namespace Bolt {
 		static void SetName(const std::string& s) { s_Name = s; }
 		static void SetTargetFramerate(float framerate) { s_TargetFramerate = framerate; }
 		static void SetForceSingleInstance(bool value) { s_ForceSingleInstance = value; }
+		static void SetRunInBackground(bool value) { s_RunInBackground = value; }
 
 		static const std::string GetName() { return s_Name; }
 		static float GetTargetFramerate() { return s_IsPaused ? k_PausedTargetFrameRate : s_TargetFramerate; }
 		static bool GetForceSingleInstance() { return s_ForceSingleInstance; }
+		static bool GetRunInBackground() { return s_RunInBackground; }
 		static float GetMaxPossibleFPS() { return s_MaxPossibleFPS; }
 		static Window& GetWindow() { return *s_Instance->m_Window; }
 		static Application* GetInstance() { return s_Instance; }
@@ -46,6 +48,7 @@ namespace Bolt {
 		static std::string s_Name;
 
 		static bool s_ForceSingleInstance;
+		static bool s_RunInBackground;
 		static bool s_ShouldQuit;
 		static bool s_IsPaused;
 

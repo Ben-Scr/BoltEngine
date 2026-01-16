@@ -7,11 +7,12 @@
 #include "../Audio/AudioManager.hpp"
 #include "Time.hpp"
 #include "Input.hpp"
+#include <GLFW/glfw3.h>
 
 
 
 namespace Bolt {
-	double Application::s_TargetFramerate = 50;
+	double Application::s_TargetFramerate = 144;
 	double Application::s_MaxPossibleFPS = 0;
 	const double Application::k_PausedTargetFrameRate = 10;
 
@@ -19,6 +20,7 @@ namespace Bolt {
 
 
 	bool Application::s_ShouldQuit = false;
+	bool Application::s_RunInBackground = false;
 	bool Application::s_IsPaused = false;
 
 	Application* Application::s_Instance = nullptr;
@@ -115,7 +117,6 @@ namespace Bolt {
 		else {
 			SceneManager::OnApplicationPaused();
 		}
-
 	}
 
 	void Application::BeginFixedFrame() {
@@ -131,6 +132,7 @@ namespace Bolt {
 		}
 
 		Input::Update();
+
 		Time::s_FrameCount++;
 	}
 
@@ -141,9 +143,10 @@ namespace Bolt {
 	void Application::CoreInput() {
 		if (Input::GetKeyDown(KeyCode::Esc)) {
 			m_Window->MinimizeWindow();
+
 		}
 		if (Input::GetKeyDown(KeyCode::F11)) {
-			m_Window->MaximizeWindow(true);
+			m_Window->SetFullScreen(!m_Window->IsFullScreen());
 		}
 		if (Input::GetKeyDown(KeyCode::F12)) {
 			m_Window->SetVsync(!m_Window->IsVsync());
@@ -187,7 +190,6 @@ namespace Bolt {
 		timer.Reset();
 		TextureManager::Initialize();
 		Logger::Message("TextureManager", "Initialization took " + timer.ToString());
-
 		timer.Reset();
 		//AudioManager::Initialize();
 		Logger::Message("AudioManager", "Initialization took " + timer.ToString());
@@ -196,6 +198,10 @@ namespace Bolt {
 		// Initialize as last since it calls Awake() + Start() on all systems
 		SceneManager::Initialize();
 		Logger::Message("SceneManager", "Initialization took " + timer.ToString());
+
+		auto handle = TextureManager::LoadTexture("Assets/Textures/icon.png");
+		if(handle.IsValid())
+		m_Window->SetWindowIcon(TextureManager::GetTexture(handle));
 	}
 
 	void Application::Shutdown() {

@@ -122,7 +122,7 @@ namespace Bolt {
 				continue;
 			}
 
-			if (IsThrottled(request.Handle)) {
+			if (IsThrottled(request.GetHandle)) {
 				processed++;
 				continue;
 			}
@@ -132,11 +132,11 @@ namespace Bolt {
 				Logger::Warning("There is no support for 3D Audio");
 			}
 
-			PlayOneShot(request.Handle, request.Volume);
+			PlayOneShot(request.GetHandle, request.Volume);
 
 
 			s_soundsPlayedThisFrame++;
-			ThrottleSound(request.Handle);
+			ThrottleSound(request.GetHandle);
 			processed++;
 		}
 	}

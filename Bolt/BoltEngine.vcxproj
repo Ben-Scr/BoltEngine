@@ -215,6 +215,7 @@
     <ClCompile Include="Engine\Scene\SceneDefinition.cpp" />
     <ClCompile Include="Engine\Scene\SceneManager.cpp" />
     <ClCompile Include="Engine\Systems\ParticleUpdateSystem.cpp" />
+    <ClCompile Include="Engine\Utils\File.cpp" />
   </ItemGroup>
   <!-- ===== Headers (deduplicated) ===== -->
   <ItemGroup>
@@ -288,6 +289,7 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Engine\Utils\Eventbus.Hpp" />
+    <ClInclude Include="Engine\Utils\File.hpp" />
     <ClInclude Include="Engine\Utils\Serializer.hpp" />
     <ClInclude Include="Engine\Utils\Timer.hpp" />
   </ItemGroup>

@@ -103,6 +103,30 @@ namespace Bolt {
 		if (IsValid()) ApplySamplerParams();
 	}
 
+	ImageData* Texture2D::GetImageData() const {
+		if (!(IsValid())) {
+			throw std::runtime_error("Texture isn't valid!");
+		}
+
+		int w = 0, h = 0;
+		glBindTexture(GL_TEXTURE_2D, m_Tex);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+
+		if (w <= 0 || h <= 0)
+			throw std::runtime_error("Texture width or hight isn't valid!");
+
+		std::vector<unsigned char> pixels((size_t)w * (size_t)h * 4);
+
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+		GLsizei bufSize = (GLsizei)pixels.size();
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		return new ImageData(w, h, pixels.data());
+	}
+
 	void Texture2D::ApplySamplerParams() const {
 		if (!m_Tex) return;
 		glBindTexture(GL_TEXTURE_2D, m_Tex);
