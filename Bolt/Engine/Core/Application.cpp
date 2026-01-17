@@ -31,11 +31,7 @@ namespace Bolt {
 	{
 		if (s_ForceSingleInstance) {
 			static SingleInstance instance(s_Name);
-
-			if (instance.IsAlreadyRunning())
-			{
-				throw BoltException("BoltException", "An Instance of this app is already running!");
-			}
+			BOLT_ASSERT(instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 		}
 
 		Logger::Message("Initializing Application");
@@ -45,7 +41,7 @@ namespace Bolt {
 
 		m_LastFrameTime = Clock::now();
 
-		while (!m_Window->ShouldClose() && !s_ShouldQuit) {
+		while ((!m_Window || !m_Window->ShouldClose()) && !s_ShouldQuit) {
 			DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / GetTargetFramerate()));
 			auto now = Clock::now();
 
@@ -80,9 +76,10 @@ namespace Bolt {
 					if (!s_IsPaused) {
 						if (++i > 10 && Time::GetDeltaTimeUnscaled() <= 10 && PhysicsSystem2D::IsEnabled()) {
 							m_FixedUpdateAccumulator = 0;
-							PhysicsSystem2D::SetEnabled(false);
-							throw OverflowException("Physics Overflow, disabled Physics");
+							//PhysicsSystem2D::SetEnabled(false);
+							BOLT_LOG_ERROR(BoltErrorCode::Overflow ,"Physics Overflow, Physics are enabled: " + std::to_string(PhysicsSystem2D::IsEnabled()));
 						}
+
 						BeginFixedFrame();
 						EndFixedFrame();
 					}
@@ -111,8 +108,9 @@ namespace Bolt {
 		if (!s_IsPaused) {
 			AudioManager::Update();
 			SceneManager::UpdateScenes();
-			m_Renderer2D->BeginFrame();
-			m_GizmoRenderer2D->BeginFrame();
+
+			if (m_Renderer2D) m_Renderer2D->BeginFrame();
+			if (m_GizmoRenderer2D) m_GizmoRenderer2D->BeginFrame();
 		}
 		else {
 			SceneManager::OnApplicationPaused();
@@ -126,13 +124,12 @@ namespace Bolt {
 
 	void Application::EndFrame() {
 		if (!s_IsPaused) {
-			m_Renderer2D->EndFrame();
-			m_GizmoRenderer2D->EndFrame();
-			m_Window->SwapBuffers();
+			if (m_Renderer2D) m_Renderer2D->EndFrame();
+			if (m_GizmoRenderer2D) m_GizmoRenderer2D->EndFrame();
+			if (m_Window) m_Window->SwapBuffers();
 		}
 
 		Input::Update();
-
 		Time::s_FrameCount++;
 	}
 
@@ -142,18 +139,18 @@ namespace Bolt {
 
 	void Application::CoreInput() {
 		if (Input::GetKeyDown(KeyCode::Esc)) {
-			m_Window->MinimizeWindow();
-
+			if (m_Window) m_Window->MinimizeWindow();
 		}
 		if (Input::GetKeyDown(KeyCode::F11)) {
-			m_Window->SetFullScreen(!m_Window->IsFullScreen());
+			if (m_Window) m_Window->SetFullScreen(!m_Window->IsFullScreen());
 		}
 		if (Input::GetKeyDown(KeyCode::F12)) {
-			m_Window->SetVsync(!m_Window->IsVsync());
+			if (m_Window) m_Window->SetVsync(!m_Window->IsVsync());
 		}
 
 		std::string fps = std::to_string(1.f / Time::GetDeltaTime()) + " FPS";
-		m_Window->SetTitle(fps);
+
+		if (m_Window) m_Window->SetTitle(fps);
 	}
 
 	void Application::ResetTimePoints() {
@@ -167,7 +164,7 @@ namespace Bolt {
 		m_Window = std::make_unique<Window>(Window(GLFWWindowProperties(800, 800, "Hello World", true, true, false)));
 		m_Window->SetVsync(true);
 		m_Window->SetWindowResizeable(true);
-		Logger::Message("GLFWWindow", "Initialization took " + timer.ToString());
+		Logger::Message("Window", "Initialization took " + timer.ToString());
 
 		timer.Reset();
 		OpenGL::Initialize(GLInitProperties2D(Color::Background(), GLCullingMode::GLBack));
@@ -199,20 +196,25 @@ namespace Bolt {
 		SceneManager::Initialize();
 		Logger::Message("SceneManager", "Initialization took " + timer.ToString());
 
-		auto handle = TextureManager::LoadTexture("Assets/Textures/icon.png");
-		if(handle.IsValid())
-		m_Window->SetWindowIcon(TextureManager::GetTexture(handle));
+		try {
+			auto handle = TextureManager::LoadTexture("Assets/Textures/icon.png");
+			auto texture = TextureManager::GetTexture(handle);
+			m_Window->SetWindowIcon(texture);
+		}
+		catch (const std::runtime_error& e) {
+			Logger::Error(e.what());
+		}
 	}
 
 	void Application::Shutdown() {
 		s_OnApplicationQuit.Invoke();
 
-		m_PhysicsSystem2D->Shutdown();
-		m_GizmoRenderer2D->Shutdown();
-		m_Renderer2D->Shutdown();
+		if (m_PhysicsSystem2D) m_PhysicsSystem2D->Shutdown();
+		if (m_PhysicsSystem2D) m_GizmoRenderer2D->Shutdown();
+		if (m_Renderer2D) m_Renderer2D->Shutdown();
 		SceneManager::Shutdown();
 
-		m_Window->Destroy();
+		if (m_Window) m_Window->Destroy();
 		Window::Shutdown();
 	}
 }

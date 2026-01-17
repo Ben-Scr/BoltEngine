@@ -42,93 +42,27 @@ namespace Bolt {
 	void Scene::DestroyEntity(EntityHandle nativeEntity) { m_Registry.destroy(nativeEntity); }
 
 	void Scene::AwakeSystems() {
-		for (size_t i = 0; i < m_Systems.size(); ++i) {
-			auto& s = m_Systems[i];
-			if (s->m_Enabled)
-			{
-				try {
-					s->Awake();
-				}
-				catch (std::runtime_error e) {
-					Logger::Error(e.what());
-				}
-			}
-		}
+		ForeachEnabledSystem([](ISystem& s) { s.Awake(); });
 	}
 
 	void Scene::StartSystems() {
-		for (size_t i = 0; i < m_Systems.size(); ++i) {
-			auto& s = m_Systems[i];
-			if (s->m_Enabled)
-			{
-				try {
-					s->Start();
-				}
-				catch (std::runtime_error e) {
-					Logger::Error(e.what());
-				}
-			}
-		}
+		ForeachEnabledSystem([](ISystem& s) { s.Start(); });
 	}
 
 	void Scene::UpdateSystems() {
-		for (size_t i = 0; i < m_Systems.size(); ++i) {
-			auto& s = m_Systems[i];
-			if (s->m_Enabled)
-			{
-				try {
-					s->Update();
-				}
-				catch (std::runtime_error e) {
-					Logger::Error(e.what());
-				}
-			}
-		}
-	}
-
-	void Scene::OnApplicationPausedSystems() {
-		for (size_t i = 0; i < m_Systems.size(); ++i) {
-			auto& s = m_Systems[i];
-			if (s->m_Enabled)
-			{
-				try {
-					s->OnApplicationPaused();
-				}
-				catch (std::runtime_error e) {
-					Logger::Error(e.what());
-				}
-			}
-		}
+		ForeachEnabledSystem([](ISystem& s) { s.Update(); });
 	}
 
 	void Scene::FixedUpdateSystems() {
-		for (size_t i = 0; i < m_Systems.size(); ++i) {
-			auto& s = m_Systems[i];
-			if (s->m_Enabled)
-			{
-				try {
-					s->FixedUpdate();
-				}
-				catch (std::runtime_error e) {
-					Logger::Error(e.what());
-				}
-			}
-		}
+		ForeachEnabledSystem([](ISystem& s) { s.FixedUpdate(); });
+	}
+
+	void Scene::OnApplicationPausedSystems() {
+		ForeachEnabledSystem([](ISystem& s) { s.OnApplicationPaused(); });
 	}
 
 	void Scene::DestroyScene() {
-		for (size_t i = 0; i < m_Systems.size(); ++i) {
-			auto& s = m_Systems[i];
-			if (s->m_Enabled)
-			{
-				try {
-					s->OnDestroy();
-				}
-				catch (std::runtime_error e) {
-					Logger::Error(e.what());
-				}
-			}
-		}
+		ForeachEnabledSystem([](ISystem& s) { s.OnDestroy(); });
 	}
 
 	Scene::Scene(const std::string& name, const SceneDefinition* definition, bool IsPersistent)

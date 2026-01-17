@@ -291,6 +291,7 @@
     <ClInclude Include="Engine\Utils\Eventbus.Hpp" />
     <ClInclude Include="Engine\Utils\File.hpp" />
     <ClInclude Include="Engine\Utils\Serializer.hpp" />
+    <ClInclude Include="Engine\Utils\StringHelper.hpp" />
     <ClInclude Include="Engine\Utils\Timer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

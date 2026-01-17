@@ -16,12 +16,15 @@ namespace Bolt {
 		m_SpriteShader.Initialize();
 
 		if (!m_SpriteShader.IsValid()) {
-			Logger::Error("Renderer2D", "Sprite shader invalid.");
-			return;
+		//	throw BoltException("Renderer2DException", "Sprite shader is invalid.");
 		}
+
+		m_Initialized = true;
 	}
 
 	void Renderer2D::BeginFrame() {
+		if (!m_Initialized) return;
+
 		glClear(GL_COLOR_BUFFER_BIT);
 		RenderScenes();
 	}
@@ -33,7 +36,7 @@ namespace Bolt {
 	void Renderer2D::RenderScenes() {
 		SceneManager::ForeachLoadedScene([&](const Scene& scene) {
 			RenderScene(scene);
-		});
+			});
 
 		//for (const std::string& sceneName : SceneManager::GetLoadedSceneNames()) {
 		//	RenderScene(*SceneManager::GetLoadedScene(sceneName).lock());
@@ -77,10 +80,10 @@ namespace Bolt {
 			m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
 
 			glActiveTexture(GL_TEXTURE0);
-			Texture2D& texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
+			Texture2D* texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
 
-			if (texture.IsValid())
-				texture.Submit(0);
+			if (texture->IsValid())
+				texture->Submit(0);
 			else
 			{
 				Logger::Warning("SpriteRenderer", "Invalid Texture");
@@ -96,9 +99,9 @@ namespace Bolt {
 		for (const auto& [ent, particleSystem] : scene.GetRegistry().view<ParticleSystem2D>(entt::exclude<DisabledTag>).each()) {
 			glActiveTexture(GL_TEXTURE0);
 
-			Texture2D& texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
-			if (texture.IsValid())
-				texture.Submit(0);
+			Texture2D* texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
+			if (texture->IsValid())
+				texture->Submit(0);
 			else
 			{
 				Logger::Warning("ParticleSystem2D", "Invalid Texture");

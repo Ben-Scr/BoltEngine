@@ -3,9 +3,14 @@
 #include <glad/glad.h>
 
 namespace Bolt {
+	bool OpenGL::s_IsInitialized = false;
+
 	bool OpenGL::Initialize(const GLInitProperties2D& glInitProps) {
+		if (s_IsInitialized) return false;
+
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			Logger::Error("OpenGL", "Glad failed to load");
+			s_IsInitialized = false;
 			return false;
 		}
 
@@ -15,6 +20,7 @@ namespace Bolt {
 		BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		CullFace(glInitProps.CullingMode);
 
+		s_IsInitialized = true;
 		return true;
 	}
 	void OpenGL::BlendFunc(GLenum sFactor, GLenum dFactor) {

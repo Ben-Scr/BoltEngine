@@ -15,6 +15,7 @@ namespace Bolt {
         void Shutdown();
 
     private:
+        bool m_Initialized;
         QuadMesh m_QuadMesh;
         SpriteShaderProgram m_SpriteShader;
     };

@@ -61,12 +61,7 @@ namespace Bolt {
 		void SetSize(Vec2Int size) { glfwSetWindowSize(m_Window, size.x, size.y); }
 		void SetCursorPosition(Vec2 position) { glfwSetCursorPos(m_Window, (double)position.x, (double)position.y); }
 
-		Vec2 GetCursorPosition() const
-		{
-			double x, y;
-			glfwGetCursorPos(m_Window, &x, &y);
-			return Vec2(x, y);
-		}
+		Vec2 GetCursorPosition() const;
 
 		void SetCursorLocked(bool enabled) {
 			glfwSetInputMode(m_Window, GLFW_CURSOR, enabled ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
@@ -77,8 +72,8 @@ namespace Bolt {
 		}
 
 
-		void SetCursorImage(const Texture2D& tex2D);
-		void SetWindowIcon(const Texture2D& tex2D);
+		void SetCursorImage(const Texture2D* tex2D);
+		void SetWindowIcon(const Texture2D* tex2D);
 
 		bool IsMaximized() const;
 		bool IsMinimized() const;

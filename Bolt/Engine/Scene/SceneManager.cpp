@@ -40,10 +40,10 @@ namespace Bolt {
 
 	SceneDefinition& SceneManager::RegisterScene(const std::string& name) {
 		auto it = s_SceneDefinitions.find(name);
-		if (it != s_SceneDefinitions.end()) {
-			throw SceneException("Scene definition with name '" + name +
-				"' already exists. (Returning existing definition for modification)");
-		}
+
+		BOLT_ASSERT(it == s_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition with name '" + name +
+			"' already exists. (Returning existing definition for modification)");
+
 
 		auto definition = std::make_unique<SceneDefinition>(name);
 		SceneDefinition& ref = *definition;
@@ -55,20 +55,16 @@ namespace Bolt {
 	std::weak_ptr<Scene> SceneManager::LoadScene(const std::string& name) {
 		auto defIt = s_SceneDefinitions.find(name);
 
-		if (defIt == s_SceneDefinitions.end()) {
-			throw SceneException("Scene definition '" + name +
-				"' not found. Call SceneManager::RegisterScene() first.");
-		}
+		BOLT_ASSERT(defIt != s_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition '" + name +
+			"' not found. Call SceneManager::RegisterScene() first.");
 
 		auto loadedIt = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
 			[&name](const std::shared_ptr<Scene>& scene) {
 				return scene->GetName() == name;
 			});
 
-		if (loadedIt != s_LoadedScenes.end()) {
-			throw SceneException("Scene '" + name +
-				"' is already loaded. Use LoadSceneAdditive() for multiple instances.");
-		}
+		BOLT_ASSERT(loadedIt == s_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene '" + name +
+			"' is already loaded. Use LoadSceneAdditive() for multiple instances.");
 
 		UnloadAllScenes(false);
 
@@ -92,10 +88,9 @@ namespace Bolt {
 
 	std::weak_ptr<Scene> SceneManager::LoadSceneAdditive(const std::string& name) {
 		auto defIt = s_SceneDefinitions.find(name);
-		if (defIt == s_SceneDefinitions.end()) {
-			throw SceneException("Scene definition '" + name +
-				"' not found. Call SceneManager::RegisterScene() first.");
-		}
+
+		BOLT_ASSERT(defIt != s_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition '" + name +
+			"' not found. Call SceneManager::RegisterScene() first.");
 
 		SceneDefinition* definition = defIt->second.get();
 		std::shared_ptr newScene = definition->Instantiate();
@@ -135,9 +130,8 @@ namespace Bolt {
 				return scene->GetName() == name;
 			});
 
-		if (it == s_LoadedScenes.end()) {
-			throw SceneException("Scene '" + name + "' is not loaded.");
-		}
+
+		BOLT_ASSERT(it != s_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene " + StringHelper::WrapWith(name, '\'') + " is not loaded.");
 
 		Scene* scene = it->get();
 
@@ -170,7 +164,7 @@ namespace Bolt {
 	void SceneManager::UnloadAllScenes(bool includePersistent) {
 		ForeachLoadedScene([](const Scene& scene) {
 			UnloadScene(scene.GetName());
-		});
+			});
 	}
 
 	std::vector<std::weak_ptr<Scene>> SceneManager::GetLoadedScenes() {
@@ -190,18 +184,12 @@ namespace Bolt {
 				return scene->GetName() == name;
 			});
 
-		if (it == s_LoadedScenes.end()) {
-			throw SceneException("Scene '" + name + "' is not loaded.");
-		}
-
+		BOLT_ASSERT(it != s_LoadedScenes.end(), BoltErrorCode::NullReference, "Scene '" + name + "' is not loaded.");
 		return std::weak_ptr(*it);
 	}
 
 	Scene* SceneManager::GetActiveScene() {
-		if (s_ActiveScene == nullptr) {
-			throw SceneException("Active scene is null");
-		}
-
+		BOLT_ASSERT(s_ActiveScene, BoltErrorCode::NullReference, "There is no active scene");
 		return s_ActiveScene;
 	}
 
@@ -211,10 +199,9 @@ namespace Bolt {
 				return scene->GetName() == name;
 			});
 
-		if (it == s_LoadedScenes.end()) {
-			throw SceneException("Scene '" + name +
-				"' is not loaded. Load it first before setting as active.");
-		}
+		BOLT_ASSERT(it != s_LoadedScenes.end(), BoltErrorCode::InvalidArgument, StringHelper::ToString(
+			"Scene ", StringHelper::WrapWith(name, '\'')
+			, "is not loaded. Load it first before setting as active."));
 
 		s_ActiveScene = it._Ptr->get();
 	}

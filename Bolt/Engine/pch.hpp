@@ -50,3 +50,4 @@
 #include "Utils/Event.hpp"
 #include "Utils/Timer.hpp"
 #include "Utils/File.hpp"
+#include "Utils/StringHelper.hpp"

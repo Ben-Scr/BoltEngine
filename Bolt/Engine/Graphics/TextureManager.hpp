@@ -47,12 +47,13 @@ namespace Bolt {
         public:
             static void Initialize();
             static void Shutdown();
+            static void CheckInitialization();
 
             static TextureHandle LoadTexture(const std::string& path, Filter filter = Filter::Point, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
             static TextureHandle GetDefaultTexture(DefaultTexture type);
             static void UnloadTexture(TextureHandle blockTexture);
             static TextureHandle GetTextureHandle(const std::string& name);
-            static Texture2D& GetTexture(TextureHandle blockTexture);
+            static Texture2D* GetTexture(TextureHandle blockTexture);
             static std::vector<TextureHandle> GetLoadedHandles();
             static void UnloadAll(bool defaultTextures = false);
 

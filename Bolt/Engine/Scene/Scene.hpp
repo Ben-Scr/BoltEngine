@@ -207,6 +207,20 @@ namespace Bolt {
 		void FixedUpdateSystems();
 		void DestroyScene();
 
+		void ForeachEnabledSystem(const std::function<void(ISystem&)>& func) {
+			for (size_t i = 0; i < m_Systems.size(); ++i) {
+				ISystem& s = *m_Systems[i];
+				if (s.m_Enabled)
+				{
+					try {
+						func(s);
+					}
+					catch (std::runtime_error e) {
+						Logger::Error(e.what());
+					}
+				}
+			}
+		}
 
 		entt::registry m_Registry;
 		std::vector<std::unique_ptr<ISystem>> m_Systems;

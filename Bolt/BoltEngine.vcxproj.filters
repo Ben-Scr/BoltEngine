@@ -216,6 +216,9 @@
     <ClCompile Include="Engine\Math\Random.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Utils\File.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\pch.hpp">
@@ -570,6 +573,12 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Utils\Eventbus.Hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Utils\File.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Utils\StringHelper.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

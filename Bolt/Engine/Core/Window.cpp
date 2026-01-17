@@ -2,6 +2,7 @@
 #include "Window.hpp"
 #include "Application.hpp"
 #include "../Graphics/Texture2D.hpp"
+#include "../Graphics/OpenGL.hpp"
 
 #include <glad/glad.h>
 
@@ -29,21 +30,26 @@ namespace Bolt {
 	void Window::RefreshCallback(GLFWwindow* window) {
 		Application* app = Application::GetInstance();
 
-		if (app == nullptr) return;
+		if (!app) return;
 
-		app->m_Renderer2D->BeginFrame();
-		app->m_GizmoRenderer2D->BeginFrame();
-		app->m_GizmoRenderer2D->EndFrame();
-		app->m_Renderer2D->EndFrame();
+		if (app->m_Renderer2D) {
+			app->m_Renderer2D->BeginFrame();
+			app->m_Renderer2D->EndFrame();
+		}
 
-		app->m_Window->SwapBuffers();
+		if (app->m_GizmoRenderer2D) {
+			app->m_GizmoRenderer2D->BeginFrame();
+			app->m_GizmoRenderer2D->EndFrame();
+		}
+
+		if (app->m_Window) app->m_Window->SwapBuffers();
 	}
 
 	void Window::Initialize() {
 		int code = glfwInit();
 
-		if (code != GLFW_TRUE)
-			throw BoltException("GLFWException", "GLFW library couldn't initialize, error code \'" + std::to_string(code) + "'\'");
+	//	if (code != GLFW_TRUE)
+			//throw BoltException("GLFWException", "GLFW library couldn't initialize, error code \'" + std::to_string(code) + "'\'");
 
 		k_Videomode = glfwGetVideoMode(GetMainMonitor());
 		s_IsInitialized = true;
@@ -66,8 +72,8 @@ namespace Bolt {
 	}
 
 	void Window::InitWindow(const GLFWWindowProperties& props) {
-		if (!s_IsInitialized)
-			throw NotInitializedException("The Window isn't initialized");
+		//if (!s_IsInitialized)
+			//throw NotInitializedException("The Window isn't initialized");
 
 		s_MainViewport = Viewport{ props.Width, props.Height };
 
@@ -89,8 +95,8 @@ namespace Bolt {
 			CenterWindow();
 		}
 
-		if (!m_Window)
-			throw BoltException("WindowException", "Failed to create window!");
+		//if (!m_Window)
+			//throw BoltException("WindowException", "Failed to create window!");
 
 		glfwMakeContextCurrent(m_Window);
 		glfwSetWindowUserPointer(m_Window, this);
@@ -111,6 +117,12 @@ namespace Bolt {
 		glfwSwapInterval(SetVsync ? 1 : 0);
 		UpdateWindowSize();
 		s_ActiveWindow = this;
+	}
+
+	Vec2 Window::GetCursorPosition() const {
+		double x, y;
+		glfwGetCursorPos(m_Window, &x, &y);
+		return Vec2(x, y);
 	}
 
 	void Window::SetKeyCallback(GLFWwindow* window, int key, int, int action, int) {
@@ -145,7 +157,7 @@ namespace Bolt {
 			break;
 		}
 	}
-	void Window::SetCursorPositionCallback(GLFWwindow*, double xPos, double yPos) {
+	void Window::SetCursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
 		Input::OnMouseMove(xPos, yPos);
 	}
 	void Window::SetScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -231,8 +243,8 @@ namespace Bolt {
 		glfwRestoreWindow(m_Window);
 	}
 
-	void Window::SetCursorImage(const Texture2D& tex2D) {
-		ImageData* imgData = tex2D.GetImageData();
+	void Window::SetCursorImage(const Texture2D* tex2D) {
+		ImageData* imgData = tex2D->GetImageData();
 		imgData->Width;
 		imgData->Height;
 
@@ -256,8 +268,11 @@ namespace Bolt {
 		m_Cursor = newCursor;
 	}
 
-	void Window::SetWindowIcon(const Texture2D& tex2D) {
-		ImageData* imgData = tex2D.GetImageData();
+	void Window::SetWindowIcon(const Texture2D* tex2D) {
+		//if (tex2D == nullptr)
+			//throw NullReferenceException("Texture is null");
+
+		ImageData* imgData = tex2D->GetImageData();
 		imgData->FlipVerticalRGBA();
 
 		GLFWimage img;
@@ -279,7 +294,7 @@ namespace Bolt {
 	void Window::SetWindowResizedCallback(GLFWwindow* window, int width, int height) {
 		Window* _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 
-		if (_window == nullptr) return;
+		if (!_window) return;
 
 		_window->s_MainViewport.Width = width;
 		_window->s_MainViewport.Height = height;
@@ -287,7 +302,10 @@ namespace Bolt {
 	}
 
 	void Window::UpdateViewport() {
-		glViewport(0, 0, s_MainViewport.Width, s_MainViewport.Height);
+		if (OpenGL::IsInitialized())
+		{
+			glViewport(0, 0, s_MainViewport.Width, s_MainViewport.Height);
+		}
 	}
 
 	void Window::UpdateWindowSize() {
