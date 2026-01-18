@@ -38,6 +38,8 @@ namespace Bolt {
 	}
 
 	void GameSystem::Start() {
+		SceneManager::LoadScene("Test");
+
 		Scene& scene = GetScene();
 
 		//AudioHandle handle = AudioManager::LoadAudio("Assets/Audio/Sfx/camera-flash.mp3");

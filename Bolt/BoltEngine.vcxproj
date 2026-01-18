@@ -219,6 +219,7 @@
   </ItemGroup>
   <!-- ===== Headers (deduplicated) ===== -->
   <ItemGroup>
+    <ClInclude Include="Editor\WindowManager.hpp" />
     <ClInclude Include="Engine\Audio\Audio.hpp" />
     <ClInclude Include="Engine\Audio\AudioHandle.hpp" />
     <ClInclude Include="Engine\Audio\AudioManager.hpp" />
