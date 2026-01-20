@@ -1,5 +1,6 @@
 #pragma once
 #include "../Scene/EntityHandle.hpp"
+#include "../Debugging/Exceptions.hpp"
 
 #include <string>
 #include <stdexcept>
@@ -10,9 +11,7 @@ namespace Bolt {
 		template<typename TComponent, typename... Args>
 			requires (!std::is_empty_v<TComponent>)
 		static TComponent& AddComponent(entt::registry& registry, EntityHandle entity, Args&&... args) {
-			if (registry.all_of<TComponent>(entity)) {
-				throw std::runtime_error("Component of type \"" + std::string(typeid(TComponent).name()) + "\" already exists on entity.");
-			}
+			BOLT_RETURN_VAL_IF(registry.all_of<TComponent>(entity), {}, BoltErrorCode::Undefined, "Component of type \'" + std::string(typeid(TComponent).name()) + "\' already exists on entity.");
 
 			if constexpr (std::is_constructible_v<TComponent, EntityHandle, Args...>) {
 				return registry.emplace<TComponent>(
@@ -32,9 +31,7 @@ namespace Bolt {
 		template<typename TTag>
 			requires std::is_empty_v<TTag>
 		static void AddComponent(entt::registry& registry, EntityHandle entity) {
-			if (registry.all_of<TTag>(entity)) {
-				throw std::runtime_error("Component of type \"" + std::string(typeid(TTag).name()) + "\" already exists on entity.");
-			}
+			//BOLT_RETURN_VALUE_IF(registry.all_of<TTag>(entity), TTag{}, BoltErrorCode::Undefined, "Component of type \'" + std::string(typeid(TTag).name()) + "\' already exists on entity.");
 			registry.emplace<TTag>(entity);
 		}
 

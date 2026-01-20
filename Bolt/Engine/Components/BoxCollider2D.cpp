@@ -31,20 +31,20 @@ namespace Bolt {
 				return size;
 			}
 			else {
-				throw std::runtime_error("This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
+				BOLT_RETURN_VAL_IF(true, Vec2{}, BoltErrorCode::Undefined, "This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
 			}
 		}
 		else {
-			throw std::runtime_error("This box shapetype isn't type of b2_polygonShape");
+			BOLT_RETURN_VAL_IF(true, Vec2{}, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
 		}
 
-		return Vec2(1.0f);
+		return Vec2{};
 	}
 
 	Vec2 BoxCollider2D::GetLocalScale(const Scene& scene) {
 		Transform2D tr = scene.GetComponent<Transform2D>(m_EntityHandle);
-
 		b2ShapeType shapeType = b2Shape_GetType(m_ShapeId);
+
 		if (shapeType == b2_polygonShape) {
 			b2Polygon polygon = b2Shape_GetPolygon(m_ShapeId);
 
@@ -57,14 +57,14 @@ namespace Bolt {
 				return size - tr.Scale;
 			}
 			else {
-				throw std::runtime_error("This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
+				BOLT_RETURN_VAL_IF(true, Vec2{}, BoltErrorCode::Undefined, "This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
 			}
 		}
 		else {
-			throw std::runtime_error("This box shapetype isn't type of b2_polygonShape");
+			BOLT_RETURN_VAL_IF(true, Vec2{}, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
 		}
 
-		return Vec2(1.0f);
+		return Vec2{};
 	}
 
 	void BoxCollider2D::UpdateScale(const Scene& scene) {
