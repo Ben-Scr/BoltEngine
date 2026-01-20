@@ -120,10 +120,10 @@ namespace Bolt {
 	}
 
 	void GizmoRenderer2D::Render() {
-		if (!m_IsInitialized || !Gizmos::s_IsEnabled)
+		if (!m_IsInitialized || !Gizmo::s_IsEnabled)
 			return;
 
-		for (const auto& square : Gizmos::s_Squares) {
+		for (const auto& square : Gizmo::s_Squares) {
 			uint32_t color = square.Color.ABGR32();
 			uint16_t baseIndex = static_cast<uint16_t>(m_GizmoVertices.size());
 
@@ -150,7 +150,7 @@ namespace Bolt {
 			m_GizmoIndices.push_back(baseIndex + 0);
 		}
 
-		for (const auto& line : Gizmos::s_Lines) {
+		for (const auto& line : Gizmo::s_Lines) {
 			uint32_t color = line.Color.ABGR32();
 			uint16_t baseIndex = static_cast<uint16_t>(m_GizmoVertices.size());
 
@@ -161,7 +161,7 @@ namespace Bolt {
 			m_GizmoIndices.push_back(baseIndex + 1);
 		}
 
-		for (const auto& circle : Gizmos::s_Circles) {
+		for (const auto& circle : Gizmo::s_Circles) {
 			if (circle.Segments <= 0)
 				continue;
 			uint32_t color = circle.Color.ABGR32();
@@ -182,7 +182,7 @@ namespace Bolt {
 		}
 
 		FlushGizmos();
-		Gizmos::Clear();
+		Gizmo::Clear();
 	}
 
 	void GizmoRenderer2D::FlushGizmos() {

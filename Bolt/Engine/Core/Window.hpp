@@ -37,47 +37,56 @@ namespace Bolt {
 		Window(int width, int height, const std::string& title);
 		Window(const GLFWWindowProperties& props);
 
-		GLFWwindow* GLFWWindow() const { return m_Window; }
-		float GetAspect() const { return s_MainViewport.GetAspect(); }
-		Vec2Int GetSize() const { return s_MainViewport.GetSize(); }
-		Vec2Int GetPosition() const {
-			Vec2Int pos;
-			glfwGetWindowPos(m_Window, &pos.x, &pos.y);
-			return pos;
-		}
-
 		// Info: Initializes the GLFW library
 		static void Initialize();
-
 		// Info: Terminates the GLFW library
 		static void Shutdown();
 
 		static void SetVsync(bool enabled) { glfwSwapInterval(enabled); s_IsVsync = enabled; };
-		static bool IsVsync() { return s_IsVsync; }
 
+
+		void Destroy();
+
+		void SetClipboardString(const std::string s) { glfwSetClipboardString(m_GLFWwindow, s.c_str()); }
 		void SetWindowResizeable(bool enabled) { glfwWindowHint(GLFW_RESIZABLE, enabled ? GLFW_TRUE : GLFW_FALSE); }
 		void SetWindowMoveable(bool enabled) { glfwWindowHint(GLFW_DECORATED, enabled ? GLFW_TRUE : GLFW_FALSE); }
-		void SetPosition(Vec2Int pos) { glfwSetWindowPos(m_Window, pos.x, pos.y); }
-		void SetSize(Vec2Int size) { glfwSetWindowSize(m_Window, size.x, size.y); }
-		void SetCursorPosition(Vec2 position) { glfwSetCursorPos(m_Window, (double)position.x, (double)position.y); }
+		void SetPosition(Vec2Int pos) { glfwSetWindowPos(m_GLFWwindow, pos.x, pos.y); }
+		void SetSize(Vec2Int size) { glfwSetWindowSize(m_GLFWwindow, size.x, size.y); }
+		void SetCursorPosition(Vec2 position) { glfwSetCursorPos(m_GLFWwindow, (double)position.x, (double)position.y); }
 
-		Vec2 GetCursorPosition() const;
-
-		void SetCursorLocked(bool enabled) {
-			glfwSetInputMode(m_Window, GLFW_CURSOR, enabled ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-		}
-
-		void SetCursorHidden(bool enabled) {
-			glfwSetInputMode(m_Window, GLFW_CURSOR, enabled ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
-		}
+		void SetCursorLocked(bool enabled);
+		void SetCursorHidden(bool enabled);
 
 
 		void SetCursorImage(const Texture2D* tex2D);
 		void SetWindowIcon(const Texture2D* tex2D);
 
+		// Info: If enabled equals true the window will become fullscreen else windowed
+		void SetFullScreen(bool enabled);
+		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_GLFWwindow, title.c_str()); }
+
+		std::string GetTitle() const { return std::string(glfwGetWindowTitle(m_GLFWwindow)); }
+		int GetWidth()  const { return s_MainViewport.Width; }
+		int GetHeight() const { return s_MainViewport.Height; }
+		GLFWmonitor* GetWindowMonitor() const;
+		static GLFWmonitor* GetMainMonitor();
+		const GLFWvidmode* GetVideomode() const { return k_Videomode; }
+		GLFWwindow* GetGLFWWindow() const { return m_GLFWwindow; }
+		float GetAspect() const { return s_MainViewport.GetAspect(); }
+		Vec2Int GetSize() const { return s_MainViewport.GetSize(); }
+		Vec2Int GetPosition() const {
+			Vec2Int pos;
+			glfwGetWindowPos(m_GLFWwindow, &pos.x, &pos.y);
+			return pos;
+		}
+		void GetClipboardString(const std::string s) const { glfwGetClipboardString(m_GLFWwindow); }
+		Vec2 GetCursorPosition() const;
+
+
 		bool IsMaximized() const;
 		bool IsMinimized() const;
 		bool IsFullScreen() const;
+		static bool IsVsync() { return s_IsVsync; }
 
 		// Info: If reset equals true the window will automatically be restored if it's already maximized
 		void MaximizeWindow(bool reset = false);
@@ -85,32 +94,18 @@ namespace Bolt {
 		void RestoreWindow();
 
 		void CenterWindow();
-		void FocusWindow();
+		void Focus();
 
-		// Info: If enabled equals true the window will become fullscreen else windowed
-		void SetFullScreen(bool enabled);
-		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_Window, title.c_str()); }
-
-		std::string GetTitle() const { return std::string(glfwGetWindowTitle(m_Window)); }
-		int GetWidth()  const { return s_MainViewport.Width; }
-		int GetHeight() const { return s_MainViewport.Height; }
-		GLFWmonitor* GetWindowMonitor() const;
-		static GLFWmonitor* GetMainMonitor();
-		const GLFWvidmode* GetVideomode() const { return k_Videomode; }
-
-		// Info: Destroys the window
-		void Destroy();
-
-		static Window* Main() { return s_ActiveWindow; }
+		static Window* GetActiveWindow() { return s_ActiveWindow; }
 		static Viewport GetMainViewport() { return s_MainViewport; };
 
 	private:
-		void InitWindow(const GLFWWindowProperties& props);
+		void CreateWindow(const GLFWWindowProperties& props);
 		void UpdateViewport();
 		void UpdateWindowSize();
-		void SwapBuffers() const { glfwSwapBuffers(m_Window); }
+		void SwapBuffers() const { glfwSwapBuffers(m_GLFWwindow); }
 
-		bool ShouldClose() const { return glfwWindowShouldClose(m_Window); }
+		bool ShouldClose() const { return glfwWindowShouldClose(m_GLFWwindow); }
 		Vec2Int GetScreenCenter() const;
 		Vec2 GetWindowCenter() const;
 
@@ -124,14 +119,13 @@ namespace Bolt {
 
 		static Window* s_ActiveWindow;
 
-		GLFWwindow* m_Window = nullptr;
+		GLFWwindow* m_GLFWwindow = nullptr;
 		GLFWcursor* m_Cursor = nullptr;
+
 		Vec2Int m_RestoreSize;
 		Vec2Int m_RestorePos;
 
 		static const GLFWvidmode* k_Videomode;
-
-		Color m_BackgroundColor;
 
 		static Viewport s_MainViewport;
 		static bool s_IsVsync;

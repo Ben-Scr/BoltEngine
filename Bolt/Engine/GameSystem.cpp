@@ -99,7 +99,6 @@ namespace Bolt {
 					CreatePhysicsEntity<IdTag>(scene, Transform2D(mousePos + Vec2(x, y)), BodyType::Dynamic);
 		}
 
-
 		Camera2D* mainCam = Camera2D::Main();
 
 		if (Input::GetMouse(MouseKeyCode::Right)) {
@@ -130,6 +129,8 @@ namespace Bolt {
 	}
 
 	void GameSystem::OnApplicationPaused() {
+
+
 		if (Input::GetKeyDown(KeyCode::P)) {
 			Application::Pause(!Application::IsPaused());
 		}
@@ -138,17 +139,20 @@ namespace Bolt {
 	void GameSystem::DrawGizmos() {
 		Scene& scene = GetScene();
 
-		Gizmos::SetColor(Color::Green());
+		if (Input::GetKeyDown(KeyCode::F1))
+			Gizmo::SetEnabled(!Gizmo::IsEnabled());
+
+		Gizmo::SetColor(Color::Green());
 
 		for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
-			Gizmos::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationDegrees());
+			Gizmo::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationDegrees());
 		}
 
-		Gizmos::SetColor(Color::Gray());
+		Gizmo::SetColor(Color::Gray());
 
 		for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
 			AABB aabb = AABB::FromTransform(tr);
-			Gizmos::DrawSquare(tr.Position, aabb.Scale(), 0);
+			Gizmo::DrawSquare(tr.Position, aabb.Scale(), 0);
 		}
 	}
 }

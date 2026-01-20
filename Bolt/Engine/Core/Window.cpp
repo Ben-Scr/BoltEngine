@@ -13,18 +13,14 @@ namespace Bolt {
 	bool Window::s_IsInitialized = false;
 	const GLFWvidmode* Window::k_Videomode = nullptr;
 
-	void Test(const std::string& t) {
-
-	}
-
 	Window::Window(int width, int height, const std::string& title)
 	{
-		InitWindow(GLFWWindowProperties{ width , height, title });
+		CreateWindow(GLFWWindowProperties{ width , height, title });
 	}
 
 	Window::Window(const GLFWWindowProperties& props)
 	{
-		InitWindow(props);
+		CreateWindow(props);
 	}
 
 	void Window::RefreshCallback(GLFWwindow* window) {
@@ -48,8 +44,7 @@ namespace Bolt {
 	void Window::Initialize() {
 		int code = glfwInit();
 
-	//	if (code != GLFW_TRUE)
-			//throw BoltException("GLFWException", "GLFW library couldn't initialize, error code \'" + std::to_string(code) + "'\'");
+		BOLT_RETURN_IF(code != GLFW_TRUE, BoltErrorCode::Undefined, "GLFW library couldn't initialize, error code " + StringHelper::WrapWith(std::to_string(code), '\''));
 
 		k_Videomode = glfwGetVideoMode(GetMainMonitor());
 		s_IsInitialized = true;
@@ -67,13 +62,13 @@ namespace Bolt {
 		else {
 			if (!Application::s_RunInBackground)
 				Application::Pause(true);
+
 			Logger::Message("Unfocused " + std::to_string(focused));
 		}
 	}
 
-	void Window::InitWindow(const GLFWWindowProperties& props) {
-		//if (!s_IsInitialized)
-			//throw NotInitializedException("The Window isn't initialized");
+	void Window::CreateWindow(const GLFWWindowProperties& props) {
+		BOLT_RETURN_IF(!s_IsInitialized, BoltErrorCode::NotInitialized, "The Window isn't initialized");
 
 		s_MainViewport = Viewport{ props.Width, props.Height };
 
@@ -87,42 +82,72 @@ namespace Bolt {
 		glfwWindowHint(GLFW_RESIZABLE, props.Resizeable);
 
 		if (props.Fullscreen) {
-			m_Window = glfwCreateWindow(k_Videomode->width, k_Videomode->height, props.Title.c_str(), nullptr, nullptr);
+			m_GLFWwindow = glfwCreateWindow(k_Videomode->width, k_Videomode->height, props.Title.c_str(), nullptr, nullptr);
 			MaximizeWindow();
 		}
 		else {
-			m_Window = glfwCreateWindow(s_MainViewport.Width, s_MainViewport.Height, props.Title.c_str(), nullptr, nullptr);
+			m_GLFWwindow = glfwCreateWindow(s_MainViewport.Width, s_MainViewport.Height, props.Title.c_str(), nullptr, nullptr);
 			CenterWindow();
 		}
 
-		//if (!m_Window)
-			//throw BoltException("WindowException", "Failed to create window!");
+		BOLT_RETURN_IF(!m_GLFWwindow, BoltErrorCode::Undefined, "Failed to create window!");
 
-		glfwMakeContextCurrent(m_Window);
-		glfwSetWindowUserPointer(m_Window, this);
-		glfwSetScrollCallback(m_Window, SetScrollCallback);
+		glfwMakeContextCurrent(m_GLFWwindow);
+		glfwSetWindowUserPointer(m_GLFWwindow, this);
+		glfwSetScrollCallback(m_GLFWwindow, SetScrollCallback);
 
-		glfwSetKeyCallback(m_Window, SetKeyCallback);
-		glfwSetMouseButtonCallback(m_Window, SetMouseButtonCallback);
-		glfwSetCursorPosCallback(m_Window, SetCursorPositionCallback);
-		glfwSetScrollCallback(m_Window, SetScrollCallback);
-		glfwSetWindowFocusCallback(m_Window, FocusCallback);
+		glfwSetKeyCallback(m_GLFWwindow, SetKeyCallback);
+		glfwSetMouseButtonCallback(m_GLFWwindow, SetMouseButtonCallback);
+		glfwSetCursorPosCallback(m_GLFWwindow, SetCursorPositionCallback);
+		glfwSetScrollCallback(m_GLFWwindow, SetScrollCallback);
+		glfwSetWindowFocusCallback(m_GLFWwindow, FocusCallback);
 
 		if (props.Resizeable) {
-			glfwSetFramebufferSizeCallback(m_Window, SetWindowResizedCallback);
+			glfwSetFramebufferSizeCallback(m_GLFWwindow, SetWindowResizedCallback);
 		}
 
-		glfwSetWindowRefreshCallback(m_Window, RefreshCallback);
+		glfwSetWindowRefreshCallback(m_GLFWwindow, RefreshCallback);
 
 		glfwSwapInterval(SetVsync ? 1 : 0);
-		UpdateWindowSize();
-		s_ActiveWindow = this;
+
+		if (!s_ActiveWindow)
+			s_ActiveWindow = this;
+
+		if (s_ActiveWindow == this)
+			UpdateWindowSize();
+	}
+	void Window::Destroy() {
+		glfwDestroyWindow(m_GLFWwindow);
+		m_GLFWwindow = nullptr;
 	}
 
-	Vec2 Window::GetCursorPosition() const {
-		double x, y;
-		glfwGetCursorPos(m_Window, &x, &y);
-		return Vec2(x, y);
+	void Window::CenterWindow() {
+		Vec2Int screenCenter = GetScreenCenter();
+		int windowWidth, windowHeight;
+		glfwGetWindowSize(m_GLFWwindow, &windowWidth, &windowHeight);
+		int posX = screenCenter.x - windowWidth / 2;
+		int posY = screenCenter.y - windowHeight / 2;
+		glfwSetWindowPos(m_GLFWwindow, posX, posY);
+	}
+	void Window::Focus() {
+		glfwFocusWindow(m_GLFWwindow);
+	}
+	void Window::MaximizeWindow(bool reset) {
+		if (reset && IsMaximized()) {
+			glfwRestoreWindow(m_GLFWwindow);
+		}
+		else {
+			glfwMaximizeWindow(m_GLFWwindow);
+		}
+
+		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport.Width, &s_MainViewport.Height);
+	}
+	void Window::MinimizeWindow() {
+		glfwIconifyWindow(m_GLFWwindow);
+		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport.Width, &s_MainViewport.Height);
+	}
+	void Window::RestoreWindow() {
+		glfwRestoreWindow(m_GLFWwindow);
 	}
 
 	void Window::SetKeyCallback(GLFWwindow* window, int key, int, int action, int) {
@@ -165,43 +190,6 @@ namespace Bolt {
 		(void)xoffset;
 		Input::OnScroll(static_cast<float>(yoffset));
 	}
-
-	void Window::CenterWindow() {
-		Vec2Int screenCenter = GetScreenCenter();
-		int windowWidth, windowHeight;
-		glfwGetWindowSize(m_Window, &windowWidth, &windowHeight);
-		int posX = screenCenter.x - windowWidth / 2;
-		int posY = screenCenter.y - windowHeight / 2;
-		glfwSetWindowPos(m_Window, posX, posY);
-	}
-	void Window::FocusWindow() {
-		glfwFocusWindow(m_Window);
-	}
-
-	void Window::Destroy() {
-		glfwDestroyWindow(m_Window);
-		m_Window = nullptr;
-	}
-
-	Vec2Int Window::GetScreenCenter() const {
-		return Vec2Int(k_Videomode->width / 2, k_Videomode->height / 2);
-	}
-	Vec2 Window::GetWindowCenter() const {
-		Vec2Int size = GetSize();
-		return Vec2(size.x / 2.f, size.y / 2.f);
-	}
-
-	void Window::MaximizeWindow(bool reset) {
-		if (reset && IsMaximized()) {
-			glfwRestoreWindow(m_Window);
-		}
-		else {
-			glfwMaximizeWindow(m_Window);
-		}
-
-		glfwGetWindowSize(m_Window, &s_MainViewport.Width, &s_MainViewport.Height);
-	}
-
 	void Window::SetFullScreen(bool enabled) {
 		bool isFullScreen = IsFullScreen();
 
@@ -214,7 +202,7 @@ namespace Bolt {
 		}
 
 		glfwSetWindowMonitor(
-			m_Window,
+			m_GLFWwindow,
 			enabled ? GetMainMonitor() : NULL,
 			0, 0,
 			k_Videomode->width, k_Videomode->height,
@@ -226,23 +214,12 @@ namespace Bolt {
 			SetPosition(m_RestorePos);
 		}
 	}
-
-	bool Window::IsFullScreen()const {
-		return GetWindowMonitor() != nullptr;
+	void Window::SetCursorLocked(bool enabled) {
+		glfwSetInputMode(m_GLFWwindow, GLFW_CURSOR, enabled ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 	}
-
-	GLFWmonitor* Window::GetWindowMonitor() const { return glfwGetWindowMonitor(m_Window); }
-	GLFWmonitor* Window::GetMainMonitor() { return glfwGetPrimaryMonitor(); }
-
-	void Window::MinimizeWindow() {
-		glfwIconifyWindow(m_Window);
-		glfwGetWindowSize(m_Window, &s_MainViewport.Width, &s_MainViewport.Height);
+	void Window::SetCursorHidden(bool enabled) {
+		glfwSetInputMode(m_GLFWwindow, GLFW_CURSOR, enabled ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
 	}
-
-	void Window::RestoreWindow() {
-		glfwRestoreWindow(m_Window);
-	}
-
 	void Window::SetCursorImage(const Texture2D* tex2D) {
 		ImageData* imgData = tex2D->GetImageData();
 		imgData->Width;
@@ -260,17 +237,15 @@ namespace Bolt {
 		if (!newCursor)
 			return;
 
-		glfwSetCursor(m_Window, newCursor);
+		glfwSetCursor(m_GLFWwindow, newCursor);
 
 		if (m_Cursor)
 			glfwDestroyCursor(m_Cursor);
 
 		m_Cursor = newCursor;
 	}
-
 	void Window::SetWindowIcon(const Texture2D* tex2D) {
-		//if (tex2D == nullptr)
-			//throw NullReferenceException("Texture is null");
+		BOLT_RETURN_IF(!tex2D, BoltErrorCode::NullReference, "Texture is null");
 
 		ImageData* imgData = tex2D->GetImageData();
 		imgData->FlipVerticalRGBA();
@@ -280,17 +255,8 @@ namespace Bolt {
 		img.height = imgData->Height;
 		img.pixels = imgData->Pixels;
 
-		glfwSetWindowIcon(m_Window, 1, &img);
+		glfwSetWindowIcon(m_GLFWwindow, 1, &img);
 	}
-
-	bool Window::IsMaximized() const {
-		return glfwGetWindowAttrib(m_Window, GLFW_MAXIMIZED);
-	}
-
-	bool Window::IsMinimized() const {
-		return glfwGetWindowAttrib(m_Window, GLFW_ICONIFIED);
-	}
-
 	void Window::SetWindowResizedCallback(GLFWwindow* window, int width, int height) {
 		Window* _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 
@@ -301,14 +267,39 @@ namespace Bolt {
 		_window->UpdateViewport();
 	}
 
+	Vec2 Window::GetCursorPosition() const {
+		double x, y;
+		glfwGetCursorPos(m_GLFWwindow, &x, &y);
+		return Vec2(x, y);
+	}
+	Vec2Int Window::GetScreenCenter() const {
+		return Vec2Int(k_Videomode->width / 2, k_Videomode->height / 2);
+	}
+	Vec2 Window::GetWindowCenter() const {
+		Vec2Int size = GetSize();
+		return Vec2(size.x / 2.f, size.y / 2.f);
+	}
+	GLFWmonitor* Window::GetWindowMonitor() const { return glfwGetWindowMonitor(m_GLFWwindow); }
+	GLFWmonitor* Window::GetMainMonitor() { return glfwGetPrimaryMonitor(); }
+
+	bool Window::IsMaximized() const {
+		return glfwGetWindowAttrib(m_GLFWwindow, GLFW_MAXIMIZED);
+	}
+	bool Window::IsMinimized() const {
+		return glfwGetWindowAttrib(m_GLFWwindow, GLFW_ICONIFIED);
+	}
+	bool Window::IsFullScreen()const {
+		return GetWindowMonitor() != nullptr;
+	}
+
+
 	void Window::UpdateViewport() {
 		if (OpenGL::IsInitialized())
 		{
 			glViewport(0, 0, s_MainViewport.Width, s_MainViewport.Height);
 		}
 	}
-
 	void Window::UpdateWindowSize() {
-		glfwGetWindowSize(m_Window, &s_MainViewport.Width, &s_MainViewport.Height);
+		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport.Width, &s_MainViewport.Height);
 	}
 }

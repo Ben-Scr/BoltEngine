@@ -12,11 +12,11 @@ namespace Bolt {
 	struct Sphere { Vec3 Center; float Radius; int Segments; Color Color; };
 	struct Line3D { Vec3 Start; Vec3 End; Color Color; };
 
-	class Gizmos {
+	class Gizmo {
 	public:
 		// 2D
 		static void DrawSquare(const Vec2& center, const Vec2& scale, float degrees);
-		static void DrawLine3D(const Vec2& start, const Vec2& end);
+		static void DrawLine(const Vec2& start, const Vec2& end);
 		static void DrawCircle(const Vec2& center, float radius, int segments = 32);
 
 		// 3D
