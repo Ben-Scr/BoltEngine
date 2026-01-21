@@ -47,7 +47,6 @@ namespace Bolt {
         public:
             static void Initialize();
             static void Shutdown();
-            static void CheckInitialization();
 
             static TextureHandle LoadTexture(const std::string& path, Filter filter = Filter::Point, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
             static TextureHandle GetDefaultTexture(DefaultTexture type);

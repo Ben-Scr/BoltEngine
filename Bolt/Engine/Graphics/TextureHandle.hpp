@@ -5,6 +5,9 @@ namespace Bolt {
         uint16_t index;
         uint16_t generation;
 
+        static constexpr uint16_t k_InvalidIndex = std::numeric_limits<uint16_t>::max();
+        static TextureHandle Invalid() { return TextureHandle(k_InvalidIndex, 0); }
+
         TextureHandle(uint16_t index, uint16_t generation) : index{ index }, generation{ generation } {}
         TextureHandle() : index{ 0 }, generation{ 0 } {}
 
