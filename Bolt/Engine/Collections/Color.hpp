@@ -15,6 +15,7 @@ namespace Bolt {
 			: r(red), g(green), b(blue), a(alpha) {
 		}
 
+		Color SetAlpha(float a) { this->a = a; return *this; }
 		static const Color Red() { return Color(1.0f, 0.0f, 0.0f); }
 		static const Color Green() { return Color(0.0f, 1.0f, 0.0f); }
 		static const Color Blue() { return Color(0.0f, 0.0f, 1.0f); }

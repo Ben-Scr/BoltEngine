@@ -6,7 +6,7 @@
 
 
 void GameSystem::Awake() {
-	blockTex = TextureManager::LoadTexture("../Assets/Textures/block.png");
+	blockTex = TextureManager::LoadTexture("../Assets/Textures/Meteor.png");
 }
 
 void GameSystem::OnCollisionEnter(const Collision2D& collision2D) {
@@ -58,9 +58,12 @@ void GameSystem::Start() {
 	Entity ptsEntity = scene.CreateEntity();
 	ParticleSystem2D& pts2D = ptsEntity.AddComponent<ParticleSystem2D>();
 	pts2D.SetTexture(TextureManager::GetDefaultTexture(DefaultTexture::Circle));
-	pts2D.RenderingSettings.Color = Color(1.f, 0.4f, 0.f, 0.1f);
+
+	auto ptColor = Color(1.0f, 0.3f, 0.f);
+	pts2D.RenderingSettings.Color = ptColor.SetAlpha(0.1f);
 	pts2D.Shape = SquareParams(Vec2(0.2f, 0.2f));
 	pts2D.EmissionSettings.EmitOverTime = 0;
+	pts2D.ParticleSettings.LifeTime = 10;
 	pts2D.RenderingSettings.SortingLayer;
 	pts2D.ParticleSettings.Scale = 0.2f;
 	pts2D.RenderingSettings.MaxParticles = 100'000;
@@ -129,6 +132,8 @@ void GameSystem::Update() {
 	Vec2 lerpPos = curPos + (targetPos - curPos) * lerpSpeed;
 
 	mainCam->SetPosition(lerpPos);
+
+	if(Input::GetKey(KeyCode::LeftControl))
 	mainCam->AddOrthographicSize(-Input::ScrollValue() * Time::GetDeltaTime() * 100);
 
 	bool isGrounded = Physics2D::Raycast(playerTr.Position, Down(), 0.6f).has_value();
