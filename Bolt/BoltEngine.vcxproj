@@ -193,12 +193,6 @@
     <ClCompile Include="Engine\Graphics\SpriteShaderProgram.cpp" />
     <ClCompile Include="Engine\Graphics\Texture2D.cpp" />
     <ClCompile Include="Engine\Graphics\TextureManager.cpp" />
-    <ClCompile Include="Engine\main.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Engine\Math\Random.cpp" />
     <ClCompile Include="Engine\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

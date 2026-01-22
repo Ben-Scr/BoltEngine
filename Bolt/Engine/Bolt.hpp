@@ -17,6 +17,7 @@
 #include "Components/Tags.hpp"
 
 // Core
+#include "Core/Application.hpp"
 #include "Core/Input.hpp"
 #include "Core/KeyCodes.hpp"
 #include "Core/Time.hpp"

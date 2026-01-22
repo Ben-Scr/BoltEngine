@@ -18,9 +18,6 @@
     <ClCompile Include="Engine\glad.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\main.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\pch.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
