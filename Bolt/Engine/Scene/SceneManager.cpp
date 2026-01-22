@@ -14,15 +14,19 @@
 #include "SceneDefinition.hpp"
 
 namespace Bolt {
+	bool SceneManager::s_IsInitialized = false;
 	std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> SceneManager::s_SceneDefinitions;
 	std::vector<std::shared_ptr<Scene>> SceneManager::s_LoadedScenes;
 	Scene* SceneManager::s_ActiveScene;
 
 	void SceneManager::Initialize() {
+		BOLT_RETURN_IF(s_IsInitialized, BoltErrorCode::AlreadyInitialized, "Scenemanager already is initialized");
+
 		auto& firstPair = *s_SceneDefinitions.begin();
 		std::string firstSceneName = firstPair.first;
 		LoadScene(firstSceneName);
 
+		s_IsInitialized = true;
 		Logger::Message("SceneManager", "Loaded Scene '" + firstSceneName + "'");
 	}
 
@@ -45,6 +49,8 @@ namespace Bolt {
 	}
 
 	std::weak_ptr<Scene> SceneManager::LoadScene(const std::string& name) {
+		BOLT_RETURN_VAL_IF(!s_IsInitialized, std::weak_ptr<Scene>{}, BoltErrorCode::NotInitialized, "Scenemanager isn't initialized");
+
 		auto defIt = s_SceneDefinitions.find(name);
 
 		BOLT_RETURN_VAL_IF(defIt == s_SceneDefinitions.end(), std::weak_ptr<Scene>{}, BoltErrorCode::InvalidArgument, "Scene definition '" + name +
@@ -72,9 +78,7 @@ namespace Bolt {
 		s_ActiveScene = &*newScene;
 		s_LoadedScenes.push_back(std::move(newScene));
 
-		if (s_ActiveScene == nullptr)
-			throw "Scene is null";
-
+		BOLT_ASSERT(s_ActiveScene, BoltErrorCode::NullReference ,"Active Scene is null");
 		return std::weak_ptr<Scene>(s_LoadedScenes.back());
 	}
 

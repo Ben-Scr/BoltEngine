@@ -14,6 +14,7 @@ namespace Bolt {
 		FileNotFound,
 		InvalidHandle,
 		OutOfRange,
+		OutOfBounds,
 		Overflow,
 		NullReference,
 		LoadFailed,

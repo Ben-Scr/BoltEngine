@@ -55,6 +55,7 @@ namespace Bolt {
 		static std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> s_SceneDefinitions;
 		static std::vector<std::shared_ptr<Scene>> s_LoadedScenes;
 		static Scene* s_ActiveScene;
+		static bool s_IsInitialized;
 
 		friend class Application;
 		friend class PhysicsSystem2D;

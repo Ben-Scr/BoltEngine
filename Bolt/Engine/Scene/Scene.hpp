@@ -135,7 +135,7 @@ namespace Bolt {
 					return *ptr;
 				}
 			}
-			throw std::runtime_error("System not found");
+			BOLT_LOG_ERROR(BoltErrorCode::Undefined,"System not found");
 		}
 
 		template<typename T>

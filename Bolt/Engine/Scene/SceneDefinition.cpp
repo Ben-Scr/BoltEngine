@@ -8,20 +8,15 @@ namespace Bolt {
 		std::shared_ptr<Scene> scene(new Scene(m_Name, this, m_IsPersistent));
 
 		for (const auto& factory : m_SystemFactories) {
-			try {
-				auto system = factory();
+			auto system = factory();
 
-				if (system) {
-					system->SetScene(scene);
-					scene->m_Systems.push_back(std::move(system));
-				}
-				else {
-					throw "";
-				}
+			if (system) {
+				system->SetScene(scene);
+				scene->m_Systems.push_back(std::move(system));
 			}
-			catch (...) {
-				//throw SceneException("Failed creating system for scene with name '" +
-				//	m_Name + "'");
+			else {
+				BOLT_LOG_ERROR(BoltErrorCode::LoadFailed, "Failed creating system for scene with name '" +
+					m_Name + "'");
 			}
 		}
 
@@ -30,12 +25,12 @@ namespace Bolt {
 				callback(*scene);
 			}
 			catch (const std::exception& e) {
-				//throw SceneException("Exception in initialize callback for scene with name '" +
-				//	m_Name + "': " + e.what());
+				BOLT_LOG_ERROR(BoltErrorCode::Undefined, "Exception in initialize callback for scene with name '" +
+					m_Name + "': " + e.what());
 			}
 			catch (...) {
-				//throw SceneException("Unknown Exception in initialize callback for scene with name '" +
-				//	m_Name + "'");
+				BOLT_LOG_ERROR(BoltErrorCode::Undefined, "Unknown Exception in initialize callback for scene with name '" +
+					m_Name + "'");
 			}
 		}
 
