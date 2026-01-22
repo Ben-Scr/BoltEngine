@@ -16,9 +16,6 @@ int main() {
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
 	def.AddSystem<Bolt::GameSystem>();
 	def.AddSystem<Bolt::ParticleUpdateSystem>();
-	Bolt::Scene scene = Bolt::SceneManager::LoadScene("Game");
-
-	scene.IsLoaded();
 
 	Bolt::Application::SetRunInBackground(false);
 	Bolt::Application::SetForceSingleInstance(true);

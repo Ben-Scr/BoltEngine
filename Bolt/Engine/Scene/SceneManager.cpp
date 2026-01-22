@@ -22,11 +22,10 @@ namespace Bolt {
 	void SceneManager::Initialize() {
 		BOLT_RETURN_IF(s_IsInitialized, BoltErrorCode::AlreadyInitialized, "Scenemanager already is initialized");
 
+		s_IsInitialized = true;
 		auto& firstPair = *s_SceneDefinitions.begin();
 		std::string firstSceneName = firstPair.first;
 		LoadScene(firstSceneName);
-
-		s_IsInitialized = true;
 		Logger::Message("SceneManager", "Loaded Scene '" + firstSceneName + "'");
 	}
 
