@@ -71,8 +71,6 @@ namespace Bolt {
 		for (const auto& [ent, particleSystem] : scene.GetRegistry().view<ParticleSystem2D>(entt::exclude<DisabledTag>).each()) {
 			glActiveTexture(GL_TEXTURE0);
 
-			
-
 			Texture2D* texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
 			if (texture->IsValid())
 				texture->Submit(0);
@@ -98,7 +96,7 @@ namespace Bolt {
 				count++;
 			}
 
-			Logger::Message("ParticleSystem2D", "Rendering" + std::to_string(count) + "/" + std::to_string(particleSystem.m_Particles.size()) + " Particles");
+			//Logger::Message("ParticleSystem2D", "Rendering" + std::to_string(count) + "/" + std::to_string(particleSystem.m_Particles.size()) + " Particles");
 		}
 
 		for (const auto& [ent, tr, spriteRenderer] : scene.GetRegistry().view<Transform2D, SpriteRenderer>(entt::exclude<DisabledTag>).each()) {

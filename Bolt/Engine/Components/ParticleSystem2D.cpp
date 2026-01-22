@@ -8,8 +8,6 @@ namespace Bolt {
 		float deltaTime = Time::GetDeltaTime();
 		if (deltaTime == 0.f) return;
 
-		Logger::Message("ParticleSystem", "Update");
-
 		if (m_IsEmitting) {
 			float toEmit = EmissionSettings.EmitOverTime * deltaTime + m_EmitAccumulator;
 			int emitCount = static_cast<int>(toEmit);
@@ -43,8 +41,6 @@ namespace Bolt {
 	void ParticleSystem2D::Emit(size_t count) {
 		if(!m_IsEmitting || count == 0)
 			return;
-
-		Logger::Message("ParticleSystem", "Emit");
 
 		const uint32_t maxParticles = RenderingSettings.MaxParticles;
 
