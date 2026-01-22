@@ -38,6 +38,7 @@ namespace Bolt {
 		bool UseGravity{ false };
 		bool UseRandomColors{ false };
 		float Scale{ 1.f };
+		Vec2 MoveDirection{ 1.f, 1.f };
 	};
 
 	struct EmissionSettings {

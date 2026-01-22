@@ -31,7 +31,7 @@ namespace Bolt {
 	{
 		if (s_ForceSingleInstance) {
 			static SingleInstance instance(s_Name);
-			BOLT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
+			BOLT_RETURN_IF(instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 		}
 
 		Logger::Message("Initializing Application");
@@ -197,7 +197,7 @@ namespace Bolt {
 		Logger::Message("SceneManager", "Initialization took " + timer.ToString());
 
 		try {
-			auto handle = TextureManager::LoadTexture("Assets/Textures/icon.png");
+			auto handle = TextureManager::LoadTexture("../Assets/Textures/icon.png");
 			auto texture = TextureManager::GetTexture(handle);
 			m_Window->SetWindowIcon(texture);
 		}

@@ -164,5 +164,6 @@ namespace Bolt {
         if (cond) { \
             ::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
             Logger::Error(::Bolt::FormatForLog(_e)); \
+           return; \
         } \
     } while (0)

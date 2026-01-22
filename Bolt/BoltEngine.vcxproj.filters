@@ -99,9 +99,6 @@
     <ClCompile Include="Engine\Graphics\TextureManager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GameSystem.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\glad.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -372,9 +369,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Graphics\TextureManager.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\GameSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Engine\GameSystem.hpp">

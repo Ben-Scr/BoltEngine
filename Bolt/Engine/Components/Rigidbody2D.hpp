@@ -32,7 +32,7 @@ namespace Bolt {
 		void SetLinearDrag(float value);
 		void SetAngularDrag(float value);
 
-
+		void SetRotation(float degrees);
 		void SetPosition(const Vec2& position);
 		Vec2 GetPosition() const;
 

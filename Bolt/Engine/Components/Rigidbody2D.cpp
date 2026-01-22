@@ -2,8 +2,6 @@
 #include "../components/Rigidbody2D.hpp"
 #include "../Components/Transform2D.hpp"
 #include "../Physics/Box2DWorld.hpp"
-#include "../Scene/Scene.hpp"
-#include "../Scene/SceneManager.hpp"
 
 namespace Bolt {
 	void Rigidbody2D::SetBodyType(BodyType bodyType) {
@@ -50,7 +48,7 @@ namespace Bolt {
 		b2Body_SetAngularDamping(m_BodyId, value);
 	}
 
-
+	void Rigidbody2D::SetRotation(float degrees) { b2Body_SetTransform(m_BodyId, b2Body_GetPosition(m_BodyId), b2Rot(degrees)); }
 	void Rigidbody2D::SetPosition(const Vec2& position) { b2Body_SetTransform(m_BodyId, b2Vec2(position.x, position.y), b2Body_GetRotation(m_BodyId)); }
 	Vec2 Rigidbody2D::GetPosition() const { b2Vec2 b2Pos = IsValid() ? b2Body_GetPosition(m_BodyId) : b2Vec2_zero; return { b2Pos.x, b2Pos.y }; }
 

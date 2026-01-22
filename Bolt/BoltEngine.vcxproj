@@ -176,7 +176,6 @@
     <ClCompile Include="Engine\Core\Time.cpp" />
     <ClCompile Include="Engine\Core\Window.cpp" />
     <ClCompile Include="Engine\Debugging\Logger.cpp" />
-    <ClCompile Include="Engine\GameSystem.cpp" />
     <ClCompile Include="Engine\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -247,7 +246,6 @@
     <ClInclude Include="Engine\Core\Window.hpp" />
     <ClInclude Include="Engine\Debugging\Exceptions.hpp" />
     <ClInclude Include="Engine\Debugging\Logger.hpp" />
-    <ClInclude Include="Engine\GameSystem.hpp" />
     <ClInclude Include="Engine\Graphics\Camera2D.hpp" />
     <ClInclude Include="Engine\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Engine\Graphics\Gizmos.hpp" />

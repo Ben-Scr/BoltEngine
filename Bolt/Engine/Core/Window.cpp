@@ -248,6 +248,7 @@ namespace Bolt {
 		BOLT_RETURN_IF(!tex2D, BoltErrorCode::NullReference, "Texture is null");
 
 		ImageData* imgData = tex2D->GetImageData();
+
 		imgData->FlipVerticalRGBA();
 
 		GLFWimage img;

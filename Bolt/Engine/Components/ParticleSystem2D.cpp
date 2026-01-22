@@ -8,6 +8,8 @@ namespace Bolt {
 		float deltaTime = Time::GetDeltaTime();
 		if (deltaTime == 0.f) return;
 
+		Logger::Message("ParticleSystem", "Update");
+
 		if (m_IsEmitting) {
 			float toEmit = EmissionSettings.EmitOverTime * deltaTime + m_EmitAccumulator;
 			int emitCount = static_cast<int>(toEmit);
@@ -42,6 +44,8 @@ namespace Bolt {
 		if(!m_IsEmitting || count == 0)
 			return;
 
+		Logger::Message("ParticleSystem", "Emit");
+
 		const uint32_t maxParticles = RenderingSettings.MaxParticles;
 
 		if (m_Particles.size() >= maxParticles)
@@ -60,7 +64,7 @@ namespace Bolt {
 				using T = std::decay_t<decltype(s)>;
 				if constexpr (std::is_same_v<T, CircleParams>) {
 					position = s.IsOnCircle ? RandomOnCircle(s.Radius) : RandomInCircle(s.Radius);
-					particle.Velocity = Normalized(position) * ParticleSettings.Speed;
+					particle.Velocity = ParticleSettings.MoveDirection * ParticleSettings.Speed;
 				}
 				else if constexpr (std::is_same_v<T, SquareParams>) {
 					position = Vec2(Random::NextFloat(-s.HalfExtends.x, s.HalfExtends.x), Random::NextFloat(-s.HalfExtends.y, s.HalfExtends.y));

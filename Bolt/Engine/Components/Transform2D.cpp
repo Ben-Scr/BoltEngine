@@ -17,6 +17,12 @@ namespace Bolt {
 
 	float Transform2D::GetRotationDegrees() const { return Degrees(Rotation); }
 
+	Vec2 Transform2D::GetForwardDirection() const
+	{
+		const float a = Rotation;
+		return Vec2(std::sin(a), std::cos(a));
+	}
+
 	glm::mat3 Transform2D::GetModelMatrix() const {
 		const float s = glm::sin(Rotation);
 		const float c = glm::cos(Rotation);

@@ -42,7 +42,7 @@ namespace Bolt {
 		if (m_IsInitialized)
 			return true;
 
-		m_GizmoShader = std::make_unique<Shader>("Assets/Shader/gizmo.vert.glsl", "Assets/Shader/gizmo.frag.glsl");
+		m_GizmoShader = std::make_unique<Shader>("../Assets/Shader/gizmo.vert.glsl", "../Assets/Shader/gizmo.frag.glsl");
 
 		if (!m_GizmoShader || !m_GizmoShader->IsValid()) {
 			Logger::Error("GizmoRenderer", "Failed to load gizmo shader");

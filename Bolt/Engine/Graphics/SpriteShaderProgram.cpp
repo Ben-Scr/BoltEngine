@@ -5,7 +5,7 @@
 
 namespace Bolt {
     void SpriteShaderProgram::Initialize() {
-        m_Shader.emplace("Assets/Shader/2D/sprite.vert.glsl", "Assets/Shader/2D/sprite.frag.glsl");
+        m_Shader.emplace("../Assets/Shader/2D/sprite.vert.glsl", "../Assets/Shader/2D/sprite.frag.glsl");
 
         if (!IsValid()) {
             Logger::Error("SpriteShaderProgram", "Failed to create sprite shader program");

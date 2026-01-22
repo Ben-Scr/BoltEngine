@@ -8,7 +8,7 @@ namespace Bolt {
     public:
 		Vec2 Position{ 0.0f, 0.0f };
 		Vec2 Scale{ 1.0f, 1.0f };
-        float Rotation{ 0.0f };   // Rotation angle in radians
+        float Rotation{ 0.0f };   // Info: Z-Rotation angle in radians
 
 
 		Transform2D() = default;
@@ -21,8 +21,9 @@ namespace Bolt {
 
         float GetRotationDegrees() const;
         glm::mat3 GetModelMatrix() const;
+        Vec2 GetForwardDirection() const;
 
-        // Used internally for Box2D
+        // Info: Used internally for Box2D
         b2Rot GetB2Rotation() const;
         bool operator==(const Transform2D& other) const {
             return Position == other.Position
