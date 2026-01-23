@@ -55,12 +55,12 @@ namespace Bolt {
 
 			Vec2 position{ 0 };
 			Vec2 scale{ ParticleSettings.Scale, ParticleSettings.Scale };
+			float rot{ 0.f };
 
 			std::visit([&](auto const& s) {
 				using T = std::decay_t<decltype(s)>;
 				if constexpr (std::is_same_v<T, CircleParams>) {
 					position = s.IsOnCircle ? RandomOnCircle(s.Radius) : RandomInCircle(s.Radius);
-					particle.Velocity = ParticleSettings.MoveDirection * ParticleSettings.Speed;
 				}
 				else if constexpr (std::is_same_v<T, SquareParams>) {
 					position = Vec2(Random::NextFloat(-s.HalfExtends.x, s.HalfExtends.x), Random::NextFloat(-s.HalfExtends.y, s.HalfExtends.y));
@@ -68,11 +68,12 @@ namespace Bolt {
 				}, Shape);
 
 			if (EmissionSettings.EmissionSpace == Space::World) {
-				position += m_EmitterTransform->Position;
-				scale *= m_EmitterTransform->Scale;
+				position = m_EmitterTransform->TransformPoint(position);
 			}
 
+			particle.Velocity = ParticleSettings.MoveDirection * ParticleSettings.Speed;
 			particle.Transform.Position = position;
+			particle.Transform.Rotation = rot;
 			particle.Transform.Scale = scale;
 			particle.Color = ParticleSettings.UseRandomColors ? Bolt::Color(Random::NextFloat(0.f, 1.f), Random::NextFloat(0.f, 1.f), Random::NextFloat(0.f, 1.f)) : RenderingSettings.Color;
 			m_Particles.push_back(particle);

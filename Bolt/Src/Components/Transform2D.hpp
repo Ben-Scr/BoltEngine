@@ -3,6 +3,15 @@
 #include <box2d/types.h>
 
 namespace Bolt {
+    static inline Vec2 Hadamard(const Vec2& a, const Vec2& b) {
+        return { a.x * b.x, a.y * b.y };
+    }
+
+    static inline Vec2 Rotate(const Vec2& v, float radians) {
+        float c = std::cos(radians);
+        float s = std::sin(radians);
+        return { c * v.x - s * v.y, s * v.x + c * v.y };
+    }
 
 	class Transform2D {
     public:
@@ -22,6 +31,17 @@ namespace Bolt {
         float GetRotationDegrees() const;
         glm::mat3 GetModelMatrix() const;
         Vec2 GetForwardDirection() const;
+
+        Vec2 TransformPoint(const Vec2& localPoint) const {
+            Vec2 p = Hadamard(localPoint, Scale); // S
+            p = Rotate(p, Rotation);              // R
+            p = { p.x + Position.x, p.y + Position.y }; // T
+            return p;
+        }
+        Vec2 TransformVector(const Vec2& localVec) const {
+            Vec2 v = Hadamard(localVec, Scale);
+            return Rotate(v, Rotation);
+        }
 
         // Info: Used internally for Box2D
         b2Rot GetB2Rotation() const;

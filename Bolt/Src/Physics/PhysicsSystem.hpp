@@ -6,6 +6,8 @@ namespace Bolt {
 	class PhysicsSystem2D {
 	public:
 		void FixedUpdate(float dt);
+
+		void Initialize();
 		void Shutdown();
 
 		static Box2DWorld& GetMainPhysicsWorld() { return s_MainWorld; }

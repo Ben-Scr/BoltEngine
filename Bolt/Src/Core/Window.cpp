@@ -249,6 +249,7 @@ namespace Bolt {
 
 		ImageData* imgData = tex2D->GetImageData();
 
+		BOLT_RETURN_IF(!imgData, BoltErrorCode::NullReference, "Image data is null");
 		imgData->FlipVerticalRGBA();
 
 		GLFWimage img;

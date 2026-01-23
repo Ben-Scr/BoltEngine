@@ -22,14 +22,15 @@ void GameSystem::Start() {
 	ParticleSystem2D& pts2D = m_PlayerEmissionPts.AddComponent<ParticleSystem2D>();
 	pts2D.SetTexture(TextureManager::GetDefaultTexture(DefaultTexture::Circle));
 
-	auto ptColor = Color(1.0f, 0.45f, 0.f);
-	pts2D.RenderingSettings.Color = ptColor.SetAlpha(0.1f);
+	auto ptColor = Color(1.0f, 0.45f, 0.f, 1.1f);
+	pts2D.RenderingSettings.Color = ptColor;
 	pts2D.Shape = SquareParams(Vec2(0.2f, 0.2f));
 	pts2D.EmissionSettings.EmitOverTime = 0;
 	pts2D.ParticleSettings.LifeTime = 10;
-	pts2D.ParticleSettings.Scale = 0.3f;
+	pts2D.ParticleSettings.Scale = 0.2f;
 	pts2D.ParticleSettings.Gravity = Vec2(0, 1);
 	pts2D.RenderingSettings.MaxParticles = 100'000;
+	pts2D.RenderingSettings.SortingLayer = 0;
 	pts2D.Play();
 
 	m_PlayerEntity = scene.CreateEntity();
@@ -47,12 +48,19 @@ struct AsteriodData {
 
 void GameSystem::Update() {
 	Scene& scene = GetScene();
+		auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
 
 	if (Input::GetKeyDown(KeyCode::R)) {
 		SceneManager::ReloadScene(scene.GetName());
 		return;
 	}
-
+	if (Input::GetKeyDown(KeyCode::O)) {
+		for (int x = 0; x < 50; x++) 
+			for (int y = 0; y < 50; y++) {
+				auto& tr = scene.CreateRenderableEntity().GetComponent<Transform2D>();
+				tr.Position = Vec2(x, y)+ mousePos;
+			}
+	}
 	if (Input::GetKeyDown(KeyCode::P)) {
 		Application::Pause(!Application::IsPaused());
 	}
@@ -61,7 +69,7 @@ void GameSystem::Update() {
 	}
 
 	if (Input::GetKeyDown(KeyCode::F2)) {
-		Application::GetWindow().CenterWindow();
+		Application::Reload();
 	}
 
 	if (Input::GetKey(KeyCode::E)) {

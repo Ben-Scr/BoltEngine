@@ -8,7 +8,11 @@
 
 namespace Bolt {
 	bool PhysicsSystem2D::s_IsEnabled = true;
-	Box2DWorld PhysicsSystem2D::s_MainWorld{};
+	Box2DWorld PhysicsSystem2D::s_MainWorld;
+
+	void PhysicsSystem2D::Initialize() {
+		s_MainWorld = {};
+	}
 
 	void PhysicsSystem2D::FixedUpdate(float dt) {
 		if (!s_IsEnabled) return;

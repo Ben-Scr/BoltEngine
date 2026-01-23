@@ -16,7 +16,7 @@ namespace Bolt {
 		m_SpriteShader.Initialize();
 
 		if (!m_SpriteShader.IsValid()) {
-		//	throw BoltException("Renderer2DException", "Sprite shader is invalid.");
+			//	throw BoltException("Renderer2DException", "Sprite shader is invalid.");
 		}
 
 		m_Initialized = true;
@@ -54,62 +54,86 @@ namespace Bolt {
 		m_SpriteShader.SetMVP(vp);
 		// Camera 2D Region
 
+		Timer timer = Timer::Start();
 		int renderingSprites = 0;
 
-		for (const auto& [ent, particleSystem] : scene.GetRegistry().view<ParticleSystem2D>(entt::exclude<DisabledTag>).each()) {
+		std::vector<Instance44> instances;
+
+		auto ptsView = scene.GetRegistry().view<ParticleSystem2D>(entt::exclude<DisabledTag>);
+		auto srView = scene.GetRegistry().view<Transform2D, SpriteRenderer>(entt::exclude<DisabledTag>);
+
+		instances.reserve(ptsView.size_hint() + srView.size_hint());
+
+		for (const auto& [ent, particleSystem] : ptsView.each()) {
 			glActiveTexture(GL_TEXTURE0);
 
 			Texture2D* texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
 			if (texture->IsValid())
 				texture->Submit(0);
 
-			size_t count = 0;
 			for (const auto& particle : particleSystem.GetParticles()) {
 				if (!AABB::Intersects(viewportAABB, AABB::FromTransform(particle.Transform)))
 					continue;
 
-				m_SpriteShader.SetSpritePosition(particle.Transform.Position);
-				m_SpriteShader.SetScale(particle.Transform.Scale);
-				m_SpriteShader.SetRotation(particle.Transform.Rotation);
-				m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
 
-				m_QuadMesh.Bind();
-				m_SpriteShader.SetVertexColor(particle.Color);
-				m_QuadMesh.Draw();
-				m_QuadMesh.Unbind();
-				count++;
+				instances.emplace_back(
+					particle.Transform.Position,
+					particle.Transform.Scale,
+					particle.Transform.Rotation,
+					particleSystem.RenderingSettings.Color,
+					particleSystem.m_TextureHandle,
+					particleSystem.RenderingSettings.SortingOrder,
+					particleSystem.RenderingSettings.SortingLayer
+				);
 			}
-
-			//Logger::Message("ParticleSystem2D", "Rendering" + std::to_string(count) + "/" + std::to_string(particleSystem.m_Particles.size()) + " Particles");
 		}
 
-		for (const auto& [ent, tr, spriteRenderer] : scene.GetRegistry().view<Transform2D, SpriteRenderer>(entt::exclude<DisabledTag>).each()) {
+		for (const auto& [ent, tr, spriteRenderer] : srView.each()) {
 			if (!AABB::Intersects(viewportAABB, AABB::FromTransform(tr)))
 				continue;
 
-			renderingSprites++;
+			instances.emplace_back(
+				tr.Position,
+				tr.Scale,
+				tr.Rotation,
+				spriteRenderer.Color,
+				spriteRenderer.TextureHandle,
+				spriteRenderer.SortingOrder,
+				spriteRenderer.SortingLayer
+			);
+		}
 
-			m_SpriteShader.SetSpritePosition(tr.Position);
-			m_SpriteShader.SetScale(tr.Scale);
-			m_SpriteShader.SetRotation(tr.Rotation);
+		std::sort(instances.begin(), instances.end(),
+			[](const Instance44& a, const Instance44& b) {
+				if (a.SortingLayer != b.SortingLayer)
+					return a.SortingLayer < b.SortingLayer;
+				return a.SortingOrder < b.SortingOrder;
+			});
+
+		// Final Rendering
+		for (const Instance44& instance : instances) {
+			m_SpriteShader.SetSpritePosition(instance.Position);
+			m_SpriteShader.SetScale(instance.Scale);
+			m_SpriteShader.SetRotation(instance.Rotation);
 			m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
 
 			glActiveTexture(GL_TEXTURE0);
-			Texture2D* texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
+			Texture2D* texture = TextureManager::GetTexture(instance.TextureHandle);
 
 			if (texture->IsValid())
 				texture->Submit(0);
 
 
 			m_QuadMesh.Bind();
-			m_SpriteShader.SetVertexColor(spriteRenderer.Color);
+			m_SpriteShader.SetVertexColor(instance.Color);
 			m_QuadMesh.Draw();
 			m_QuadMesh.Unbind();
 		}
 
 #if 0
-		Logger::Message("Rendering " + std::to_string(renderingSprites) + " Sprites");
+		Logger::Message("Rendering " +  + " Sprites");
 #endif
+		Logger::Message("Rednering", "Rendering " + std::to_string(instances.size()) + " Instances Took " + timer.ToString());
 		m_SpriteShader.Unbind();
 	}
 

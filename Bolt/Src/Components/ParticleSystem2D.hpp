@@ -38,7 +38,7 @@ namespace Bolt {
 		bool UseGravity{ false };
 		bool UseRandomColors{ false };
 		float Scale{ 1.f };
-		Vec2 MoveDirection{ 1.f, 1.f };
+		Vec2 MoveDirection{ 0.f, 0.f };
 	};
 
 	struct EmissionSettings {
@@ -72,6 +72,7 @@ namespace Bolt {
 		void AddBurst(const Burst& burst) { m_Bursts.push_back(burst); }
 		std::span<const Particle> GetParticles() const noexcept { return m_Particles; }
 		bool IsPlaying() const { return m_IsEmitting; }
+		Transform2D& GetTransform2D() { return *m_EmitterTransform; };
 
 		// Info: Enables both emitting and simulating
 		void Play() { m_IsEmitting = true; m_IsSimulating = true; }

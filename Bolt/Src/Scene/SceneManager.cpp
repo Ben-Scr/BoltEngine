@@ -30,6 +30,7 @@ namespace Bolt {
 	}
 
 	void SceneManager::Shutdown() {
+		s_IsInitialized = false;
 		SceneManager::UnloadAllScenes();
 	}
 

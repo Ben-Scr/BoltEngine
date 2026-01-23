@@ -22,6 +22,7 @@ namespace Bolt {
 	bool Application::s_ShouldQuit = false;
 	bool Application::s_RunInBackground = false;
 	bool Application::s_IsPaused = false;
+	bool Application::s_CanReload = false;
 
 	Application* Application::s_Instance = nullptr;
 	bool Application::s_ForceSingleInstance = false;
@@ -99,6 +100,11 @@ namespace Bolt {
 		}
 
 		Shutdown();
+
+		if (s_CanReload) {
+			s_CanReload = false;
+			Run();
+		}
 	}
 
 
@@ -182,6 +188,7 @@ namespace Bolt {
 
 		timer.Reset();
 		m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
+		m_PhysicsSystem2D->Initialize();
 		Logger::Message("PhysicsSystem", "Initialization took " + timer.ToString());
 
 		timer.Reset();
@@ -213,8 +220,11 @@ namespace Bolt {
 		if (m_PhysicsSystem2D) m_GizmoRenderer2D->Shutdown();
 		if (m_Renderer2D) m_Renderer2D->Shutdown();
 		SceneManager::Shutdown();
+		TextureManager::Shutdown();
 
 		if (m_Window) m_Window->Destroy();
 		Window::Shutdown();
+
+		s_ShouldQuit = false;
 	}
 }

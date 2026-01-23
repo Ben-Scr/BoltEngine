@@ -39,6 +39,7 @@ namespace Bolt {
 
 		static void Quit() { s_ShouldQuit = true; }
 		static void Pause(bool paused) { s_IsPaused = paused; }
+		static void Reload() { s_ShouldQuit = true; s_CanReload = true; };
 		static const bool IsPaused() { return s_IsPaused; }
 
 		static void OnApplicationQuit(Bolt::Event<>::Callback cb) { s_OnApplicationQuit.Add(cb); }
@@ -51,6 +52,7 @@ namespace Bolt {
 		static bool s_ForceSingleInstance;
 		static bool s_RunInBackground;
 		static bool s_ShouldQuit;
+		static bool s_CanReload;
 		static bool s_IsPaused;
 
 		static double s_TargetFramerate;
