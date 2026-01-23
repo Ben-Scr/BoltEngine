@@ -40,20 +40,12 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScene(const Scene& scene) {
-		if (!m_SpriteShader.IsValid()) {
-			Logger::Error("Shader", "Invalid Sprite 2D Shader");
-			return;
-		}
-
+		BOLT_RETURN_IF(!m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
 		m_SpriteShader.Bind();
 
 		// Camera 2D Region
 		Camera2D* camera2D = Camera2D::Main();
-
-		if (camera2D == nullptr) {
-			Logger::Error("Camera2D", "There is no main camera");
-			return;
-		}
+		BOLT_RETURN_IF(!camera2D, BoltErrorCode::NullReference, "There is no main camera");
 
 		camera2D->UpdateViewport();
 		AABB viewportAABB = camera2D->GetViewportAABB();
@@ -70,10 +62,6 @@ namespace Bolt {
 			Texture2D* texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
 			if (texture->IsValid())
 				texture->Submit(0);
-			else
-			{
-				Logger::Warning("ParticleSystem2D", "Invalid Texture");
-			}
 
 			size_t count = 0;
 			for (const auto& particle : particleSystem.GetParticles()) {
@@ -111,10 +99,6 @@ namespace Bolt {
 
 			if (texture->IsValid())
 				texture->Submit(0);
-			else
-			{
-				Logger::Warning("SpriteRenderer", "Invalid Texture");
-			}
 
 
 			m_QuadMesh.Bind();

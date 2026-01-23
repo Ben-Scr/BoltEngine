@@ -4,8 +4,8 @@
 
 int main() {
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
-	def.AddSystem<GameSystem>();
-	def.AddSystem<Bolt::ParticleUpdateSystem>();
+	//def.AddSystem<GameSystem>();
+	//def.AddSystem<Bolt::ParticleUpdateSystem>();
 
 	Bolt::Application::SetRunInBackground(true);
 	Bolt::Application::SetForceSingleInstance(true);
