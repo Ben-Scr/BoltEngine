@@ -13,7 +13,6 @@ void GameSystem::Awake() {
 }
 
 void GameSystem::Start() {
-	static TextureHandle wallpaper = TextureManager::LoadTexture("../Assets/Textures/Wallpaper.png");
 	Scene& scene = GetScene();
 
 	scene.CreateCamera();
@@ -36,13 +35,6 @@ void GameSystem::Start() {
 	m_PlayerEntity = scene.CreateEntity();
 	auto& spriteRenderer = m_PlayerEntity.AddComponent<SpriteRenderer>();
 	spriteRenderer.TextureHandle = m_PlayerTexture;
-
-	Entity ent = scene.CreateRenderableEntity();
-	SpriteRenderer& spWP = ent.GetComponent<SpriteRenderer>();
-	spWP.SortingLayer = -100;
-	Transform2D& tr = ent.GetComponent<Transform2D>();
-	tr.Scale = Vec2(1000, 1000);
-	spWP.TextureHandle = wallpaper;
 }
 
 struct LaserTag {};
@@ -121,12 +113,7 @@ void GameSystem::UpdatePlayerPts() {
 void GameSystem::PlayerMovement() {
 	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
 
-	static float shiftSpeed = 1.f;
-
-	if (Input::GetKey(KeyCode::LeftShift))
-		shiftSpeed += Time::GetDeltaTime() * 5;
-
-	float speed = Input::GetKey(KeyCode::LeftShift) ? shiftSpeed : 5.0f;
+	float speed = Input::GetKey(KeyCode::LeftShift) ? 15.f : 5.0f;
 	auto& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
 	Vec2 input = speed * Time::GetDeltaTime() * playerTr.GetForwardDirection();
 	playerTr.Position += input;

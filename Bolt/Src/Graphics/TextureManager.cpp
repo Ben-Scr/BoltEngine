@@ -151,18 +151,18 @@ namespace Bolt {
 	}
 
 	Texture2D* TextureManager::GetTexture(TextureHandle blockTexture) {
-		BOLT_RETURN_VAL_IF(!s_IsInitialized, nullptr, BoltErrorCode::NotInitialized, "TextureManager isn't initialized");
+		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "TextureManager isn't initialized");
 
-		BOLT_RETURN_VAL_IF(blockTexture.index >= s_Textures.size(), nullptr, BoltErrorCode::OutOfRange,
+		BOLT_ASSERT(blockTexture.index < s_Textures.size(), BoltErrorCode::OutOfRange,
 			"TextureHandle index " + std::to_string(blockTexture.index) +
 			" out of range (max: " + std::to_string(s_Textures.size() - 1) + ")"
 		);
 
 		TextureEntry& entry = s_Textures[blockTexture.index];
 
-		BOLT_RETURN_VAL_IF(!entry.IsValid, nullptr, BoltErrorCode::InvalidHandle, "Texture at index " + std::to_string(blockTexture.index) + " is not valid");
+		BOLT_ASSERT(entry.IsValid, BoltErrorCode::InvalidHandle, "Texture at index " + std::to_string(blockTexture.index) + " is not valid");
 
-		BOLT_RETURN_VAL_IF(entry.Generation != blockTexture.generation, nullptr, BoltErrorCode::InvalidHandle,
+		BOLT_ASSERT(entry.Generation == blockTexture.generation, BoltErrorCode::InvalidHandle,
 			"Invalid texture entry: entry generation " + std::to_string(entry.Generation) +
 			" != handle generation " + std::to_string(blockTexture.generation));
 
