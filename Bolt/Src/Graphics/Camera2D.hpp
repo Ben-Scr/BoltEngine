@@ -48,7 +48,7 @@ namespace Bolt {
 		void UpdateView();
 		void UpdateViewportAABB();
 
-		void Init(Transform2D& transform);
+		void Initialize(Transform2D& transform);
 		void Destroy();
 
 		Transform2D* m_Transform = nullptr;

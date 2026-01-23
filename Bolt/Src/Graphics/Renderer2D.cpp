@@ -37,10 +37,6 @@ namespace Bolt {
 		SceneManager::ForeachLoadedScene([&](const Scene& scene) {
 			RenderScene(scene);
 			});
-
-		//for (const std::string& sceneName : SceneManager::GetLoadedSceneNames()) {
-		//	RenderScene(*SceneManager::GetLoadedScene(sceneName).lock());
-		//}
 	}
 
 	void Renderer2D::RenderScene(const Scene& scene) {

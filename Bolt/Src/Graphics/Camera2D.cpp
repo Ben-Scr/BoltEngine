@@ -80,7 +80,7 @@ namespace Bolt {
 		return { world.x, world.y };
 	}
 
-	void Camera2D::Init(Transform2D& transform) {
+	void Camera2D::Initialize(Transform2D& transform) {
 		s_Main = this;
 		m_Transform = &transform;
 		m_ViewMat = glm::mat4(1.0f);

@@ -14,22 +14,18 @@
 #include "../Graphics/Camera2D.hpp"
 
 namespace Bolt {
-
-	// Note: Creates an entity with a Transform2D component
 	Entity Scene::CreateEntity() {
 		auto entityHandle = CreateEntityHandle();
 		AddComponent<Transform2D>(entityHandle);
 		return Entity(entityHandle, m_Registry);
 	}
 
-	// Note: Creates an entity with a Camera2D component
 	Entity Scene::CreateCamera() {
 		Entity entity = CreateEntity();
 		Camera2D& camera2D = entity.AddComponent<Camera2D>();
 		return entity;
 	}
 
-	// Note: Creates an entity with a Transform2D and SpriteRenderer component
 	Entity Scene::CreateRenderableEntity() {
 		Entity entity = CreateEntity();
 		entity.AddComponent<SpriteRenderer>();
@@ -139,7 +135,7 @@ namespace Bolt {
 	void Scene::OnCamera2DComponentConstruct(entt::registry& registry, EntityHandle entity)
 	{
 		Camera2D& camera2D = GetComponent<Camera2D>(entity);
-		camera2D.Init(GetComponent<Transform2D>(entity));
+		camera2D.Initialize(GetComponent<Transform2D>(entity));
 		camera2D.UpdateViewport();
 	}
 

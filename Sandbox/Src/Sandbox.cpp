@@ -7,7 +7,7 @@ int main() {
 	def.AddSystem<GameSystem>();
 	def.AddSystem<Bolt::ParticleUpdateSystem>();
 
-	Bolt::Application::SetRunInBackground(false);
+	Bolt::Application::SetRunInBackground(true);
 	Bolt::Application::SetForceSingleInstance(true);
 	Bolt::Application app;
 	app.Run();
