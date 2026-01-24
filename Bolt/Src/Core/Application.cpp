@@ -124,6 +124,21 @@ namespace Bolt {
 	void Application::BeginFrame() {
 		CoreInput();
 
+		ImGui::Begin("Debug Settings");
+
+		static float targetFrameRate = 144;
+		ImGui::SliderFloat("Target FPS", &targetFrameRate, 0.f, 244.f);
+		SetTargetFramerate(targetFrameRate);
+
+		static float timeScale = 1.0;
+		ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f);
+		Time::SetTimeScale(timeScale);
+
+		static float fixedFPS = 50.f;
+		ImGui::SliderFloat("Fixed FPS", &fixedFPS, 10.f, 244.f);
+
+		ImGui::End();
+
 		if (!s_IsPaused) {
 			AudioManager::Update();
 			SceneManager::UpdateScenes();
