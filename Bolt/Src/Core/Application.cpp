@@ -9,10 +9,6 @@
 #include "Input.hpp"
 #include <GLFW/glfw3.h>
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_impl_glfw.h>
-#include <imgui/imgui_impl_opengl3.h>
-
 
 
 namespace Bolt {
@@ -43,13 +39,6 @@ namespace Bolt {
 		Timer timer = Timer::Start();
 
 		Initialize();
-
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
-		ImGui_ImplGlfw_InitForOpenGL(m_Window->GetGLFWWindow(), true);
-		ImGui_ImplOpenGL3_Init("#version 330 core");
-		ImGui::StyleColorsDark();
 
 		Logger::Message("Application", "Initialization took " + timer.ToString());
 
@@ -91,7 +80,7 @@ namespace Bolt {
 						if (++i > 10 && Time::GetDeltaTimeUnscaled() <= 10 && PhysicsSystem2D::IsEnabled()) {
 							m_FixedUpdateAccumulator = 0;
 							//PhysicsSystem2D::SetEnabled(false);
-							BOLT_LOG_ERROR(BoltErrorCode::Overflow ,"Physics Overflow, Physics are enabled: " + std::to_string(PhysicsSystem2D::IsEnabled()));
+							BOLT_LOG_ERROR(BoltErrorCode::Overflow, "Physics Overflow, Physics are enabled: " + std::to_string(PhysicsSystem2D::IsEnabled()));
 						}
 
 						BeginFixedFrame();
@@ -124,26 +113,12 @@ namespace Bolt {
 	void Application::BeginFrame() {
 		CoreInput();
 
-		ImGui::Begin("Debug Settings");
-
-		static float targetFrameRate = 144;
-		ImGui::SliderFloat("Target FPS", &targetFrameRate, 0.f, 244.f);
-		SetTargetFramerate(targetFrameRate);
-
-		static float timeScale = 1.0;
-		ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f);
-		Time::SetTimeScale(timeScale);
-
-		static float fixedFPS = 50.f;
-		ImGui::SliderFloat("Fixed FPS", &fixedFPS, 10.f, 244.f);
-
-		ImGui::End();
-
 		if (!s_IsPaused) {
 			AudioManager::Update();
 			SceneManager::UpdateScenes();
 
 			if (m_Renderer2D) m_Renderer2D->BeginFrame();
+			if (m_ImGuiRenderer) m_ImGuiRenderer->BeginFrame();
 			if (m_GizmoRenderer2D) m_GizmoRenderer2D->BeginFrame();
 		}
 		else {
@@ -159,6 +134,7 @@ namespace Bolt {
 	void Application::EndFrame() {
 		if (!s_IsPaused) {
 			if (m_Renderer2D) m_Renderer2D->EndFrame();
+			if (m_ImGuiRenderer) m_ImGuiRenderer->EndFrame();
 			if (m_GizmoRenderer2D) m_GizmoRenderer2D->EndFrame();
 			if (m_Window) m_Window->SwapBuffers();
 		}
@@ -181,10 +157,6 @@ namespace Bolt {
 		if (Input::GetKeyDown(KeyCode::F12)) {
 			if (m_Window) m_Window->SetVsync(!m_Window->IsVsync());
 		}
-
-		std::string fps = std::to_string(1.f / Time::GetDeltaTime()) + " FPS";
-
-		if (m_Window) m_Window->SetTitle(fps);
 	}
 
 	void Application::ResetTimePoints() {
@@ -195,7 +167,7 @@ namespace Bolt {
 	void Application::Initialize() {
 		Timer timer = Timer::Start();
 		Window::Initialize();
-		m_Window = std::make_unique<Window>(Window(GLFWWindowProperties(800, 800, "Hello World", true, true, false)));
+		m_Window = std::make_unique<Window>(Window(GLFWWindowProperties(800, 800, "Space Shooter", true, true, false)));
 		m_Window->SetVsync(true);
 		m_Window->SetWindowResizeable(true);
 		Logger::Message("Window", "Initialization took " + timer.ToString());
@@ -213,6 +185,11 @@ namespace Bolt {
 		m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
 		m_GizmoRenderer2D->Initialize();
 		Logger::Message("GizmoRenderer", "Initialization took " + timer.ToString());
+
+		timer.Reset();
+		m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
+		m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
+		Logger::Message("ImGuiRenderer", "Initialization took " + timer.ToString());
 
 		timer.Reset();
 		m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();

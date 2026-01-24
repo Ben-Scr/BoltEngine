@@ -185,6 +185,7 @@
     <ClCompile Include="Src\Graphics\Camera2D.cpp" />
     <ClCompile Include="Src\Graphics\GizmoRenderer.cpp" />
     <ClCompile Include="Src\Graphics\Gizmos.cpp" />
+    <ClCompile Include="Src\Gui\ImGuiRenderer.cpp" />
     <ClCompile Include="Src\Graphics\OpenGL.cpp" />
     <ClCompile Include="Src\Graphics\QuadMesh.cpp" />
     <ClCompile Include="Src\Graphics\Renderer2D.cpp" />
@@ -290,6 +291,10 @@
     <ClInclude Include="Src\Graphics\Camera2D.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Src\Graphics\Gizmos.hpp" />
+    <ClInclude Include="Src\Gui\ImGuiRenderer.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Src\Graphics\OpenGL.hpp" />
     <ClInclude Include="Src\Graphics\QuadMesh.hpp" />
     <ClInclude Include="Src\Graphics\Renderer2D.hpp" />

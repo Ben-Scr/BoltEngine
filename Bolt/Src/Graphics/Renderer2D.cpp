@@ -34,9 +34,11 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScenes() {
+		Timer timer = Timer::Start();
 		SceneManager::ForeachLoadedScene([&](const Scene& scene) {
 			RenderScene(scene);
 			});
+		m_RenderLoopDuration = timer.ElapsedMilliseconds();
 	}
 
 	void Renderer2D::RenderScene(const Scene& scene) {
@@ -54,7 +56,6 @@ namespace Bolt {
 		m_SpriteShader.SetMVP(vp);
 		// Camera 2D Region
 
-		Timer timer = Timer::Start();
 		int renderingSprites = 0;
 
 		std::vector<Instance44> instances;
@@ -130,11 +131,8 @@ namespace Bolt {
 			m_QuadMesh.Unbind();
 		}
 
-#if 0
-		Logger::Message("Rendering " +  + " Sprites");
-#endif
-		Logger::Message("Rednering", "Rendering " + std::to_string(instances.size()) + " Instances Took " + timer.ToString());
 		m_SpriteShader.Unbind();
+		m_RenderedInstancesCount = instances.size();
 	}
 
 	void Renderer2D::Shutdown() {

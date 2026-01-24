@@ -48,7 +48,15 @@ namespace Bolt {
         void RenderScene(const Scene& scene);
         void Shutdown();
 
+       const size_t GetRenderedInstancesCount() const { return m_RenderedInstancesCount; }
+       const float GetRRenderLoopDuration() const { return m_RenderLoopDuration; }
+
     private:
+        size_t m_RenderedInstancesCount;
+
+        // Info: Duration in ms
+        float m_RenderLoopDuration;
+
         bool m_Initialized;
         QuadMesh m_QuadMesh;
         SpriteShaderProgram m_SpriteShader;

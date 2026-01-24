@@ -228,6 +228,9 @@
     <ClCompile Include="Src\imgui\imgui_widgets.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Gui\ImGuiRenderer.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\pch.hpp">
@@ -582,6 +585,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Utils\Timer.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gui\ImGuiRenderer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
