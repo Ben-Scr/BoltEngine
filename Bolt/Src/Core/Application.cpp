@@ -9,6 +9,10 @@
 #include "Input.hpp"
 #include <GLFW/glfw3.h>
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+
 
 
 namespace Bolt {
@@ -37,7 +41,16 @@ namespace Bolt {
 
 		Logger::Message("Initializing Application");
 		Timer timer = Timer::Start();
+
 		Initialize();
+
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		ImGui_ImplGlfw_InitForOpenGL(m_Window->GetGLFWWindow(), true);
+		ImGui_ImplOpenGL3_Init("#version 330 core");
+		ImGui::StyleColorsDark();
+
 		Logger::Message("Application", "Initialization took " + timer.ToString());
 
 		m_LastFrameTime = Clock::now();

@@ -22,7 +22,7 @@ void GameSystem::Start() {
 	ParticleSystem2D& pts2D = m_PlayerEmissionPts.AddComponent<ParticleSystem2D>();
 	pts2D.SetTexture(TextureManager::GetDefaultTexture(DefaultTexture::Circle));
 
-	auto ptColor = Color(1.0f, 0.45f, 0.f, 1.1f);
+	auto ptColor = Color(1.0f, 0.45f, 0.f, 0.1f);
 	pts2D.RenderingSettings.Color = ptColor;
 	pts2D.Shape = SquareParams(Vec2(0.2f, 0.2f));
 	pts2D.EmissionSettings.EmitOverTime = 0;
