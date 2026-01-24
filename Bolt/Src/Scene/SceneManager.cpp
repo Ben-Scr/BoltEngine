@@ -243,6 +243,14 @@ namespace Bolt {
 		}
 	}
 
+	void SceneManager::OnGuiScenes() {
+		for (auto& scene : s_LoadedScenes) {
+			if (scene->IsLoaded()) {
+				scene->OnGuiSystems();
+			}
+		}
+	}
+
 	void SceneManager::OnApplicationPaused() {
 		for (auto& scene : s_LoadedScenes) {
 			if (scene->IsLoaded()) {

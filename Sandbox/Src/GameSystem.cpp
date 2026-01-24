@@ -5,6 +5,7 @@
 #include "Core/Application.hpp"
 
 
+
 void GameSystem::Awake() {
 	m_AsteriodTexture = TextureManager::LoadTexture("../Assets/Textures/Meteor.png");
 	m_LightTexture = TextureManager::LoadTexture("../Assets/Textures/Light.png");
@@ -106,6 +107,10 @@ void GameSystem::Update() {
 	MoveEntities();
 	CameraMovement();
 	DrawGizmos();
+}
+
+void GameSystem::OnGui() {
+
 }
 
 void GameSystem::UpdatePlayerPts() {

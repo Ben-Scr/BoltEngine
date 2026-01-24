@@ -207,50 +207,29 @@
     <ClCompile Include="Src\Utils\File.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\imgui\imgui.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_demo.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_draw.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_impl_glfw.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_impl_opengl3.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_tables.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_widgets.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Gui\ImGuiRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\imgui.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Src\External\ImGui\imgui.cpp">
+      <Filter>Ressourcendateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\imgui_demo.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Src\External\ImGui\imgui_demo.cpp">
+      <Filter>Ressourcendateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\imgui_draw.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Src\External\ImGui\imgui_draw.cpp">
+      <Filter>Ressourcendateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\imgui_impl_glfw.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Src\External\ImGui\imgui_impl_glfw.cpp">
+      <Filter>Ressourcendateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\imgui_impl_opengl3.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Src\External\ImGui\imgui_impl_opengl3.cpp">
+      <Filter>Ressourcendateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\imgui_tables.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Src\External\ImGui\imgui_tables.cpp">
+      <Filter>Ressourcendateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\imgui_widgets.cpp">
-      <Filter>Quelldateien</Filter>
+    <ClCompile Include="Src\External\ImGui\imgui_widgets.cpp">
+      <Filter>Ressourcendateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -609,6 +588,36 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Gui\ImGuiRenderer.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imconfig.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imgui.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imgui_impl_glfw.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imgui_impl_opengl3.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imgui_impl_opengl3_loader.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imgui_internal.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imstb_rectpack.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imstb_textedit.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\External\ImGui\imstb_truetype.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Gui\ImGui.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

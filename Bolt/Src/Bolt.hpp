@@ -1,6 +1,10 @@
 #pragma once
 /* INCLUDE FILE */
 
+/*
+Bolt specific includes
+*/
+
 // Collections
 #include "Collections/Vec2.hpp"
 #include "Collections/Color.hpp"
@@ -53,4 +57,3 @@
 #include "Scene/SceneManager.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/EntityHandle.hpp"
-

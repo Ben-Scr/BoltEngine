@@ -8,6 +8,7 @@ public:
 	virtual void Awake();
 	virtual void Start();
 	virtual void Update();
+	virtual void OnGui();
 	virtual void OnApplicationPaused();
 
 	Entity CreatePhysicsEntity(Scene& scene, Transform2D transform, BodyType bodyType, Color color = Color::White()) {

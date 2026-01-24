@@ -209,6 +209,7 @@ namespace Bolt {
 		void UpdateSystems();
 		void OnApplicationPausedSystems();
 		void FixedUpdateSystems();
+		void OnGuiSystems();
 		void DestroyScene();
 
 		void ForeachEnabledSystem(const std::function<void(ISystem&)>& func) {

@@ -53,6 +53,10 @@ namespace Bolt {
 		ForeachEnabledSystem([](ISystem& s) { s.FixedUpdate(); });
 	}
 
+	void Scene::OnGuiSystems() {
+		ForeachEnabledSystem([](ISystem& s) { s.OnGui(); });
+	}
+
 	void Scene::OnApplicationPausedSystems() {
 		ForeachEnabledSystem([](ISystem& s) { s.OnApplicationPaused(); });
 	}

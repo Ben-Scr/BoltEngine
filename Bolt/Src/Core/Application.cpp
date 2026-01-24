@@ -118,7 +118,12 @@ namespace Bolt {
 			SceneManager::UpdateScenes();
 
 			if (m_Renderer2D) m_Renderer2D->BeginFrame();
-			if (m_ImGuiRenderer) m_ImGuiRenderer->BeginFrame();
+
+			if (m_ImGuiRenderer) {
+				m_ImGuiRenderer->BeginFrame();
+				SceneManager::OnGuiScenes();
+			}
+
 			if (m_GizmoRenderer2D) m_GizmoRenderer2D->BeginFrame();
 		}
 		else {
@@ -224,6 +229,8 @@ namespace Bolt {
 		if (m_PhysicsSystem2D) m_PhysicsSystem2D->Shutdown();
 		if (m_PhysicsSystem2D) m_GizmoRenderer2D->Shutdown();
 		if (m_Renderer2D) m_Renderer2D->Shutdown();
+		if (m_ImGuiRenderer) m_ImGuiRenderer->Shutdown();
+
 		SceneManager::Shutdown();
 		TextureManager::Shutdown();
 

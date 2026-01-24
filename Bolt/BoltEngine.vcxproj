@@ -82,12 +82,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -176,13 +176,13 @@
     <ClCompile Include="Src\Core\Time.cpp" />
     <ClCompile Include="Src\Core\Window.cpp" />
     <ClCompile Include="Src\Debugging\Logger.cpp" />
-    <ClCompile Include="Src\External\imgui.cpp" />
-    <ClCompile Include="Src\External\imgui_demo.cpp" />
-    <ClCompile Include="Src\External\imgui_draw.cpp" />
-    <ClCompile Include="Src\External\imgui_impl_glfw.cpp" />
-    <ClCompile Include="Src\External\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="Src\External\imgui_tables.cpp" />
-    <ClCompile Include="Src\External\imgui_widgets.cpp" />
+    <ClCompile Include="Src\External\ImGui\imgui.cpp" />
+    <ClCompile Include="Src\External\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Src\External\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Src\External\ImGui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="Src\External\ImGui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="Src\External\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Src\External\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Src\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -200,48 +200,6 @@
     <ClCompile Include="Src\Graphics\SpriteShaderProgram.cpp" />
     <ClCompile Include="Src\Graphics\Texture2D.cpp" />
     <ClCompile Include="Src\Graphics\TextureManager.cpp" />
-    <ClCompile Include="Src\imgui\imgui.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_demo.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_draw.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_impl_glfw.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_impl_opengl3.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_tables.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\imgui\imgui_widgets.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Src\Math\Random.cpp" />
     <ClCompile Include="Src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -295,13 +253,18 @@
     <ClInclude Include="Src\Core\Window.hpp" />
     <ClInclude Include="Src\Debugging\Exceptions.hpp" />
     <ClInclude Include="Src\Debugging\Logger.hpp" />
+    <ClInclude Include="Src\External\ImGui\imconfig.h" />
+    <ClInclude Include="Src\External\ImGui\imgui.h" />
+    <ClInclude Include="Src\External\ImGui\imgui_impl_glfw.h" />
+    <ClInclude Include="Src\External\ImGui\imgui_impl_opengl3.h" />
+    <ClInclude Include="Src\External\ImGui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Src\External\ImGui\imgui_internal.h" />
+    <ClInclude Include="Src\External\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Src\External\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Src\External\ImGui\imstb_truetype.h" />
     <ClInclude Include="Src\Graphics\Camera2D.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Src\Graphics\Gizmos.hpp" />
-    <ClInclude Include="Src\Gui\ImGuiRenderer.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
     <ClInclude Include="Src\Graphics\OpenGL.hpp" />
     <ClInclude Include="Src\Graphics\QuadMesh.hpp" />
     <ClInclude Include="Src\Graphics\Renderer2D.hpp" />
@@ -310,6 +273,8 @@
     <ClInclude Include="Src\Graphics\Texture2D.hpp" />
     <ClInclude Include="Src\Graphics\TextureHandle.hpp" />
     <ClInclude Include="Src\Graphics\TextureManager.hpp" />
+    <ClInclude Include="Src\Gui\ImGui.hpp" />
+    <ClInclude Include="Src\Gui\ImGuiRenderer.hpp" />
     <ClInclude Include="Src\Math\Common.hpp" />
     <ClInclude Include="Src\Math\Math.hpp" />
     <ClInclude Include="Src\Math\Trigonometry.hpp" />
