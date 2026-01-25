@@ -50,7 +50,7 @@ namespace Bolt {
 	inline Vec2 Zero() noexcept { return Vec2(0.0f, 0.0f); }
 	inline Vec2 One() noexcept { return Vec2(1.0f, 1.0f); }
 	inline Vec2 Up() noexcept { return Vec2(0.0f, 1.0f); }
-	inline Vec2 Down() noexcept { return Vec2(0.0f, -1.0f); }
+	inline Vec2 Bottom() noexcept { return Vec2(0.0f, -1.0f); }
 	inline Vec2 Left() noexcept { return Vec2(-1.0f, 0.0f); }
 	inline Vec2 Right() noexcept { return Vec2(1.0f, 0.0f); }
 

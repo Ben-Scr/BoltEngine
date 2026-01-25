@@ -36,7 +36,7 @@ private:
 
 	Entity m_PlayerEmissionPts{ Entity::Null };
 	Entity m_PlayerExplosionPts{ Entity::Null };
-
+	Entity m_RectEntity{ Entity::Null };
 
 	TextureHandle m_PlayerTexture;
 	TextureHandle m_AsteriodTexture;

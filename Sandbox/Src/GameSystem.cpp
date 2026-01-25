@@ -14,13 +14,15 @@ void GameSystem::Awake() {
 	m_LaserTexture = TextureManager::LoadTexture("../Assets/Textures/Laser.png");
 }
 
+
+
 void GameSystem::Start() {
 	Scene& scene = GetScene();
 
-	Entity ent = scene.CreateEntity();
-	ent.RemoveComponent<Transform2D>();
-	auto& guiImage = ent.AddComponent<GuiImage>();
-	auto& rectTransform = ent.AddComponent<RectTransform>();
+	m_RectEntity = scene.CreateEntity();
+	m_RectEntity.RemoveComponent<Transform2D>();
+	auto& guiImage = m_RectEntity.AddComponent<GuiImage>();
+	m_RectEntity.AddComponent<RectTransform>();
 
 
 	scene.CreateCamera();
@@ -118,7 +120,36 @@ void GameSystem::Update() {
 
 void GameSystem::OnGui()
 {
+	ImGui::Begin("Rect Settings");
+  
+	static float left = 0;
+	ImGui::SliderFloat("Left", &left, 0, 1920);
 
+	static float right = 0;
+	ImGui::SliderFloat("Right", &right, 0, 1920);
+
+	static float top = 0;
+	ImGui::SliderFloat("Top", &top, 0, 1080);
+
+	static float bottom = 0;
+	ImGui::SliderFloat("Bottom", &bottom, 0, 1080);
+
+	static float scaleX = 0;
+	ImGui::SliderFloat("Width", &scaleX, 0, 1920);
+
+	static float scaleY = 0;
+	ImGui::SliderFloat("Height", &scaleY, 0, 1920);
+
+	RectTransform& rectTransform = m_RectEntity.GetComponent<RectTransform>();
+	rectTransform.Left = left;
+	rectTransform.Right = right;
+	rectTransform.Top = top;
+	rectTransform.Bottom = bottom;
+
+	rectTransform.Width = scaleX;
+	rectTransform.Height = scaleY;
+
+	ImGui::End();
 }
 
 void GameSystem::UpdatePlayerPts() {

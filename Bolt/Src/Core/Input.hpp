@@ -57,7 +57,7 @@ namespace Bolt {
 
             bool inputRight = Input::GetKey(KeyCode::D) || Input::GetKey(KeyCode::Right);
             bool inputUp = Input::GetKey(KeyCode::W) || Input::GetKey(KeyCode::Up);
-            bool inputDown = Input::GetKey(KeyCode::S) || Input::GetKey(KeyCode::Down);
+            bool inputDown = Input::GetKey(KeyCode::S) || Input::GetKey(KeyCode::Bottom);
 
             bool inputLeft = Input::GetKey(KeyCode::A) || Input::GetKey(KeyCode::Left);
 
