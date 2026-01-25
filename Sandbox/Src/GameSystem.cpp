@@ -1,5 +1,4 @@
 #include "GameSystem.hpp"
-#include "Core/Window.hpp"
 #include "Components/Tags.hpp"
 #include "Graphics/OpenGL.hpp"
 #include "Core/Application.hpp"

@@ -6,10 +6,9 @@
 #include <algorithm>
 #include <iterator>
 
-namespace Bolt { class Application; class Window; }
-
-
 namespace Bolt {
+    class Application;
+
     class Input {
     public:
         friend class Application;

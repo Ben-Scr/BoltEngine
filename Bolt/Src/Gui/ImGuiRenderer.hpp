@@ -3,7 +3,6 @@
 class GLFWwindow;
 
 namespace Bolt {
-	class Window;
 	class Viewport;
 
 	class ImGuiRenderer {

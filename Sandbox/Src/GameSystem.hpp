@@ -1,5 +1,5 @@
 #pragma once
-#include "Bolt.hpp"
+#include <Bolt.hpp>
 
 using namespace Bolt;
 
