@@ -193,7 +193,7 @@ namespace Bolt {
 
 		timer.Reset();
 		m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
-		m_ImGuiRenderer->Initialize();
+		m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
 		Logger::Message("ImGuiRenderer", "Initialization took " + timer.ToString());
 
 		timer.Reset();

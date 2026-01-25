@@ -9,7 +9,7 @@ namespace Bolt {
 	class ImGuiRenderer {
 	public:
 		ImGuiRenderer() = default;
-		void Initialize();
+		void Initialize(GLFWwindow* window);
 		void Shutdown();
 
 		void BeginFrame();
