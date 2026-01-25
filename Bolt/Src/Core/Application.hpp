@@ -5,10 +5,12 @@
 #include <optional>
 #include "../Physics/PhysicsSystem.hpp"
 #include "../Gui/ImGuiRenderer.hpp"
+#include "../Gui/GuiRenderer.hpp"
 #include  "../Utils/Event.hpp"
 #include <chrono>
 
 namespace Bolt {
+
 	class Application {
 		friend class Window;
 
@@ -66,6 +68,7 @@ namespace Bolt {
 		std::unique_ptr<Window> m_Window;
 		std::unique_ptr<Renderer2D> m_Renderer2D;
 		std::unique_ptr<ImGuiRenderer> m_ImGuiRenderer;
+		std::unique_ptr<GuiRenderer> m_GuiRenderer;
 		std::unique_ptr<GizmoRenderer2D> m_GizmoRenderer2D;
 		std::unique_ptr<PhysicsSystem2D> m_PhysicsSystem2D;
 

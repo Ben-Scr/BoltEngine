@@ -27,7 +27,7 @@ namespace Bolt {
 	}
 
 	bool GizmoRenderer2D::m_IsInitialized = false;
-	std::unique_ptr<Shader> GizmoRenderer2D::m_GizmoShader;
+	std::unique_ptr<Shader> GizmoRenderer2D::m_GuiShader;
 	std::vector<PosColorVertex> GizmoRenderer2D::m_GizmoVertices;
 	std::vector<uint16_t> GizmoRenderer2D::m_GizmoIndices;
 	uint16_t GizmoRenderer2D::m_GizmoViewId = 1;
@@ -42,15 +42,15 @@ namespace Bolt {
 		if (m_IsInitialized)
 			return true;
 
-		m_GizmoShader = std::make_unique<Shader>("../Assets/Shader/gizmo.vert.glsl", "../Assets/Shader/gizmo.frag.glsl");
+		m_GuiShader = std::make_unique<Shader>("../Assets/Shader/gizmo.vert.glsl", "../Assets/Shader/gizmo.frag.glsl");
 
-		if (!m_GizmoShader || !m_GizmoShader->IsValid()) {
+		if (!m_GuiShader || !m_GuiShader->IsValid()) {
 			Logger::Error("GizmoRenderer", "Failed to load gizmo shader");
-			m_GizmoShader.reset();
+			m_GuiShader.reset();
 			return false;
 		}
 
-		GLuint program = m_GizmoShader->GetHandle();
+		GLuint program = m_GuiShader->GetHandle();
 		m_uMVP = glGetUniformLocation(program, "uMVP");
 
 		glGenVertexArrays(1, &m_VAO);
@@ -98,7 +98,7 @@ namespace Bolt {
 			m_VAO = 0;
 		}
 
-		m_GizmoShader.reset();
+		m_GuiShader.reset();
 		m_GizmoVertices.clear();
 		m_GizmoIndices.clear();
 		s_UploadBuffer.clear();
@@ -186,7 +186,7 @@ namespace Bolt {
 	}
 
 	void GizmoRenderer2D::FlushGizmos() {
-		if (!m_IsInitialized || m_GizmoVertices.empty() || !m_GizmoShader || !m_GizmoShader->IsValid())
+		if (!m_IsInitialized || m_GizmoVertices.empty() || !m_GuiShader || !m_GuiShader->IsValid())
 			return;
 
 		ConvertVertices(m_GizmoVertices, s_UploadBuffer);
@@ -199,7 +199,7 @@ namespace Bolt {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_GizmoIndices.size() * sizeof(uint16_t)), m_GizmoIndices.data(), GL_DYNAMIC_DRAW);
 
-		m_GizmoShader->Submit();
+		m_GuiShader->Submit();
 
 		if (Camera2D::Main()) {
 			glm::mat4 mvp = Camera2D::Main()->GetViewProjectionMatrix();

@@ -3,6 +3,8 @@
 #include "Graphics/OpenGL.hpp"
 #include "Core/Application.hpp"
 
+#include <imgui.h>
+
 
 
 void GameSystem::Awake() {
@@ -14,6 +16,11 @@ void GameSystem::Awake() {
 
 void GameSystem::Start() {
 	Scene& scene = GetScene();
+
+	Entity ent = scene.CreateEntity();
+	auto& guiImage = ent.AddComponent<GuiImage>();
+	auto& rectTransform = ent.AddComponent<RectTransform>();
+
 
 	scene.CreateCamera();
 	OpenGL::SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
@@ -108,7 +115,8 @@ void GameSystem::Update() {
 	DrawGizmos();
 }
 
-void GameSystem::OnGui() {
+void GameSystem::OnGui()
+{
 
 }
 

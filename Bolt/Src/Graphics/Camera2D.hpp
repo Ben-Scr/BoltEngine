@@ -33,6 +33,7 @@ namespace Bolt {
 
 
 		AABB GetViewportAABB() const { return m_WorldViewportAABB; }
+		Viewport* GetViewport() const { return m_Viewport; }
 		Vec2 WorldViewPort() const;
 		Vec2 ScreenToWorld(Vec2 pos) const;
 

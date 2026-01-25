@@ -124,6 +124,8 @@ namespace Bolt {
 				SceneManager::OnGuiScenes();
 			}
 
+			if (m_GuiRenderer) m_GuiRenderer->BeginFrame();
+
 			if (m_GizmoRenderer2D) m_GizmoRenderer2D->BeginFrame();
 		}
 		else {
@@ -140,6 +142,7 @@ namespace Bolt {
 		if (!s_IsPaused) {
 			if (m_Renderer2D) m_Renderer2D->EndFrame();
 			if (m_ImGuiRenderer) m_ImGuiRenderer->EndFrame();
+			if (m_GuiRenderer) m_GuiRenderer->EndFrame();
 			if (m_GizmoRenderer2D) m_GizmoRenderer2D->EndFrame();
 			if (m_Window) m_Window->SwapBuffers();
 		}
@@ -195,6 +198,11 @@ namespace Bolt {
 		m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
 		m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
 		Logger::Message("ImGuiRenderer", "Initialization took " + timer.ToString());
+
+		timer.Reset();
+		m_GuiRenderer = std::make_unique<GuiRenderer>();
+		m_GuiRenderer->Initialize();
+		Logger::Message("GuiRenderer", "Initialization took " + timer.ToString());
 
 		timer.Reset();
 		m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();

@@ -1,0 +1,108 @@
+#include "../pch.hpp"
+#include "GuiRenderer.hpp"
+
+#include "../Scene/SceneManager.hpp"
+#include "../Scene/Scene.hpp"
+#include "../Graphics/Camera2D.hpp"
+#include "../Graphics/TextureManager.hpp"
+
+#include "../Components/GuiImage.hpp"
+#include "../Components/RectTransform.hpp"
+
+#include "../Graphics/Shader.hpp"
+#include "../Graphics/Instance44.hpp"
+
+#include <glm/gtc/matrix_transform.hpp>
+
+namespace Bolt {
+	void GuiRenderer::Initialize() {
+		m_SpriteShader.Initialize();
+		m_QuadMesh.Initialize();
+
+		m_IsInitialized = true;
+	}
+	void GuiRenderer::Shutdown() {
+		m_IsInitialized = false;
+	}
+
+	void GuiRenderer::BeginFrame() {
+		SceneManager::ForeachLoadedScene([&](const Scene& scene) { RenderScene(scene); });
+	}
+	void GuiRenderer::EndFrame() {
+
+	}
+	void GuiRenderer::RenderScene(const Scene& scene) {
+		BOLT_RETURN_IF(!m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
+		m_SpriteShader.Bind();
+
+		// Camera 2D Region
+		Camera2D* camera2D = Camera2D::Main();
+		BOLT_RETURN_IF(!camera2D, BoltErrorCode::NullReference, "There is no main camera");
+
+		camera2D->UpdateViewport();
+		Viewport* vp = camera2D->GetViewport();
+
+
+		int w = vp->Width;
+		int h = vp->Height;
+
+		glm::mat4 P = glm::ortho(0, w, h, 0, -1, 1);
+		glm::mat4 V = glm::mat4(1.0f);
+		glm::mat4 M = glm::mat4(1.0f);
+
+		glm::mat4 MVP = P * V * M;
+		m_SpriteShader.SetMVP(MVP);
+		// Camera 2D Region
+		std::vector<Instance44> instances;
+
+
+		auto guiImageView = scene.GetRegistry().view<RectTransform, GuiImage>(entt::exclude<DisabledTag>);
+		instances.reserve(guiImageView.size_hint());
+
+		for (const auto& [ent, rt, guiImage] : guiImageView.each()) {
+			instances.emplace_back(
+				Vec2(0, 0),
+				Vec2(rt.Width, rt.Height),
+				rt.Rotation,
+				guiImage.Color,
+				guiImage.TextureHandle,
+				100,
+				100
+			);
+		}
+
+		std::sort(instances.begin(), instances.end(),
+			[](const Instance44& a, const Instance44& b) {
+				if (a.SortingLayer != b.SortingLayer)
+					return a.SortingLayer < b.SortingLayer;
+				return a.SortingOrder < b.SortingOrder;
+			});
+
+		glDisable(GL_SCISSOR_TEST);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		// Final Rendering
+		for (const Instance44& instance : instances) {
+			m_SpriteShader.SetSpritePosition(instance.Position);
+			m_SpriteShader.SetScale(instance.Scale);
+			m_SpriteShader.SetRotation(instance.Rotation);
+			m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
+
+			glActiveTexture(GL_TEXTURE0);
+			//Texture2D* texture = TextureManager::GetTexture(instance.TextureHandle);
+			Texture2D* texture = TextureManager::GetTexture(TextureManager::GetDefaultTexture(DefaultTexture::Square));
+			if (texture->IsValid())
+				texture->Submit(0);
+
+
+			m_QuadMesh.Bind();
+			m_SpriteShader.SetVertexColor(instance.Color);
+			m_QuadMesh.Draw();
+			m_QuadMesh.Unbind();
+		}
+
+		m_SpriteShader.Unbind();
+	}
+}

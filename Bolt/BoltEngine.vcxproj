@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -213,6 +213,7 @@
     <ClCompile Include="Src\Graphics\Camera2D.cpp" />
     <ClCompile Include="Src\Graphics\GizmoRenderer.cpp" />
     <ClCompile Include="Src\Graphics\Gizmos.cpp" />
+    <ClCompile Include="Src\Gui\GuiRenderer.cpp" />
     <ClCompile Include="Src\Gui\ImGuiRenderer.cpp" />
     <ClCompile Include="Src\Graphics\OpenGL.cpp" />
     <ClCompile Include="Src\Graphics\QuadMesh.cpp" />
@@ -261,7 +262,9 @@
     <ClInclude Include="Src\Components\BoxCollider2D.hpp" />
     <ClInclude Include="Src\Components\Collider2D.hpp" />
     <ClInclude Include="Src\Components\ComponentUtils.hpp" />
+    <ClInclude Include="Src\Components\GuiImage.hpp" />
     <ClInclude Include="Src\Components\ParticleSystem2D.hpp" />
+    <ClInclude Include="Src\Components\RectTransform.hpp" />
     <ClInclude Include="Src\Components\Rigidbody2D.hpp" />
     <ClInclude Include="Src\Components\SpriteRenderer.hpp" />
     <ClInclude Include="Src\Components\Tags.hpp" />
@@ -286,6 +289,8 @@
     <ClInclude Include="Src\Graphics\Camera2D.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Src\Graphics\Gizmos.hpp" />
+    <ClInclude Include="Src\Gui\GuiRenderer.hpp" />
+    <ClInclude Include="Src\Graphics\Instance44.hpp" />
     <ClInclude Include="Src\Graphics\OpenGL.hpp" />
     <ClInclude Include="Src\Graphics\QuadMesh.hpp" />
     <ClInclude Include="Src\Graphics\Renderer2D.hpp" />
