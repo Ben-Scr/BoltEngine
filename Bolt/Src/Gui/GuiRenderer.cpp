@@ -46,12 +46,8 @@ namespace Bolt {
 		int w = vp->Width;
 		int h = vp->Height;
 
-		glm::mat4 P = glm::ortho(0, w, h, 0, -1, 1);
-		glm::mat4 V = glm::mat4(1.0f);
-		glm::mat4 M = glm::mat4(1.0f);
-
-		glm::mat4 MVP = P * V * M;
-		m_SpriteShader.SetMVP(MVP);
+		glm::mat4 P = glm::ortho(0.0f, static_cast<float>(w), static_cast<float>(h), 0.0f, -1.0f, 1.0f);
+		m_SpriteShader.SetMVP(P);
 		// Camera 2D Region
 		std::vector<Instance44> instances;
 
@@ -60,8 +56,13 @@ namespace Bolt {
 		instances.reserve(guiImageView.size_hint());
 
 		for (const auto& [ent, rt, guiImage] : guiImageView.each()) {
+			Vec2 position = {
+				rt.Left + rt.Width * rt.Pivot.x,
+				rt.Top + rt.Height * rt.Pivot.y
+			};
+
 			instances.emplace_back(
-				Vec2(0, 0),
+				Vec2(0,0),
 				Vec2(rt.Width, rt.Height),
 				rt.Rotation,
 				guiImage.Color,
@@ -91,8 +92,12 @@ namespace Bolt {
 			m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
 
 			glActiveTexture(GL_TEXTURE0);
-			//Texture2D* texture = TextureManager::GetTexture(instance.TextureHandle);
-			Texture2D* texture = TextureManager::GetTexture(TextureManager::GetDefaultTexture(DefaultTexture::Square));
+			TextureHandle handle = instance.TextureHandle;
+			if (!handle.IsValid()) {
+				handle = TextureManager::GetDefaultTexture(DefaultTexture::Square);
+			}
+
+			Texture2D* texture = TextureManager::GetTexture(handle);
 			if (texture->IsValid())
 				texture->Submit(0);
 

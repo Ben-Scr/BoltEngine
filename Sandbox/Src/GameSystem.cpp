@@ -18,6 +18,7 @@ void GameSystem::Start() {
 	Scene& scene = GetScene();
 
 	Entity ent = scene.CreateEntity();
+	ent.RemoveComponent<Transform2D>();
 	auto& guiImage = ent.AddComponent<GuiImage>();
 	auto& rectTransform = ent.AddComponent<RectTransform>();
 
