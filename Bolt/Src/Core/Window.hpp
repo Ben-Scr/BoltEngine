@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
+#include <memory>
 
 namespace Bolt {
 	class Texture2D;
@@ -99,7 +100,7 @@ namespace Bolt {
 		void Focus();
 
 		static Window* GetActiveWindow() { return s_ActiveWindow; }
-		static std::shared_ptr<Viewport> GetMainViewport() { return s_MainViewport; }
+		static Viewport* GetMainViewport() { return s_MainViewport; }
 
 	private:
 		void CreateWindow(const GLFWWindowProperties& props);
@@ -128,7 +129,7 @@ namespace Bolt {
 
 		static const GLFWvidmode* k_Videomode;
 
-		static std::shared_ptr<Viewport> s_MainViewport;
+		static Viewport* s_MainViewport;
 		static bool s_IsVsync;
 		static bool s_IsInitialized;
 	};

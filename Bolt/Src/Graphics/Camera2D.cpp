@@ -15,10 +15,6 @@ namespace Bolt {
 	}
 
 	void Camera2D::UpdateViewport() {
-		auto vp = Window::GetMainViewport();
-		m_ViewportWidth = vp->Width;
-		m_ViewportHeight = vp->Height;
-
 		UpdateProj();
 		UpdateViewportAABB();
 	}
@@ -28,7 +24,7 @@ namespace Bolt {
 	}
 
 	void Camera2D::UpdateProj() {
-		const float aspect = float(m_ViewportWidth) / float(m_ViewportHeight);
+		const float aspect = m_Viewport->GetAspect();
 		const float halfH = m_OrthographicSize * m_Zoom;
 		const float halfW = halfH * aspect;
 
@@ -55,16 +51,16 @@ namespace Bolt {
 	}
 
 	Vec2 Camera2D::WorldViewPort() const {
-		float aspectRatio = static_cast<float>(m_ViewportWidth) / static_cast<float>(m_ViewportHeight);
+		float aspect = m_Viewport->GetAspect();
 		float worldHeight = 2.0f * (m_OrthographicSize / m_Zoom);
-		float worldWidth = worldHeight * aspectRatio;
+		float worldWidth = worldHeight * aspect;
 		return { worldWidth, worldHeight };
 	}
 
 	Vec2 Camera2D::ScreenToWorld(Vec2 pos) const
 	{
-		const float xNdc = (2.0f * pos.x / float(m_ViewportWidth)) - 1.0f;
-		const float yNdc = 1.0f - (2.0f * pos.y / float(m_ViewportHeight));
+		const float xNdc = (2.0f * pos.x / float(m_Viewport->Width)) - 1.0f;
+		const float yNdc = 1.0f - (2.0f * pos.y / float(m_Viewport->Height));
 
 		const float zNear = 0.0f, zFar = 100.0f;
 		const float zNdc = -(zFar + zNear) / (zFar - zNear);
@@ -82,6 +78,7 @@ namespace Bolt {
 
 	void Camera2D::Initialize(Transform2D& transform) {
 		s_Main = this;
+		m_Viewport = Window::GetMainViewport();
 		m_Transform = &transform;
 		m_ViewMat = glm::mat4(1.0f);
 		m_ProjMat = glm::mat4(1.0f);

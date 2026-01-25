@@ -9,7 +9,7 @@
 namespace Bolt {
 	Window* Window::s_ActiveWindow = nullptr;
 	bool Window::s_IsVsync = true;
-	std::shared_ptr<Viewport> Window::s_MainViewport;
+	Viewport* Window::s_MainViewport;
 	bool Window::s_IsInitialized = false;
 	const GLFWvidmode* Window::k_Videomode = nullptr;
 
@@ -75,8 +75,8 @@ namespace Bolt {
 	void Window::CreateWindow(const GLFWWindowProperties& props) {
 		BOLT_RETURN_IF(!s_IsInitialized, BoltErrorCode::NotInitialized, "The Window isn't initialized");
 
-		s_MainViewport = std::make_shared<Viewport>(props.Width, props.Height);
-
+		//s_MainViewport = std::make_shared<Viewport>(props.Width, props.Height);
+		s_MainViewport =new Viewport(props.Width, props.Height);
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -300,8 +300,6 @@ namespace Bolt {
 
 
 	void Window::UpdateViewport() {
-		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport->Width, &s_MainViewport->Height);
-
 		if (OpenGL::IsInitialized())
 		{
 			glViewport(0, 0, s_MainViewport->Width, s_MainViewport->Height);

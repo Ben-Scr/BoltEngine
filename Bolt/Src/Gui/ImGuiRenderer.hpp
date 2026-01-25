@@ -15,7 +15,6 @@ namespace Bolt {
 		void EndFrame();
 
 	private:
-		std::shared_ptr<Viewport> m_Viewport;
 		bool s_IsInitialized;
 	};
 }

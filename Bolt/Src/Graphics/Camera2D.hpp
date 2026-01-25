@@ -1,6 +1,7 @@
 #pragma once
 #include "../Components/Transform2D.hpp"
 #include "../Collections/AABB.hpp"
+#include "../Collections/Viewport.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -39,11 +40,12 @@ namespace Bolt {
 		const glm::mat4 GetViewMatrix() const { return m_ViewMat; }
 		const glm::mat4 GetProjectionMatrix() const { return m_ProjMat; }
 
-		float ViewportWidth() const { return static_cast<float>(m_ViewportWidth); }
-		float ViewportHeight() const { return static_cast<float>(m_ViewportHeight); }
+		float ViewportWidth() const { return static_cast<float>(m_Viewport->Width); }
+		float ViewportHeight() const { return static_cast<float>(m_Viewport->Height); }
 
 		bool IsValid() const { return m_Transform; }
 	private:
+		void SetViewport(Viewport* viewport) { m_Viewport = viewport; }
 		void UpdateProj();
 		void UpdateView();
 		void UpdateViewportAABB();
@@ -55,7 +57,7 @@ namespace Bolt {
 		static Camera2D* s_Main;
 		float m_Zoom{ 1.0f };
 		float m_OrthographicSize{ 5.0f };
-		int   m_ViewportWidth{ 1 }, m_ViewportHeight{ 1 };
+		Viewport* m_Viewport;
 
 		glm::mat4 m_ViewMat{};
 		glm::mat4 m_ProjMat{};

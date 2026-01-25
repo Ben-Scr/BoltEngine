@@ -5,6 +5,9 @@
 #include "../Graphics/Gizmos.hpp"
 #include "../Core/Application.hpp"
 #include "../Collections/Viewport.hpp"
+#include "../Core/Window.hpp"
+#include "../Scene/SceneManager.hpp"
+#include "../Scene/Scene.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -15,8 +18,6 @@
 namespace Bolt {
 
 	void ImGuiRenderer::Initialize(GLFWwindow* window) {
-		m_Viewport = Window::GetMainViewport();
-
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
@@ -39,11 +40,6 @@ namespace Bolt {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-
-		if(m_Viewport)
-		ImGui::SetNextWindowSize(ImVec2(m_Viewport->Width, m_Viewport->Height));
-		else
-			m_Viewport = Window::GetMainViewport();
 
 		ImGui::Begin("Debug Settings");
 
@@ -80,7 +76,7 @@ namespace Bolt {
 
 		ImGui::Begin("Debug Info");
 
-		const std::string fps = "Current FPS: " + std::to_string(1.f / Time::GetDeltaTime());
+		const std::string fps = "Current FPS: " + std::to_string(1.f / Time::GetDeltaTimeUnscaled());
 		const std::string timescale = "Current TimeScale: " + std::to_string(Time::GetTimeScale());
 		//const std::string renderedInstances = "Rendered Instances: " + std::to_string(Application::GetInstance().m_Renderer2D->GetRenderedInstancesCount());
 		//const std::string renderLoopDuration = "Render Loop Duration: " + std::to_string(m_Renderer2D->GetRRenderLoopDuration());
