@@ -56,6 +56,8 @@ namespace Bolt {
 		instances.reserve(guiImageView.size_hint());
 
 		for (const auto& [ent, rt, guiImage] : guiImageView.each()) {
+			Logger::Message("Render UI");
+
 			Vec2 position = {
 				rt.Left + rt.Width * rt.Pivot.x,
 				rt.Top + rt.Height * rt.Pivot.y
