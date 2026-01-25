@@ -33,6 +33,8 @@ namespace Bolt {
 	};
 
 	class Window {
+		friend class Application;
+
 	public:
 		Window(int width, int height, const std::string& title);
 		Window(const GLFWWindowProperties& props);
@@ -66,14 +68,14 @@ namespace Bolt {
 		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_GLFWwindow, title.c_str()); }
 
 		std::string GetTitle() const { return std::string(glfwGetWindowTitle(m_GLFWwindow)); }
-		int GetWidth()  const { return s_MainViewport.Width; }
-		int GetHeight() const { return s_MainViewport.Height; }
+		int GetWidth()  const { return s_MainViewport->Width; }
+		int GetHeight() const { return s_MainViewport->Height; }
 		GLFWmonitor* GetWindowMonitor() const;
 		static GLFWmonitor* GetMainMonitor();
 		const GLFWvidmode* GetVideomode() const { return k_Videomode; }
 		GLFWwindow* GetGLFWWindow() const { return m_GLFWwindow; }
-		float GetAspect() const { return s_MainViewport.GetAspect(); }
-		Vec2Int GetSize() const { return s_MainViewport.GetSize(); }
+		float GetAspect() const { return s_MainViewport->GetAspect(); }
+		Vec2Int GetSize() const { return s_MainViewport->GetSize(); }
 		Vec2Int GetPosition() const {
 			Vec2Int pos;
 			glfwGetWindowPos(m_GLFWwindow, &pos.x, &pos.y);
@@ -97,12 +99,11 @@ namespace Bolt {
 		void Focus();
 
 		static Window* GetActiveWindow() { return s_ActiveWindow; }
-		static Viewport GetMainViewport() { return s_MainViewport; };
+		static std::shared_ptr<Viewport> GetMainViewport() { return s_MainViewport; }
 
 	private:
 		void CreateWindow(const GLFWWindowProperties& props);
 		void UpdateViewport();
-		void UpdateWindowSize();
 		void SwapBuffers() const { glfwSwapBuffers(m_GLFWwindow); }
 
 		bool ShouldClose() const { return glfwWindowShouldClose(m_GLFWwindow); }
@@ -127,10 +128,8 @@ namespace Bolt {
 
 		static const GLFWvidmode* k_Videomode;
 
-		static Viewport s_MainViewport;
+		static std::shared_ptr<Viewport> s_MainViewport;
 		static bool s_IsVsync;
 		static bool s_IsInitialized;
-
-		friend class Application;
 	};
 }

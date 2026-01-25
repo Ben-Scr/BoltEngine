@@ -4,6 +4,7 @@
 #include "../Core/Time.hpp"
 #include "../Graphics/Gizmos.hpp"
 #include "../Core/Application.hpp"
+#include "../Collections/Viewport.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -13,11 +14,13 @@
 
 namespace Bolt {
 
-	void ImGuiRenderer::Initialize(GLFWwindow* window) {
+	void ImGuiRenderer::Initialize() {
+		m_Viewport = Window::GetMainViewport();
+
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
-		ImGui_ImplGlfw_InitForOpenGL(window, true);
+		ImGui_ImplGlfw_InitForOpenGL(Window::GetActiveWindow()->GetGLFWWindow(), true);
 		ImGui_ImplOpenGL3_Init("#version 330 core");
 		ImGui::StyleColorsDark();
 
@@ -36,6 +39,7 @@ namespace Bolt {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		ImGui::SetNextWindowSize(ImVec2(m_Viewport->Width, m_Viewport->Height));
 
 		ImGui::Begin("Debug Settings");
 

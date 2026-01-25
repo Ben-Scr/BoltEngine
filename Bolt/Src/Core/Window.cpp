@@ -9,7 +9,7 @@
 namespace Bolt {
 	Window* Window::s_ActiveWindow = nullptr;
 	bool Window::s_IsVsync = true;
-	Viewport Window::s_MainViewport;
+	std::shared_ptr<Viewport> Window::s_MainViewport = nullptr;
 	bool Window::s_IsInitialized = false;
 	const GLFWvidmode* Window::k_Videomode = nullptr;
 
@@ -31,6 +31,11 @@ namespace Bolt {
 		if (app->m_Renderer2D) {
 			app->m_Renderer2D->BeginFrame();
 			app->m_Renderer2D->EndFrame();
+		}
+
+		if (app->m_ImGuiRenderer) {
+			app->m_ImGuiRenderer->BeginFrame();
+			app->m_ImGuiRenderer->EndFrame();
 		}
 
 		if (app->m_GizmoRenderer2D) {
@@ -70,7 +75,7 @@ namespace Bolt {
 	void Window::CreateWindow(const GLFWWindowProperties& props) {
 		BOLT_RETURN_IF(!s_IsInitialized, BoltErrorCode::NotInitialized, "The Window isn't initialized");
 
-		s_MainViewport = Viewport{ props.Width, props.Height };
+		s_MainViewport = std::make_shared<Viewport>(props.Width, props.Height);
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -86,7 +91,7 @@ namespace Bolt {
 			MaximizeWindow();
 		}
 		else {
-			m_GLFWwindow = glfwCreateWindow(s_MainViewport.Width, s_MainViewport.Height, props.Title.c_str(), nullptr, nullptr);
+			m_GLFWwindow = glfwCreateWindow(s_MainViewport->Width, s_MainViewport->Height, props.Title.c_str(), nullptr, nullptr);
 			CenterWindow();
 		}
 
@@ -112,9 +117,6 @@ namespace Bolt {
 
 		if (!s_ActiveWindow)
 			s_ActiveWindow = this;
-
-		if (s_ActiveWindow == this)
-			UpdateWindowSize();
 	}
 	void Window::Destroy() {
 		glfwDestroyWindow(m_GLFWwindow);
@@ -140,11 +142,11 @@ namespace Bolt {
 			glfwMaximizeWindow(m_GLFWwindow);
 		}
 
-		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport.Width, &s_MainViewport.Height);
+		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport->Width, &s_MainViewport->Height);
 	}
 	void Window::MinimizeWindow() {
 		glfwIconifyWindow(m_GLFWwindow);
-		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport.Width, &s_MainViewport.Height);
+		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport->Width, &s_MainViewport->Height);
 	}
 	void Window::RestoreWindow() {
 		glfwRestoreWindow(m_GLFWwindow);
@@ -259,13 +261,14 @@ namespace Bolt {
 
 		glfwSetWindowIcon(m_GLFWwindow, 1, &img);
 	}
+
 	void Window::SetWindowResizedCallback(GLFWwindow* window, int width, int height) {
 		Window* _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 
 		if (!_window) return;
 
-		_window->s_MainViewport.Width = width;
-		_window->s_MainViewport.Height = height;
+		_window->s_MainViewport->Width = width;
+		_window->s_MainViewport->Height = height;
 		_window->UpdateViewport();
 	}
 
@@ -296,12 +299,11 @@ namespace Bolt {
 
 
 	void Window::UpdateViewport() {
+		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport->Width, &s_MainViewport->Height);
+
 		if (OpenGL::IsInitialized())
 		{
-			glViewport(0, 0, s_MainViewport.Width, s_MainViewport.Height);
+			glViewport(0, 0, s_MainViewport->Width, s_MainViewport->Height);
 		}
-	}
-	void Window::UpdateWindowSize() {
-		glfwGetWindowSize(m_GLFWwindow, &s_MainViewport.Width, &s_MainViewport.Height);
 	}
 }

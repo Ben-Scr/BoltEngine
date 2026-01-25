@@ -16,8 +16,8 @@ namespace Bolt {
 
 	void Camera2D::UpdateViewport() {
 		auto vp = Window::GetMainViewport();
-		m_ViewportWidth = vp.Width;
-		m_ViewportHeight = vp.Height;
+		m_ViewportWidth = vp->Width;
+		m_ViewportHeight = vp->Height;
 
 		UpdateProj();
 		UpdateViewportAABB();
