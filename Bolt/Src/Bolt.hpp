@@ -18,7 +18,7 @@ Bolt specific includes
 #include "Components/SpriteRenderer.hpp"
 #include "Components/Transform2D.hpp"
 #include "Components/ParticleSystem2D.hpp"
-#include "Components/GuiImage.hpp"
+#include "Components/Image.hpp"
 #include "Components/RectTransform.hpp"
 #include "Components/Tags.hpp"
 

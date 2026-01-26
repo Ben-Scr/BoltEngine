@@ -386,7 +386,7 @@
     <ClInclude Include="Src\Gui\ImGui.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\GuiImage.hpp">
+    <ClInclude Include="Src\Components\Image.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Components\RectTransform.hpp">

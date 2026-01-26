@@ -3,7 +3,7 @@
 #include "../Collections/Color.hpp"
 
 namespace Bolt {
-	struct GuiImage {
+	struct Image {
 		TextureHandle TextureHandle;
 		Color Color;
 	};

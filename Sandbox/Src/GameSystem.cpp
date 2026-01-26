@@ -21,7 +21,7 @@ void GameSystem::Start() {
 
 	m_RectEntity = scene.CreateEntity();
 	m_RectEntity.RemoveComponent<Transform2D>();
-	auto& guiImage = m_RectEntity.AddComponent<GuiImage>();
+	auto& guiImage = m_RectEntity.AddComponent<Image>();
 	m_RectEntity.AddComponent<RectTransform>();
 
 
@@ -122,32 +122,38 @@ void GameSystem::OnGui()
 {
 	ImGui::Begin("Rect Settings");
   
-	static float left = 0;
-	ImGui::SliderFloat("Left", &left, 0, 1920);
+	float vpHeight = Window::GetMainViewport()->Height;
+	float vpWidth = Window::GetMainViewport()->Width;
 
-	static float right = 0;
-	ImGui::SliderFloat("Right", &right, 0, 1920);
+	static float posY = 0;
+	static float posX = 0;
+	ImGui::SliderFloat("Pos X", &posX, -vpWidth, vpWidth);
+	ImGui::SliderFloat("Pos Y", &posY, -vpHeight, vpHeight);
 
-	static float top = 0;
-	ImGui::SliderFloat("Top", &top, 0, 1080);
+	static float height = 100;
+	ImGui::SliderFloat("Height", &height, -vpHeight, vpHeight);
+	static float width = 100;
+	ImGui::SliderFloat("Width", &width, -vpWidth, vpWidth);
 
-	static float bottom = 0;
-	ImGui::SliderFloat("Bottom", &bottom, 0, 1080);
+	static float pivotX = 0.5f;
+	ImGui::SliderFloat("Pixot X", &pivotX, 0, 1);
+	static float pivotY = 0.5f;
+	ImGui::SliderFloat("Pixot Y", &pivotY, 0, 1);
 
-	static float scaleX = 0;
-	ImGui::SliderFloat("Width", &scaleX, 0, 1920);
-
-	static float scaleY = 0;
-	ImGui::SliderFloat("Height", &scaleY, 0, 1920);
+	static float scaleX = 1;
+	ImGui::SliderFloat("Scale X", &scaleX, -10, 10);
+	static float scaleY = 1;
+	ImGui::SliderFloat("Scale Y", &scaleY, -10, 10);
 
 	RectTransform& rectTransform = m_RectEntity.GetComponent<RectTransform>();
-	rectTransform.Left = left;
-	rectTransform.Right = right;
-	rectTransform.Top = top;
-	rectTransform.Bottom = bottom;
+	rectTransform.Position = Vec2(posX, posY);
 
-	rectTransform.Width = scaleX;
-	rectTransform.Height = scaleY;
+	rectTransform.Width = width;
+	rectTransform.Height = height;
+
+	rectTransform.Scale = Vec2(scaleX, scaleY);
+
+	rectTransform.Pivot = Vec2(pivotX, pivotY);
 
 	ImGui::End();
 }

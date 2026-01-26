@@ -6,7 +6,7 @@
 #include "../Graphics/Camera2D.hpp"
 #include "../Graphics/TextureManager.hpp"
 
-#include "../Components/GuiImage.hpp"
+#include "../Components/Image.hpp"
 #include "../Components/RectTransform.hpp"
 
 #include "../Graphics/Shader.hpp"
@@ -58,18 +58,15 @@ namespace Bolt {
 		std::vector<Instance44> instances;
 
 
-		auto guiImageView = scene.GetRegistry().view<RectTransform, GuiImage>(entt::exclude<DisabledTag>);
+		auto guiImageView = scene.GetRegistry().view<RectTransform, Image>(entt::exclude<DisabledTag>);
 		instances.reserve(guiImageView.size_hint());
 
 		for (const auto& [ent, rt, guiImage] : guiImageView.each()) {
-			Vec2 position = {
-				rt.Left - h * rt.Pivot.x,
-				rt.Top + w * rt.Pivot.y
-			};
+			Vec2 bl = rt.GetBottomLeft();
 
 			instances.emplace_back(
-				position,
-				Vec2(rt.Width, rt.Height),
+				bl,
+				rt.GetSize(),
 				rt.Rotation,
 				guiImage.Color,
 				guiImage.TextureHandle,
