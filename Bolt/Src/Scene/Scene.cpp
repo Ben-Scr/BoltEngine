@@ -20,18 +20,6 @@ namespace Bolt {
 		return Entity(entityHandle, m_Registry);
 	}
 
-	Entity Scene::CreateCamera() {
-		Entity entity = CreateEntity();
-		Camera2D& camera2D = entity.AddComponent<Camera2D>();
-		return entity;
-	}
-
-	Entity Scene::CreateRenderableEntity() {
-		Entity entity = CreateEntity();
-		entity.AddComponent<SpriteRenderer>();
-		return entity;
-	}
-
 	EntityHandle Scene::CreateEntityHandle() { return m_Registry.create(); }
 
 	void Scene::DestroyEntity(Entity entity) { Entity::Destroy(entity); }

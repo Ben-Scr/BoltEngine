@@ -150,6 +150,9 @@
     <ClCompile Include="Src\Gui\GuiRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Scene\EntityHelper.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Audio\Audio.hpp">
@@ -396,6 +399,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Graphics\Instance44.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Scene\EntityHelper.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

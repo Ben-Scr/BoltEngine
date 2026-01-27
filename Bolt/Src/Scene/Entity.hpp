@@ -4,8 +4,10 @@
 
 namespace Bolt {
 
-
 	class Entity {
+		friend class Scene;
+		friend class EntityHelper;
+
 	public:
 		static Entity Create();
 
@@ -67,8 +69,6 @@ namespace Bolt {
 		Entity(EntityHandle e, entt::registry* r) : m_EntityHandle{ e }, m_Registry{ r } {};
 		EntityHandle    m_EntityHandle;
 		entt::registry* m_Registry;
-
-		friend class Scene;
 	};
 
 	inline bool operator==(const Entity& a, const Entity& b) { return a.GetHandle() == b.GetHandle(); }

@@ -34,9 +34,6 @@ namespace Bolt {
 			}
 		}
 
-		scene->AwakeSystems();
-		scene->StartSystems();
-
 		return scene;
 	}
 }

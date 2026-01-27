@@ -67,7 +67,7 @@ namespace Bolt {
 		UnloadAllScenes(false);
 
 		SceneDefinition* definition = defIt->second.get();
-		std::shared_ptr newScene = definition->Instantiate();
+		std::shared_ptr<Scene> newScene = definition->Instantiate();
 
 		for (const auto& callback : definition->m_LoadCallbacks) {
 			callback(*newScene);
@@ -76,6 +76,10 @@ namespace Bolt {
 		newScene->m_IsLoaded = true;
 
 		s_ActiveScene = &*newScene;
+
+		newScene->AwakeSystems();
+		newScene->StartSystems();
+
 		s_LoadedScenes.push_back(std::move(newScene));
 
 		BOLT_ASSERT(s_ActiveScene, BoltErrorCode::NullReference ,"Active Scene is null");

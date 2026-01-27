@@ -2,6 +2,7 @@
 #include "Components/Tags.hpp"
 #include "Graphics/OpenGL.hpp"
 #include "Core/Application.hpp"
+#include "Scene/EntityHelper.hpp"
 
 #include <imgui.h>
 
@@ -25,7 +26,7 @@ void GameSystem::Start() {
 	//m_RectEntity.AddComponent<RectTransform>();
 
 
-	scene.CreateCamera();
+	EntityHelper::CreateCamera2DEntity();
 	OpenGL::SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
 
 	m_PlayerEmissionPts = scene.CreateEntity();
@@ -58,17 +59,19 @@ struct AsteriodData {
 
 void GameSystem::Update() {
 	Scene& scene = GetScene();
-		auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
+	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
 
-	if (Input::GetKeyDown(KeyCode::R)) {
+	bool cntrlDown = Input::GetKey(KeyCode::LeftControl);
+
+	if (Input::GetKeyDown(KeyCode::R) && cntrlDown) {
 		SceneManager::ReloadScene(scene.GetName());
 		return;
 	}
 	if (Input::GetKeyDown(KeyCode::O)) {
-		for (int x = 0; x < 50; x++) 
+		for (int x = 0; x < 50; x++)
 			for (int y = 0; y < 50; y++) {
-				auto& tr = scene.CreateRenderableEntity().GetComponent<Transform2D>();
-				tr.Position = Vec2(x, y)+ mousePos;
+				auto& tr = EntityHelper::CreateSpriteEntity().GetComponent<Transform2D>();
+				tr.Position = Vec2(x, y) + mousePos;
 			}
 	}
 	if (Input::GetKeyDown(KeyCode::P)) {
@@ -83,8 +86,8 @@ void GameSystem::Update() {
 	}
 
 	if (Input::GetKey(KeyCode::E)) {
-		Entity ent = scene.CreateEntity();
-		SpriteRenderer& sp = ent.AddComponent<SpriteRenderer>();
+		Entity ent = EntityHelper::CreateWith<Transform2D, SpriteRenderer>();
+		SpriteRenderer& sp = ent.GetComponent<SpriteRenderer>();
 		sp.TextureHandle = m_AsteriodTexture;
 
 		AsteriodData& asteriod = ent.AddComponent<AsteriodData>();
@@ -132,6 +135,10 @@ void GameSystem::OnGui()
 		Application::SetTargetFramerate(targetFrameRate);
 	}
 
+	static bool playerEnabled = true;
+	ImGui::Checkbox("Player enabled", &playerEnabled);
+	EntityHelper::SetEnabled(m_PlayerEntity, playerEnabled);
+
 	static float timeScale = 1.0;
 	ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f);
 	Time::SetTimeScale(timeScale);
@@ -158,10 +165,8 @@ void GameSystem::OnGui()
 	const std::string fps = "Current FPS: " + std::to_string(1.f / Time::GetDeltaTimeUnscaled());
 	const std::string timescale = "Current TimeScale: " + std::to_string(Time::GetTimeScale());
 
-	auto renderer = Application::GetInstance().m_Renderer2D;
-
-	const std::string renderedInstances = "Rendered Instances: " + std::to_string(renderer->GetRenderedInstancesCount());
-	const std::string renderLoopDuration = "Render Loop Duration: " + std::to_string(renderer->GetRRenderLoopDuration());
+	const std::string renderedInstances = "Rendered Instances: 0"; //+ std::to_string(renderer->GetRenderedInstancesCount());
+	const std::string renderLoopDuration = "Render Loop Duration: 0"; //+ std::to_string(renderer->GetRRenderLoopDuration());
 
 	ImGui::Text(fps.c_str());
 	ImGui::Text(timescale.c_str());

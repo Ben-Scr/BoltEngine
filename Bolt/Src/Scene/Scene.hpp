@@ -14,10 +14,6 @@ namespace Bolt {
 
 		// Info: Creates an entity with a Transform2D component
 		Entity CreateEntity();
-		// Info: Creates an entity with a Camera2D component
-		Entity CreateCamera();
-		// Info: Creates an entity with a Transform2D and SpriteRenderer component
-		Entity CreateRenderableEntity();
 		// Info: Creates an entity and returnes its handle
 		EntityHandle CreateEntityHandle();
 

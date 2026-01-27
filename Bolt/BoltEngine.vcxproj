@@ -238,6 +238,7 @@
     <ClCompile Include="Src\Physics\PhysicsSystem.cpp" />
     <ClCompile Include="Src\Physics\PhysicsUtility.cpp" />
     <ClCompile Include="Src\Scene\Entity.cpp" />
+    <ClCompile Include="Src\Scene\EntityHelper.cpp" />
     <ClCompile Include="Src\Scene\Scene.cpp" />
     <ClCompile Include="Src\Scene\SceneDefinition.cpp" />
     <ClCompile Include="Src\Scene\SceneManager.cpp" />
@@ -315,6 +316,7 @@
     <ClInclude Include="Src\Physics\PhysicsUtility.hpp" />
     <ClInclude Include="Src\Scene\Entity.hpp" />
     <ClInclude Include="Src\Scene\EntityHandle.hpp" />
+    <ClInclude Include="Src\Scene\EntityHelper.hpp" />
     <ClInclude Include="Src\Scene\ISystem.hpp" />
     <ClInclude Include="Src\Scene\Scene.hpp" />
     <ClInclude Include="Src\Scene\SceneDefinition.hpp" />
