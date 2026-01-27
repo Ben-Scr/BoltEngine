@@ -11,8 +11,11 @@ namespace Bolt {
 
 namespace Bolt {
 	class Scene;
+	
 
 	class SceneManager {
+		friend class Window;
+
 	public:
 		static SceneDefinition& RegisterScene(const std::string& name);
 		static std::weak_ptr<Scene> LoadScene(const std::string& name);

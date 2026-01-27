@@ -3,6 +3,7 @@
 #include "Application.hpp"
 #include "../Graphics/Texture2D.hpp"
 #include "../Graphics/OpenGL.hpp"
+#include "../Scene/SceneManager.hpp"
 
 #include <glad/glad.h>
 
@@ -35,6 +36,7 @@ namespace Bolt {
 
 		if (app->m_ImGuiRenderer) {
 			app->m_ImGuiRenderer->BeginFrame();
+			SceneManager::OnGuiScenes();
 			app->m_ImGuiRenderer->EndFrame();
 		}
 

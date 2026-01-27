@@ -19,10 +19,10 @@ void GameSystem::Awake() {
 void GameSystem::Start() {
 	Scene& scene = GetScene();
 
-	m_RectEntity = scene.CreateEntity();
-	m_RectEntity.RemoveComponent<Transform2D>();
-	auto& guiImage = m_RectEntity.AddComponent<Image>();
-	m_RectEntity.AddComponent<RectTransform>();
+	//m_RectEntity = scene.CreateEntity();
+	//m_RectEntity.RemoveComponent<Transform2D>();
+	//auto& guiImage = m_RectEntity.AddComponent<Image>();
+	//m_RectEntity.AddComponent<RectTransform>();
 
 
 	scene.CreateCamera();
@@ -120,41 +120,53 @@ void GameSystem::Update() {
 
 void GameSystem::OnGui()
 {
-	ImGui::Begin("Rect Settings");
-  
-	float vpHeight = Window::GetMainViewport()->Height;
-	float vpWidth = Window::GetMainViewport()->Width;
+	ImGui::Begin("Debug Settings");
 
-	static float posY = 0;
-	static float posX = 0;
-	ImGui::SliderFloat("Pos X", &posX, -vpWidth, vpWidth);
-	ImGui::SliderFloat("Pos Y", &posY, -vpHeight, vpHeight);
+	static bool enabledVsync = true;
+	ImGui::Checkbox("Vsync", &enabledVsync);
+	Application::GetWindow().SetVsync(enabledVsync);
 
-	static float height = 100;
-	ImGui::SliderFloat("Height", &height, -vpHeight, vpHeight);
-	static float width = 100;
-	ImGui::SliderFloat("Width", &width, -vpWidth, vpWidth);
+	if (!enabledVsync) {
+		static float targetFrameRate = 144;
+		ImGui::SliderFloat("Target FPS", &targetFrameRate, 0.f, 244.f);
+		Application::SetTargetFramerate(targetFrameRate);
+	}
 
-	static float pivotX = 0.5f;
-	ImGui::SliderFloat("Pixot X", &pivotX, 0, 1);
-	static float pivotY = 0.5f;
-	ImGui::SliderFloat("Pixot Y", &pivotY, 0, 1);
+	static float timeScale = 1.0;
+	ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f);
+	Time::SetTimeScale(timeScale);
 
-	static float scaleX = 1;
-	ImGui::SliderFloat("Scale X", &scaleX, -10, 10);
-	static float scaleY = 1;
-	ImGui::SliderFloat("Scale Y", &scaleY, -10, 10);
+	static float fixedFPS = 50.f;
+	ImGui::SliderFloat("Fixed FPS", &fixedFPS, 10.f, 244.f);
 
-	RectTransform& rectTransform = m_RectEntity.GetComponent<RectTransform>();
-	rectTransform.Position = Vec2(posX, posY);
+	static bool enabledGizmo = true;
+	ImGui::Checkbox("Gizmo", &enabledGizmo);
+	Gizmo::SetEnabled(enabledGizmo);
 
-	rectTransform.Width = width;
-	rectTransform.Height = height;
+	if (enabledGizmo) {
+		static bool aabb = true;
+		ImGui::Checkbox("AABB", &aabb);
 
-	rectTransform.Scale = Vec2(scaleX, scaleY);
+		static bool collider = true;
+		ImGui::Checkbox("Collider", &collider);
+	}
 
-	rectTransform.Pivot = Vec2(pivotX, pivotY);
+	ImGui::End();
 
+	ImGui::Begin("Debug Info");
+
+	const std::string fps = "Current FPS: " + std::to_string(1.f / Time::GetDeltaTimeUnscaled());
+	const std::string timescale = "Current TimeScale: " + std::to_string(Time::GetTimeScale());
+
+	auto renderer = Application::GetInstance().m_Renderer2D;
+
+	const std::string renderedInstances = "Rendered Instances: " + std::to_string(renderer->GetRenderedInstancesCount());
+	const std::string renderLoopDuration = "Render Loop Duration: " + std::to_string(renderer->GetRRenderLoopDuration());
+
+	ImGui::Text(fps.c_str());
+	ImGui::Text(timescale.c_str());
+	ImGui::Text(renderedInstances.c_str());
+	ImGui::Text(renderLoopDuration.c_str());
 	ImGui::End();
 }
 
