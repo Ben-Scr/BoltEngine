@@ -13,7 +13,7 @@ namespace Bolt {
 		static float GetFixedDeltaTime() { return s_FixedDeltaTime * s_TimeScale; }
 		static void SetFixedDeltaTime(float step);
 
-		static float UnscaledFixedDeltaTime() { return s_FixedDeltaTime; }
+		static float GetUnscaledFixedDeltaTime() { return s_FixedDeltaTime; }
 
 		static float GetTimeScale() { return s_TimeScale; }
 		static void SetTimeScale(float scale);

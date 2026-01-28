@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <cmath>
+#include <array>
 
 namespace Bolt {
 	struct Color {
@@ -13,6 +14,13 @@ namespace Bolt {
 		}
 		Color(float red, float green, float blue, float alpha)
 			: r(red), g(green), b(blue), a(alpha) {
+		}
+
+		std::array<float,4> ToArray() const {
+			return std::array<float, 4>{ r, g, b, a };
+		}
+		static Color FromArray(std::array<float, 4> col) {
+			return { col[0], col[1], col[2], col[3] };
 		}
 
 		Color SetAlpha(float a) { this->a = a; return *this; }

@@ -20,10 +20,11 @@ void GameSystem::Awake() {
 void GameSystem::Start() {
 	Scene& scene = GetScene();
 
-	//m_RectEntity = scene.CreateEntity();
-	//m_RectEntity.RemoveComponent<Transform2D>();
-	//auto& guiImage = m_RectEntity.AddComponent<Image>();
-	//m_RectEntity.AddComponent<RectTransform>();
+	m_RectEntity = scene.CreateEntity();
+	m_RectEntity.RemoveComponent<Transform2D>();
+	auto& guiImage = m_RectEntity.AddComponent<Image>();
+	guiImage.TextureHandle = m_LightTexture;
+	m_RectEntity.AddComponent<RectTransform>();
 
 
 	EntityHelper::CreateCamera2DEntity();
@@ -31,12 +32,12 @@ void GameSystem::Start() {
 
 	m_PlayerEmissionPts = scene.CreateEntity();
 	ParticleSystem2D& pts2D = m_PlayerEmissionPts.AddComponent<ParticleSystem2D>();
+	pts2D.EmissionSettings.EmitOverTime = 100;
 	pts2D.SetTexture(TextureManager::GetDefaultTexture(DefaultTexture::Circle));
 
 	auto ptColor = Color(1.0f, 0.45f, 0.f, 0.1f);
 	pts2D.RenderingSettings.Color = ptColor;
 	pts2D.Shape = SquareParams(Vec2(0.2f, 0.2f));
-	pts2D.EmissionSettings.EmitOverTime = 0;
 	pts2D.ParticleSettings.LifeTime = 10;
 	pts2D.ParticleSettings.Scale = 0.2f;
 	pts2D.ParticleSettings.Gravity = Vec2(0, 1);
@@ -135,6 +136,30 @@ void GameSystem::OnGui()
 		Application::SetTargetFramerate(targetFrameRate);
 	}
 
+	static std::array<float, 4> gizmoCol = Color::Red().ToArray();
+
+	if (ImGui::ColorEdit4("Gizmo Color", gizmoCol.data())) {
+		Gizmo::SetColor(Color::FromArray(gizmoCol));
+	}
+
+	static std::array<float, 4> bgCol = Color(0.1f, 0.1f, 0.1f).ToArray();
+
+	if (ImGui::ColorEdit4("Background Color", bgCol.data())) {
+		OpenGL::SetBackgroundColor(Color::FromArray(bgCol));
+	}
+
+	static bool runInBG = Application::GetRunInBackground();
+	runInBG = Application::GetRunInBackground();
+	if (ImGui::Checkbox("Run in background", &runInBG)) {
+		Application::SetRunInBackground(runInBG);
+	}
+
+	static bool isFullscreen = Application::GetWindow().IsFullScreen();
+	isFullscreen = Application::GetWindow().IsFullScreen();
+	if (ImGui::Checkbox("Fullscreen", &isFullscreen)) {
+		Application::GetWindow().SetFullScreen(isFullscreen);
+	}
+
 	static bool playerEnabled = true;
 	ImGui::Checkbox("Player enabled", &playerEnabled);
 	EntityHelper::SetEnabled(m_PlayerEntity, playerEnabled);
@@ -158,18 +183,23 @@ void GameSystem::OnGui()
 		ImGui::Checkbox("Collider", &collider);
 	}
 
-	ImGui::End();
+	if(ImGui::Button("Reload")) {
+		Application::Reload();
+	}
 
+	ImGui::End();
 	ImGui::Begin("Debug Info");
 
 	const std::string fps = "Current FPS: " + std::to_string(1.f / Time::GetDeltaTimeUnscaled());
 	const std::string timescale = "Current TimeScale: " + std::to_string(Time::GetTimeScale());
+	const std::string frameCount = "Frame Count: " + std::to_string(Time::GetFrameCount());
 
 	const std::string renderedInstances = "Rendered Instances: 0"; //+ std::to_string(renderer->GetRenderedInstancesCount());
 	const std::string renderLoopDuration = "Render Loop Duration: 0"; //+ std::to_string(renderer->GetRRenderLoopDuration());
 
 	ImGui::Text(fps.c_str());
 	ImGui::Text(timescale.c_str());
+	ImGui::Text(frameCount.c_str());
 	ImGui::Text(renderedInstances.c_str());
 	ImGui::Text(renderLoopDuration.c_str());
 	ImGui::End();
@@ -180,8 +210,6 @@ void GameSystem::UpdatePlayerPts() {
 	auto& pts2D = m_PlayerEmissionPts.GetComponent<ParticleSystem2D>();
 	auto& tr = m_PlayerEmissionPts.GetComponent<Transform2D>();
 	pts2D.ParticleSettings.MoveDirection = -playerTr.GetForwardDirection();
-	pts2D.Emit(15);
-
 	tr.Position = playerTr.Position - (playerTr.GetForwardDirection() * 0.4f);
 }
 
@@ -195,16 +223,15 @@ void GameSystem::PlayerMovement() {
 
 	Vec2 lookDir = mousePos - playerTr.Position;
 	float lookAtZ = atan2(lookDir.x, lookDir.y);
-	float t = 0.1f;
 	float delta = std::remainder(lookAtZ - playerTr.Rotation, 2.0f * 3.14159265358979323846f);
-	playerTr.Rotation += delta * t;
+	playerTr.Rotation += delta * Time::GetDeltaTime();
 }
 
 void GameSystem::CameraMovement() {
 	Transform2D& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
 	Camera2D* mainCam = Camera2D::Main();
 
-	float lerpSpeed = 0.1f;
+	float lerpSpeed = Time::GetDeltaTime() * 10;
 	Vec2 targetPos = playerTr.Position;
 	Vec2 curPos = mainCam->GetPosition();
 	Vec2 lerpPos = curPos + (targetPos - curPos) * lerpSpeed;
@@ -245,13 +272,11 @@ void GameSystem::DrawGizmos() {
 	if (Input::GetKeyDown(KeyCode::F1))
 		Gizmo::SetEnabled(!Gizmo::IsEnabled());
 
-	Gizmo::SetColor(Color::Green());
 
 	for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
 		Gizmo::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationDegrees());
 	}
 
-	Gizmo::SetColor(Color::Red());
 
 	for (auto [ent, tr] : scene.GetRegistry().view<Transform2D>().each()) {
 		AABB aabb = AABB::FromTransform(tr);

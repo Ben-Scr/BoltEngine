@@ -16,6 +16,6 @@ namespace Bolt {
 	using Vec3 = glm::vec3;
 	using Vec2Int = glm::ivec2;
 	inline std::string ToString(const Vec2& v) {
-		return "{ " + std::to_string(v.x) + ", " + std::to_string(v.y) + " }";
+		return "( " + std::to_string(v.x) + ", " + std::to_string(v.y) + " )";
 	}
 }
