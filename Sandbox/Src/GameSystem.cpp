@@ -3,6 +3,7 @@
 #include "Graphics/OpenGL.hpp"
 #include "Core/Application.hpp"
 #include "Scene/EntityHelper.hpp"
+#include "Core/Window.hpp"
 
 #include <imgui.h>
 
@@ -129,7 +130,7 @@ void GameSystem::OnGui()
 
 	static bool enabledVsync = true;
 	ImGui::Checkbox("Vsync", &enabledVsync);
-	Application::GetWindow().SetVsync(enabledVsync);
+	Application::GetWindow()->SetVsync(enabledVsync);
 
 	if (!enabledVsync) {
 		static float targetFrameRate = 144;
@@ -155,10 +156,10 @@ void GameSystem::OnGui()
 		Application::SetRunInBackground(runInBG);
 	}
 
-	static bool isFullscreen = Application::GetWindow().IsFullScreen();
-	isFullscreen = Application::GetWindow().IsFullScreen();
+	static bool isFullscreen = Application::GetWindow()->IsFullScreen();
+	isFullscreen = Application::GetWindow()->IsFullScreen();
 	if (ImGui::Checkbox("Fullscreen", &isFullscreen)) {
-		Application::GetWindow().SetFullScreen(isFullscreen);
+		Application::GetWindow()->SetFullScreen(isFullscreen);
 	}
 
 	static bool playerEnabled = true;
@@ -198,15 +199,15 @@ void GameSystem::OnGui()
 	ImGui::End();
 	ImGui::Begin("Debug Info");
 
-	auto window = Application::GetWindow();
+	auto* window = Application::GetWindow();
 
 	const std::string fps = "Current FPS: " + std::to_string(1.f / Time::GetDeltaTimeUnscaled());
 	const std::string timescale = "Current TimeScale: " + std::to_string(Time::GetTimeScale());
 	const std::string frameCount = "Frame Count: " + std::to_string(Time::GetFrameCount());
 
-	auto vp = *window.GetMainViewport();
+	auto vp = *window->GetMainViewport();
 
-	const std::string windowSize = "Window Size: " + std::to_string(window.GetWidth()) + " x " + std::to_string(window.GetHeight());
+	const std::string windowSize = "Window Size: " + std::to_string(window->GetWidth()) + " x " + std::to_string(window->GetHeight());
 	const std::string windowVP = "Viewport Size: " + StringHelper::ToString(vp);
 
 

@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Physics/PhysicsSystem.hpp"
+#include "Physics/PhysicsSystem2D.hpp"
 #include "Components/Rigidbody2D.hpp"
 #include "Physics/Box2DWorld.hpp"
 #include "Scene/SceneManager.hpp"

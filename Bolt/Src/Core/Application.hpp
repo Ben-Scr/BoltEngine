@@ -1,16 +1,14 @@
 #pragma once
 #include "Graphics/Renderer2D.hpp"
 #include "Graphics/GizmoRenderer.hpp"
-#include "Window.hpp"
-#include <optional>
-#include "Physics/PhysicsSystem.hpp"
+#include "Core/Window.hpp"
+#include "Physics/PhysicsSystem2D.hpp"
 #include "Gui/ImGuiRenderer.hpp"
 #include "Gui/GuiRenderer.hpp"
 #include  "Utils/Event.hpp"
 #include <chrono>
 
 namespace Bolt {
-
 	class Application {
 		friend class Window;
 		using DurationChrono = std::chrono::high_resolution_clock::duration;
@@ -36,7 +34,7 @@ namespace Bolt {
 		static bool GetForceSingleInstance() { return s_ForceSingleInstance; }
 		static bool GetRunInBackground() { return s_RunInBackground; }
 		static float GetMaxPossibleFPS() { return s_MaxPossibleFPS; }
-		static Window& GetWindow() { return *s_Instance->m_Window; }
+		static Window* GetWindow() { return s_Instance->m_Window.get(); }
 
 		Renderer2D* GetRenderer2D() { return m_Renderer2D.get(); }
 

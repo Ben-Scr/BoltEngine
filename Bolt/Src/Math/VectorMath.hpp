@@ -2,7 +2,8 @@
 #include "Collections/Vec2.hpp"
 #include "Random.hpp"
 #include "Trigonometry.hpp"
-#include "glm/glm.hpp"
+
+#include <glm/glm.hpp>
 
 namespace Bolt {
 	inline float Dot(const Vec2& a, const Vec2& b) noexcept {

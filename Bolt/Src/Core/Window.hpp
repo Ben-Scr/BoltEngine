@@ -1,14 +1,10 @@
 #pragma once
-#include "Core/Input.hpp"
 #include "Collections/Vec2.hpp"
 #include "Collections/Color.hpp"
 #include "Collections/Viewport.hpp"
 
-#include <GLFW/glfw3native.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <string>
-#include <memory>
 
 namespace Bolt {
 	class Texture2D;

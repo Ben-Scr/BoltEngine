@@ -1,7 +1,6 @@
 #pragma once
 #include "Vec2.hpp"
-#include "../Math/Common.hpp"
-#include <string>
+#include "Math/Common.hpp"
 
 namespace Bolt {
 	class Viewport {

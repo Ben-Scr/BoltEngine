@@ -99,7 +99,7 @@
     <ClCompile Include="Src\Physics\Physics2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Physics\PhysicsSystem.cpp">
+    <ClCompile Include="Src\Physics\PhysicsSystem2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Src\Physics\PhysicsUtility.cpp">
@@ -302,7 +302,7 @@
     <ClInclude Include="Src\Physics\Physics2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Physics\PhysicsSystem.hpp">
+    <ClInclude Include="Src\Physics\PhysicsSystem2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Physics\PhysicsTypes.hpp">

@@ -1,6 +1,5 @@
 #pragma once
 #include <random>
-#include <type_traits>
 #include <cstdint>
 
 namespace Bolt {

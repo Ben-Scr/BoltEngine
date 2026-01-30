@@ -5,6 +5,7 @@
 #include "Graphics/OpenGL.hpp"
 #include "Core/SingleInstance.hpp"
 #include "Audio/AudioManager.hpp"
+
 #include "Time.hpp"
 #include "Input.hpp"
 #include <GLFW/glfw3.h>

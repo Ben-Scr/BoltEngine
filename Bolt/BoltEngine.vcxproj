@@ -235,7 +235,7 @@
     </ClCompile>
     <ClCompile Include="Src\Physics\Box2DWorld.cpp" />
     <ClCompile Include="Src\Physics\Physics2D.cpp" />
-    <ClCompile Include="Src\Physics\PhysicsSystem.cpp" />
+    <ClCompile Include="Src\Physics\PhysicsSystem2D.cpp" />
     <ClCompile Include="Src\Physics\PhysicsUtility.cpp" />
     <ClCompile Include="Src\Scene\Entity.cpp" />
     <ClCompile Include="Src\Scene\EntityHelper.cpp" />
@@ -311,7 +311,7 @@
     <ClInclude Include="Src\Physics\Collision2D.hpp" />
     <ClInclude Include="Src\Physics\CollisionDispatcher.hpp" />
     <ClInclude Include="Src\Physics\Physics2D.hpp" />
-    <ClInclude Include="Src\Physics\PhysicsSystem.hpp" />
+    <ClInclude Include="Src\Physics\PhysicsSystem2D.hpp" />
     <ClInclude Include="Src\Physics\PhysicsTypes.hpp" />
     <ClInclude Include="Src\Physics\PhysicsUtility.hpp" />
     <ClInclude Include="Src\Scene\Entity.hpp" />
