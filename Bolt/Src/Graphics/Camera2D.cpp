@@ -59,8 +59,8 @@ namespace Bolt {
 
 	Vec2 Camera2D::ScreenToWorld(Vec2 pos) const
 	{
-		const float xNdc = (2.0f * pos.x / float(m_Viewport->Width)) - 1.0f;
-		const float yNdc = 1.0f - (2.0f * pos.y / float(m_Viewport->Height));
+		const float xNdc = (2.0f * pos.x / float(m_Viewport->GetWidth())) - 1.0f;
+		const float yNdc = 1.0f - (2.0f * pos.y / float(m_Viewport->GetHeight()));
 
 		const float zNear = 0.0f, zFar = 100.0f;
 		const float zNdc = -(zFar + zNear) / (zFar - zNear);

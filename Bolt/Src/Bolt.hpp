@@ -47,7 +47,7 @@ Bolt specific includes
 #include "Physics/Box2DWorld.hpp"
 #include "Physics/Physics2D.hpp"
 
-// AUDIO
+// Audio
 #include "Audio/Audio.hpp"
 #include "Audio/AudioManager.hpp"
 #include "Audio/AudioSource.hpp"
@@ -59,3 +59,6 @@ Bolt specific includes
 #include "Scene/SceneManager.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/EntityHandle.hpp"
+
+// Utils
+#include "Utils/StringHelper.hpp"

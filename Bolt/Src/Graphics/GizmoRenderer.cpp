@@ -134,6 +134,7 @@ namespace Bolt {
 					Vec2(-square.HalfExtents.x,  square.HalfExtents.y)
 			};
 
+			// To-Do: Better Optimization for non-rotated squares
 			for (int i = 0; i < 4; ++i) {
 				Vec2 rotated = Rotated(corners[i], square.Radiant);
 				Vec2 final = square.Center + rotated;
@@ -208,7 +209,7 @@ namespace Bolt {
 			}
 		}
 
-		glLineWidth(1.0f);
+		glLineWidth(Gizmo::s_LineWidth);
 		glDrawElements(GL_LINES, static_cast<GLsizei>(m_GizmoIndices.size()), GL_UNSIGNED_SHORT, nullptr);
 
 		glBindVertexArray(0);

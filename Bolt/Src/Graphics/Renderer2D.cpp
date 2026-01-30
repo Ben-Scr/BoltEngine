@@ -54,7 +54,6 @@ namespace Bolt {
 
 		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
 		m_SpriteShader.SetMVP(vp);
-		// Camera 2D Region
 
 		int renderingSprites = 0;
 
@@ -111,7 +110,7 @@ namespace Bolt {
 				return a.SortingOrder < b.SortingOrder;
 			});
 
-		// Final Rendering
+		// Info: Final Rendering
 		for (const Instance44& instance : instances) {
 			m_SpriteShader.SetSpritePosition(instance.Position);
 			m_SpriteShader.SetScale(instance.Scale);

@@ -41,8 +41,8 @@ namespace Bolt {
 		const glm::mat4 GetViewMatrix() const { return m_ViewMat; }
 		const glm::mat4 GetProjectionMatrix() const { return m_ProjMat; }
 
-		float ViewportWidth() const { return static_cast<float>(m_Viewport->Width); }
-		float ViewportHeight() const { return static_cast<float>(m_Viewport->Height); }
+		float ViewportWidth() const { return static_cast<float>(m_Viewport->GetWidth()); }
+		float ViewportHeight() const { return static_cast<float>(m_Viewport->GetHeight()); }
 
 		bool IsValid() const { return m_Transform; }
 	private:

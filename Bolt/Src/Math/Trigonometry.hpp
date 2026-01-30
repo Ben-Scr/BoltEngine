@@ -7,18 +7,18 @@ namespace Bolt {
         static constexpr T Pi = T(3.14159265358979323846);
         static constexpr T HalfPi = Pi * T(0.5);
         static constexpr T TwoPi = Pi * T(2.0);
-        static constexpr T rad2deg = T(180.0) / Pi;
-        static constexpr T deg2rad = Pi / T(180.0);
+        static constexpr T Rad2deg = T(180.0) / Pi;
+        static constexpr T Deg2rad = Pi / T(180.0);
     };
 
     template<typename T>
     inline T Radians(T degrees) {
-        return degrees * Constants<T>::deg2rad;
+        return degrees * Constants<T>::Deg2rad;
     }
 
     template<typename T>
     inline T Degrees(T radians) {
-        return radians * Constants<T>::rad2deg;
+        return radians * Constants<T>::Rad2deg;
     }
 
     template<typename T>

@@ -40,6 +40,11 @@ namespace Bolt {
             return (btn >= 0 && btn < k_MouseCount)
                 && s_CurrentMouseButtons[btn] && !s_PreviousMouseButtons[btn];
         }
+        static bool GetMouseUp(MouseKeyCode keycode) {
+            uint8_t btn = static_cast<uint8_t>(keycode);
+            return (btn >= 0 && btn < k_MouseCount)
+                && !s_CurrentMouseButtons[btn] && s_PreviousMouseButtons[btn];
+        }
         static Vec2 GetAxis() {
             return s_Axis;
         }

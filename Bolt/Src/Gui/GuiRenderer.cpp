@@ -43,8 +43,8 @@ namespace Bolt {
 		Viewport* vp = camera2D->GetViewport();
 
 
-		int w = vp->Width;
-		int h = vp->Height;
+		int w = vp->GetWidth();
+		int h = vp->GetHeight();
 
 		const float aspect = vp->GetAspect();
 		const float halfH = w;

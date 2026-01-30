@@ -8,6 +8,7 @@ namespace Bolt {
 	std::vector<Line> Gizmo::s_Lines;
 	size_t Gizmo::s_MaxVertices = 100000;
 	size_t Gizmo::s_RegisteredVertices = 0;
+	float Gizmo::s_LineWidth = 1.0f;
 
 	bool Gizmo::s_IsEnabled = true;
 	Color Gizmo::s_Color = { 0.f, 1.f, 0.f, 1.f };

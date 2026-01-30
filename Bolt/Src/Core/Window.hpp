@@ -69,8 +69,8 @@ namespace Bolt {
 		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_GLFWwindow, title.c_str()); }
 
 		std::string GetTitle() const { return std::string(glfwGetWindowTitle(m_GLFWwindow)); }
-		int GetWidth()  const { return s_MainViewport->Width; }
-		int GetHeight() const { return s_MainViewport->Height; }
+		int GetWidth()  const { return s_MainViewport->GetWidth(); }
+		int GetHeight() const { return s_MainViewport->GetHeight(); }
 		GLFWmonitor* GetWindowMonitor() const;
 		static GLFWmonitor* GetMainMonitor();
 		const GLFWvidmode* GetVideomode() const { return k_Videomode; }

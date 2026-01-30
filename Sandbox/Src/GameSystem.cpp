@@ -20,11 +20,11 @@ void GameSystem::Awake() {
 void GameSystem::Start() {
 	Scene& scene = GetScene();
 
-	m_RectEntity = scene.CreateEntity();
-	m_RectEntity.RemoveComponent<Transform2D>();
-	auto& guiImage = m_RectEntity.AddComponent<Image>();
-	guiImage.TextureHandle = m_LightTexture;
-	m_RectEntity.AddComponent<RectTransform>();
+	//m_RectEntity = scene.CreateEntity();
+	//m_RectEntity.RemoveComponent<Transform2D>();
+	//auto& guiImage = m_RectEntity.AddComponent<Image>();
+	//guiImage.TextureHandle = m_LightTexture;
+	//m_RectEntity.AddComponent<RectTransform>();
 
 
 	EntityHelper::CreateCamera2DEntity();
@@ -32,7 +32,7 @@ void GameSystem::Start() {
 
 	m_PlayerEmissionPts = scene.CreateEntity();
 	ParticleSystem2D& pts2D = m_PlayerEmissionPts.AddComponent<ParticleSystem2D>();
-	pts2D.EmissionSettings.EmitOverTime = 100;
+	pts2D.EmissionSettings.EmitOverTime = 1000;
 	pts2D.SetTexture(TextureManager::GetDefaultTexture(DefaultTexture::Circle));
 
 	auto ptColor = Color(1.0f, 0.45f, 0.f, 0.1f);
@@ -61,7 +61,6 @@ struct AsteriodData {
 void GameSystem::Update() {
 	Scene& scene = GetScene();
 	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
-
 	bool cntrlDown = Input::GetKey(KeyCode::LeftControl);
 
 	if (Input::GetKeyDown(KeyCode::R) && cntrlDown) {
@@ -76,8 +75,10 @@ void GameSystem::Update() {
 			}
 	}
 	if (Input::GetKeyDown(KeyCode::P)) {
+		Gizmo::SetEnabled(!Gizmo::IsEnabled());
 		Application::Pause(!Application::IsPaused());
 	}
+
 	if (Input::GetKeyDown(KeyCode::Q)) {
 		Application::Quit();
 	}
@@ -92,7 +93,7 @@ void GameSystem::Update() {
 		sp.TextureHandle = m_AsteriodTexture;
 
 		AsteriodData& asteriod = ent.AddComponent<AsteriodData>();
-		asteriod.Speed = Random::NextFloat(3.f, 5.f);
+		asteriod.Speed = Random::NextFloat(2.f, 3.f);
 		asteriod.LifeTime = 15.f;
 		asteriod.RotationSpeed = 14.f;
 
@@ -172,7 +173,14 @@ void GameSystem::OnGui()
 	ImGui::SliderFloat("Fixed FPS", &fixedFPS, 10.f, 244.f);
 
 	static bool enabledGizmo = true;
+	enabledGizmo = Gizmo::IsEnabled();
 	ImGui::Checkbox("Gizmo", &enabledGizmo);
+
+
+	static float lineWidth = 1.f;
+	ImGui::SliderFloat("Gizmo Line Width", &lineWidth, 1.f, 10.f);
+	Gizmo::SetLineWidth(lineWidth);
+
 	Gizmo::SetEnabled(enabledGizmo);
 
 	if (enabledGizmo) {
@@ -183,7 +191,7 @@ void GameSystem::OnGui()
 		ImGui::Checkbox("Collider", &collider);
 	}
 
-	if(ImGui::Button("Reload")) {
+	if (ImGui::Button("Reload")) {
 		Application::Reload();
 	}
 
@@ -196,10 +204,10 @@ void GameSystem::OnGui()
 	const std::string timescale = "Current TimeScale: " + std::to_string(Time::GetTimeScale());
 	const std::string frameCount = "Frame Count: " + std::to_string(Time::GetFrameCount());
 
-	auto* vp = window.GetMainViewport();
+	auto vp = *window.GetMainViewport();
 
 	const std::string windowSize = "Window Size: " + std::to_string(window.GetWidth()) + " x " + std::to_string(window.GetHeight());
-	const std::string windowVP = "Viewport Size: " + std::to_string(vp->Width) + " x " + std::to_string(vp->Height);
+	const std::string windowVP = "Viewport Size: " + StringHelper::ToString(vp);
 
 
 	auto* renderer2D = Application::GetInstance()->GetRenderer2D();
@@ -224,33 +232,60 @@ void GameSystem::UpdatePlayerPts() {
 	tr.Position = playerTr.Position - (playerTr.GetForwardDirection() * 0.4f);
 }
 
+
 void GameSystem::PlayerMovement() {
+	Scene& scene = GetScene();
+
+	auto& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
+
 	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
 
 	float speed = Input::GetKey(KeyCode::LeftShift) ? 15.f : 5.0f;
-	auto& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
+
 	Vec2 input = speed * Time::GetDeltaTime() * playerTr.GetForwardDirection();
 	playerTr.Position += input;
 
-	Vec2 lookDir = mousePos - playerTr.Position;
-	float lookAtZ = atan2(lookDir.x, lookDir.y);
-	float delta = std::remainder(lookAtZ - playerTr.Rotation, 2.0f * 3.14159265358979323846f);
-	playerTr.Rotation += delta * Time::GetDeltaTime();
+	playerTr.Rotation += LookAt2D(playerTr, mousePos) * Time::GetDeltaTime() * 14;
 }
 
 void GameSystem::CameraMovement() {
+	static bool followPlayer = false;
+
 	Transform2D& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
 	Camera2D* mainCam = Camera2D::Main();
+	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
 
-	float lerpSpeed = Time::GetDeltaTime() * 10;
-	Vec2 targetPos = playerTr.Position;
-	Vec2 curPos = mainCam->GetPosition();
-	Vec2 lerpPos = curPos + (targetPos - curPos) * lerpSpeed;
+	if (Input::GetKeyDown(KeyCode::F1))
+		followPlayer = !followPlayer;
 
-	mainCam->SetPosition(lerpPos);
+	if (followPlayer) {
+		float lerpSpeed = Time::GetDeltaTimeUnscaled() * 10;
+		Vec2 targetPos = playerTr.Position;
+		Vec2 curPos = mainCam->GetPosition();
+		Vec2 lerpPos = curPos + (targetPos - curPos) * lerpSpeed;
 
-	if (Input::GetKey(KeyCode::LeftControl))
-		mainCam->AddOrthographicSize(-Input::ScrollValue() * Time::GetDeltaTime() * 100);
+		mainCam->SetPosition(lerpPos);
+		mainCam->SetOrthographicSize(7.0f);
+	}
+	else {
+		static Vec2 mouseStartPos = mousePos;
+		static bool mouseDown = false;
+
+		if (Input::GetKey(KeyCode::LeftControl))
+			mainCam->AddOrthographicSize(-Input::ScrollValue() * Time::GetDeltaTimeUnscaled() * 100);
+
+		if (Input::GetMouseDown(MouseKeyCode::Right)) {
+			mouseStartPos = mousePos;
+			mouseDown = true;
+		}
+		else if (Input::GetMouseUp(MouseKeyCode::Right)) {
+			mouseDown = false;
+		}
+
+		if (mouseDown) {
+			mainCam->AddPosition(mouseStartPos - mousePos);
+		}
+	}
 }
 
 void GameSystem::MoveEntities() {
@@ -280,10 +315,6 @@ void GameSystem::MoveEntities() {
 void GameSystem::DrawGizmos() {
 	Scene& scene = GetScene();
 
-	if (Input::GetKeyDown(KeyCode::F1))
-		Gizmo::SetEnabled(!Gizmo::IsEnabled());
-
-
 	for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
 		Gizmo::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationDegrees());
 	}
@@ -292,6 +323,13 @@ void GameSystem::DrawGizmos() {
 	for (auto [ent, tr] : scene.GetRegistry().view<Transform2D>().each()) {
 		AABB aabb = AABB::FromTransform(tr);
 		Gizmo::DrawSquare(tr.Position, aabb.Scale(), 0);
+	}
+	for (auto [ent, pts2D] : scene.GetRegistry().view<ParticleSystem2D>().each()) {
+		for (const auto& particle : pts2D.GetParticles())
+		{
+			AABB aabb = AABB::FromTransform(particle.Transform);
+			Gizmo::DrawSquare(particle.Transform.Position, aabb.Scale(), 0);
+		}
 	}
 }
 

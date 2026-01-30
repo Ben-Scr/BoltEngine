@@ -24,6 +24,9 @@ namespace Bolt {
 		static void DrawSphere(const Vec3& center, const float radius);
 		static void DrawLine3D(const Vec3& start, const Vec3& end);
 
+		static void SetLineWidth(float width) { s_LineWidth = Max(0.001f, width); }
+		static float GetLineWidth() { return s_LineWidth; }
+
 		static void SetEnabled(bool enabled) { s_IsEnabled = enabled; }
 		static bool IsEnabled() { return s_IsEnabled; }
 
@@ -44,6 +47,7 @@ namespace Bolt {
 
 		static const size_t k_BoxVertices = 4;
 		static const size_t k_LineVertices = 1;
+		static float s_LineWidth;
 
 		static std::vector<Square> s_Squares;
 		static std::vector<Circle> s_Circles;

@@ -48,6 +48,5 @@ namespace Bolt {
 	void Time::Update(float deltaTime) {
 		Time::s_DeltaTime = deltaTime;
 		s_SimulatedElapsedTime += Time::s_DeltaTime * s_TimeScale;
-		s_FrameCount++;
 	}
 }

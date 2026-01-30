@@ -5,6 +5,8 @@
 #include <string>
 #include <utility>
 #include "Logger.hpp"
+#include <ostream>
+#include "../Utils/StringHelper.hpp"
 
 namespace Bolt {
 	enum class BoltErrorCode {
@@ -29,7 +31,7 @@ namespace Bolt {
 
 	inline ErrorVerbosity g_ErrorVerbosity = ErrorVerbosity::Detailed;
 
-	inline const char* ToString(BoltErrorCode c) {
+	inline const char* ErrorCodeToString(const BoltErrorCode c) {
 		switch (c) {
 		case BoltErrorCode::InvalidArgument:   return "InvalidArgument";
 		case BoltErrorCode::NotInitialized:    return "NotInitialized";
@@ -45,16 +47,20 @@ namespace Bolt {
 		}
 	}
 
+	inline std::ostream& operator<<(std::ostream& os, const BoltErrorCode c) {
+		return os << ErrorCodeToString(c);
+	}
+
 	inline std::string FormatError(
 		BoltErrorCode code,
 		const std::string& msg,
 		const std::source_location& loc
 	) {
 		if (g_ErrorVerbosity == ErrorVerbosity::Normal) {
-			return std::string("BoltError[") + ToString(code) + "]: " + msg;
+			return std::string("BoltError[") + StringHelper::ToString(code) + "]: " + msg;
 		}
 
-		return std::string("BoltError[") + ToString(code) + "]: " + msg +
+		return std::string("BoltError[") + StringHelper::ToString(code) + "]: " + msg +
 			" @ " + loc.file_name() + ":" + std::to_string(loc.line()) +
 			" (" + loc.function_name() + ")";
 	}

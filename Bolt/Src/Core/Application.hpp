@@ -24,7 +24,7 @@ namespace Bolt {
 			Application::s_Instance = this;
 		};
 
-		void Run();
+		int Run();
 
 		static void SetName(const std::string& s) { s_Name = s; }
 		static void SetTargetFramerate(float framerate) { s_TargetFramerate = framerate; }
@@ -42,7 +42,8 @@ namespace Bolt {
 
 		static Application* GetInstance() { return s_Instance; }
 
-		static void Quit() { s_ShouldQuit = true; }
+		static void Quit();
+		static void ThrowQuit();
 		static void Pause(bool paused) { s_IsPaused = paused; }
 		static void Reload() { s_ShouldQuit = true; s_CanReload = true; };
 		static const bool IsPaused() { return s_IsPaused; }

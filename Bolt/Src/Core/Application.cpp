@@ -28,77 +28,81 @@ namespace Bolt {
 	bool Application::s_ForceSingleInstance = false;
 	std::string Application::s_Name = "App";
 
-	void Application::Run()
+	int Application::Run()
 	{
-		if (s_ForceSingleInstance) {
-			static SingleInstance instance(s_Name);
-			BOLT_RETURN_IF(instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
-		}
-
-		Logger::Message("Initializing Application");
-		Timer timer = Timer::Start();
-
-		Initialize();
-
-		Logger::Message("Application", "Initialization took " + timer.ToString());
-
-		m_LastFrameTime = Clock::now();
-
-		while ((!m_Window || !m_Window->ShouldClose()) && !s_ShouldQuit) {
-			DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / GetTargetFramerate()));
-			auto now = Clock::now();
-
-			// Info: CPU idling for fps cut if window isn't vsync or app is paused
-			if (!m_Window->IsVsync() || s_IsPaused)
-			{
-				auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
-
-				if (now + std::chrono::milliseconds(10) < nextFrameTime)
-					std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
-
-				while (Clock::now() < nextFrameTime) {
-					_mm_pause();
-				}
+		try {
+			if (s_ForceSingleInstance) {
+				static SingleInstance instance(s_Name);
+				BOLT_RETURN_VAL_IF(instance.IsAlreadyRunning(), -1, BoltErrorCode::Undefined, "An Instance of this app is already running!");
 			}
 
-			auto frameStart = Clock::now();
-			float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
+			Logger::Message("Initializing Application");
+			Timer timer = Timer::Start();
 
-			if (deltaTime >= 0.25f) {
-				ResetTimePoints();
-				deltaTime = 0.0f;
-			}
+			Initialize();
 
-			Time::Update(deltaTime);
+			Logger::Message("Application", "Initialization took " + StringHelper::ToString(timer));
 
-			m_FixedUpdateAccumulator += Time::GetDeltaTime();
+			m_LastFrameTime = Clock::now();
 
-			size_t i = 0;
-			while (m_FixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
-				try {
-					if (!s_IsPaused) {
-						if (++i > 10 && Time::GetDeltaTimeUnscaled() <= 10 && PhysicsSystem2D::IsEnabled()) {
-							m_FixedUpdateAccumulator = 0;
-							//PhysicsSystem2D::SetEnabled(false);
-							BOLT_LOG_ERROR(BoltErrorCode::Overflow, "Physics Overflow, Physics are enabled: " + std::to_string(PhysicsSystem2D::IsEnabled()));
-						}
+			while ((!m_Window || !m_Window->ShouldClose()) && !s_ShouldQuit) {
+				DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / GetTargetFramerate()));
+				auto now = Clock::now();
 
-						BeginFixedFrame();
-						EndFixedFrame();
+				// Info: CPU idling for fps cut if window isn't vsync or app is paused
+				if (!m_Window->IsVsync() || s_IsPaused)
+				{
+					auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
+
+					if (now + std::chrono::milliseconds(10) < nextFrameTime)
+						std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
+
+					while (Clock::now() < nextFrameTime) {
+						_mm_pause();
 					}
 				}
-				catch (std::runtime_error e) {
-					Logger::Error(e.what());
-					break;
+
+				auto frameStart = Clock::now();
+				float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
+
+				if (deltaTime >= 0.25f) {
+					ResetTimePoints();
+					deltaTime = 0.0f;
 				}
 
-				m_FixedUpdateAccumulator -= Time::s_FixedDeltaTime;
-			}
-			BeginFrame();
-			EndFrame();
-			glfwPollEvents();
+				Time::Update(deltaTime);
 
-			m_LastFrameTime = frameStart;
+				m_FixedUpdateAccumulator += Time::GetDeltaTime();
+
+				size_t i = 0;
+				while (m_FixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
+					try {
+						if (!s_IsPaused) {
+							BeginFixedFrame();
+							EndFixedFrame();
+						}
+					}
+					catch (std::runtime_error e) {
+						Logger::Error(e.what());
+						break;
+					}
+
+					m_FixedUpdateAccumulator -= Time::s_FixedDeltaTime;
+				}
+				BeginFrame();
+				EndFrame();
+				glfwPollEvents();
+
+				m_LastFrameTime = frameStart;
+			}
+		}
+		catch (const std::exception& ex) {
+			Logger::Error(ex.what());
+			return -1;
+		}
+		catch (...) {
+			Logger::Error("Unknown Error");
+			return -1;
 		}
 
 		Shutdown();
@@ -107,6 +111,8 @@ namespace Bolt {
 			s_CanReload = false;
 			Run();
 		}
+
+		return 0;
 	}
 
 
@@ -131,6 +137,10 @@ namespace Bolt {
 		else {
 			SceneManager::OnApplicationPaused();
 		}
+	}
+
+	void Application::Quit() {
+	    s_ShouldQuit = true;
 	}
 
 	void Application::BeginFixedFrame() {
@@ -162,9 +172,6 @@ namespace Bolt {
 		if (Input::GetKeyDown(KeyCode::F11)) {
 			if (m_Window) m_Window->SetFullScreen(!m_Window->IsFullScreen());
 		}
-		if (Input::GetKeyDown(KeyCode::F12)) {
-			if (m_Window) m_Window->SetVsync(!m_Window->IsVsync());
-		}
 	}
 
 	void Application::ResetTimePoints() {
@@ -178,48 +185,49 @@ namespace Bolt {
 		m_Window = std::make_unique<Window>(Window(GLFWWindowProperties(800, 800, "Space Shooter", true, true, false)));
 		m_Window->SetVsync(true);
 		m_Window->SetWindowResizeable(true);
-		Logger::Message("Window", "Initialization took " + timer.ToString());
+		Logger::Message("Window", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		OpenGL::Initialize(GLInitProperties2D(Color::Background(), GLCullingMode::GLBack));
-		Logger::Message("OpenGL", "Initialization took " + timer.ToString());
+		Logger::Message("OpenGL", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		m_Renderer2D = std::make_unique<Renderer2D>();
 		m_Renderer2D->Initialize();
-		Logger::Message("Renderer2D", "Initialization took " + timer.ToString());
+		Logger::Message("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
 		m_GizmoRenderer2D->Initialize();
-		Logger::Message("GizmoRenderer", "Initialization took " + timer.ToString());
+		Logger::Message("GizmoRenderer", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
 		m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
-		Logger::Message("ImGuiRenderer", "Initialization took " + timer.ToString());
+		Logger::Message("ImGuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		m_GuiRenderer = std::make_unique<GuiRenderer>();
 		m_GuiRenderer->Initialize();
-		Logger::Message("GuiRenderer", "Initialization took " + timer.ToString());
+		Logger::Message("GuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
 		m_PhysicsSystem2D->Initialize();
-		Logger::Message("PhysicsSystem", "Initialization took " + timer.ToString());
+		Logger::Message("PhysicsSystem", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		TextureManager::Initialize();
-		Logger::Message("TextureManager", "Initialization took " + timer.ToString());
-		timer.Reset();
+		Logger::Message("TextureManager", "Initialization took " + StringHelper::ToString(timer));
+
+		//timer.Reset();
 		//AudioManager::Initialize();
-		Logger::Message("AudioManager", "Initialization took " + timer.ToString());
+		//Logger::Message("AudioManager", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
-		// Initialize as last since it calls Awake() + Start() on all systems
+		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
 		SceneManager::Initialize();
-		Logger::Message("SceneManager", "Initialization took " + timer.ToString());
+		Logger::Message("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
 		try {
 			auto handle = TextureManager::LoadTexture("../Assets/Textures/icon.png");

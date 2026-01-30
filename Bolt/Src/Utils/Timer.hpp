@@ -1,6 +1,8 @@
 #pragma once
 #include <chrono>
+#include <sstream>
 #include <string>
+#include <ostream>
 
 namespace Bolt {
         class Timer {
@@ -48,8 +50,6 @@ namespace Bolt {
                 return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(totalElapsed).count());
             }
 
-            std::string ToString() { return std::to_string(ElapsedMilliseconds()) + " ms"; }
-
             bool IsPaused() const {
                 return m_paused;
             }
@@ -74,4 +74,9 @@ namespace Bolt {
             Duration m_pausedDuration;
             bool m_paused;
         };
+
+
+        inline std::ostream& operator<<(std::ostream& os, const Timer& timer) {
+            return os << timer.ElapsedMilliseconds() << " ms";
+        }
 }

@@ -85,4 +85,10 @@ namespace Bolt {
             return *this;
         }
 	};
+
+    static inline float LookAt2D(const Transform2D& from, const Vec2& to) {
+        Vec2 lookDir = to - from.Position;
+        float lookAtZ = atan2(lookDir.x, lookDir.y);
+        return std::remainder(lookAtZ - from.Rotation, TwoPi<float>());
+    }
 }

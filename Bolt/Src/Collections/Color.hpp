@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <cmath>
 #include <array>
+#include <sstream>
+#include <string>
+#include <ostream>
 
 namespace Bolt {
 	struct Color {
@@ -24,6 +27,7 @@ namespace Bolt {
 		}
 
 		Color SetAlpha(float a) { this->a = a; return *this; }
+
 		static const Color Red() { return Color(1.0f, 0.0f, 0.0f); }
 		static const Color Green() { return Color(0.0f, 1.0f, 0.0f); }
 		static const Color Blue() { return Color(0.0f, 0.0f, 1.0f); }
@@ -128,4 +132,8 @@ namespace Bolt {
 			return static_cast<uint8_t>(std::lround(std::clamp(x, 0.0f, 1.0f) * 255.0f));
 		}
 	};
+
+	inline std::ostream& operator<<(std::ostream& os, const Color& c) {
+		return os << "Color(" << c.r << ", " << c.g << ", " << c.b << ", " << c.a << ")";
+	}
 }
