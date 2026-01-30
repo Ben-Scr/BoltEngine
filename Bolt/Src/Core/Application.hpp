@@ -13,7 +13,6 @@ namespace Bolt {
 
 	class Application {
 		friend class Window;
-
 		using DurationChrono = std::chrono::high_resolution_clock::duration;
 		using Clock = std::chrono::high_resolution_clock;
 
@@ -38,6 +37,9 @@ namespace Bolt {
 		static bool GetRunInBackground() { return s_RunInBackground; }
 		static float GetMaxPossibleFPS() { return s_MaxPossibleFPS; }
 		static Window& GetWindow() { return *s_Instance->m_Window; }
+
+		Renderer2D* GetRenderer2D() { return m_Renderer2D.get(); }
+
 		static Application* GetInstance() { return s_Instance; }
 
 		static void Quit() { s_ShouldQuit = true; }
