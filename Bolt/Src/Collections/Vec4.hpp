@@ -1,6 +1,5 @@
 #pragma once
 #include <cmath>
-#include <string>
 #include <glm/vec4.hpp>
 
 namespace Bolt {
@@ -12,7 +11,7 @@ namespace Bolt {
 	inline float Length(const Vec4& v) {
 		return std::sqrt(Dot(v, v));
 	}
-	inline Vec4 normalize(const Vec4& v) {
+	inline Vec4 Normalize(const Vec4& v) {
 		float len = Length(v);
 		return (len > 0.0f) ? (v * (1.0f / len)) : Vec4(0.0f);
 	}

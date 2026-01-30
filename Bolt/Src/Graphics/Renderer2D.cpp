@@ -1,14 +1,14 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "Renderer2D.hpp"
 #include "Camera2D.hpp"
 
-#include "../Scene/SceneManager.hpp"
-#include "../Components/SpriteRenderer.hpp"
-#include "../Components/ParticleSystem2D.hpp";
-#include "../Components/Tags.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Components/SpriteRenderer.hpp"
+#include "Components/ParticleSystem2D.hpp";
+#include "Components/Tags.hpp"
 
-#include "../Scene/Scene.hpp"
-#include "../Graphics/TextureManager.hpp"
+#include "Scene/Scene.hpp"
+#include "Graphics/TextureManager.hpp"
 
 namespace Bolt {
 	void Renderer2D::Initialize() {

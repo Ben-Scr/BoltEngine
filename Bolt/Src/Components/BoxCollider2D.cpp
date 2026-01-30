@@ -1,6 +1,6 @@
-#include "../pch.hpp"
-#include "../Components/BoxCollider2D.hpp"
-#include "../Scene/Scene.hpp"
+#include "pch.hpp"
+#include "Components/BoxCollider2D.hpp"
+#include "Scene/Scene.hpp"
 
 namespace Bolt {
 	void BoxCollider2D::SetScale(const Vec2& scale, const Scene& scene) {

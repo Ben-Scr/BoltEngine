@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-
 namespace Bolt {
     template <class IdTag>
     struct StrongId {

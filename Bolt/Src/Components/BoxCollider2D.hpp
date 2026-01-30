@@ -1,7 +1,8 @@
 #pragma once
 #include "Collider2D.hpp"
 #include "Rigidbody2D.hpp"
-#include "../Physics/PhysicsSystem.hpp"
+#include "Physics/PhysicsSystem.hpp"
+
 #include <box2d/box2d.h>
 
 namespace Bolt {

@@ -1,9 +1,8 @@
 #pragma once
-#include "../Scene/EntityHandle.hpp"
-#include "../Debugging/Exceptions.hpp"
+#include "Scene/EntityHandle.hpp"
+#include "Debugging/Exceptions.hpp"
 
 #include <string>
-#include <stdexcept>
 
 namespace Bolt {
 	class ComponentUtils {

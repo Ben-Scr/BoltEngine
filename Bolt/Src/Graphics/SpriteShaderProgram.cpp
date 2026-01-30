@@ -1,4 +1,4 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "SpriteShaderProgram.hpp"
 
 #include <glm/gtc/type_ptr.hpp>

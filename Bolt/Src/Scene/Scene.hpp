@@ -1,6 +1,6 @@
 #pragma once
-#include "../Scene/Entity.hpp"
-#include "../Scene/ISystem.hpp"
+#include "Scene/Entity.hpp"
+#include "Scene/ISystem.hpp"
 
 namespace Bolt {
 	class SceneDefinition;

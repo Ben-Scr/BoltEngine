@@ -1,7 +1,7 @@
 #pragma once
 #include <box2d/box2d.h>
-#include "../Physics/Collision2D.hpp"
-#include "../Physics/PhysicsUtility.hpp"
+#include "Physics/Collision2D.hpp"
+#include "Physics/PhysicsUtility.hpp"
 
 #include <unordered_map>
 #include <functional>

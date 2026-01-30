@@ -1,6 +1,6 @@
-#include "../pch.hpp"
-#include "../Scene/SceneDefinition.hpp"
-#include "../Scene/Scene.hpp"
+#include "pch.hpp"
+#include "Scene/SceneDefinition.hpp"
+#include "Scene/Scene.hpp"
 
 
 namespace Bolt {

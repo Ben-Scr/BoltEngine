@@ -1,8 +1,8 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 
-#include "../Audio/AudioManager.hpp"
-#include "../Audio/AudioSource.hpp"
-#include "../Audio/Audio.hpp"
+#include "Audio/AudioManager.hpp"
+#include "Audio/AudioSource.hpp"
+#include "Audio/Audio.hpp"
 
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio/miniaudio.h>

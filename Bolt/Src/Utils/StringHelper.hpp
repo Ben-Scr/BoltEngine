@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <ostream>
 
 namespace Bolt {
 	class StringHelper {

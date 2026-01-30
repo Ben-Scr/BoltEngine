@@ -1,4 +1,4 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "GizmoRenderer.hpp"
 #include "Shader.hpp"
 #include "Camera2D.hpp"

@@ -1,7 +1,7 @@
-#include "../pch.hpp"
-#include "../Components/ParticleSystem2D.hpp"
-#include "../Core/Time.hpp"
-#include "../Math/Random.hpp"
+#include "pch.hpp"
+#include "Components/ParticleSystem2D.hpp"
+#include "Core/Time.hpp"
+#include "Math/Random.hpp"
 
 namespace Bolt {
 	void ParticleSystem2D::Update() {

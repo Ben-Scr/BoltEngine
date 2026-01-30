@@ -1,7 +1,7 @@
 #pragma once
 #include "Vec2.hpp"
 #include "Mat2.hpp"
-#include "../Components/Transform2D.hpp"
+#include "Components/Transform2D.hpp"
 
 namespace Bolt {
 	struct AABB {

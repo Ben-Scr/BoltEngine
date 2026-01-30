@@ -1,6 +1,6 @@
 #pragma once
-#include "../Collections/AABB.hpp"
-#include "../Collections/Color.hpp"
+#include "Collections/AABB.hpp"
+#include "Collections/Color.hpp"
 #include <vector>
 
 namespace Bolt {

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Graphics/TextureHandle.hpp"
+#include "Graphics/TextureHandle.hpp"
 
 namespace Bolt {
 	struct SpriteRenderer {

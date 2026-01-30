@@ -1,7 +1,7 @@
-#include "../pch.hpp"
-#include "../Scene/Entity.hpp"
-#include "../Scene/SceneManager.hpp"
-#include "../Scene/Scene.hpp"
+#include "pch.hpp"
+#include "Scene/Entity.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
 
 
 

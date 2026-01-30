@@ -1,5 +1,5 @@
 #pragma once
-#include "../Collections/Vec2.hpp"
+#include "Collections/Vec2.hpp"
 #include <cstdint>
 #include <string>
 

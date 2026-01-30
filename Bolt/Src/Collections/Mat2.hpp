@@ -1,6 +1,6 @@
 #pragma once
-#include "Vec2.hpp"
-#include "../Math/Trigonometry.hpp"
+#include "Math/Trigonometry.hpp"
+
 #include <glm/mat2x2.hpp>
 #include <glm/mat3x3.hpp>
 

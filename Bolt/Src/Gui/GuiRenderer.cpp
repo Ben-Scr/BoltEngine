@@ -1,16 +1,16 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "GuiRenderer.hpp"
 
-#include "../Scene/SceneManager.hpp"
-#include "../Scene/Scene.hpp"
-#include "../Graphics/Camera2D.hpp"
-#include "../Graphics/TextureManager.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
+#include "Graphics/Camera2D.hpp"
+#include "Graphics/TextureManager.hpp"
 
-#include "../Components/Image.hpp"
-#include "../Components/RectTransform.hpp"
+#include "Components/Image.hpp"
+#include "Components/RectTransform.hpp"
 
-#include "../Graphics/Shader.hpp"
-#include "../Graphics/Instance44.hpp"
+#include "Graphics/Shader.hpp"
+#include "Graphics/Instance44.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 

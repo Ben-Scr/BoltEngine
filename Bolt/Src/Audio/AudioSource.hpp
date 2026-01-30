@@ -1,6 +1,5 @@
 #pragma once
-#include "../Audio/AudioHandle.hpp"
-#include <glm/vec3.hpp>
+#include "Audio/AudioHandle.hpp"
 
 namespace Bolt {
 

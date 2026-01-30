@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../Debugging/Exceptions.hpp"
-#include "../Scene/EntityHandle.hpp"
-#include "../Scene/Entity.hpp"
-#include "../Scene/SceneManager.hpp"
-#include "../Scene/Scene.hpp"
-#include "../Components/ComponentUtils.hpp"
+#include "Debugging/Exceptions.hpp"
+#include "Scene/EntityHandle.hpp"
+#include "Scene/Entity.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
+#include "Components/ComponentUtils.hpp"
 
 namespace Bolt {
 	class EntityHelper {

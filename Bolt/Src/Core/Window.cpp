@@ -1,9 +1,9 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "Window.hpp"
 #include "Application.hpp"
-#include "../Graphics/Texture2D.hpp"
-#include "../Graphics/OpenGL.hpp"
-#include "../Scene/SceneManager.hpp"
+#include "Graphics/Texture2D.hpp"
+#include "Graphics/OpenGL.hpp"
+#include "Scene/SceneManager.hpp"
 
 #include <glad/glad.h>
 

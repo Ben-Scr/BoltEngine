@@ -1,7 +1,7 @@
-#include "../pch.hpp"
-#include "../Physics/PhysicsUtility.hpp"
-#include "../Components/Rigidbody2D.hpp"
-#include "../Components/Collider2D.hpp"
+#include "pch.hpp"
+#include "Physics/PhysicsUtility.hpp"
+#include "Components/Rigidbody2D.hpp"
+#include "Components/Collider2D.hpp"
 
 namespace Bolt {
 	EntityHandle PhysicsUtility::GetEntityHandleFromCollider(const Collider2D& collider) {

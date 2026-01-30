@@ -1,4 +1,4 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "Logger.hpp"
 
 namespace Bolt {

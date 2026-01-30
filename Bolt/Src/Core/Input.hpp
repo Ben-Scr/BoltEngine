@@ -1,6 +1,6 @@
 #pragma once
 #include "KeyCodes.hpp"
-#include "../Collections/Vec2.hpp"
+#include "Collections/Vec2.hpp"
 
 #include <GLFW/glfw3.h>
 #include <algorithm>

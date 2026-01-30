@@ -1,7 +1,7 @@
-#include "../pch.hpp"
-#include "../Graphics/Camera2D.hpp"
-#include "../Collections/Viewport.hpp"
-#include "../Core/Window.hpp"
+#include "pch.hpp"
+#include "Graphics/Camera2D.hpp"
+#include "Collections/Viewport.hpp"
+#include "Core/Window.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Scene/ISystem.hpp"
+#include "Scene/ISystem.hpp"
 
 namespace Bolt {
 	class ParticleUpdateSystem : public ISystem {

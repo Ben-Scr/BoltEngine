@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include "../Scene/SceneDefinition.hpp"
+#include "Scene/SceneDefinition.hpp"
 
 namespace Bolt {
 	class PhysicsSystem2D;

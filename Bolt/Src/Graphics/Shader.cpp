@@ -1,4 +1,4 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "Shader.hpp"
 #include <vector>
 #include <cstdio>

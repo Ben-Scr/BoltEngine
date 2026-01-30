@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <utility>
-#include "../Collections/Ids.hpp"
+#include "Collections/Ids.hpp"
 
 namespace Bolt {
     template<typename... Args>

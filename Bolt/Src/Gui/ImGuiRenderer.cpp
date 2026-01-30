@@ -1,13 +1,13 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "ImGuiRenderer.hpp"
 
-#include "../Core/Time.hpp"
-#include "../Graphics/Gizmos.hpp"
-#include "../Core/Application.hpp"
-#include "../Collections/Viewport.hpp"
-#include "../Core/Window.hpp"
-#include "../Scene/SceneManager.hpp"
-#include "../Scene/Scene.hpp"
+#include "Core/Time.hpp"
+#include "Graphics/Gizmos.hpp"
+#include "Core/Application.hpp"
+#include "Collections/Viewport.hpp"
+#include "Core/Window.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>

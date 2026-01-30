@@ -1,9 +1,10 @@
 #pragma once
 #include "Rigidbody2D.hpp"
-#include "../Debugging/Logger.hpp"
-#include "../Physics/PhysicsSystem.hpp"
-#include "../Physics/Box2DWorld.hpp"
-#include "../Scene/EntityHandle.hpp"
+#include "Debugging/Logger.hpp"
+#include "Physics/PhysicsSystem.hpp"
+#include "Physics/Box2DWorld.hpp"
+#include "Scene/EntityHandle.hpp"
+
 #include <box2d/box2d.h>
 
 

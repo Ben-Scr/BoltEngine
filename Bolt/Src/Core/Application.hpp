@@ -1,12 +1,12 @@
 #pragma once
-#include "../Graphics/Renderer2D.hpp"
-#include "../Graphics/GizmoRenderer.hpp"
+#include "Graphics/Renderer2D.hpp"
+#include "Graphics/GizmoRenderer.hpp"
 #include "Window.hpp"
 #include <optional>
-#include "../Physics/PhysicsSystem.hpp"
-#include "../Gui/ImGuiRenderer.hpp"
-#include "../Gui/GuiRenderer.hpp"
-#include  "../Utils/Event.hpp"
+#include "Physics/PhysicsSystem.hpp"
+#include "Gui/ImGuiRenderer.hpp"
+#include "Gui/GuiRenderer.hpp"
+#include  "Utils/Event.hpp"
 #include <chrono>
 
 namespace Bolt {

@@ -1,6 +1,6 @@
-#include "../pch.hpp"
-#include "../Scene/SceneManager.hpp"
-#include "../Scene/Scene.hpp"
+#include "pch.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
 
 #include <algorithm>
 #include <exception>
@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include "../Debugging/Logger.hpp"
+#include "Debugging/Logger.hpp"
 #include "SceneDefinition.hpp"
 
 namespace Bolt {

@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <cmath>
 #include <array>
-#include <sstream>
-#include <string>
 #include <ostream>
 
 namespace Bolt {

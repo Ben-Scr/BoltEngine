@@ -1,6 +1,6 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "Box2DWorld.hpp"
-#include "../Scene/Scene.hpp"
+#include "Scene/Scene.hpp"
 
 namespace Bolt {
 	Box2DWorld::Box2DWorld() {

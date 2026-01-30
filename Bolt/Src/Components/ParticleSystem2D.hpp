@@ -1,7 +1,7 @@
 #pragma once
-#include "../Components/Transform2D.hpp"
-#include "../Graphics/TextureHandle.hpp"
-#include "../Collections/Color.hpp"
+#include "Components/Transform2D.hpp"
+#include "Graphics/TextureHandle.hpp"
+#include "Collections/Color.hpp"
 #include <variant>
 
 namespace Bolt {

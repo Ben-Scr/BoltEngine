@@ -1,7 +1,7 @@
-#include "../pch.hpp"
-#include "../components/Rigidbody2D.hpp"
-#include "../Components/Transform2D.hpp"
-#include "../Physics/Box2DWorld.hpp"
+#include "pch.hpp"
+#include "components/Rigidbody2D.hpp"
+#include "Components/Transform2D.hpp"
+#include "Physics/Box2DWorld.hpp"
 
 namespace Bolt {
 	void Rigidbody2D::SetBodyType(BodyType bodyType) {

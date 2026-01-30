@@ -1,7 +1,7 @@
 #pragma once
-#include "../Physics/CollisionDispatcher.hpp"
-#include "../Scene/EntityHandle.hpp"
-#include "../Physics/PhysicsTypes.hpp"
+#include "Physics/CollisionDispatcher.hpp"
+#include "Scene/EntityHandle.hpp"
+#include "Physics/PhysicsTypes.hpp"
 #include <box2d/box2d.h>
 
 namespace Bolt {

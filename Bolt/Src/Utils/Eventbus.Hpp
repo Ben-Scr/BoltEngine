@@ -2,7 +2,7 @@
 #include <functional>
 #include <unordered_map>
 #include <cstdint>
-#include "../Collections/Ids.hpp"
+#include "Collections/Ids.hpp"
 
 namespace Bolt {
 

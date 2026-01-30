@@ -1,6 +1,6 @@
 #pragma once
-#include "../Graphics/SpriteShaderProgram.hpp"
-#include "../Graphics/QuadMesh.hpp"
+#include "Graphics/SpriteShaderProgram.hpp"
+#include "Graphics/QuadMesh.hpp"
 
 namespace Bolt {
 	class Scene;

@@ -1,6 +1,6 @@
 #pragma once
-#include "../Collections/Vec2.hpp"
-#include "../Scene/EntityHandle.hpp"
+#include "Collections/Vec2.hpp"
+#include "Scene/EntityHandle.hpp"
 
 namespace Bolt {
 	class Rigidbody2D;

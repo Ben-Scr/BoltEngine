@@ -1,7 +1,7 @@
 #pragma once
-#include "../Collections/Vec2.hpp"
-#include "../Collections/Color.hpp"
-#include "../Graphics/TextureHandle.hpp"
+#include "Collections/Vec2.hpp"
+#include "Collections/Color.hpp"
+#include "Graphics/TextureHandle.hpp"
 
 namespace Bolt {
     struct Instance44 {

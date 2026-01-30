@@ -1,6 +1,6 @@
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "Random.hpp"
-#include "../Collections/Color.hpp"
+#include "Collections/Color.hpp"
 
 namespace Bolt {
 	Color Random::NextColor() {

@@ -1,9 +1,9 @@
-#include "../pch.hpp"
-#include "../Physics/PhysicsSystem.hpp"
-#include "../Components/Rigidbody2D.hpp"
-#include "../Physics/Box2DWorld.hpp"
-#include "../Scene/SceneManager.hpp"
-#include "../Scene/Scene.hpp"
+#include "pch.hpp"
+#include "Physics/PhysicsSystem.hpp"
+#include "Components/Rigidbody2D.hpp"
+#include "Physics/Box2DWorld.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
 
 
 namespace Bolt {

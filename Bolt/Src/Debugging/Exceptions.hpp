@@ -6,7 +6,7 @@
 #include <utility>
 #include "Logger.hpp"
 #include <ostream>
-#include "../Utils/StringHelper.hpp"
+#include "Utils/StringHelper.hpp"
 
 namespace Bolt {
 	enum class BoltErrorCode {

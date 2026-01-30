@@ -1,7 +1,7 @@
 #pragma once
-#include "../Components/Transform2D.hpp"
-#include "../Collections/AABB.hpp"
-#include "../Collections/Viewport.hpp"
+#include "Components/Transform2D.hpp"
+#include "Collections/AABB.hpp"
+#include "Collections/Viewport.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>

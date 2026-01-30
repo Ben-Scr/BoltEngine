@@ -1,11 +1,11 @@
 #pragma once
-#include "../pch.hpp"
+#include "pch.hpp"
 #include "ParticleUpdateSystem.hpp"
-#include "../Scene/SceneManager.hpp"
-#include "../Scene/Scene.hpp"
+#include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
 
-#include "../Components/ParticleSystem2D.hpp"
-#include "../Components/Tags.hpp"
+#include "Components/ParticleSystem2D.hpp"
+#include "Components/Tags.hpp"
 
 #include <entt/entt.hpp>
 
