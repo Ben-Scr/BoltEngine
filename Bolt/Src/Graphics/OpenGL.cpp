@@ -47,4 +47,11 @@ namespace Bolt {
 	void OpenGL::SetBackgroundColor(const Color& backgroundColor) {
 		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 	}
+
+	Color OpenGL::GetBackgroundColor()
+	{
+		GLfloat c[4] = {};
+		glGetFloatv(GL_COLOR_CLEAR_VALUE, c);
+		return Color{ c[0], c[1], c[2], c[3] };
+	}
 }

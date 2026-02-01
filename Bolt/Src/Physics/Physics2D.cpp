@@ -1,7 +1,7 @@
 #include "pch.hpp"
 
 #include "Physics/Physics2D.hpp"
-#include "Physics/PhysicsSystem.hpp"
+#include "Physics/PhysicsSystem2D.hpp"
 #include "Physics/Box2DWorld.hpp"
 
 #include <box2d/box2d.h>

@@ -1,4 +1,5 @@
 #pragma once
+#include <ostream>
 
 namespace Bolt {
     enum class KeyCode : uint16_t {
@@ -24,7 +25,19 @@ namespace Bolt {
         RightAlt = 346, RightSuper = 347, Menu = 348
     };
 
-    enum class MouseKeyCode : uint8_t {
+    enum class MouseButton : uint8_t {
         Left = 0, Right = 1, Middle = 2, Back = 3, Revert = 4, Button6 = 5, Button7 = 6, Button8 = 7
     };
+
+    inline std::ostream& operator<<(std::ostream& os, KeyCode keyCode)
+    {
+        os << static_cast<int32_t>(keyCode);
+        return os;
+    }
+
+    inline std::ostream& operator<<(std::ostream& os, MouseButton button)
+    {
+        os << static_cast<int32_t>(button);
+        return os;
+    }
 }

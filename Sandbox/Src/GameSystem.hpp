@@ -1,5 +1,6 @@
 #pragma once
 #include <Bolt.hpp>
+#include <functional>
 
 using namespace Bolt;
 

@@ -19,7 +19,6 @@ namespace Bolt {
 
 	Event<> Application::s_OnApplicationQuit;
 
-
 	bool Application::s_ShouldQuit = false;
 	bool Application::s_RunInBackground = false;
 	bool Application::s_IsPaused = false;
@@ -31,6 +30,8 @@ namespace Bolt {
 
 	int Application::Run()
 	{
+		int err = 0;
+
 		try {
 			if (s_ForceSingleInstance) {
 				static SingleInstance instance(s_Name);
@@ -99,11 +100,13 @@ namespace Bolt {
 		}
 		catch (const std::exception& ex) {
 			Logger::Error(ex.what());
-			return -1;
+			Logger::Error("Application Crashed!");
+			err = -1;
 		}
 		catch (...) {
 			Logger::Error("Unknown Error");
-			return -1;
+			Logger::Error("Application Crashed!");
+			err = -1;
 		}
 
 		Shutdown();
@@ -113,7 +116,7 @@ namespace Bolt {
 			Run();
 		}
 
-		return 0;
+		return err;
 	}
 
 
@@ -221,9 +224,9 @@ namespace Bolt {
 		TextureManager::Initialize();
 		Logger::Message("TextureManager", "Initialization took " + StringHelper::ToString(timer));
 
-		//timer.Reset();
-		//AudioManager::Initialize();
-		//Logger::Message("AudioManager", "Initialization took " + StringHelper::ToString(timer));
+		timer.Reset();
+		AudioManager::Initialize();
+		Logger::Message("AudioManager", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
@@ -250,6 +253,7 @@ namespace Bolt {
 
 		SceneManager::Shutdown();
 		TextureManager::Shutdown();
+		AudioManager::Shutdown();
 
 		if (m_Window) m_Window->Destroy();
 		Window::Shutdown();

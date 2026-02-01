@@ -4,12 +4,27 @@
 #include "Core/Application.hpp"
 #include "Scene/EntityHelper.hpp"
 #include "Core/Window.hpp"
+#include "Core/Memory.hpp"
+#include "Utils/Timer.hpp"
 
 #include <imgui.h>
 
-
+char* data;
+char* data2;
+char* data3;
+char* data4;
 
 void GameSystem::Awake() {
+	{
+		ScopedTimer timer("GameSystem::Awake");
+
+		data = new char[1024 * 1024 * 1000]; // 100 MB
+		data2 = new char[1024 * 1024 * 1000]; // 100 MB
+		data3 = new char[1024 * 1024 * 1000]; // 100 MB
+		data4 = new char[1024 * 1024 * 500]; // 100 MB
+
+		Gizmo::SetEnabled(false);
+	}
 	m_AsteriodTexture = TextureManager::LoadTexture("../Assets/Textures/Meteor.png");
 	m_LightTexture = TextureManager::LoadTexture("../Assets/Textures/Light.png");
 	m_PlayerTexture = TextureManager::LoadTexture("../Assets/Textures/Player.png");
@@ -20,13 +35,6 @@ void GameSystem::Awake() {
 
 void GameSystem::Start() {
 	Scene& scene = GetScene();
-
-	//m_RectEntity = scene.CreateEntity();
-	//m_RectEntity.RemoveComponent<Transform2D>();
-	//auto& guiImage = m_RectEntity.AddComponent<Image>();
-	//guiImage.TextureHandle = m_LightTexture;
-	//m_RectEntity.AddComponent<RectTransform>();
-
 
 	EntityHelper::CreateCamera2DEntity();
 	OpenGL::SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
@@ -76,7 +84,6 @@ void GameSystem::Update() {
 			}
 	}
 	if (Input::GetKeyDown(KeyCode::P)) {
-		Gizmo::SetEnabled(!Gizmo::IsEnabled());
 		Application::Pause(!Application::IsPaused());
 	}
 
@@ -128,61 +135,68 @@ void GameSystem::OnGui()
 {
 	ImGui::Begin("Debug Settings");
 
-	static bool enabledVsync = true;
-	ImGui::Checkbox("Vsync", &enabledVsync);
-	Application::GetWindow()->SetVsync(enabledVsync);
+	auto* window = Application::GetWindow();
+	auto* renderer2D = Application::GetInstance()->GetRenderer2D();
 
-	if (!enabledVsync) {
-		static float targetFrameRate = 144;
-		ImGui::SliderFloat("Target FPS", &targetFrameRate, 0.f, 244.f);
-		Application::SetTargetFramerate(targetFrameRate);
+	bool isVsync = window->IsVsync();
+	if (ImGui::Checkbox("Vsync", &isVsync))
+		window->SetVsync(isVsync);
+
+	if (!isVsync) {
+		float targetFrameRate = 144;
+		targetFrameRate = Application::GetTargetFramerate();
+		if (ImGui::SliderFloat("Target FPS", &targetFrameRate, 0.f, 244.f)) {
+			Application::SetTargetFramerate(targetFrameRate);
+		}
 	}
 
-	static std::array<float, 4> gizmoCol = Color::Red().ToArray();
+	bool renderer2DEnabled = renderer2D->IsEnabled();
+	if (ImGui::Checkbox("Renderer2D Enabled", &renderer2DEnabled)) {
+		renderer2D->SetEnabled(renderer2DEnabled);
+	}
+
+	std::array<float, 4> gizmoCol = Gizmo::GetColor().ToArray();
 
 	if (ImGui::ColorEdit4("Gizmo Color", gizmoCol.data())) {
 		Gizmo::SetColor(Color::FromArray(gizmoCol));
 	}
 
-	static std::array<float, 4> bgCol = Color(0.1f, 0.1f, 0.1f).ToArray();
+	std::array<float, 4> bgCol = OpenGL::GetBackgroundColor().ToArray();
 
 	if (ImGui::ColorEdit4("Background Color", bgCol.data())) {
 		OpenGL::SetBackgroundColor(Color::FromArray(bgCol));
 	}
 
-	static bool runInBG = Application::GetRunInBackground();
-	runInBG = Application::GetRunInBackground();
+	bool runInBG = Application::GetRunInBackground();
+
 	if (ImGui::Checkbox("Run in background", &runInBG)) {
 		Application::SetRunInBackground(runInBG);
 	}
 
-	static bool isFullscreen = Application::GetWindow()->IsFullScreen();
-	isFullscreen = Application::GetWindow()->IsFullScreen();
+	bool isFullscreen = window->IsFullScreen();
+
 	if (ImGui::Checkbox("Fullscreen", &isFullscreen)) {
-		Application::GetWindow()->SetFullScreen(isFullscreen);
+		window->SetFullScreen(isFullscreen);
 	}
 
-	static bool playerEnabled = true;
-	ImGui::Checkbox("Player enabled", &playerEnabled);
-	EntityHelper::SetEnabled(m_PlayerEntity, playerEnabled);
+	bool playerEnabled = EntityHelper::IsEnabled(m_PlayerEntity);
+	if (ImGui::Checkbox("Player enabled", &playerEnabled)) {
+		EntityHelper::SetEnabled(m_PlayerEntity, playerEnabled);
+	}
 
-	static float timeScale = 1.0;
-	ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f);
-	Time::SetTimeScale(timeScale);
+	float timeScale = Time::GetTimeScale();
+	if (ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f))
+		Time::SetTimeScale(timeScale);
 
-	static float fixedFPS = 50.f;
-	ImGui::SliderFloat("Fixed FPS", &fixedFPS, 10.f, 244.f);
+	float fixedFPS = Time::GetFixedDeltaTime();
+	if (ImGui::SliderFloat("Fixed FPS", &fixedFPS, 10.f, 244.f)) {
+		Time::SetFixedDeltaTime(fixedFPS);
+	}
 
-	static bool enabledGizmo = true;
-	enabledGizmo = Gizmo::IsEnabled();
-	ImGui::Checkbox("Gizmo", &enabledGizmo);
-
-
-	static float lineWidth = 1.f;
-	ImGui::SliderFloat("Gizmo Line Width", &lineWidth, 1.f, 10.f);
-	Gizmo::SetLineWidth(lineWidth);
-
-	Gizmo::SetEnabled(enabledGizmo);
+	bool enabledGizmo = Gizmo::IsEnabled();
+	if (ImGui::Checkbox("Gizmo", &enabledGizmo)) {
+		Gizmo::SetEnabled(enabledGizmo);
+	}
 
 	if (enabledGizmo) {
 		static bool aabb = true;
@@ -190,16 +204,25 @@ void GameSystem::OnGui()
 
 		static bool collider = true;
 		ImGui::Checkbox("Collider", &collider);
+
+		float lineWidth = Gizmo::GetLineWidth();
+		if (ImGui::SliderFloat("Gizmo Line Width", &lineWidth, 1.f, 10.f)) {
+			Gizmo::SetLineWidth(lineWidth);
+		}
 	}
 
-	if (ImGui::Button("Reload")) {
+	if (ImGui::Button("Reload App")) {
 		Application::Reload();
+	}
+	if (ImGui::Button("Reload Scene")) {
+		SceneManager::ReloadScene(GetScene().GetName());
+	}
+	if (ImGui::Button("Quit")) {
+		Application::Quit();
 	}
 
 	ImGui::End();
 	ImGui::Begin("Debug Info");
-
-	auto* window = Application::GetWindow();
 
 	const std::string fps = "Current FPS: " + std::to_string(1.f / Time::GetDeltaTimeUnscaled());
 	const std::string timescale = "Current TimeScale: " + std::to_string(Time::GetTimeScale());
@@ -211,9 +234,14 @@ void GameSystem::OnGui()
 	const std::string windowVP = "Viewport Size: " + StringHelper::ToString(vp);
 
 
-	auto* renderer2D = Application::GetInstance()->GetRenderer2D();
 	const std::string renderedInstances = "Rendered Instances: " + std::to_string(renderer2D->GetRenderedInstancesCount());
 	const std::string renderLoopDuration = "Render Loop Duration: " + std::to_string(renderer2D->GetRRenderLoopDuration());
+
+	auto stats = Memory::GetAllocationStats();
+
+	ImGui::Text(("Total Allocated Memory: " + StringHelper::FromMemoryIEC(stats.TotalAllocated)).c_str());
+	ImGui::Text(("Total Freed Memory: " + StringHelper::FromMemoryIEC(stats.TotalFreed)).c_str());
+	ImGui::Text(("Active Memory: " + StringHelper::FromMemoryIEC(stats.TotalAllocated - stats.TotalFreed)).c_str());
 
 	ImGui::Text(fps.c_str());
 	ImGui::Text(timescale.c_str());
@@ -275,11 +303,11 @@ void GameSystem::CameraMovement() {
 		if (Input::GetKey(KeyCode::LeftControl))
 			mainCam->AddOrthographicSize(-Input::ScrollValue() * Time::GetDeltaTimeUnscaled() * 100);
 
-		if (Input::GetMouseDown(MouseKeyCode::Right)) {
+		if (Input::GetMouseDown(MouseButton::Right)) {
 			mouseStartPos = mousePos;
 			mouseDown = true;
 		}
-		else if (Input::GetMouseUp(MouseKeyCode::Right)) {
+		else if (Input::GetMouseUp(MouseButton::Right)) {
 			mouseDown = false;
 		}
 

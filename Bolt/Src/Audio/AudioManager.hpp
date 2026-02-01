@@ -22,7 +22,7 @@ namespace Bolt {
 
 
 		static AudioHandle LoadAudio(const std::string& filepath);
-		static void UnloadAudio(const AudioHandle& blockTexture);
+		static void UnloadAudio(const AudioHandle& audioHandle);
 		static void UnloadAllAudio();
 
 
@@ -43,8 +43,8 @@ namespace Bolt {
 		static uint32_t GetActiveSoundCount();
 
 
-		static bool IsAudioLoaded(const AudioHandle& blockTexture);
-		static const Audio* GetAudio(const AudioHandle& blockTexture);
+		static bool IsAudioLoaded(const AudioHandle& audioHandle);
+		static const Audio* GetAudio(const AudioHandle& audioHandle);
 
 
 		struct SoundInstance {

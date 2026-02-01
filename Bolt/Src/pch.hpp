@@ -38,6 +38,7 @@
 
 // Core
 #include "Core/Input.hpp"
+#include "Core/Memory.hpp"
 
 // Debugging
 #include "Debugging/Logger.hpp"

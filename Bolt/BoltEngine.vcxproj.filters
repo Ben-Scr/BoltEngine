@@ -153,6 +153,9 @@
     <ClCompile Include="Src\Scene\EntityHelper.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Core\Memory.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Audio\Audio.hpp">
@@ -402,6 +405,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Scene\EntityHelper.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Memory.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

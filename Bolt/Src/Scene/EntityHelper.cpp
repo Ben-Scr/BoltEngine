@@ -14,6 +14,9 @@ namespace Bolt {
 		else if (enabled && entity.HasComponent<DisabledTag>())
 			entity.RemoveComponent<DisabledTag>();
 	}
+	bool EntityHelper::IsEnabled(Entity entity) {
+		return !entity.HasComponent<DisabledTag>();
+	}
 
 
 	Entity EntityHelper::CreateCamera2DEntity() {

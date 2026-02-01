@@ -129,9 +129,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -148,9 +148,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BOLT_PLATFORM_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -173,6 +173,7 @@
     <ClCompile Include="Src\Components\Transform2D.cpp" />
     <ClCompile Include="Src\Core\Application.cpp" />
     <ClCompile Include="Src\Core\Input.cpp" />
+    <ClCompile Include="Src\Core\Memory.cpp" />
     <ClCompile Include="Src\Core\Time.cpp" />
     <ClCompile Include="Src\Core\Window.cpp" />
     <ClCompile Include="Src\Debugging\Logger.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="Src\Components\Tags.hpp" />
     <ClInclude Include="Src\Components\Transform2D.hpp" />
     <ClInclude Include="Src\Core\Application.hpp" />
+    <ClInclude Include="Src\Core\Memory.hpp" />
     <ClInclude Include="Src\Core\Input.hpp" />
     <ClInclude Include="Src\Core\KeyCodes.hpp" />
     <ClInclude Include="Src\Core\SingleInstance.hpp" />

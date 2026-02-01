@@ -15,22 +15,20 @@ namespace Bolt {
 		m_QuadMesh.Initialize();
 		m_SpriteShader.Initialize();
 
-		if (!m_SpriteShader.IsValid()) {
-			//	throw BoltException("Renderer2DException", "Sprite shader is invalid.");
-		}
-
+		BOLT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Sprite shader is invalid.");
 		m_Initialized = true;
 	}
 
 	void Renderer2D::BeginFrame() {
-		if (!m_Initialized) return;
-
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		if (!m_Initialized || !m_IsEnabled) return;
+
 		RenderScenes();
 	}
 
 	void Renderer2D::EndFrame() {
-
+		if (!m_IsEnabled) return;
 	}
 
 	void Renderer2D::RenderScenes() {

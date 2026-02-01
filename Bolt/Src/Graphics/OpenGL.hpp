@@ -40,6 +40,7 @@ namespace Bolt {
 		static void Disable(GLenum glEnum);
 		static void CullFace(GLCullingMode cullingMode);
 		static void SetBackgroundColor(const Color& backgroundColor);
+		static Color GetBackgroundColor();
 	private:
 		static bool s_IsInitialized;
 	};
