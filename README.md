@@ -13,6 +13,6 @@ C++ Windows Compatible Game Engine/Library (in development)
 
 ## Screenshots
 <p align="center">
-  <img src="Bolt/Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 1">
-  <img src="Bolt/Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 2">
+  <img src="Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 1">
+  <img src="Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 2">
 </p>
