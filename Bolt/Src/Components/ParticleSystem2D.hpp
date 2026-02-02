@@ -77,7 +77,7 @@ namespace Bolt {
 		// Info: Enables both emitting and simulating
 		void Play() { m_IsEmitting = true; m_IsSimulating = true; }
 
-		// Info: Disables/Pauses emitting and simulating
+		// Info: Disables both emitting and simulating
 		void Pause() { m_IsEmitting = false; m_IsSimulating = false; }
 
 		// Info: Disables emitting but keeps simulating

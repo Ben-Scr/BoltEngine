@@ -1,36 +1,16 @@
 #include "GameSystem.hpp"
 #include "Components/Tags.hpp"
 #include "Graphics/OpenGL.hpp"
-#include "Core/Application.hpp"
 #include "Scene/EntityHelper.hpp"
-#include "Core/Window.hpp"
-#include "Core/Memory.hpp"
 #include "Utils/Timer.hpp"
 
-#include <imgui.h>
-
-char* data;
-char* data2;
-char* data3;
-char* data4;
-
 void GameSystem::Awake() {
-	{
-		ScopedTimer timer("GameSystem::Awake");
-
-		data = new char[1024 * 1024 * 1000]; // 100 MB
-		data2 = new char[1024 * 1024 * 1000]; // 100 MB
-		data3 = new char[1024 * 1024 * 1000]; // 100 MB
-		data4 = new char[1024 * 1024 * 500]; // 100 MB
-
-		Gizmo::SetEnabled(false);
-	}
+	Gizmo::SetEnabled(false);
 	m_AsteriodTexture = TextureManager::LoadTexture("../Assets/Textures/Meteor.png");
 	m_LightTexture = TextureManager::LoadTexture("../Assets/Textures/Light.png");
 	m_PlayerTexture = TextureManager::LoadTexture("../Assets/Textures/Player.png");
 	m_LaserTexture = TextureManager::LoadTexture("../Assets/Textures/Laser.png");
 }
-
 
 
 void GameSystem::Start() {
@@ -55,6 +35,8 @@ void GameSystem::Start() {
 	pts2D.Play();
 
 	m_PlayerEntity = scene.CreateEntity();
+	m_PlayerEntity.AddComponent<BoxCollider2D>();
+	m_PlayerEntity.AddComponent<Rigidbody2D>().SetGravityScale(0.f);
 	auto& spriteRenderer = m_PlayerEntity.AddComponent<SpriteRenderer>();
 	spriteRenderer.TextureHandle = m_PlayerTexture;
 }
@@ -100,6 +82,7 @@ void GameSystem::Update() {
 		SpriteRenderer& sp = ent.GetComponent<SpriteRenderer>();
 		sp.TextureHandle = m_AsteriodTexture;
 
+
 		AsteriodData& asteriod = ent.AddComponent<AsteriodData>();
 		asteriod.Speed = Random::NextFloat(2.f, 3.f);
 		asteriod.LifeTime = 15.f;
@@ -111,6 +94,12 @@ void GameSystem::Update() {
 
 		float scale = Random::NextFloat(1.f, 5.f);
 		tr2D.Scale = Vec2(scale, scale);
+
+
+		ent.AddComponent<BoxCollider2D>();
+		auto& rb = ent.AddComponent<Rigidbody2D>();
+		rb.SetGravityScale(0.f);
+		//rb.SetPosition(ent.GetComponent<Transform2D>().Position);
 	}
 
 	if (Input::GetKeyDown(KeyCode::Space)) {
@@ -133,124 +122,6 @@ void GameSystem::Update() {
 
 void GameSystem::OnGui()
 {
-	ImGui::Begin("Debug Settings");
-
-	auto* window = Application::GetWindow();
-	auto* renderer2D = Application::GetInstance()->GetRenderer2D();
-
-	bool isVsync = window->IsVsync();
-	if (ImGui::Checkbox("Vsync", &isVsync))
-		window->SetVsync(isVsync);
-
-	if (!isVsync) {
-		float targetFrameRate = 144;
-		targetFrameRate = Application::GetTargetFramerate();
-		if (ImGui::SliderFloat("Target FPS", &targetFrameRate, 0.f, 244.f)) {
-			Application::SetTargetFramerate(targetFrameRate);
-		}
-	}
-
-	bool renderer2DEnabled = renderer2D->IsEnabled();
-	if (ImGui::Checkbox("Renderer2D Enabled", &renderer2DEnabled)) {
-		renderer2D->SetEnabled(renderer2DEnabled);
-	}
-
-	std::array<float, 4> gizmoCol = Gizmo::GetColor().ToArray();
-
-	if (ImGui::ColorEdit4("Gizmo Color", gizmoCol.data())) {
-		Gizmo::SetColor(Color::FromArray(gizmoCol));
-	}
-
-	std::array<float, 4> bgCol = OpenGL::GetBackgroundColor().ToArray();
-
-	if (ImGui::ColorEdit4("Background Color", bgCol.data())) {
-		OpenGL::SetBackgroundColor(Color::FromArray(bgCol));
-	}
-
-	bool runInBG = Application::GetRunInBackground();
-
-	if (ImGui::Checkbox("Run in background", &runInBG)) {
-		Application::SetRunInBackground(runInBG);
-	}
-
-	bool isFullscreen = window->IsFullScreen();
-
-	if (ImGui::Checkbox("Fullscreen", &isFullscreen)) {
-		window->SetFullScreen(isFullscreen);
-	}
-
-	bool playerEnabled = EntityHelper::IsEnabled(m_PlayerEntity);
-	if (ImGui::Checkbox("Player enabled", &playerEnabled)) {
-		EntityHelper::SetEnabled(m_PlayerEntity, playerEnabled);
-	}
-
-	float timeScale = Time::GetTimeScale();
-	if (ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f))
-		Time::SetTimeScale(timeScale);
-
-	float fixedFPS = Time::GetFixedDeltaTime();
-	if (ImGui::SliderFloat("Fixed FPS", &fixedFPS, 10.f, 244.f)) {
-		Time::SetFixedDeltaTime(fixedFPS);
-	}
-
-	bool enabledGizmo = Gizmo::IsEnabled();
-	if (ImGui::Checkbox("Gizmo", &enabledGizmo)) {
-		Gizmo::SetEnabled(enabledGizmo);
-	}
-
-	if (enabledGizmo) {
-		static bool aabb = true;
-		ImGui::Checkbox("AABB", &aabb);
-
-		static bool collider = true;
-		ImGui::Checkbox("Collider", &collider);
-
-		float lineWidth = Gizmo::GetLineWidth();
-		if (ImGui::SliderFloat("Gizmo Line Width", &lineWidth, 1.f, 10.f)) {
-			Gizmo::SetLineWidth(lineWidth);
-		}
-	}
-
-	if (ImGui::Button("Reload App")) {
-		Application::Reload();
-	}
-	if (ImGui::Button("Reload Scene")) {
-		SceneManager::ReloadScene(GetScene().GetName());
-	}
-	if (ImGui::Button("Quit")) {
-		Application::Quit();
-	}
-
-	ImGui::End();
-	ImGui::Begin("Debug Info");
-
-	const std::string fps = "Current FPS: " + std::to_string(1.f / Time::GetDeltaTimeUnscaled());
-	const std::string timescale = "Current TimeScale: " + std::to_string(Time::GetTimeScale());
-	const std::string frameCount = "Frame Count: " + std::to_string(Time::GetFrameCount());
-
-	auto vp = *window->GetMainViewport();
-
-	const std::string windowSize = "Window Size: " + std::to_string(window->GetWidth()) + " x " + std::to_string(window->GetHeight());
-	const std::string windowVP = "Viewport Size: " + StringHelper::ToString(vp);
-
-
-	const std::string renderedInstances = "Rendered Instances: " + std::to_string(renderer2D->GetRenderedInstancesCount());
-	const std::string renderLoopDuration = "Render Loop Duration: " + std::to_string(renderer2D->GetRRenderLoopDuration());
-
-	auto stats = Memory::GetAllocationStats();
-
-	ImGui::Text(("Total Allocated Memory: " + StringHelper::FromMemoryIEC(stats.TotalAllocated)).c_str());
-	ImGui::Text(("Total Freed Memory: " + StringHelper::FromMemoryIEC(stats.TotalFreed)).c_str());
-	ImGui::Text(("Active Memory: " + StringHelper::FromMemoryIEC(stats.TotalAllocated - stats.TotalFreed)).c_str());
-
-	ImGui::Text(fps.c_str());
-	ImGui::Text(timescale.c_str());
-	ImGui::Text(frameCount.c_str());
-	ImGui::Text(windowSize.c_str());
-	ImGui::Text(windowVP.c_str());
-	ImGui::Text(renderedInstances.c_str());
-	ImGui::Text(renderLoopDuration.c_str());
-	ImGui::End();
 }
 
 void GameSystem::UpdatePlayerPts() {
@@ -266,15 +137,40 @@ void GameSystem::PlayerMovement() {
 	Scene& scene = GetScene();
 
 	auto& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
-
+	auto& rb2D = m_PlayerEntity.GetComponent<Rigidbody2D>();
 	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
 
 	float speed = Input::GetKey(KeyCode::LeftShift) ? 15.f : 5.0f;
 
-	Vec2 input = speed * Time::GetDeltaTime() * playerTr.GetForwardDirection();
-	playerTr.Position += input;
+	static bool control = true;
+	if (Input::GetKeyDown(KeyCode::F3))
+	{
+		control = !control;
+		if (!control)
+		{
+			auto& pts = m_PlayerEmissionPts.GetComponent<ParticleSystem2D>();
+			pts.Play();
+		}
+	}
 
-	playerTr.Rotation += LookAt2D(playerTr, mousePos) * Time::GetDeltaTime() * 14;
+	Vec2 controlInput = Input::GetAxis().y * playerTr.GetForwardDirection();
+	Vec2 input = speed * (!control ? playerTr.GetForwardDirection() : controlInput);
+
+	if (control)
+	{
+		rb2D.SetAngularVelocity(Input::GetAxis().x * 10);
+
+		if (LengthSquared(controlInput) == 0)
+			m_PlayerEmissionPts.GetComponent<ParticleSystem2D>().Stop();
+		else
+			m_PlayerEmissionPts.GetComponent<ParticleSystem2D>().Play();
+	}
+
+	if (control || Distance(playerTr.Position, mousePos) > 0.25f)
+		rb2D.SetVelocity(input);
+
+	if (!control)
+		rb2D.SetAngularVelocity(LookAt2D(playerTr, mousePos) * 14);
 }
 
 void GameSystem::CameraMovement() {
@@ -327,13 +223,12 @@ void GameSystem::MoveEntities() {
 	}
 
 	// Info: Move Asteriod entities forward and chase player
-	for (auto [ent, tr, ast] : scene.GetRegistry().view<Transform2D, AsteriodData>().each()) {
-		Vec2 lookPlayerDir = playerTr.Position - tr.Position;
+	for (auto [ent, rb2D, tr, ast] : scene.GetRegistry().view<Rigidbody2D, Transform2D, AsteriodData>().each()) {
+		Vec2 lookPlayerDir = playerTr.Position - rb2D.GetPosition();
 		float lookAtZ = atan2(lookPlayerDir.x, lookPlayerDir.y);
-		float t = 0.1f;
-		float delta = std::remainder(lookAtZ - tr.Rotation, 2.0f * 3.14159265358979323846f);
-		tr.Rotation += delta * t;
-		tr.Position += tr.GetForwardDirection() * Time::GetDeltaTime() * ast.Speed;
+		float delta = std::remainder(lookAtZ - rb2D.GetRotation(), 2.0f * 3.14159265358979323846f);
+		rb2D.SetRotation(delta);
+		rb2D.SetVelocity(tr.GetForwardDirection() * ast.Speed);
 
 		if (AABB::Intersects(AABB::FromTransform(tr), AABB::FromTransform(playerTr))) {
 

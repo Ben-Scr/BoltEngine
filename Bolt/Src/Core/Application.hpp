@@ -9,6 +9,13 @@
 #include <chrono>
 
 namespace Bolt {
+	struct ApplicationSpecs {
+		std::string Name = "Bolt Application";
+		bool ForceSingleInstance = true;
+		bool RunInBackground = false;
+		float TargetFramerate = 144.f;
+	};
+
 	class Application {
 		friend class Window;
 		using DurationChrono = std::chrono::high_resolution_clock::duration;
@@ -64,7 +71,6 @@ namespace Bolt {
 		static const double k_PausedTargetFrameRate;
 
 		static Application* s_Instance;
-		static std::shared_ptr<Viewport> s_Viewport;
 
 		std::unique_ptr<Window> m_Window;
 		std::unique_ptr<Renderer2D> m_Renderer2D;

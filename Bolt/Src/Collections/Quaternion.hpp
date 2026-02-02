@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <ostream>
 
 namespace Bolt {
 	struct Quaternion {
@@ -17,4 +18,8 @@ namespace Bolt {
 			}
 		}
 	};
+
+	inline std::ostream& operator<<(std::ostream& os, const Quaternion& quat) {
+		return os << "(" << quat.x << ", " << quat.y << ", " << quat.z << ", " << quat.w << ")";
+	}
 }

@@ -20,11 +20,16 @@ namespace Bolt {
 	}
 
 	void Renderer2D::BeginFrame() {
+		Timer timer = Timer::Start();
+
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		if (!m_Initialized || !m_IsEnabled) return;
+		if (m_Initialized && m_IsEnabled)
+			RenderScenes();
+		else
+			m_RenderedInstancesCount = 0;
 
-		RenderScenes();
+		m_RenderLoopDuration = timer.ElapsedMilliseconds();
 	}
 
 	void Renderer2D::EndFrame() {
@@ -32,11 +37,9 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScenes() {
-		Timer timer = Timer::Start();
 		SceneManager::ForeachLoadedScene([&](const Scene& scene) {
 			RenderScene(scene);
 			});
-		m_RenderLoopDuration = timer.ElapsedMilliseconds();
 	}
 
 	void Renderer2D::RenderScene(const Scene& scene) {

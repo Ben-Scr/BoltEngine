@@ -2,6 +2,7 @@
 #include "Vec2.hpp"
 #include "Mat2.hpp"
 #include "Components/Transform2D.hpp"
+#include <ostream>
 
 namespace Bolt {
 	struct AABB {
@@ -107,4 +108,8 @@ namespace Bolt {
 			return false;
 		}
 	};
+
+	inline std::ostream& operator<<(std::ostream& os, const AABB& aabb) {
+		return os << aabb.Min << "-" << aabb.Max;
+	}
 }

@@ -1,6 +1,7 @@
 #include <Bolt.hpp>
 #include "GameSystem.hpp"
 #include "Systems/ParticleUpdateSystem.hpp"
+#include "ImGuiDebugSystem.hpp"
 #include "Core/Memory.hpp"
 
 #include <iostream>
@@ -65,6 +66,7 @@ int main() {
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
 	def.AddSystem<GameSystem>();
 	def.AddSystem<Bolt::ParticleUpdateSystem>();
+	def.AddSystem<Bolt::ImGuiDebugSystem>();
 
 	Bolt::Application::SetRunInBackground(true);
 	Bolt::Application::SetForceSingleInstance(false);

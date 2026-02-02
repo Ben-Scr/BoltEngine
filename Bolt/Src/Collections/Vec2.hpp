@@ -15,8 +15,18 @@ namespace Bolt {
 	using Vec2 = glm::vec2;
 	using Vec3 = glm::vec3;
 	using Vec2Int = glm::ivec2;
+	using Vec3Int = glm::ivec3;
 
 	inline std::ostream& operator<<(std::ostream& os, const Vec2& v) {
 		return os << "(" << v.x << ", " << v.y << ")";
+	}
+	inline std::ostream& operator<<(std::ostream& os, const Vec2Int& v) {
+		return os << "(" << v.x << ", " << v.y << ")";
+	}
+	inline std::ostream& operator<<(std::ostream& os, const Vec3& v) {
+		return os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
+	}
+	inline std::ostream& operator<<(std::ostream& os, const Vec3Int& v) {
+		return os << "(" << v.x << ", " << v.y << ", " << v.z << ")";
 	}
 }

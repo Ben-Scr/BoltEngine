@@ -15,7 +15,6 @@ namespace Bolt {
 		static constexpr uint32_t MAX_SOUNDS_PER_FRAME = 8;
 		static constexpr float MIN_SOUND_INTERVAL = 0.1f;
 
-
 		static bool Initialize();
 		static void Shutdown();
 		static void Update();
@@ -43,6 +42,7 @@ namespace Bolt {
 		static uint32_t GetActiveSoundCount();
 
 
+		static bool IsInitialized() { return s_IsInitialized; }
 		static bool IsAudioLoaded(const AudioHandle& audioHandle);
 		static const Audio* GetAudio(const AudioHandle& audioHandle);
 
