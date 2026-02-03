@@ -22,7 +22,7 @@ namespace Bolt {
 		if (!isVsync) {
 			float targetFrameRate = 144;
 			targetFrameRate = Application::GetTargetFramerate();
-			if (ImGui::SliderFloat("Target FPS", &targetFrameRate, 0.f, 244.f)) {
+			if (ImGui::SliderFloat("Target FPS", &targetFrameRate, 0.f, 244.f, "%i")) {
 				Application::SetTargetFramerate(targetFrameRate);
 			}
 		}

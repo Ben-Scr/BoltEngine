@@ -108,6 +108,7 @@ namespace Bolt {
 
 		static std::string FromMemorySI(std::size_t size) {
 			const double s = static_cast<double>(size);
+
 			if (s < 1000.0) return ToString(s, " B");
 			if (s < 1e6)    return ToString(s / 1e3, " kB");
 			if (s < 1e9)    return ToString(s / 1e6, " MB");
@@ -115,11 +116,11 @@ namespace Bolt {
 			return ToString(s / 1e12, " TB");
 		}
 
-		/*static bool IsDigit(const std::string& str) {
-			return !str.empty() && std::all_of(str.begin(), str.end(), std::isdigit);
-		}
-		static bool IsAlpha(const std::string& str) {
-			return !str.empty() && std::all_of(str.begin(), str.end(), std::isalpha);
-		}*/
+		//static bool IsDigit(const std::string& str) {
+		//	return !str.empty() && std::all_of(str.begin(), str.end(), std::isdigit);
+		//}
+		//static bool IsAlpha(const std::string& str) {
+		//	return !str.empty() && std::all_of(str.begin(), str.end(), std::isalpha);
+		//}
 	};
 }
