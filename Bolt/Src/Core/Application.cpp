@@ -35,7 +35,7 @@ namespace Bolt {
 		try {
 			if (s_ForceSingleInstance) {
 				static SingleInstance instance(s_Name);
-				BOLT_RETURN_VAL_IF(instance.IsAlreadyRunning(), -1, BoltErrorCode::Undefined, "An Instance of this app is already running!");
+				BOLT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 			}
 
 			{
@@ -107,7 +107,17 @@ namespace Bolt {
 			err = -1;
 		}
 
-		Shutdown();
+		try {
+			Shutdown();
+		}
+		catch (const std::exception& ex) {
+			Logger::Error("Error during shutdown: " + std::string(ex.what()));
+			err = -1;
+		}
+		catch (...) {
+			Logger::Error("Unknown error during shutdown");
+			err = -1;
+		}
 
 		if (s_CanReload) {
 			s_CanReload = false;

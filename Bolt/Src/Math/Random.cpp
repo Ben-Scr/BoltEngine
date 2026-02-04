@@ -15,7 +15,7 @@ namespace Bolt {
 		return dist(s_Gen, typename decltype(dist)::param_type(0, max));
 	}
 	std::uint8_t Random::NextByte(std::uint8_t min, std::uint8_t max) {
-		BOLT_RETURN_VAL_IF(min > max, 0, BoltErrorCode::InvalidArgument, "min can't be more than max");
+		BOLT_ASSERT(min <= max, BoltErrorCode::InvalidArgument, "min can't be more than max");
 
 		static thread_local std::uniform_int_distribution<int> dist;
 		return dist(s_Gen, typename decltype(dist)::param_type(min, max));
@@ -26,13 +26,13 @@ namespace Bolt {
 		return dist(s_Gen);
 	}
 	double Random::NextDouble(double max) {
-		BOLT_RETURN_VAL_IF(max < 0, 0, BoltErrorCode::InvalidArgument, "max can't be less than 0");
+		BOLT_ASSERT(max >= 0, BoltErrorCode::InvalidArgument, "max can't be less than 0");
 
 		static thread_local std::uniform_real_distribution<double> dist;
 		return dist(s_Gen, typename decltype(dist)::param_type(0, max));
 	}
 	double Random::NextDouble(double min, double max) {
-		BOLT_RETURN_VAL_IF(min > max,0, BoltErrorCode::InvalidArgument, "min can't be more than max");
+		BOLT_ASSERT(min <= max, BoltErrorCode::InvalidArgument, "min can't be more than max");
 
 		static thread_local std::uniform_real_distribution<double> dist;
 		return dist(s_Gen, typename decltype(dist)::param_type(min, max));
@@ -43,13 +43,13 @@ namespace Bolt {
 		return dist(s_Gen);
 	}
 	float Random::NextFloat(float max) {
-		BOLT_RETURN_VAL_IF(max < 0, 0, BoltErrorCode::InvalidArgument, "max can't be less than 0");
+		BOLT_ASSERT(max >= 0, BoltErrorCode::InvalidArgument, "max can't be less than 0");
 
 		static thread_local std::uniform_real_distribution<float> dist;
 		return dist(s_Gen, typename decltype(dist)::param_type(0.f, max));
 	}
 	float Random::NextFloat(float min, float max) {
-		BOLT_RETURN_VAL_IF(min > max, 0, BoltErrorCode::InvalidArgument, "min can't be more than max");
+		BOLT_ASSERT(min <= max, BoltErrorCode::InvalidArgument, "min can't be more than max");
 
 		static thread_local std::uniform_real_distribution<float> dist;
 		return dist(s_Gen, typename decltype(dist)::param_type(min, max));
@@ -60,13 +60,13 @@ namespace Bolt {
 		return dist(s_Gen);
 	}
 	int Random::NextInt(int max) {
-		BOLT_RETURN_VAL_IF(max < 0, 0, BoltErrorCode::InvalidArgument, "max can't be less than 0");
+		BOLT_ASSERT(max >= 0, BoltErrorCode::InvalidArgument, "max can't be less than 0");
 
 		static thread_local std::uniform_int_distribution<int> dist;
 		return dist(s_Gen, typename decltype(dist)::param_type(0, max));
 	}
 	int Random::NextInt(int min, int max) {
-		BOLT_RETURN_VAL_IF(min > max, 0, BoltErrorCode::InvalidArgument, "min can't be more than max");
+		BOLT_ASSERT(min <= max, BoltErrorCode::InvalidArgument, "min can't be more than max");
 
 		static thread_local std::uniform_int_distribution<int> dist;
 		return dist(s_Gen, typename decltype(dist)::param_type(min, max));

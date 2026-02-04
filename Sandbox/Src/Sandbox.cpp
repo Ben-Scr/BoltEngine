@@ -69,7 +69,7 @@ int main() {
 	def.AddSystem<Bolt::ImGuiDebugSystem>();
 
 	Bolt::Application::SetRunInBackground(true);
-	Bolt::Application::SetForceSingleInstance(false);
+	Bolt::Application::SetForceSingleInstance(true);
 	Bolt::Application app;
 
 	runapp:

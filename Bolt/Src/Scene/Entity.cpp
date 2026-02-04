@@ -19,7 +19,7 @@ namespace Bolt {
 	Entity Entity::Create() {
 		Scene& activeScene = *SceneManager::GetActiveScene();
 
-		BOLT_RETURN_VAL_IF(!activeScene.IsLoaded(), Entity::Null, BoltErrorCode::Undefined, "There is no active Scene Loaded");
+		BOLT_ASSERT(activeScene.IsLoaded(), BoltErrorCode::Undefined, "There is no active Scene Loaded");
 
 		auto entity = Entity(activeScene.CreateEntityHandle(), activeScene.GetRegistry());
 		entity.AddComponent<Transform2D>();

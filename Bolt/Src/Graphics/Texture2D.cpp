@@ -65,7 +65,7 @@ namespace Bolt {
 
 		int w = 0, h = 0, n = 0;
 		unsigned char* pixels = stbi_load(path, &w, &h, &n, 0);
-		BOLT_RETURN_VAL_IF(!pixels, false, BoltErrorCode::LoadFailed,"Failed to load path: " + std::string(path));
+		BOLT_ASSERT(pixels, BoltErrorCode::LoadFailed,"Failed to load path: " + std::string(path));
 
 		GLint internalFmt = GL_RGBA8;
 		GLenum dataFmt = GL_RGBA;
@@ -101,7 +101,7 @@ namespace Bolt {
 	}
 
 	ImageData* Texture2D::GetImageData() const {
-		BOLT_RETURN_VAL_IF(!IsValid(), nullptr, BoltErrorCode::InvalidHandle, "Texture isn't valid!");
+		BOLT_ASSERT(IsValid(), BoltErrorCode::InvalidHandle, "Texture isn't valid!");
 
 		int w = 0, h = 0;
 		glBindTexture(GL_TEXTURE_2D, m_Tex);
@@ -109,7 +109,7 @@ namespace Bolt {
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
 
-		BOLT_RETURN_VAL_IF(w <= 0 || h <= 0, nullptr,BoltErrorCode::OutOfBounds,"Texture width or hight isn't valid!");
+		BOLT_ASSERT(w > 0 && h > 0,BoltErrorCode::OutOfBounds,"Texture width or height isn't valid!");
 
 		std::vector<unsigned char> pixels((size_t)w * (size_t)h * 4);
 

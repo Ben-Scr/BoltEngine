@@ -48,7 +48,6 @@ namespace Bolt {
 		static Application* GetInstance() { return s_Instance; }
 
 		static void Quit();
-		static void ThrowQuit();
 		static void Pause(bool paused) { s_IsPaused = paused; }
 		static void Reload() { s_ShouldQuit = true; s_CanReload = true; };
 		static const bool IsPaused() { return s_IsPaused; }

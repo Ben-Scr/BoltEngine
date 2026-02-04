@@ -189,7 +189,7 @@ namespace Bolt {
 	}
 
 	Scene* SceneManager::GetActiveScene() {
-		BOLT_RETURN_VAL_IF(!s_ActiveScene, nullptr, BoltErrorCode::NullReference, "There is no active scene");
+		BOLT_ASSERT(s_ActiveScene, BoltErrorCode::NullReference, "There is no active scene");
 		return s_ActiveScene;
 	}
 

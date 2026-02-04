@@ -15,7 +15,7 @@ namespace Bolt {
         static Entity CreateWith() {
             Scene& activeScene = *SceneManager::GetActiveScene();
 
-            BOLT_RETURN_VAL_IF(!activeScene.IsLoaded(), Entity::Null,
+            BOLT_ASSERT(activeScene.IsLoaded(), 
                 BoltErrorCode::Undefined,
                 "There is no active Scene Loaded");
 
@@ -30,7 +30,7 @@ namespace Bolt {
         static EntityHandle CreateHandleWith() {
             Scene& activeScene = *SceneManager::GetActiveScene();
 
-            BOLT_RETURN_VAL_IF(!activeScene.IsLoaded(), Entity::Null,
+            BOLT_ASSERT(activeScene.IsLoaded(),
                 BoltErrorCode::Undefined,
                 "There is no active Scene Loaded");
 

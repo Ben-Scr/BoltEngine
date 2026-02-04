@@ -20,51 +20,35 @@ namespace Bolt {
 	Vec2 BoxCollider2D::GetScale() {
 		b2ShapeType shapeType = b2Shape_GetType(m_ShapeId);
 
-		if (shapeType == b2_polygonShape) {
-			b2Polygon polygon = b2Shape_GetPolygon(m_ShapeId);
+		BOLT_ASSERT(shapeType == b2_polygonShape, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
 
-			if (polygon.count == 4) {
-				Vec2 size = Vec2(
-					polygon.vertices[2].x - polygon.vertices[0].x,
-					polygon.vertices[2].y - polygon.vertices[0].y
-				);
-				return size;
-			}
-			else {
-				BOLT_RETURN_VAL_IF(true, Vec2{}, BoltErrorCode::Undefined, "This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
-			}
-		}
-		else {
-			BOLT_RETURN_VAL_IF(true, Vec2{}, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
-		}
+		b2Polygon polygon = b2Shape_GetPolygon(m_ShapeId);
 
-		return Vec2{};
+		BOLT_ASSERT(polygon.count == 4, BoltErrorCode::Undefined, "This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
+
+		Vec2 size = Vec2(
+			polygon.vertices[2].x - polygon.vertices[0].x,
+			polygon.vertices[2].y - polygon.vertices[0].y
+		);
+		return size;
 	}
 
 	Vec2 BoxCollider2D::GetLocalScale(const Scene& scene) {
 		Transform2D tr = scene.GetComponent<Transform2D>(m_EntityHandle);
 		b2ShapeType shapeType = b2Shape_GetType(m_ShapeId);
 
-		if (shapeType == b2_polygonShape) {
-			b2Polygon polygon = b2Shape_GetPolygon(m_ShapeId);
+		BOLT_ASSERT(shapeType == b2_polygonShape, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
 
-			if (polygon.count == 4) {
-				Vec2 size = Vec2(
-					polygon.vertices[2].x - polygon.vertices[0].x,
-					polygon.vertices[2].y - polygon.vertices[0].y
-				);
-				size += Vec2{ 1.f };
-				return size - tr.Scale;
-			}
-			else {
-				BOLT_RETURN_VAL_IF(true, Vec2{}, BoltErrorCode::Undefined, "This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
-			}
-		}
-		else {
-			BOLT_RETURN_VAL_IF(true, Vec2{}, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
-		}
+		b2Polygon polygon = b2Shape_GetPolygon(m_ShapeId);
 
-		return Vec2{};
+		BOLT_ASSERT(polygon.count == 4, BoltErrorCode::Undefined, "This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
+
+		Vec2 size = Vec2(
+			polygon.vertices[2].x - polygon.vertices[0].x,
+			polygon.vertices[2].y - polygon.vertices[0].y
+		);
+		size += Vec2{ 1.f };
+		return size - tr.Scale;
 	}
 
 	void BoxCollider2D::UpdateScale(const Scene& scene) {
