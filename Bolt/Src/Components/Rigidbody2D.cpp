@@ -28,7 +28,7 @@ namespace Bolt {
 		return Vec2{ b2v.x, b2v.y };
 	}
 
-	void Rigidbody2D::SetAngularVelocity(float velocity) { b2Body_SetAngularVelocity(m_BodyId, velocity); }
+	void Rigidbody2D::SetAngularVelocity(float velocity) { b2Body_SetAngularVelocity(m_BodyId, -velocity); }
 	float Rigidbody2D::GetAngularVelocity() const { return b2Body_GetAngularVelocity(m_BodyId); }
 
 	void Rigidbody2D::SetGravityScale(float gravityScale) { b2Body_SetGravityScale(m_BodyId, gravityScale); }
