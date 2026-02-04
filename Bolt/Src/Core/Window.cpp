@@ -262,11 +262,11 @@ namespace Bolt {
 		m_Cursor = newCursor;
 	}
 	void Window::SetWindowIcon(const Texture2D* tex2D) {
-		BOLT_RETURN_IF(!tex2D, BoltErrorCode::NullReference, "Texture is null");
+		BOLT_ASSERT(tex2D, BoltErrorCode::NullReference, "Texture is null");
 
 		ImageData* imgData = tex2D->GetImageData();
 
-		BOLT_RETURN_IF(!imgData, BoltErrorCode::NullReference, "Image data is null");
+		BOLT_ASSERT(imgData, BoltErrorCode::NullReference, "Image data is null");
 		imgData->FlipVerticalRGBA();
 
 		GLFWimage img;

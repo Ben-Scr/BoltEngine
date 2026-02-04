@@ -30,7 +30,7 @@ namespace Bolt {
 		entity.Destroy();
 	}
 	void Entity::Destroy() {
-		BOLT_RETURN_IF(!m_Registry, BoltErrorCode::InvalidHandle, "Entity is not valid or has already been destroyed.");
+		BOLT_ASSERT(m_Registry, BoltErrorCode::InvalidHandle, "Entity is not valid or has already been destroyed.");
 
 		m_Registry->destroy(m_EntityHandle);
 		m_EntityHandle = entt::null;

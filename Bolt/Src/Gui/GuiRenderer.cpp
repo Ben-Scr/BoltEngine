@@ -32,12 +32,12 @@ namespace Bolt {
 
 	}
 	void GuiRenderer::RenderScene(const Scene& scene) {
-		BOLT_RETURN_IF(!m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
+		BOLT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
 		m_SpriteShader.Bind();
 
 		// Camera 2D Region
 		Camera2D* camera2D = Camera2D::Main();
-		BOLT_RETURN_IF(!camera2D, BoltErrorCode::NullReference, "There is no main camera");
+		BOLT_ASSERT(camera2D, BoltErrorCode::NullReference, "There is no main camera");
 
 		camera2D->UpdateViewport();
 		Viewport* vp = camera2D->GetViewport();

@@ -20,7 +20,7 @@ namespace Bolt {
 	Scene* SceneManager::s_ActiveScene;
 
 	void SceneManager::Initialize() {
-		BOLT_RETURN_IF(s_IsInitialized, BoltErrorCode::AlreadyInitialized, "Scenemanager already is initialized");
+		BOLT_ASSERT(!s_IsInitialized, BoltErrorCode::AlreadyInitialized, "SceneManager already is initialized");
 
 		s_IsInitialized = true;
 		auto& firstPair = *s_SceneDefinitions.begin();
@@ -37,7 +37,7 @@ namespace Bolt {
 	SceneDefinition& SceneManager::RegisterScene(const std::string& name) {
 		auto it = s_SceneDefinitions.find(name);
 
-		BOLT_LOG_ERROR_IF(it != s_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition with name '" + name +
+		BOLT_ASSERT(it == s_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition with name '" + name +
 			"' already exists. (Returning existing definition for modification)");
 
 
@@ -49,11 +49,11 @@ namespace Bolt {
 	}
 
 	std::weak_ptr<Scene> SceneManager::LoadScene(const std::string& name) {
-		BOLT_RETURN_VAL_IF(!s_IsInitialized, std::weak_ptr<Scene>{}, BoltErrorCode::NotInitialized, "Scenemanager isn't initialized");
+		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "SceneManager isn't initialized");
 
 		auto defIt = s_SceneDefinitions.find(name);
 
-		BOLT_RETURN_VAL_IF(defIt == s_SceneDefinitions.end(), std::weak_ptr<Scene>{}, BoltErrorCode::InvalidArgument, "Scene definition '" + name +
+		BOLT_ASSERT(defIt != s_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition '" + name +
 			"' not found. Call SceneManager::RegisterScene() first.");
 
 		auto loadedIt = std::find_if(s_LoadedScenes.begin(), s_LoadedScenes.end(),
@@ -61,7 +61,7 @@ namespace Bolt {
 				return scene->GetName() == name;
 			});
 
-		BOLT_RETURN_VAL_IF(loadedIt != s_LoadedScenes.end(), std::weak_ptr<Scene>{}, BoltErrorCode::InvalidArgument, "Scene '" + name +
+		BOLT_ASSERT(loadedIt == s_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene '" + name +
 			"' is already loaded. Use LoadSceneAdditive() for multiple instances.");
 
 		UnloadAllScenes(false);
@@ -89,7 +89,7 @@ namespace Bolt {
 	std::weak_ptr<Scene> SceneManager::LoadSceneAdditive(const std::string& name) {
 		auto defIt = s_SceneDefinitions.find(name);
 
-		BOLT_RETURN_VAL_IF(defIt == s_SceneDefinitions.end(), std::weak_ptr<Scene>{}, BoltErrorCode::InvalidArgument, "Scene definition '" + name +
+		BOLT_ASSERT(defIt != s_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition '" + name +
 			"' not found. Call SceneManager::RegisterScene() first.");
 
 		SceneDefinition* definition = defIt->second.get();
@@ -131,7 +131,7 @@ namespace Bolt {
 			});
 
 
-		BOLT_RETURN_IF(it == s_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene " + StringHelper::WrapWith(name, '\'') + " is not loaded.");
+		BOLT_ASSERT(it != s_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene " + StringHelper::WrapWith(name, '\'') + " is not loaded.");
 
 		Scene* scene = it->get();
 
@@ -184,7 +184,7 @@ namespace Bolt {
 				return scene->GetName() == name;
 			});
 
-		BOLT_RETURN_VAL_IF(it == s_LoadedScenes.end(), std::weak_ptr<Scene>{}, BoltErrorCode::NullReference, "Scene '" + name + "' is not loaded.");
+		BOLT_ASSERT(it != s_LoadedScenes.end(), BoltErrorCode::NullReference, "Scene '" + name + "' is not loaded.");
 		return std::weak_ptr(*it);
 	}
 
@@ -199,7 +199,7 @@ namespace Bolt {
 				return scene->GetName() == name;
 			});
 
-		BOLT_RETURN_IF(it == s_LoadedScenes.end(), BoltErrorCode::InvalidArgument, StringHelper::ToString(
+		BOLT_ASSERT(it != s_LoadedScenes.end(), BoltErrorCode::InvalidArgument, StringHelper::ToString(
 			"Scene ", StringHelper::WrapWith(name, '\'')
 			, "is not loaded. Load it first before setting as active."));
 
