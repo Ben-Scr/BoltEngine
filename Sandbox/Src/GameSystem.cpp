@@ -35,8 +35,6 @@ void GameSystem::Start() {
 	pts2D.Play();
 
 	m_PlayerEntity = scene.CreateEntity();
-	m_PlayerEntity.AddComponent<BoxCollider2D>();
-	m_PlayerEntity.AddComponent<Rigidbody2D>().SetGravityScale(0.f);
 	auto& spriteRenderer = m_PlayerEntity.AddComponent<SpriteRenderer>();
 	spriteRenderer.TextureHandle = m_PlayerTexture;
 }
@@ -94,14 +92,6 @@ void GameSystem::Update() {
 
 		float scale = Random::NextFloat(1.f, 5.f);
 		tr2D.Scale = Vec2(scale, scale);
-
-
-		auto& boxCollider = ent.AddComponent<BoxCollider2D>();
-		auto& rb = ent.AddComponent<Rigidbody2D>();
-		rb.SetGravityScale(0.f);
-		
-		boxCollider.SetScale(Vec2(1.f, 1.f), scene);
-		boxCollider.SetFriction(0.f);
 	}
 
 	if (Input::GetKeyDown(KeyCode::Space)) {
@@ -122,10 +112,6 @@ void GameSystem::Update() {
 	DrawGizmos();
 }
 
-void GameSystem::OnGui()
-{
-}
-
 void GameSystem::UpdatePlayerPts() {
 	auto& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
 	auto& pts2D = m_PlayerEmissionPts.GetComponent<ParticleSystem2D>();
@@ -139,7 +125,6 @@ void GameSystem::PlayerMovement() {
 	Scene& scene = GetScene();
 
 	auto& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
-	auto& rb2D = m_PlayerEntity.GetComponent<Rigidbody2D>();
 	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
 
 	float speed = Input::GetKey(KeyCode::LeftShift) ? 15.f : 5.0f;
@@ -156,11 +141,11 @@ void GameSystem::PlayerMovement() {
 	}
 
 	Vec2 controlInput = Input::GetAxis().y * playerTr.GetForwardDirection();
-	Vec2 input = speed * (!control ? playerTr.GetForwardDirection() : controlInput);
+	Vec2 input = speed * (!control ? playerTr.GetForwardDirection() : controlInput) * Time::GetDeltaTime();
 
 	if (control)
 	{
-		rb2D.SetAngularVelocity(Input::GetAxis().x * 10);
+		playerTr.Rotation += Input::GetAxis().x * 10 * Time::GetDeltaTime();
 
 		if (LengthSquared(controlInput) == 0)
 			m_PlayerEmissionPts.GetComponent<ParticleSystem2D>().Stop();
@@ -169,10 +154,10 @@ void GameSystem::PlayerMovement() {
 	}
 
 	if (control || Distance(playerTr.Position, mousePos) > 0.25f)
-		rb2D.SetVelocity(input);
+		playerTr.Position += input;
 
 	if (!control)
-		rb2D.SetAngularVelocity(LookAt2D(playerTr, mousePos) * 14);
+		playerTr.Rotation = LookAt2D(playerTr, mousePos) * 14;
 }
 
 void GameSystem::CameraMovement() {
@@ -225,12 +210,12 @@ void GameSystem::MoveEntities() {
 	}
 
 	// Info: Move Asteriod entities forward and chase player
-	for (auto [ent, rb2D, tr, ast] : scene.GetRegistry().view<Rigidbody2D, Transform2D, AsteriodData>().each()) {
+	for (auto [ent, tr, ast] : scene.GetRegistry().view<Transform2D, AsteriodData>().each()) {
 		Vec2 lookPlayerDir = playerTr.Position - tr.Position;
 		float lookAtZ = atan2(lookPlayerDir.x, lookPlayerDir.y);
-		float delta = std::remainder(lookAtZ - rb2D.GetRotation(), 2.0f * 3.14159265358979323846f);
-		rb2D.SetRotation(delta);
-		rb2D.SetVelocity(tr.GetForwardDirection() * ast.Speed);
+		float delta = std::remainder(lookAtZ - tr.Rotation, 2.0f * 3.14159265358979323846f);
+		tr.Rotation += delta * Time::GetDeltaTime();
+		tr.Position += tr.GetForwardDirection() * ast.Speed * Time::GetDeltaTime();
 
 		if (AABB::Intersects(AABB::FromTransform(tr), AABB::FromTransform(playerTr))) {
 
