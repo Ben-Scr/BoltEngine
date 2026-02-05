@@ -96,10 +96,12 @@ void GameSystem::Update() {
 		tr2D.Scale = Vec2(scale, scale);
 
 
-		ent.AddComponent<BoxCollider2D>();
+		auto& boxCollider = ent.AddComponent<BoxCollider2D>();
 		auto& rb = ent.AddComponent<Rigidbody2D>();
 		rb.SetGravityScale(0.f);
-		//rb.SetPosition(ent.GetComponent<Transform2D>().Position);
+		
+		boxCollider.SetScale(Vec2(1.f, 1.f), scene);
+		boxCollider.SetFriction(0.f);
 	}
 
 	if (Input::GetKeyDown(KeyCode::Space)) {
@@ -224,7 +226,7 @@ void GameSystem::MoveEntities() {
 
 	// Info: Move Asteriod entities forward and chase player
 	for (auto [ent, rb2D, tr, ast] : scene.GetRegistry().view<Rigidbody2D, Transform2D, AsteriodData>().each()) {
-		Vec2 lookPlayerDir = playerTr.Position - rb2D.GetPosition();
+		Vec2 lookPlayerDir = playerTr.Position - tr.Position;
 		float lookAtZ = atan2(lookPlayerDir.x, lookPlayerDir.y);
 		float delta = std::remainder(lookAtZ - rb2D.GetRotation(), 2.0f * 3.14159265358979323846f);
 		rb2D.SetRotation(delta);
@@ -239,10 +241,13 @@ void GameSystem::MoveEntities() {
 void GameSystem::DrawGizmos() {
 	Scene& scene = GetScene();
 
+	Gizmo::SetColor(Color::Green());
+
 	for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
 		Gizmo::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationDegrees());
 	}
 
+	Gizmo::SetColor(Color::Gray());
 
 	for (auto [ent, tr] : scene.GetRegistry().view<Transform2D>().each()) {
 		AABB aabb = AABB::FromTransform(tr);
