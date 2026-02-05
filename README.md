@@ -1,5 +1,5 @@
 # Bolt Engine
-C++ Windows Compatible Engine (in development)
+Windows Compatible C++ Engine
 
 ## External Libraries / API's
 - [OpenGL](https://www.opengl.org/) - Rendering API
@@ -7,7 +7,6 @@ C++ Windows Compatible Engine (in development)
 - [GLM](https://github.com/g-truc/glm) - Graphics Math Library
 - [GLFW](https://github.com/glfw/glfw) - Window Library
 - [Box2D](https://github.com/erincatto/box2d) - 2D Physics Library/Engine
-- [Cereal](https://github.com/USCiLab/cereal) - Serialization Library
 - [ENTT](https://github.com/skypjack/entt) - ECS Library
 - [Miniaudio](https://github.com/mackron/miniaudio) - Multiplatform Audio Library
 
