@@ -13,8 +13,8 @@ C++ Windows Compatible Engine (in development)
 
 ## Documentation
 <p align="center">
-  <img src="Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 1">
-  <img src="Assets/Documentation/Screenshot1.png" width="45%" alt="Screenshot 2">
+  <img src="Assets/Documentation/Screenshot2.png" width="45%" alt="Screenshot 1">
+  <img src="Assets/Documentation/Screenshot3.png" width="45%" alt="Screenshot 2">
 </p>
 
 ## Usage
