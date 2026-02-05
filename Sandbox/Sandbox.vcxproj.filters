@@ -21,15 +21,9 @@
     <ClCompile Include="Src\Sandbox.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\ImGuiDebugSystem.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\GameSystem.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ImGuiDebugSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

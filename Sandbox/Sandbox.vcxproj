@@ -144,7 +144,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Src\GameSystem.cpp" />
-    <ClCompile Include="Src\ImGuiDebugSystem.cpp" />
     <ClCompile Include="Src\Sandbox.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -154,7 +153,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\GameSystem.hpp" />
-    <ClInclude Include="Src\ImGuiDebugSystem.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

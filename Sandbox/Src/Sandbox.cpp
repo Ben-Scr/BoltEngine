@@ -1,7 +1,7 @@
 #include <Bolt.hpp>
 #include "GameSystem.hpp"
 #include "Systems/ParticleUpdateSystem.hpp"
-#include "ImGuiDebugSystem.hpp"
+#include "Systems/ImGuiDebugSystem.hpp"
 #include "Core/Memory.hpp"
 
 #include <iostream>

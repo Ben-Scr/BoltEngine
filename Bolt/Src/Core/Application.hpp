@@ -44,6 +44,7 @@ namespace Bolt {
 		static Window* GetWindow() { return s_Instance->m_Window.get(); }
 
 		Renderer2D* GetRenderer2D() { return m_Renderer2D.get(); }
+		static std::string GetVersion() { return "1.0"; }
 
 		static Application* GetInstance() { return s_Instance; }
 

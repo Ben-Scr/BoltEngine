@@ -156,6 +156,9 @@
     <ClCompile Include="Src\Core\Memory.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Systems\ImGuiDebugSystem.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Audio\Audio.hpp">
@@ -408,6 +411,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Core\Memory.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Systems\ImGuiDebugSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

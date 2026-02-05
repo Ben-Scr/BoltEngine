@@ -40,7 +40,7 @@ namespace Bolt {
 		static std::vector<std::string> GetLoadedSceneNames();
 
 		static void ForeachLoadedScene(const std::function<void(const Scene&)>& func) {
-			for (const std::weak_ptr<Scene>& scenePointer : GetLoadedScenes()) {
+			for (const std::weak_ptr<Scene>& scenePointer : s_LoadedScenes) {
 				if (auto scene = scenePointer.lock())
 					func(*scene);
 			}
