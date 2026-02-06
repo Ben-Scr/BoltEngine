@@ -14,6 +14,8 @@ namespace Bolt {
 
 		// Info: Creates an entity with a Transform2D component
 		Entity CreateEntity();
+		// Info: Creates an entity with a Transform2D and Name component
+		Entity CreateEntity(const std::string& name);
 		// Info: Creates an entity and returnes its handle
 		EntityHandle CreateEntityHandle();
 

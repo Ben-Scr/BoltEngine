@@ -8,6 +8,7 @@
 #include "Components/BoxCollider2D.hpp"
 #include "Components/ParticleSystem2D.hpp"
 #include "Components/SpriteRenderer.hpp"
+#include "Components/Name.hpp"
 
 #include "Physics/Box2DWorld.hpp"
 
@@ -17,6 +18,12 @@ namespace Bolt {
 	Entity Scene::CreateEntity() {
 		auto entityHandle = CreateEntityHandle();
 		AddComponent<Transform2D>(entityHandle);
+		return Entity(entityHandle, m_Registry);
+	}
+	Entity Scene::CreateEntity(const std::string& name) {
+		auto entityHandle = CreateEntityHandle();
+		AddComponent<Transform2D>(entityHandle);
+		AddComponent<NameTag>(entityHandle, name);
 		return Entity(entityHandle, m_Registry);
 	}
 

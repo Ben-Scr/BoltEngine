@@ -2,6 +2,7 @@
 #include "Scene/Entity.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
+#include "Components/Name.hpp"
 
 
 
@@ -35,6 +36,15 @@ namespace Bolt {
 		m_Registry->destroy(m_EntityHandle);
 		m_EntityHandle = entt::null;
 		m_Registry = nullptr;
+	}
+
+	std::string Entity::GetName() const {
+		if (HasComponent<NameTag>()) {
+			return GetComponent<NameTag>().Name;
+		}
+		else {
+			return "Unnamed Entity";
+		}
 	}
 
 	void Entity::SetStatic(bool isStatic) {

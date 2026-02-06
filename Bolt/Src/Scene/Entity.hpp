@@ -59,6 +59,8 @@ namespace Bolt {
 			ComponentUtils::RemoveComponent<TComponent>(*m_Registry, m_EntityHandle);
 		}
 
+		std::string GetName() const;
+
 		EntityHandle GetHandle() const;
 
 		void SetStatic(bool isStatic);
