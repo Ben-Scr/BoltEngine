@@ -205,14 +205,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Src\External\RmlUi\RmlUi_Platform_GLFW.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="Src\External\RmlUi\RmlUi_Renderer_GL3.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="Src\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -302,9 +294,6 @@
     <ClInclude Include="Src\External\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Src\External\ImGui\imstb_textedit.h" />
     <ClInclude Include="Src\External\ImGui\imstb_truetype.h" />
-    <ClInclude Include="Src\External\RmlUi\RmlUi_Include_GL3.h" />
-    <ClInclude Include="Src\External\RmlUi\RmlUi_Platform_GLFW.h" />
-    <ClInclude Include="Src\External\RmlUi\RmlUi_Renderer_GL3.h" />
     <ClInclude Include="Src\Graphics\Camera2D.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Src\Graphics\Gizmos.hpp" />

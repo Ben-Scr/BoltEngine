@@ -159,12 +159,6 @@
     <ClCompile Include="Src\Systems\ImGuiDebugSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\RmlUi\RmlUi_Platform_GLFW.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\External\RmlUi\RmlUi_Renderer_GL3.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Audio\Audio.hpp">
@@ -426,15 +420,6 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Scene\ComponentRegistry.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\External\RmlUi\RmlUi_Platform_GLFW.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\External\RmlUi\RmlUi_Renderer_GL3.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\External\RmlUi\RmlUi_Include_GL3.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

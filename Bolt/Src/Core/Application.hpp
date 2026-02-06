@@ -8,8 +8,6 @@
 #include  "Utils/Event.hpp"
 #include <chrono>
 
-namespace Rml { class Context; }
-
 namespace Bolt {
 	struct ApplicationSpecs {
 		std::string Name = "Bolt Application";
@@ -44,7 +42,6 @@ namespace Bolt {
 		static bool GetRunInBackground() { return s_RunInBackground; }
 		static float GetMaxPossibleFPS() { return s_MaxPossibleFPS; }
 		static Window* GetWindow() { return s_Instance->m_Window.get(); }
-		static Rml::Context* GetRmlContext() { return s_RmlContext; }
 
 		Renderer2D* GetRenderer2D() { return m_Renderer2D.get(); }
 		static std::string GetVersion() { return "1.0"; }
@@ -74,7 +71,6 @@ namespace Bolt {
 		static const double k_PausedTargetFrameRate;
 
 		static Application* s_Instance;
-		static Rml::Context* s_RmlContext;
 
 		std::unique_ptr<Window> m_Window;
 		std::unique_ptr<Renderer2D> m_Renderer2D;
