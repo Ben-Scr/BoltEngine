@@ -269,6 +269,7 @@
     <ClInclude Include="Src\Components\Collider2D.hpp" />
     <ClInclude Include="Src\Components\ComponentUtils.hpp" />
     <ClInclude Include="Src\Components\Image.hpp" />
+    <ClInclude Include="Src\Components\Name.hpp" />
     <ClInclude Include="Src\Components\ParticleSystem2D.hpp" />
     <ClInclude Include="Src\Components\RectTransform.hpp" />
     <ClInclude Include="Src\Components\Rigidbody2D.hpp" />

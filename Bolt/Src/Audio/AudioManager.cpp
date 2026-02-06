@@ -227,7 +227,7 @@ namespace Bolt {
 
 
 			ma_result result = ma_sound_start(&instance->Sound);
-			BOLT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined ,"Failed to start sound playback.Error: " + result);
+			BOLT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "Failed to start sound playback.Error: " + result);
 		}
 		else {
 			BOLT_THROW(BoltErrorCode::NullReference, "Failed to retrieve sound instance after creation");
@@ -287,15 +287,10 @@ namespace Bolt {
 		ma_sound sound;
 		ma_result result = ma_sound_init_from_file(&s_Engine, audio->GetFilepath().c_str(), 0, nullptr, nullptr, &sound);
 
-		if (result == MA_SUCCESS) {
-			ma_sound_set_volume(&sound, volume * s_masterVolume);
-			ma_sound_start(&sound);
+		BOLT_ASSERT(result == MA_SUCCESS, BoltErrorCode::NullReference, "Failed to create one-shot sound. Error: " + result);
 
-			// Note: The sound will automatically be cleaned up by miniaudio when it finishes
-		}
-		else {
-			BOLT_THROW(BoltErrorCode::NullReference, "Failed to create one-shot sound. Error: " + result);
-		}
+		ma_sound_set_volume(&sound, volume * s_masterVolume);
+		ma_sound_start(&sound);
 	}
 
 	bool AudioManager::IsAudioLoaded(const AudioHandle& audioHandle) {

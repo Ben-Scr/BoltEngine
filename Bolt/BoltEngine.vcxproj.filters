@@ -416,5 +416,8 @@
     <ClInclude Include="Src\Systems\ImGuiDebugSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Components\Name.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
