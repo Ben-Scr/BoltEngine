@@ -82,12 +82,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\benso\source\repos\2025\Pending\Bolt\Bolt\Src\External\RMLUi;$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\benso\source\repos\2025\Pending\Bolt\Bolt\Src\External\RMLUi;$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -129,7 +129,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;RMLUI_STATIC_LIB;RMLUI_GL3_CUSTOM_LOADER;BT_DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -148,7 +148,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;RMLUI_STATIC_LIB;RMLUI_GL3_CUSTOM_LOADER;BT_RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -202,6 +202,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\External\ImGui\imgui_widgets.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Src\External\RmlUi\RmlUi_Platform_GLFW.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Src\External\RmlUi\RmlUi_Renderer_GL3.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -294,6 +302,9 @@
     <ClInclude Include="Src\External\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Src\External\ImGui\imstb_textedit.h" />
     <ClInclude Include="Src\External\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Src\External\RmlUi\RmlUi_Include_GL3.h" />
+    <ClInclude Include="Src\External\RmlUi\RmlUi_Platform_GLFW.h" />
+    <ClInclude Include="Src\External\RmlUi\RmlUi_Renderer_GL3.h" />
     <ClInclude Include="Src\Graphics\Camera2D.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Src\Graphics\Gizmos.hpp" />
@@ -345,6 +356,9 @@
     <ClInclude Include="Src\Utils\Serializer.hpp" />
     <ClInclude Include="Src\Utils\StringHelper.hpp" />
     <ClInclude Include="Src\Utils\Timer.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Src\Core\hello.rml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

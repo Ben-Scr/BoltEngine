@@ -137,18 +137,26 @@ namespace Bolt {
 
 		if (ImGui::Begin("Scene Hierarchy")) {
 			Scene& scene = GetScene();
-			auto view = scene.GetRegistry().view<entt::entity>();
 
-			if (m_SelectedEntity != entt::null && !scene.IsValid(m_SelectedEntity)) {
-				m_SelectedEntity = entt::null;
-			}
+			static bool enabledHierachy = true;
 
-			for (EntityHandle handle : view) {
-				Entity entity = scene.GetEntity(handle);
-				const bool selected = (m_SelectedEntity == handle);
+			if (ImGui::Checkbox("Enabled Hierachy", &enabledHierachy));
 
-				if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
-					m_SelectedEntity = handle;
+			if (enabledHierachy)
+			{
+				auto view = scene.GetRegistry().view<entt::entity>();
+
+				if (m_SelectedEntity != entt::null && !scene.IsValid(m_SelectedEntity)) {
+					m_SelectedEntity = entt::null;
+				}
+
+				for (EntityHandle handle : view) {
+					Entity entity = scene.GetEntity(handle);
+					const bool selected = (m_SelectedEntity == handle);
+
+					//if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
+					//	m_SelectedEntity = handle;
+					//}
 				}
 			}
 		}

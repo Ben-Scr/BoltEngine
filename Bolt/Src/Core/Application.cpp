@@ -10,7 +10,10 @@
 #include "Input.hpp"
 #include <GLFW/glfw3.h>
 
-
+#include <RmlUi/Core.h>
+#include <RmlUi/Debugger.h>
+#include "RmlUi_Platform_GLFW.h"
+#include "RmlUi_Renderer_GL3.h"
 
 namespace Bolt {
 	double Application::s_TargetFramerate = 144;
@@ -32,6 +35,15 @@ namespace Bolt {
 	{
 		int err = 0;
 
+
+
+
+
+		//Rml::ElementDocument* document = context->LoadDocument("../hello.rml");
+		//	if (document) document->Show();
+		//	else BOLT_THROW(BoltErrorCode::LoadFailed,"Failed to load Rml document!");
+
+
 		try {
 			if (s_ForceSingleInstance) {
 				static SingleInstance instance(s_Name);
@@ -44,6 +56,25 @@ namespace Bolt {
 			Initialize();
 			Logger::Message("Application Initialization took " + StringHelper::ToString(timer));
 			m_LastFrameTime = Clock::now();
+
+			SystemInterface_GLFW system_interface(m_Window->m_GLFWwindow);
+			RenderInterface_GL3 renderer_interface;
+
+			Rml::SetSystemInterface(&system_interface);
+			Rml::SetRenderInterface(&renderer_interface);
+
+			BOLT_ASSERT(Rml::Initialise(), BoltErrorCode::Undefined, "Rml Initialization failed!");
+			Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(m_Window->GetWidth(), m_Window->GetHeight()));
+			BOLT_ASSERT(context, BoltErrorCode::Undefined, "Failed to create Rml Context!");
+
+			BOLT_ASSERT(Rml::LoadFontFace("../DefaultSans-Regular.ttf"), BoltErrorCode::LoadFailed, "Failed to load font!");
+
+			Rml::Debugger::Initialise(context);
+			Rml::Debugger::SetVisible(true);
+
+			Rml::ElementDocument* doc = context->LoadDocument("../hello.rml");
+			BOLT_ASSERT(doc, BoltErrorCode::LoadFailed, "Failed to load Rml document!");
+			doc->Show();
 
 			while ((!m_Window || !m_Window->ShouldClose()) && !s_ShouldQuit) {
 				DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / GetTargetFramerate()));
@@ -78,6 +109,7 @@ namespace Bolt {
 				while (m_FixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
 					try {
 						if (!s_IsPaused) {
+
 							BeginFixedFrame();
 							EndFixedFrame();
 						}
@@ -89,8 +121,17 @@ namespace Bolt {
 
 					m_FixedUpdateAccumulator -= Time::s_FixedDeltaTime;
 				}
+
 				BeginFrame();
+				glDisable(GL_CULL_FACE);
+				glDisable(GL_DEPTH_TEST);
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				context->Update();
+				context->Render();
 				EndFrame();
+
 				glfwPollEvents();
 
 				m_LastFrameTime = frameStart;

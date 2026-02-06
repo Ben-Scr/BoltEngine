@@ -5,16 +5,24 @@
 #include <typeindex>
 
 namespace Bolt {
+    enum ComponentCategory {
+        Component,
+        Tag,
+        System,
+	};
+
     struct ComponentInfo {
         std::string displayName;
-        std::string category;
-        int order = 0;
+        ComponentCategory category;
 
-        // Kern-Operationen für den Editor (type-erased)
+        ComponentInfo() = default;
+		ComponentInfo(const std::string& displayName, ComponentCategory category)
+            : displayName(std::move(displayName)), category(category) {}
+
         bool (*has)(Entity) = nullptr;
         void (*add)(Entity) = nullptr;
         void (*remove)(Entity) = nullptr;
-        void (*drawInspector)(Entity) = nullptr; // optional
+        void (*drawInspector)(Entity) = nullptr;
     };
 
     class ComponentRegistry {
@@ -42,26 +50,6 @@ namespace Bolt {
         void ForEachComponentInfo(F&& fn) const {
             for (const auto& [id, info] : m_map)
                 fn(id, info);
-        }
-
-        template <typename F>
-        void ForEachComponentInfoSorted(F&& fn) const {
-            std::vector<std::pair<std::type_index, const ComponentInfo*>> items;
-            items.reserve(m_map.size());
-
-            for (const auto& [id, info] : m_map)
-                items.emplace_back(id, &info);
-
-            std::sort(items.begin(), items.end(),
-                [](auto& a, auto& b) {
-                    const auto& A = *a.second;
-                    const auto& B = *b.second;
-                    if (A.order != B.order) return A.order < B.order;
-                    return A.displayName < B.displayName;
-                });
-
-            for (auto& [id, infoPtr] : items)
-                fn(id, *infoPtr);
         }
 
     private:

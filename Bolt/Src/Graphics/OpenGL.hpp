@@ -3,7 +3,6 @@
 #include "Collections\Color.hpp"
 #include "Collections\Viewport.hpp"
 
-
 namespace Bolt {
 	enum GLCullingMode {
 		GLNone = 0,

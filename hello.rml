@@ -1,0 +1,30 @@
+<rml>
+<head>
+    <title>Test</title>
+    <style>
+        body {
+            /* Füllt den ganzen Screen */
+            width: 100%;
+            height: 100%;
+            background-color: #000000; /* Schwarz */
+        }
+        #test-box {
+            /* Eine unübersehbare rote Box */
+            width: 200px;
+            height: 200px;
+            background-color: #ff0000;
+            
+            /* Absolute Positionierung, um Layout-Flow-Probleme zu umgehen */
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            
+            /* Dicker weißer Rand */
+            border: 5px solid white;
+        }
+    </style>
+</head>
+<body>
+    <div id="test-box"></div>
+</body>
+</rml>

@@ -15,8 +15,8 @@ void GameSystem::Awake() {
 
 
 void GameSystem::Start() {
-	SceneManager::RegisterComponentType<NameTag>(ComponentInfo("Name", "Component"));
-	SceneManager::RegisterComponentType<Transform2D>(ComponentInfo("Transform", "Component"));
+	SceneManager::RegisterComponentType<NameTag>(ComponentInfo("Name", ComponentCategory::Component));
+	SceneManager::RegisterComponentType<Transform2D>(ComponentInfo("Transform2D", ComponentCategory::Component));
 
 
 	Scene& scene = GetScene();
