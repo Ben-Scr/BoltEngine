@@ -74,4 +74,6 @@ namespace Bolt {
 		friend class Application;
 		friend class PhysicsSystem2D;
 	};
+
+	// Note: Makro festlegen
 }

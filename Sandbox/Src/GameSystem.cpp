@@ -18,6 +18,7 @@ void GameSystem::Start() {
 	SceneManager::RegisterComponentType<NameTag>(ComponentInfo("Name", "Component"));
 	SceneManager::RegisterComponentType<Transform2D>(ComponentInfo("Transform", "Component"));
 
+
 	Scene& scene = GetScene();
 
 	EntityHelper::CreateCamera2DEntity();
