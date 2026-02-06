@@ -11,47 +11,27 @@ namespace Bolt {
 	}
 
 	void AudioSource::Play() {
-		if (!m_audioHandle.IsValid()) {
-			Logger::Error("AudioSource", "Cannot play invalid audio handle");
-			return;
-		}
+		BOLT_ASSERT(m_audioHandle.IsValid(), BoltErrorCode::InvalidHandle, "Cannot play invalid audio handle");
 		AudioManager::PlayAudioSource(*this);
 	}
 
 	void AudioSource::Pause() {
-		if (m_instanceId == 0) {
-			Logger::Error("AudioSource", "Cannot pause invalid audio handle");
-			return;
-		}
-
+		BOLT_ASSERT(m_instanceId != 0, BoltErrorCode::InvalidHandle, "Cannot pause invalid audio handle");
 		AudioManager::PauseAudioSource(*this);
-
 	}
 
 	void AudioSource::Stop() {
-		if (m_instanceId == 0) {
-			Logger::Error("AudioSource", "Cannot stop invalid audio handle");
-			return;
-		}
-
+		BOLT_ASSERT(m_instanceId != 0, BoltErrorCode::InvalidHandle, "Cannot stop invalid audio handle");
 		AudioManager::StopAudioSource(*this);
 	}
 
 	void AudioSource::Resume() {
-		if (m_instanceId == 0) {
-			Logger::Error("AudioSource", "Cannot resume invalid audio handle");
-			return;
-		}
-
+		BOLT_ASSERT(m_instanceId != 0, BoltErrorCode::InvalidHandle, "Cannot resume invalid audio handle");
 		AudioManager::ResumeAudioSource(*this);
 	}
 
 	void AudioSource::Destroy() {
-		if (m_instanceId == 0) {
-			Logger::Error("AudioSource", "Cannot destroy invalid audio handle");
-			return;
-		}
-
+		BOLT_ASSERT(m_instanceId != 0, BoltErrorCode::InvalidHandle, "Cannot destroy invalid audio handle");
 		AudioManager::DestroySoundInstance(m_instanceId);
 	}
 
@@ -126,11 +106,7 @@ namespace Bolt {
 	}
 
 	void AudioSource::PlayOneShot() {
-		if (!m_audioHandle.IsValid()) {
-			Logger::Error("AudioSource: Cannot play one-shot - invalid audio handle");
-			return;
-		}
-
+		BOLT_ASSERT(m_audioHandle.IsValid(), BoltErrorCode::InvalidHandle, "AudioSource cannot play one-shot - invalid audio handle");
 		AudioManager::PlayOneShot(m_audioHandle, m_Volume);
 	}
 

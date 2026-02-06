@@ -38,12 +38,12 @@ namespace Bolt {
 				BOLT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 			}
 
-			{
-				Logger::Message("Initializing Application");
-				ScopedTimer initializeTimer("Application Initialization");
-				Initialize();
-				m_LastFrameTime = Clock::now();
-			}
+
+			Logger::Message("Initializing Application");
+			Timer timer = Timer::Start();
+			Initialize();
+			Logger::Message("Application Initialization took " + StringHelper::ToString(timer));
+			m_LastFrameTime = Clock::now();
 
 			while ((!m_Window || !m_Window->ShouldClose()) && !s_ShouldQuit) {
 				DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / GetTargetFramerate()));

@@ -13,7 +13,7 @@ namespace Bolt {
 		int Width{ 800 }, Height{ 800 };
 		std::string Title{ "GLFW Window" };
 		bool Resizeable{ true };
-		bool Moveable{ true };
+		bool Decorated{ true };
 		bool Fullscreen{ false };
 		Color BackgroundColor;
 
@@ -23,8 +23,8 @@ namespace Bolt {
 			: Width{ width }, Height{ height }, Title{ title }
 		{
 		}
-		GLFWWindowProperties(int width, int height, const std::string& title, bool resizeable, bool moveable, bool fullscreen)
-			: Width{ width }, Height{ height }, Title{ title }, Resizeable{ resizeable }, Moveable{ moveable }, Fullscreen{ fullscreen }
+		GLFWWindowProperties(int width, int height, const std::string& title, bool resizeable, bool decorated, bool fullscreen)
+			: Width{ width }, Height{ height }, Title{ title }, Resizeable{ resizeable }, Decorated{ decorated }, Fullscreen{ fullscreen }
 		{
 		}
 	};
@@ -62,6 +62,9 @@ namespace Bolt {
 
 		// Info: If enabled equals true the window will become fullscreen else windowed
 		void SetFullScreen(bool enabled);
+		void SetDecoration(bool enabled);
+		void SetVisible(bool enabled);
+		void SetResizeable(bool enabled);
 		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_GLFWwindow, title.c_str()); }
 
 		std::string GetTitle() const { return std::string(glfwGetWindowTitle(m_GLFWwindow)); }
@@ -85,6 +88,10 @@ namespace Bolt {
 		bool IsMaximized() const;
 		bool IsMinimized() const;
 		bool IsFullScreen() const;
+		bool IsVisible() const;
+		bool IsDecorated() const;
+		bool IsResizeable() const;
+
 		static bool IsVsync() { return s_IsVsync; }
 
 		// Info: If reset equals true the window will automatically be restored if it's already maximized

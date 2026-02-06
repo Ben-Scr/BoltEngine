@@ -82,14 +82,13 @@ namespace Bolt {
 		glfwWindowHint(GLFW_SAMPLES, 8);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-
-		glfwWindowHint(GLFW_DECORATED, props.Moveable);
+		glfwWindowHint(GLFW_DECORATED, props.Decorated);
 		glfwWindowHint(GLFW_RESIZABLE, props.Resizeable);
 
 
 		s_MainViewport = new Viewport
 		(
-			props.Fullscreen? k_Videomode->width : props.Width, 
+			props.Fullscreen ? k_Videomode->width : props.Width,
 			props.Fullscreen ? k_Videomode->height : props.Height
 		);
 
@@ -231,6 +230,21 @@ namespace Bolt {
 			SetPosition(m_RestorePos);
 		}
 	}
+
+	void Window::SetDecoration(bool enabled) {
+		glfwSetWindowAttrib(m_GLFWwindow, GLFW_DECORATED, enabled ? GLFW_TRUE : GLFW_FALSE);
+	}
+	void Window::SetVisible(bool enabled) {
+		if (enabled)
+			glfwShowWindow(m_GLFWwindow);
+		else
+			glfwHideWindow(m_GLFWwindow);
+	}
+
+	void Window::SetResizeable(bool enabled) {
+		glfwSetWindowAttrib(m_GLFWwindow, GLFW_RESIZABLE, enabled ? GLFW_TRUE : GLFW_FALSE);
+	}
+
 	void Window::SetCursorLocked(bool enabled) {
 		glfwSetInputMode(m_GLFWwindow, GLFW_CURSOR, enabled ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 	}
@@ -310,6 +324,15 @@ namespace Bolt {
 	}
 	bool Window::IsFullScreen()const {
 		return GetWindowMonitor() != nullptr;
+	}
+	bool Window::IsVisible() const {
+		return glfwGetWindowAttrib(m_GLFWwindow, GLFW_VISIBLE) == GLFW_TRUE;
+	}
+	bool Window::IsDecorated()const {
+		return glfwGetWindowAttrib(m_GLFWwindow, GLFW_DECORATED);
+	}
+	bool Window::IsResizeable() const {
+		return glfwGetWindowAttrib(m_GLFWwindow, GLFW_RESIZABLE);
 	}
 
 

@@ -17,7 +17,7 @@ void GameSystem::Start() {
 	Scene& scene = GetScene();
 
 	EntityHelper::CreateCamera2DEntity();
-	OpenGL::SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
+	OpenGL::SetClearColor(Color(0.1f, 0.1f, 0.1f));
 
 	m_PlayerEmissionPts = scene.CreateEntity();
 	ParticleSystem2D& pts2D = m_PlayerEmissionPts.AddComponent<ParticleSystem2D>();

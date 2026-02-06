@@ -25,8 +25,18 @@ namespace Bolt {
 
         if (ImGui::CollapsingHeader("Display & Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
             bool isFullscreen = window->IsFullScreen();
-            if (ImGui::Checkbox("Fullscreen Mode", &isFullscreen)) {
+            if (ImGui::Checkbox("Fullscreen", &isFullscreen)) {
                 window->SetFullScreen(isFullscreen);
+            }
+
+            bool isDecorated = window->IsDecorated();
+            if (ImGui::Checkbox("Decorated", &isDecorated)) {
+                window->SetDecoration(isDecorated);
+            }
+
+            bool isResizeable = window->IsResizeable();
+            if (ImGui::Checkbox("Resizeable", &isResizeable)) {
+                window->SetResizeable(isResizeable);
             }
 
             bool isVsync = window->IsVsync();
@@ -44,9 +54,9 @@ namespace Bolt {
 
             ImGui::Separator();
 
-            std::array<float, 4> bgCol = OpenGL::GetBackgroundColor().ToArray();
+            std::array<float, 4> bgCol = OpenGL::GetClearColor().ToArray();
             if (ImGui::ColorEdit4("Clear Color", bgCol.data(), ImGuiColorEditFlags_NoInputs)) {
-                OpenGL::SetBackgroundColor(Color::FromArray(bgCol));
+                OpenGL::SetClearColor(Color::FromArray(bgCol));
             }
         }
 
@@ -56,7 +66,7 @@ namespace Bolt {
                 Time::SetTimeScale(timeScale);
             }
 
-            float fixedFPS = 1.f / Time::GetFixedDeltaTime();
+            float fixedFPS = 1.f / Time::GetUnscaledFixedDeltaTime();
             if (ImGui::SliderFloat("Fixed Update (Hz)", &fixedFPS, 10.f, 244.f, "%.0f Hz")) {
                 Time::SetFixedDeltaTime(1.f / fixedFPS);
             }

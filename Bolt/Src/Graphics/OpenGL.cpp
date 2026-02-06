@@ -8,13 +8,8 @@ namespace Bolt {
 	bool OpenGL::Initialize(const GLInitProperties2D& glInitProps) {
 		if (s_IsInitialized) return false;
 
-		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-			Logger::Error("OpenGL", "Glad failed to load");
-			s_IsInitialized = false;
-			return false;
-		}
-
-		SetBackgroundColor(glInitProps.BackgroundColor);
+		BOLT_ASSERT(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress), BoltErrorCode::Undefined, "Failed to initialize OpenGL");
+		SetClearColor(glInitProps.ClearColor);
 
 		Enable(GL_BLEND);
 		BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -44,11 +39,11 @@ namespace Bolt {
 		}
 	}
 
-	void OpenGL::SetBackgroundColor(const Color& backgroundColor) {
-		glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
+	void OpenGL::SetClearColor(const Color& clearColor) {
+		glClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
 	}
 
-	Color OpenGL::GetBackgroundColor()
+	Color OpenGL::GetClearColor()
 	{
 		GLfloat c[4] = {};
 		glGetFloatv(GL_COLOR_CLEAR_VALUE, c);

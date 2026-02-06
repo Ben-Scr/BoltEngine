@@ -137,9 +137,6 @@ namespace Bolt {
 #define BOLT_ASSERT(cond, code, msg) do { if (!(cond)) BOLT_THROW((code), (msg)); } while (0)
 #endif
 
-#define BOLT_REQUIRE(cond, code, msg) \
-    do { if (!(cond)) BOLT_THROW((code), (msg)); } while (0)
-
 
 #define BOLT_LOG_ERROR(code, msg) \
     do { \
@@ -155,21 +152,3 @@ namespace Bolt {
         } \
     } while (0)
 }
-
-#define BOLT_RETURN_VAL_IF(cond, retval, code, msg) \
-    do { \
-        if (cond) { \
-            ::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
-            Logger::Error(::Bolt::FormatForLog(_e)); \
-            return (retval); \
-        } \
-    } while (0)
-
-#define BOLT_RETURN_IF(cond, code, msg) \
-    do { \
-        if (cond) { \
-            ::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
-            Logger::Error(::Bolt::FormatForLog(_e)); \
-           return; \
-        } \
-    } while (0)

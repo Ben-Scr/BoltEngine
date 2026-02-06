@@ -26,7 +26,7 @@ namespace Bolt {
         static void FlushGizmos();
 
         static bool m_IsInitialized;
-        static std::unique_ptr<Shader> m_GuiShader;
+        static std::unique_ptr<Shader> m_GizmoShader;
         static std::vector<PosColorVertex> m_GizmoVertices;
         static std::vector<uint16_t> m_GizmoIndices;
 

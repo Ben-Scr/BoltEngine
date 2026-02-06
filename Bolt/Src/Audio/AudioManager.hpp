@@ -70,9 +70,7 @@ namespace Bolt {
 			float Volume;
 			float Priority;
 			glm::vec3 Position;
-			bool Is3D;
 			std::chrono::steady_clock::time_point RequestTime;
-
 
 			bool operator<(const SoundRequest& other) const {
 				return Priority < other.Priority;

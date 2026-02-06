@@ -25,10 +25,8 @@ namespace Bolt {
 
     GLuint Shader::LoadAndCompile(GLenum type, const std::string& path) {
         std::string src;
-        if (!ReadFileToString(path, src)) {
-            Logger::Error("Shader", std::string("Path not found or empty: ") + path);
-            return 0;
-        }
+
+		BOLT_ASSERT(ReadFileToString(path, src), BoltErrorCode::LoadFailed, "Failed to read shader file: " + path);
 
         GLuint shader = glCreateShader(type);
         const char* csrc = src.c_str();

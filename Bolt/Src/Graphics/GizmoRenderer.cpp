@@ -27,7 +27,7 @@ namespace Bolt {
 	}
 
 	bool GizmoRenderer2D::m_IsInitialized = false;
-	std::unique_ptr<Shader> GizmoRenderer2D::m_GuiShader;
+	std::unique_ptr<Shader> GizmoRenderer2D::m_GizmoShader;
 	std::vector<PosColorVertex> GizmoRenderer2D::m_GizmoVertices;
 	std::vector<uint16_t> GizmoRenderer2D::m_GizmoIndices;
 	uint16_t GizmoRenderer2D::m_GizmoViewId = 1;
@@ -42,15 +42,10 @@ namespace Bolt {
 		if (m_IsInitialized)
 			return true;
 
-		m_GuiShader = std::make_unique<Shader>("../Assets/Shader/gizmo.vert.glsl", "../Assets/Shader/gizmo.frag.glsl");
+		m_GizmoShader = std::make_unique<Shader>("../Assets/Shader/gizmo.vert.glsl", "../Assets/Shader/gizmo.frag.glsl");
+		BOLT_ASSERT(m_GizmoShader && m_GizmoShader->IsValid(), BoltErrorCode::Undefined, "Failed to load gizmo shader");
 
-		if (!m_GuiShader || !m_GuiShader->IsValid()) {
-			Logger::Error("GizmoRenderer", "Failed to load gizmo shader");
-			m_GuiShader.reset();
-			return false;
-		}
-
-		GLuint program = m_GuiShader->GetHandle();
+		GLuint program = m_GizmoShader->GetHandle();
 		m_uMVP = glGetUniformLocation(program, "uMVP");
 
 		glGenVertexArrays(1, &m_VAO);
@@ -98,7 +93,7 @@ namespace Bolt {
 			m_VAO = 0;
 		}
 
-		m_GuiShader.reset();
+		m_GizmoShader.reset();
 		m_GizmoVertices.clear();
 		m_GizmoIndices.clear();
 		s_UploadBuffer.clear();
@@ -187,7 +182,7 @@ namespace Bolt {
 	}
 
 	void GizmoRenderer2D::FlushGizmos() {
-		if (!m_IsInitialized || m_GizmoVertices.empty() || !m_GuiShader || !m_GuiShader->IsValid())
+		if (!m_IsInitialized || m_GizmoVertices.empty() || !m_GizmoShader || !m_GizmoShader->IsValid())
 			return;
 
 		ConvertVertices(m_GizmoVertices, s_UploadBuffer);
@@ -200,7 +195,7 @@ namespace Bolt {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_GizmoIndices.size() * sizeof(uint16_t)), m_GizmoIndices.data(), GL_DYNAMIC_DRAW);
 
-		m_GuiShader->Submit();
+		m_GizmoShader->Submit();
 
 		if (Camera2D::Main()) {
 			glm::mat4 mvp = Camera2D::Main()->GetViewProjectionMatrix();

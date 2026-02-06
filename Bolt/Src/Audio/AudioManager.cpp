@@ -119,11 +119,6 @@ namespace Bolt {
 				continue;
 			}
 
-
-			if (request.Is3D) {
-				Logger::Warning("There is no support for 3D Audio");
-			}
-
 			PlayOneShot(request.GetHandle, request.Volume);
 
 
