@@ -66,11 +66,12 @@ namespace Bolt {
 			BOLT_ASSERT(Rml::Initialise(), BoltErrorCode::Undefined, "Rml Initialization failed!");
 			Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(m_Window->GetWidth(), m_Window->GetHeight()));
 			BOLT_ASSERT(context, BoltErrorCode::Undefined, "Failed to create Rml Context!");
+			renderer_interface.SetViewport(m_Window->GetWidth(), m_Window->GetHeight());
 
-			BOLT_ASSERT(Rml::LoadFontFace("../DefaultSans-Regular.ttf"), BoltErrorCode::LoadFailed, "Failed to load font!");
+			BOLT_ASSERT(Rml::LoadFontFace("../DefaultSans-Regular.ttf", "DefaultSans", Rml::Style::FontWeight::Normal), BoltErrorCode::LoadFailed, "Failed to load font!");
 
 			Rml::Debugger::Initialise(context);
-			Rml::Debugger::SetVisible(true);
+			Rml::Debugger::SetVisible(false);
 
 			Rml::ElementDocument* doc = context->LoadDocument("../hello.rml");
 			BOLT_ASSERT(doc, BoltErrorCode::LoadFailed, "Failed to load Rml document!");
@@ -123,13 +124,11 @@ namespace Bolt {
 				}
 
 				BeginFrame();
-				glDisable(GL_CULL_FACE);
-				glDisable(GL_DEPTH_TEST);
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+				renderer_interface.BeginFrame();
+				context->SetDimensions(Rml::Vector2i(m_Window->GetWidth(), m_Window->GetHeight()));
 				context->Update();
 				context->Render();
+				renderer_interface.EndFrame();
 				EndFrame();
 
 				glfwPollEvents();

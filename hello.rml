@@ -3,28 +3,63 @@
     <title>Test</title>
     <style>
         body {
-            /* Füllt den ganzen Screen */
+            font-family: DefaultSans; /* Stelle sicher, dass die Font geladen ist */
+            font-weight: normal;
+            font-style: normal;
+            font-size: 16px;
+            color: white;
+            /* Zentriert die Box auf dem Bildschirm */
+            display: block;
             width: 100%;
             height: 100%;
-            background-color: #000000; /* Schwarz */
         }
+
         #test-box {
-            /* Eine unübersehbare rote Box */
-            width: 200px;
-            height: 200px;
-            background-color: #ff0000;
+            /* Positionierung */
+            margin: 100px auto;
+            width: 300px;
+            padding: 20px;
+
+            /* Visuals */
+            background-color: #2c3e50ee; /* Leicht transparentes Dunkelblau */
+            border: 2px solid #3498db;
+            border-radius: 10px;
+
+            /* Schatten-Effekt (in RmlUi oft über decorator gelöst) */
+            decorator: gradient( vertical, #2c3e50, #000000 );
             
-            /* Absolute Positionierung, um Layout-Flow-Probleme zu umgehen */
-            position: absolute;
-            top: 50px;
-            left: 50px;
-            
-            /* Dicker weißer Rand */
-            border: 5px solid white;
+            /* Text-Alignment */
+            text-align: center;
+        }
+
+        #test-box:hover {
+            border-color: #f1c40f; /* Farbe ändert sich beim Drüberschweben */
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #3498db;
+        }
+
+        button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #3498db;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        button:active {
+            background-color: #2980b9;
         }
     </style>
 </head>
 <body>
-    <div id="test-box"></div>
+    <div id="test-box">
+        <h1>System-Status</h1>
+        <p>Alles läuft im grünen Bereich.</p>
+        <button onclick="exit">Bestätigen</button>
+    </div>
 </body>
 </rml>
