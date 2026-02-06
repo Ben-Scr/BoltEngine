@@ -82,12 +82,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>C:\Users\benso\source\repos\2025\Pending\Bolt\Bolt\Src\External\RMLUi;$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>C:\Users\benso\source\repos\2025\Pending\Bolt\Bolt\Src\External\RMLUi;$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -129,7 +129,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;RMLUI_STATIC_LIB;RMLUI_GL3_CUSTOM_LOADER;BT_DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -148,7 +148,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;RMLUI_STATIC_LIB;RMLUI_GL3_CUSTOM_LOADER;BT_RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>

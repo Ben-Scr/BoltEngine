@@ -6,6 +6,9 @@
 #include "Core/SingleInstance.hpp"
 #include "Audio/AudioManager.hpp"
 
+//#include <ft2build.h>
+//#include FT_FREETYPE_H
+
 #include "Time.hpp"
 #include "Input.hpp"
 #include <GLFW/glfw3.h>
