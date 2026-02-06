@@ -77,13 +77,41 @@ namespace Bolt {
 				if (Application::GetRmlContext())
 					RmlGLFW::ProcessCursorEnterCallback(Application::GetRmlContext(), entered);
 				});
-			BOLT_ASSERT(Rml::LoadFontFace("../DefaultSans-Regular.ttf", "DefaultSans", Rml::Style::FontWeight::Normal), BoltErrorCode::LoadFailed, "Failed to load font!");
+			const std::array<const char*, 3> fontCandidates = {
+				"../DefaultSans-Regular.ttf",
+				"DefaultSans-Regular.ttf",
+				"../Bolt/Src/Core/DefaultSans-Regular.ttf"
+			};
+
+			bool fontLoaded = false;
+			for (const char* fontPath : fontCandidates) {
+				if (Rml::LoadFontFace(fontPath)) {
+					fontLoaded = true;
+					Logger::Message("RmlUI", std::string("Loaded font: ") + fontPath);
+					break;
+				}
+			}
+			BOLT_ASSERT(fontLoaded, BoltErrorCode::LoadFailed, "Failed to load any Rml font candidate path.");
 
 			Rml::Debugger::Initialise(s_RmlContext);
 			Rml::Debugger::SetVisible(false);
 
-			Rml::ElementDocument* doc = s_RmlContext->LoadDocument("../hello.rml");
-			BOLT_ASSERT(doc, BoltErrorCode::LoadFailed, "Failed to load Rml document!");
+			const std::array<const char*, 3> docCandidates = {
+				"../hello.rml",
+				"hello.rml",
+				"../Bolt/Src/Core/hello.rml"
+			};
+
+			Rml::ElementDocument* doc = nullptr;
+			for (const char* docPath : docCandidates) {
+				doc = s_RmlContext->LoadDocument(docPath);
+				if (doc) {
+					Logger::Message("RmlUI", std::string("Loaded document: ") + docPath);
+					break;
+				}
+			}
+
+			BOLT_ASSERT(doc, BoltErrorCode::LoadFailed, "Failed to load any Rml document candidate path.");
 			doc->Show();
 
 			while ((!m_Window || !m_Window->ShouldClose()) && !s_ShouldQuit) {
@@ -319,7 +347,7 @@ namespace Bolt {
 			AudioManager::Shutdown();
 
 		if (s_RmlContext) {
-			Rml::RemoveContext("main");
+			Rml::RemoveContext(s_RmlContext->GetName());
 			s_RmlContext = nullptr;
 		}
 		Rml::Shutdown();
