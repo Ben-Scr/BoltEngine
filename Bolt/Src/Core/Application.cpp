@@ -19,6 +19,7 @@ namespace Bolt {
 	double Application::s_TargetFramerate = 144;
 	double Application::s_MaxPossibleFPS = 0;
 	const double Application::k_PausedTargetFrameRate = 10;
+	Rml::Context* Application::s_RmlContext = nullptr;
 
 	Event<> Application::s_OnApplicationQuit;
 
@@ -64,16 +65,24 @@ namespace Bolt {
 			Rml::SetRenderInterface(&renderer_interface);
 
 			BOLT_ASSERT(Rml::Initialise(), BoltErrorCode::Undefined, "Rml Initialization failed!");
-			Rml::Context* context = Rml::CreateContext("main", Rml::Vector2i(m_Window->GetWidth(), m_Window->GetHeight()));
-			BOLT_ASSERT(context, BoltErrorCode::Undefined, "Failed to create Rml Context!");
-			renderer_interface.SetViewport(m_Window->GetWidth(), m_Window->GetHeight());
+			s_RmlContext = Rml::CreateContext("main", Rml::Vector2i(m_Window->GetWidth(), m_Window->GetHeight()));
+			BOLT_ASSERT(s_RmlContext, BoltErrorCode::Undefined, "Failed to create Rml Context!");
 
+			auto* glfwWindow = m_Window->GetGLFWWindow();
+			glfwSetCharCallback(glfwWindow, [](GLFWwindow*, unsigned int codepoint) {
+				if (Application::GetRmlContext())
+					RmlGLFW::ProcessCharCallback(Application::GetRmlContext(), codepoint);
+				});
+			glfwSetCursorEnterCallback(glfwWindow, [](GLFWwindow*, int entered) {
+				if (Application::GetRmlContext())
+					RmlGLFW::ProcessCursorEnterCallback(Application::GetRmlContext(), entered);
+				});
 			BOLT_ASSERT(Rml::LoadFontFace("../DefaultSans-Regular.ttf", "DefaultSans", Rml::Style::FontWeight::Normal), BoltErrorCode::LoadFailed, "Failed to load font!");
 
-			Rml::Debugger::Initialise(context);
+			Rml::Debugger::Initialise(s_RmlContext);
 			Rml::Debugger::SetVisible(false);
 
-			Rml::ElementDocument* doc = context->LoadDocument("../hello.rml");
+			Rml::ElementDocument* doc = s_RmlContext->LoadDocument("../hello.rml");
 			BOLT_ASSERT(doc, BoltErrorCode::LoadFailed, "Failed to load Rml document!");
 			doc->Show();
 
@@ -124,11 +133,15 @@ namespace Bolt {
 				}
 
 				BeginFrame();
-				renderer_interface.BeginFrame();
-				context->SetDimensions(Rml::Vector2i(m_Window->GetWidth(), m_Window->GetHeight()));
-				context->Update();
-				context->Render();
-				renderer_interface.EndFrame();
+				glDisable(GL_CULL_FACE);
+				glDisable(GL_DEPTH_TEST);
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				if (s_RmlContext) {
+					s_RmlContext->Update();
+					s_RmlContext->Render();
+				}
 				EndFrame();
 
 				glfwPollEvents();
@@ -305,8 +318,15 @@ namespace Bolt {
 		if (AudioManager::IsInitialized())
 			AudioManager::Shutdown();
 
+		if (s_RmlContext) {
+			Rml::RemoveContext("main");
+			s_RmlContext = nullptr;
+		}
+		Rml::Shutdown();
+
 		if (m_Window) m_Window->Destroy();
 		Window::Shutdown();
+
 
 		s_ShouldQuit = false;
 	}

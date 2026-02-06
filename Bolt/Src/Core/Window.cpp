@@ -4,6 +4,7 @@
 #include "Graphics/Texture2D.hpp"
 #include "Graphics/OpenGL.hpp"
 #include "Scene/SceneManager.hpp"
+#include "RmlUi_Platform_GLFW.h"
 
 #include <glad/glad.h>
 
@@ -118,7 +119,7 @@ namespace Bolt {
 
 		glfwSetWindowRefreshCallback(m_GLFWwindow, RefreshCallback);
 
-		glfwSwapInterval(SetVsync ? 1 : 0);
+		glfwSwapInterval(s_IsVsync ? 1 : 0);
 
 		if (!s_ActiveWindow)
 			s_ActiveWindow = this;
@@ -151,7 +152,7 @@ namespace Bolt {
 		glfwGetWindowSize(m_GLFWwindow, &w, &h);
 
 		s_MainViewport->SetWidth(w);
-		s_MainViewport->SetHeight(w);
+		s_MainViewport->SetHeight(h);
 	}
 	void Window::MinimizeWindow() {
 		glfwIconifyWindow(m_GLFWwindow);
@@ -160,17 +161,20 @@ namespace Bolt {
 		glfwGetWindowSize(m_GLFWwindow, &w, &h);
 
 		s_MainViewport->SetWidth(w);
-		s_MainViewport->SetHeight(w);
+		s_MainViewport->SetHeight(h);
 	}
 	void Window::RestoreWindow() {
 		glfwRestoreWindow(m_GLFWwindow);
 	}
 
-	void Window::SetKeyCallback(GLFWwindow* window, int key, int, int action, int) {
+	void Window::SetKeyCallback(GLFWwindow* window, int key, int, int action, int mods) {
 		(void)window;
 		if (key == GLFW_KEY_UNKNOWN) {
 			return;
 		}
+
+		if (Application::GetRmlContext())
+			RmlGLFW::ProcessKeyCallback(Application::GetRmlContext(), key, action, mods);
 
 		switch (action) {
 		case GLFW_PRESS:
@@ -186,7 +190,9 @@ namespace Bolt {
 			break;
 		}
 	}
-	void Window::SetMouseButtonCallback(GLFWwindow*, int button, int action, int) {
+	void Window::SetMouseButtonCallback(GLFWwindow*, int button, int action, int mods) {
+		if (Application::GetRmlContext())
+			RmlGLFW::ProcessMouseButtonCallback(Application::GetRmlContext(), button, action, mods);
 		switch (action) {
 		case GLFW_PRESS:
 			Input::OnMouseDown(button);
@@ -200,11 +206,17 @@ namespace Bolt {
 	}
 	void Window::SetCursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
 		Input::OnMouseMove(xPos, yPos);
+
+		if (Application::GetRmlContext())
+			RmlGLFW::ProcessCursorPosCallback(Application::GetRmlContext(), window, xPos, yPos, 0);
 	}
 	void Window::SetScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 		(void)window;
 		(void)xoffset;
 		Input::OnScroll(static_cast<float>(yoffset));
+
+		if (Application::GetRmlContext())
+			RmlGLFW::ProcessScrollCallback(Application::GetRmlContext(), yoffset, 0);
 	}
 	void Window::SetFullScreen(bool enabled) {
 		bool isFullScreen = IsFullScreen();
@@ -299,6 +311,9 @@ namespace Bolt {
 		_window->s_MainViewport->SetWidth(width);
 		_window->s_MainViewport->SetHeight(height);
 		_window->UpdateViewport();
+
+		if (Application::GetRmlContext())
+			RmlGLFW::ProcessFramebufferSizeCallback(Application::GetRmlContext(), width, height);
 	}
 
 	Vec2 Window::GetCursorPosition() const {
