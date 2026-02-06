@@ -419,5 +419,8 @@
     <ClInclude Include="Src\Components\Name.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Scene\ComponentRegistry.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

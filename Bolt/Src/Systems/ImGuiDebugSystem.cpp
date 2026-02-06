@@ -1,6 +1,18 @@
 #include "ImGuiDebugSystem.hpp"
 #include <imgui.h>
 
+#include "Scene/Entity.hpp"
+#include "Components/Name.hpp"
+#include "Components/Transform2D.hpp"
+#include "Components/SpriteRenderer.hpp"
+#include "Components/Rigidbody2D.hpp"
+#include "Components/BoxCollider2D.hpp"
+#include "Components/ParticleSystem2D.hpp"
+#include "Components/RectTransform.hpp"
+#include "Components/Image.hpp"
+#include "Graphics/Camera2D.hpp"
+#include "Audio/AudioSource.hpp"
+
 #include "Core/Application.hpp"
 #include "Scene/EntityHelper.hpp"
 #include "Core/Window.hpp"
@@ -12,112 +24,158 @@ namespace Bolt {
 		auto* window = Application::GetInstance()->GetWindow();
 		auto* renderer2D = Application::GetInstance()->GetRenderer2D();
 
-        ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_MenuBar);
 
-        if (ImGui::BeginMenuBar()) {
-            if (ImGui::BeginMenu("Application")) {
-                if (ImGui::MenuItem("Reload App")) { Application::Reload(); }
-                if (ImGui::MenuItem("Quit")) { Application::Quit(); }
-                ImGui::EndMenu();
-            }
-            ImGui::EndMenuBar();
-        }
+		if (ImGui::BeginMenuBar()) {
+			if (ImGui::BeginMenu("Application")) {
+				if (ImGui::MenuItem("Reload App")) { Application::Reload(); }
+				if (ImGui::MenuItem("Quit")) { Application::Quit(); }
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
 
-        if (ImGui::CollapsingHeader("Display & Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
-            bool isFullscreen = window->IsFullScreen();
-            if (ImGui::Checkbox("Fullscreen", &isFullscreen)) {
-                window->SetFullScreen(isFullscreen);
-            }
+		if (ImGui::CollapsingHeader("Display & Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
+			bool isFullscreen = window->IsFullScreen();
+			if (ImGui::Checkbox("Fullscreen", &isFullscreen)) {
+				window->SetFullScreen(isFullscreen);
+			}
 
-            bool isDecorated = window->IsDecorated();
-            if (ImGui::Checkbox("Decorated", &isDecorated)) {
-                window->SetDecoration(isDecorated);
-            }
+			bool isDecorated = window->IsDecorated();
+			if (ImGui::Checkbox("Decorated", &isDecorated)) {
+				window->SetDecoration(isDecorated);
+			}
 
-            bool isResizeable = window->IsResizeable();
-            if (ImGui::Checkbox("Resizeable", &isResizeable)) {
-                window->SetResizeable(isResizeable);
-            }
+			bool isResizeable = window->IsResizeable();
+			if (ImGui::Checkbox("Resizeable", &isResizeable)) {
+				window->SetResizeable(isResizeable);
+			}
 
-            bool isVsync = window->IsVsync();
-            if (ImGui::Checkbox("Vsync", &isVsync)) {
-                window->SetVsync(isVsync);
-            }
+			bool isVsync = window->IsVsync();
+			if (ImGui::Checkbox("Vsync", &isVsync)) {
+				window->SetVsync(isVsync);
+			}
 
-            if (!isVsync) {
-                float targetFrameRate = Application::GetTargetFramerate();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
-                if (ImGui::SliderFloat("Target FPS", &targetFrameRate, 30.f, 244.f, "%.0f FPS")) {
-                    Application::SetTargetFramerate(targetFrameRate);
-                }
-            }
+			if (!isVsync) {
+				float targetFrameRate = Application::GetTargetFramerate();
+				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+				if (ImGui::SliderFloat("Target FPS", &targetFrameRate, 30.f, 244.f, "%.0f FPS")) {
+					Application::SetTargetFramerate(targetFrameRate);
+				}
+			}
 
-            ImGui::Separator();
+			ImGui::Separator();
 
-            std::array<float, 4> bgCol = OpenGL::GetClearColor().ToArray();
-            if (ImGui::ColorEdit4("Clear Color", bgCol.data(), ImGuiColorEditFlags_NoInputs)) {
-                OpenGL::SetClearColor(Color::FromArray(bgCol));
-            }
-        }
+			std::array<float, 4> bgCol = OpenGL::GetClearColor().ToArray();
+			if (ImGui::ColorEdit4("Clear Color", bgCol.data(), ImGuiColorEditFlags_NoInputs)) {
+				OpenGL::SetClearColor(Color::FromArray(bgCol));
+			}
+		}
 
-        if (ImGui::CollapsingHeader("Time & Simulation")) {
-            float timeScale = Time::GetTimeScale();
-            if (ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f, "%.2fx")) {
-                Time::SetTimeScale(timeScale);
-            }
+		if (ImGui::CollapsingHeader("Time & Simulation")) {
+			float timeScale = Time::GetTimeScale();
+			if (ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f, "%.2fx")) {
+				Time::SetTimeScale(timeScale);
+			}
 
-            float fixedFPS = 1.f / Time::GetUnscaledFixedDeltaTime();
-            if (ImGui::SliderFloat("Fixed Update (Hz)", &fixedFPS, 10.f, 244.f, "%.0f Hz")) {
-                Time::SetFixedDeltaTime(1.f / fixedFPS);
-            }
+			float fixedFPS = 1.f / Time::GetUnscaledFixedDeltaTime();
+			if (ImGui::SliderFloat("Fixed Update (Hz)", &fixedFPS, 10.f, 244.f, "%.0f Hz")) {
+				Time::SetFixedDeltaTime(1.f / fixedFPS);
+			}
 
-            bool runInBG = Application::GetRunInBackground();
-            if (ImGui::Checkbox("Run in Background", &runInBG)) {
-                Application::SetRunInBackground(runInBG);
-            }
-        }
+			bool runInBG = Application::GetRunInBackground();
+			if (ImGui::Checkbox("Run in Background", &runInBG)) {
+				Application::SetRunInBackground(runInBG);
+			}
+		}
 
-        if (ImGui::CollapsingHeader("Gizmos & Debug Draw")) {
-            bool renderer2DEnabled = renderer2D->IsEnabled();
-            if (ImGui::Checkbox("Enable Renderer2D", &renderer2DEnabled)) {
-                renderer2D->SetEnabled(renderer2DEnabled);
-            }
+		if (ImGui::CollapsingHeader("Gizmos & Debug Draw")) {
+			bool renderer2DEnabled = renderer2D->IsEnabled();
+			if (ImGui::Checkbox("Enable Renderer2D", &renderer2DEnabled)) {
+				renderer2D->SetEnabled(renderer2DEnabled);
+			}
 
-            ImGui::Separator();
+			ImGui::Separator();
 
-            bool enabledGizmo = Gizmo::IsEnabled();
-            if (ImGui::Checkbox("Show Gizmos", &enabledGizmo)) {
-                Gizmo::SetEnabled(enabledGizmo);
-            }
+			bool enabledGizmo = Gizmo::IsEnabled();
+			if (ImGui::Checkbox("Show Gizmos", &enabledGizmo)) {
+				Gizmo::SetEnabled(enabledGizmo);
+			}
 
-            if (enabledGizmo) {
-                ImGui::Indent();
+			if (enabledGizmo) {
+				ImGui::Indent();
 
-                static bool aabb = true; ImGui::Checkbox("AABB Boxes", &aabb);
-                ImGui::SameLine();
-                static bool collider = true; ImGui::Checkbox("Colliders", &collider);
+				static bool aabb = true; ImGui::Checkbox("AABB Boxes", &aabb);
+				ImGui::SameLine();
+				static bool collider = true; ImGui::Checkbox("Colliders", &collider);
 
-                float lineWidth = Gizmo::GetLineWidth();
-                if (ImGui::SliderFloat("Line Width", &lineWidth, 1.f, 5.f)) {
-                    Gizmo::SetLineWidth(lineWidth);
-                }
+				float lineWidth = Gizmo::GetLineWidth();
+				if (ImGui::SliderFloat("Line Width", &lineWidth, 1.f, 5.f)) {
+					Gizmo::SetLineWidth(lineWidth);
+				}
 
-                std::array<float, 4> gizmoCol = Gizmo::GetColor().ToArray();
-                if (ImGui::ColorEdit4("Gizmo Tint", gizmoCol.data(), ImGuiColorEditFlags_NoInputs)) {
-                    Gizmo::SetColor(Color::FromArray(gizmoCol));
-                }
+				std::array<float, 4> gizmoCol = Gizmo::GetColor().ToArray();
+				if (ImGui::ColorEdit4("Gizmo Tint", gizmoCol.data(), ImGuiColorEditFlags_NoInputs)) {
+					Gizmo::SetColor(Color::FromArray(gizmoCol));
+				}
 
-                ImGui::Unindent();
-            }
-        }
+				ImGui::Unindent();
+			}
+		}
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        if (ImGui::Button("Reload Scene", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-            SceneManager::ReloadScene(GetScene().GetName());
-        }
+		ImGui::Spacing();
+		ImGui::Separator();
+		if (ImGui::Button("Reload Scene", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+			SceneManager::ReloadScene(GetScene().GetName());
+		}
 
-        ImGui::End();
+		ImGui::End();
+
+		if (&GetScene() == nullptr) {
+			return;
+		}
+
+		if (ImGui::Begin("Scene Hierarchy")) {
+			Scene& scene = GetScene();
+			auto view = scene.GetRegistry().view<entt::entity>();
+
+			if (m_SelectedEntity != entt::null && !scene.IsValid(m_SelectedEntity)) {
+				m_SelectedEntity = entt::null;
+			}
+
+			for (EntityHandle handle : view) {
+				Entity entity = scene.GetEntity(handle);
+				const bool selected = (m_SelectedEntity == handle);
+
+				if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
+					m_SelectedEntity = handle;
+				}
+			}
+		}
+		ImGui::End();
+
+		if (ImGui::Begin("Entity Components")) {
+			Scene& scene = GetScene();
+
+			if (m_SelectedEntity == entt::null || !scene.IsValid(m_SelectedEntity)) {
+				ImGui::TextDisabled("Select an entity in the Scene Hierarchy.");
+			}
+			else {
+				Entity entity = scene.GetEntity(m_SelectedEntity);
+				ImGui::Text("Entity: %s", entity.GetName().c_str());
+				ImGui::Separator();
+
+				SceneManager::GetComponentRegistry().ForEachComponentInfo(
+					[&](std::type_index id, const ComponentInfo& info) {
+						if (info.has && info.has(entity)) {
+							ImGui::BulletText("%s", info.displayName.c_str());
+						}
+					}
+				);
+			}
+		}
+		ImGui::End();
+
 		ImGui::Begin("Debug Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
 #if defined(BT_RELEASE)
@@ -158,14 +216,14 @@ namespace Bolt {
 			}
 		}
 
-        if (ImGui::CollapsingHeader("Scene Manager"))
-        {
-            ImGui::Text("Loaded Scenes");
+		if (ImGui::CollapsingHeader("Scene Manager"))
+		{
+			ImGui::Text("Loaded Scenes");
 
-            SceneManager::ForeachLoadedScene([](const Scene& scene) {
-                ImGui::BulletText("%s", scene.GetName().c_str());
+			SceneManager::ForeachLoadedScene([](const Scene& scene) {
+				ImGui::BulletText("%s", scene.GetName().c_str());
 				});
-        }
+		}
 
 		if (ImGui::CollapsingHeader("Renderer"))
 		{

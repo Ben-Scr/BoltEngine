@@ -3,7 +3,9 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+
 #include "Scene/SceneDefinition.hpp"
+#include "Scene/ComponentRegistry.hpp"
 
 namespace Bolt {
 	class PhysicsSystem2D;
@@ -17,6 +19,13 @@ namespace Bolt {
 		friend class Window;
 
 	public:
+		template<typename T>
+		static void RegisterComponentType(ComponentInfo componentInfo) {
+			s_ComponentRegistry.Register<T>(componentInfo);
+		}
+		static ComponentRegistry& GetComponentRegistry() {
+			return s_ComponentRegistry;
+		}
 		static SceneDefinition& RegisterScene(const std::string& name);
 		static std::weak_ptr<Scene> LoadScene(const std::string& name);
 
@@ -58,6 +67,7 @@ namespace Bolt {
 
 		static std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> s_SceneDefinitions;
 		static std::vector<std::shared_ptr<Scene>> s_LoadedScenes;
+		static ComponentRegistry s_ComponentRegistry;
 		static Scene* s_ActiveScene;
 		static bool s_IsInitialized;
 

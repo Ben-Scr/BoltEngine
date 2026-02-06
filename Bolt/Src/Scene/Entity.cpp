@@ -43,10 +43,10 @@ namespace Bolt {
 			return GetComponent<NameTag>().Name;
 		}
 		else {
-			return "Unnamed Entity";
+			return "Unnamed Entity (" + std::to_string(static_cast<std::uint32_t>(m_EntityHandle)) + ")";
 		}
 	}
-
+	
 	void Entity::SetStatic(bool isStatic) {
 		if (isStatic) { if (!HasComponent<StaticTag>()) AddComponent<StaticTag>(); }
 		else { if (HasComponent<StaticTag>()) RemoveComponent<StaticTag>(); }

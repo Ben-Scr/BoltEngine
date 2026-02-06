@@ -3,6 +3,7 @@
 #include "Graphics/OpenGL.hpp"
 #include "Scene/EntityHelper.hpp"
 #include "Utils/Timer.hpp"
+#include "Components/Name.hpp"
 
 void GameSystem::Awake() {
 	Gizmo::SetEnabled(false);
@@ -14,6 +15,9 @@ void GameSystem::Awake() {
 
 
 void GameSystem::Start() {
+	SceneManager::RegisterComponentType<NameTag>(ComponentInfo("Name", "Component"));
+	SceneManager::RegisterComponentType<Transform2D>(ComponentInfo("Transform", "Component"));
+
 	Scene& scene = GetScene();
 
 	EntityHelper::CreateCamera2DEntity();
@@ -34,7 +38,8 @@ void GameSystem::Start() {
 	pts2D.RenderingSettings.SortingLayer = 0;
 	pts2D.Play();
 
-	m_PlayerEntity = scene.CreateEntity();
+	m_PlayerEntity = scene.CreateEntity("Player");
+	m_PlayerEntity.AddComponent<ImageComponent>();
 	auto& spriteRenderer = m_PlayerEntity.AddComponent<SpriteRenderer>();
 	spriteRenderer.TextureHandle = m_PlayerTexture;
 }

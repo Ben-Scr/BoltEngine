@@ -17,6 +17,7 @@ namespace Bolt {
 	bool SceneManager::s_IsInitialized = false;
 	std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> SceneManager::s_SceneDefinitions;
 	std::vector<std::shared_ptr<Scene>> SceneManager::s_LoadedScenes;
+	ComponentRegistry SceneManager::s_ComponentRegistry;
 	Scene* SceneManager::s_ActiveScene;
 
 	void SceneManager::Initialize() {

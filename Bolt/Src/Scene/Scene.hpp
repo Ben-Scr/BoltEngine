@@ -19,6 +19,9 @@ namespace Bolt {
 		// Info: Creates an entity and returnes its handle
 		EntityHandle CreateEntityHandle();
 
+		Entity GetEntity(EntityHandle nativeEntity) { return Entity(nativeEntity, m_Registry); }
+		Entity GetEntity(EntityHandle nativeEntity) const { return Entity(nativeEntity, const_cast<entt::registry&>(m_Registry)); }
+
 		template<typename... TComponent>
 		EntityHandle CreateEntityHandle() {
 			auto entity = m_Registry.create();

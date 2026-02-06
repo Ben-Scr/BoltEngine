@@ -321,6 +321,7 @@
     <ClInclude Include="Src\Physics\PhysicsSystem2D.hpp" />
     <ClInclude Include="Src\Physics\PhysicsTypes.hpp" />
     <ClInclude Include="Src\Physics\PhysicsUtility.hpp" />
+    <ClInclude Include="Src\Scene\ComponentRegistry.hpp" />
     <ClInclude Include="Src\Scene\Entity.hpp" />
     <ClInclude Include="Src\Scene\EntityHandle.hpp" />
     <ClInclude Include="Src\Scene\EntityHelper.hpp" />
