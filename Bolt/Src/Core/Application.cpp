@@ -6,8 +6,6 @@
 #include "Core/SingleInstance.hpp"
 #include "Audio/AudioManager.hpp"
 
-#include <hb-ft.h>
-
 #include "Time.hpp"
 #include "Input.hpp"
 #include <GLFW/glfw3.h>
@@ -30,15 +28,6 @@ namespace Bolt {
 
 	int Application::Run()
 	{
-		FT_Library ft{};
-		if (FT_Init_FreeType(&ft) != 0) {
-			std::puts("FT_Init_FreeType failed");
-			return 1;
-		}
-
-		std::puts("FreeType OK");
-		FT_Done_FreeType(ft);
-
 		int err = 0;
 
 		try {
