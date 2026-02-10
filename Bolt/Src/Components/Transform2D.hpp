@@ -13,20 +13,20 @@ namespace Bolt {
         return { c * v.x - s * v.y, s * v.x + c * v.y };
     }
 
-	class Transform2D {
+	class Transform2DComponent {
     public:
 		Vec2 Position{ 0.0f, 0.0f };
 		Vec2 Scale{ 1.0f, 1.0f };
         float Rotation{ 0.0f };   // Info: Z-Rotation angle in radians
 
 
-		Transform2D() = default;
-        Transform2D(const Vec2& position) : Position{ position } {};
-        Transform2D(const Vec2& position, const Vec2& scale) : Position{ position }, Scale{ scale } {};
-        Transform2D(const Vec2& position, const Vec2& scale, float rotation) : Position{ position }, Scale{scale}, Rotation{ rotation } {};
+		Transform2DComponent() = default;
+        Transform2DComponent(const Vec2& position) : Position{ position } {};
+        Transform2DComponent(const Vec2& position, const Vec2& scale) : Position{ position }, Scale{ scale } {};
+        Transform2DComponent(const Vec2& position, const Vec2& scale, float rotation) : Position{ position }, Scale{scale}, Rotation{ rotation } {};
 
-        static Transform2D FromPosition(const Vec2& pos);
-        static Transform2D FromScale(const Vec2& scale);
+        static Transform2DComponent FromPosition(const Vec2& pos);
+        static Transform2DComponent FromScale(const Vec2& scale);
 
         float GetRotationDegrees() const;
         glm::mat3 GetModelMatrix() const;
@@ -45,29 +45,29 @@ namespace Bolt {
 
         // Info: Used internally for Box2D
         b2Rot GetB2Rotation() const;
-        bool operator==(const Transform2D& other) const {
+        bool operator==(const Transform2DComponent& other) const {
             return Position == other.Position
                 && Rotation == other.Rotation
                 && Scale == other.Scale;
         }
-        bool operator!=(const Transform2D& other) const {
+        bool operator!=(const Transform2DComponent& other) const {
             return !(*this == other);
         }
 
         // Wrong code, will be fixed.
-        Transform2D operator+(const Transform2D& other) const {
-            return Transform2D(Position + other.Position);
+        Transform2DComponent operator+(const Transform2DComponent& other) const {
+            return Transform2DComponent(Position + other.Position);
         }
-        Transform2D operator-(const Transform2D& other) const {
-            return Transform2D(Position - other.Position);
+        Transform2DComponent operator-(const Transform2DComponent& other) const {
+            return Transform2DComponent(Position - other.Position);
         }
-        Transform2D& operator+=(const Transform2D& other) {
+        Transform2DComponent& operator+=(const Transform2DComponent& other) {
             Position += other.Position;
             Rotation += other.Rotation;
             Scale += other.Scale;
             return *this;
         }
-        Transform2D& operator-=(const Transform2D& other) {
+        Transform2DComponent& operator-=(const Transform2DComponent& other) {
             Position -= other.Position;
             Rotation -= other.Rotation;
             Scale -= other.Scale;
@@ -75,10 +75,10 @@ namespace Bolt {
         }
 
 
-        Transform2D operator*(float scalar) const {
-            return Transform2D(Position * scalar, Scale * scalar, Rotation * scalar);
+        Transform2DComponent operator*(float scalar) const {
+            return Transform2DComponent(Position * scalar, Scale * scalar, Rotation * scalar);
         }
-        Transform2D& operator*=(float scalar) {
+        Transform2DComponent& operator*=(float scalar) {
             Position *= scalar;
             Rotation *= scalar;
             Scale *= scalar;
@@ -86,7 +86,7 @@ namespace Bolt {
         }
 	};
 
-    static inline float LookAt2D(const Transform2D& from, const Vec2& to) {
+    static inline float LookAt2D(const Transform2DComponent& from, const Vec2& to) {
         Vec2 lookDir = to - from.Position;
         float lookAtZ = atan2(lookDir.x, lookDir.y);
         return std::remainder(lookAtZ - from.Rotation, TwoPi<float>());

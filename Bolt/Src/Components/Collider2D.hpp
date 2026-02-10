@@ -71,7 +71,7 @@ namespace Bolt {
 		void SetRotation(float radiant);
 		void SetPositionRotation(const Vec2& position, float radiant);
 		void SetPosition(const Vec2& position);
-		void SetTransform(const Transform2D& tr);
+		void SetTransform(const Transform2DComponent& tr);
 
 		friend class Physics2D;
 	};

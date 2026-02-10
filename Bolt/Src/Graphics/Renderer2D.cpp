@@ -47,7 +47,7 @@ namespace Bolt {
 		m_SpriteShader.Bind();
 
 		// Camera 2D Region
-		Camera2D* camera2D = Camera2D::Main();
+		Camera2DComponent* camera2D = Camera2DComponent::Main();
 		BOLT_ASSERT(camera2D, BoltErrorCode::NullReference, "There is no main camera");
 
 		camera2D->UpdateViewport();
@@ -60,8 +60,8 @@ namespace Bolt {
 
 		std::vector<Instance44> instances;
 
-		auto ptsView = scene.GetRegistry().view<ParticleSystem2D>(entt::exclude<DisabledTag>);
-		auto srView = scene.GetRegistry().view<Transform2D, SpriteRenderer>(entt::exclude<DisabledTag>);
+		auto ptsView = scene.GetRegistry().view<ParticleSystem2DComponent>(entt::exclude<DisabledTag>);
+		auto srView = scene.GetRegistry().view<Transform2DComponent, SpriteRendererComponent>(entt::exclude<DisabledTag>);
 
 		instances.reserve(ptsView.size_hint() + srView.size_hint());
 

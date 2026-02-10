@@ -3,21 +3,21 @@
 #include "Scene/Scene.hpp"
 
 namespace Bolt {
-	void BoxCollider2D::SetScale(const Vec2& scale, const Scene& scene) {
+	void BoxCollider2DComponent::SetScale(const Vec2& scale, const Scene& scene) {
 		Vec2 center = this->GetCenter();
-		Transform2D tr = scene.GetComponent<Transform2D>(m_EntityHandle);
+		Transform2DComponent tr = scene.GetComponent<Transform2DComponent>(m_EntityHandle);
 		b2Polygon polygon = b2MakeOffsetBox(tr.Scale.x * scale.x * 0.5f, tr.Scale.y * scale.y * 0.5f, b2Vec2(center.x, center.y), tr.GetB2Rotation());
 		b2Shape_SetPolygon(m_ShapeId, &polygon);
 	}
 
-	void BoxCollider2D::SetEnabled(bool enabled) {
+	void BoxCollider2DComponent::SetEnabled(bool enabled) {
 		if (enabled)
 			b2Body_Enable(m_BodyId);
 		else
 			b2Body_Disable(m_BodyId);
 	}
 
-	Vec2 BoxCollider2D::GetScale() {
+	Vec2 BoxCollider2DComponent::GetScale() {
 		b2ShapeType shapeType = b2Shape_GetType(m_ShapeId);
 
 		BOLT_ASSERT(shapeType == b2_polygonShape, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
@@ -33,8 +33,8 @@ namespace Bolt {
 		return size;
 	}
 
-	Vec2 BoxCollider2D::GetLocalScale(const Scene& scene) {
-		Transform2D tr = scene.GetComponent<Transform2D>(m_EntityHandle);
+	Vec2 BoxCollider2DComponent::GetLocalScale(const Scene& scene) {
+		Transform2DComponent tr = scene.GetComponent<Transform2DComponent>(m_EntityHandle);
 		b2ShapeType shapeType = b2Shape_GetType(m_ShapeId);
 
 		BOLT_ASSERT(shapeType == b2_polygonShape, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
@@ -51,21 +51,21 @@ namespace Bolt {
 		return size - tr.Scale;
 	}
 
-	void BoxCollider2D::UpdateScale(const Scene& scene) {
+	void BoxCollider2DComponent::UpdateScale(const Scene& scene) {
 		Vec2 center = this->GetCenter();
-		Transform2D tr = scene.GetComponent<Transform2D>(m_EntityHandle);
+		Transform2DComponent tr = scene.GetComponent<Transform2DComponent>(m_EntityHandle);
 
 		b2Polygon polygon = b2MakeOffsetBox(tr.Scale.x * 0.5f, tr.Scale.y * 0.5f, b2Vec2(center.x, center.y), tr.GetB2Rotation());
 		b2Shape_SetPolygon(m_ShapeId, &polygon);
 	}
 
-	void BoxCollider2D::SetCenter(const Vec2& center, const Scene& scene) {
-		Transform2D tr = scene.GetComponent<Transform2D>(m_EntityHandle);
+	void BoxCollider2DComponent::SetCenter(const Vec2& center, const Scene& scene) {
+		Transform2DComponent tr = scene.GetComponent<Transform2DComponent>(m_EntityHandle);
 		b2Polygon polygon = b2MakeOffsetBox(tr.Scale.x * 0.5f, tr.Scale.y * 0.5f, b2Vec2(center.x, center.y), b2Rot_identity);
 		b2Shape_SetPolygon(m_ShapeId, &polygon);
 	}
 
-	Vec2 BoxCollider2D::GetCenter() {
+	Vec2 BoxCollider2DComponent::GetCenter() {
 		b2Polygon polygon = b2Shape_GetPolygon(m_ShapeId);
 		return Vec2(polygon.centroid.x, polygon.centroid.y);
 	}

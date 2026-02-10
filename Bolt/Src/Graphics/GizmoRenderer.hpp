@@ -7,7 +7,7 @@
 #include <cstdint>
 
 namespace Bolt {
-    class Camera2D;
+    class Camera2DComponent;
     struct PosColorVertex;
     class Shader;
 

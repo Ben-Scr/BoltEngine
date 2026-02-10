@@ -4,7 +4,7 @@
 #include "Math/Random.hpp"
 
 namespace Bolt {
-	void ParticleSystem2D::Update() {
+	void ParticleSystem2DComponent::Update() {
 		float deltaTime = Time::GetDeltaTime();
 		if (deltaTime == 0.f) return;
 
@@ -38,7 +38,7 @@ namespace Bolt {
 		}
 	}
 
-	void ParticleSystem2D::Emit(size_t count) {
+	void ParticleSystem2DComponent::Emit(size_t count) {
 		if(!m_IsEmitting || count == 0)
 			return;
 

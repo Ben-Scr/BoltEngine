@@ -6,7 +6,7 @@
 
 namespace Bolt {
 	struct Particle {
-		Transform2D Transform;
+		Transform2DComponent Transform;
 		Color Color;
 		float LifeTime;
 		Vec2 Velocity;
@@ -59,20 +59,20 @@ namespace Bolt {
 	using ShapeParams = std::variant<CircleParams, SquareParams>;
 
 
-	class ParticleSystem2D {
+	class ParticleSystem2DComponent {
 		friend class Scene;
 		friend class Renderer2D;
 		friend class ParticleUpdateSystem;
 
 	public:
-		ParticleSystem2D() = default;
+		ParticleSystem2DComponent() = default;
 		void SetTexture(const TextureHandle& texture) { m_TextureHandle = texture; }
 		const TextureHandle& GetTextureHandle() const { return m_TextureHandle; }
 		void Emit(size_t count);
 		void AddBurst(const Burst& burst) { m_Bursts.push_back(burst); }
 		std::span<const Particle> GetParticles() const noexcept { return m_Particles; }
 		bool IsPlaying() const { return m_IsEmitting; }
-		Transform2D& GetTransform2D() { return *m_EmitterTransform; };
+		Transform2DComponent& GetTransform2D() { return *m_EmitterTransform; };
 
 		// Info: Enables both emitting and simulating
 		void Play() { m_IsEmitting = true; m_IsSimulating = true; }
@@ -101,7 +101,7 @@ namespace Bolt {
 		std::vector<Particle> m_Particles;
 		std::vector<Burst> m_Bursts;
 
-		Transform2D* m_EmitterTransform{ nullptr };
+		Transform2DComponent* m_EmitterTransform{ nullptr };
 		float m_EmitAccumulator{ 0.0f };
 		bool m_IsEmitting{ false };
 		bool m_IsSimulating{ false };

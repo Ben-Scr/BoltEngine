@@ -2,8 +2,8 @@
 #include "Graphics/TextureHandle.hpp"
 
 namespace Bolt {
-	struct SpriteRenderer {
-		SpriteRenderer() = default;
+	struct SpriteRendererComponent {
+		SpriteRendererComponent() = default;
 
 		short SortingOrder{0};
 		uint8_t SortingLayer{0};

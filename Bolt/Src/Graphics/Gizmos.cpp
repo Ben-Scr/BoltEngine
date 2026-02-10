@@ -14,11 +14,11 @@ namespace Bolt {
 	Color Gizmo::s_Color = { 0.f, 1.f, 0.f, 1.f };
 
 	void Gizmo::DrawCircle(const Vec2& center, float radius, int segments) {
-		if (!Camera2D::Main() || !s_IsEnabled || s_RegisteredVertices + segments >= s_MaxVertices)
+		if (!Camera2DComponent::Main() || !s_IsEnabled || s_RegisteredVertices + segments >= s_MaxVertices)
 			return;
 
 		AABB circleAABB = AABB::Create(center, Vec2(radius));
-		if (!AABB::Intersects(circleAABB, Camera2D::Main()->GetViewportAABB()))
+		if (!AABB::Intersects(circleAABB, Camera2DComponent::Main()->GetViewportAABB()))
 			return;
 
 		s_RegisteredVertices += segments;
@@ -26,12 +26,12 @@ namespace Bolt {
 	}
 
 	void Gizmo::DrawSquare(const Vec2& center, const Vec2& scale, float degrees) {
-		if (!Camera2D::Main() || !s_IsEnabled || s_RegisteredVertices + k_BoxVertices >= s_MaxVertices)
+		if (!Camera2DComponent::Main() || !s_IsEnabled || s_RegisteredVertices + k_BoxVertices >= s_MaxVertices)
 			return;
 
 		float radiant = Radians<float>(degrees);
 		AABB boxAABB = AABB::IsAxisAligned(radiant) ? AABB::Create(center, scale / 2.f) : AABB::Create(center, scale / 2.f, degrees);
-		if (!AABB::Intersects(boxAABB, Camera2D::Main()->GetViewportAABB()))
+		if (!AABB::Intersects(boxAABB, Camera2DComponent::Main()->GetViewportAABB()))
 			return;
 
 		s_RegisteredVertices += k_BoxVertices;
@@ -39,10 +39,10 @@ namespace Bolt {
 	}
 
 	void Gizmo::DrawLine(const Vec2& start, const Vec2& end) {
-		if (!Camera2D::Main() || !s_IsEnabled || s_RegisteredVertices + k_LineVertices >= s_MaxVertices)
+		if (!Camera2DComponent::Main() || !s_IsEnabled || s_RegisteredVertices + k_LineVertices >= s_MaxVertices)
 			return;
 
-		const auto camAABB = Camera2D::Main()->GetViewportAABB();
+		const auto camAABB = Camera2DComponent::Main()->GetViewportAABB();
 		if (!AABB::Contains(camAABB, start) && !AABB::Contains(camAABB, end))
 			return;
 

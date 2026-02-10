@@ -20,11 +20,11 @@ namespace Bolt {
 
 
 	Entity EntityHelper::CreateCamera2DEntity() {
-		return CreateWith<Transform2D, Camera2D>();
+		return CreateWith<Transform2DComponent, Camera2DComponent>();
 	}
 
 	Entity EntityHelper::CreateSpriteEntity() {
-		return CreateWith<Transform2D, SpriteRenderer >();
+		return CreateWith<Transform2DComponent, SpriteRendererComponent >();
 	}
 
 	Entity EntityHelper::CreateImageEntity() {

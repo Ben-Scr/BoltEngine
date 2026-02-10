@@ -8,7 +8,7 @@ namespace Bolt {
 		void* ud = b2Body_GetUserData(collider.m_BodyId);
 		return static_cast<EntityHandle>(reinterpret_cast<uintptr_t>(ud));
 	}
-	EntityHandle PhysicsUtility::GetEntityHandleFromRigidbody(const Rigidbody2D& rb) {
+	EntityHandle PhysicsUtility::GetEntityHandleFromRigidbody(const Rigidbody2DComponent& rb) {
 		void* ud = b2Body_GetUserData(rb.GetBodyHandle());
 		return static_cast<EntityHandle>(reinterpret_cast<uintptr_t>(ud));
 	}

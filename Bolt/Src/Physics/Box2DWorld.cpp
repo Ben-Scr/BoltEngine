@@ -25,7 +25,7 @@ namespace Bolt {
 	}
 
 	b2BodyId Box2DWorld::CreateBody(EntityHandle nativeEntity, Scene& scene, BodyType bodyType) {
-		Transform2D& tr = scene.GetComponent<Transform2D>(nativeEntity);
+		Transform2DComponent& tr = scene.GetComponent<Transform2DComponent>(nativeEntity);
 
 		b2Vec2 box2dPos(tr.Position.x, tr.Position.y);
 		b2BodyDef bodyDef = b2DefaultBodyDef();
@@ -42,7 +42,7 @@ namespace Bolt {
 	}
 
 	b2ShapeId Box2DWorld::CreateShape(EntityHandle nativeEntity, Scene& scene, b2BodyId bodyId, ShapeType shapeType) {
-		Transform2D transform = scene.GetComponent<Transform2D>(nativeEntity);
+		Transform2DComponent transform = scene.GetComponent<Transform2DComponent>(nativeEntity);
 		b2ShapeId shapeId = b2_nullShapeId;
 
 		b2ShapeDef shapeDef = b2DefaultShapeDef();

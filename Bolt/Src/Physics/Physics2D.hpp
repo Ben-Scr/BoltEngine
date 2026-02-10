@@ -3,7 +3,7 @@
 #include "Scene/EntityHandle.hpp"
 
 namespace Bolt {
-	class Rigidbody2D;
+	class Rigidbody2DComponent;
 	class Collider2D;
 }
 

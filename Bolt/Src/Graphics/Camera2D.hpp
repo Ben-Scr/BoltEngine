@@ -9,11 +9,11 @@
 namespace Bolt {
 	struct Viewport;
 
-	class Camera2D {
+	class Camera2DComponent {
 	public:
-		Camera2D() = default;
+		Camera2DComponent() = default;
 
-		static Camera2D* Main();
+		static Camera2DComponent* Main();
 
 		void UpdateViewport();
 
@@ -51,11 +51,11 @@ namespace Bolt {
 		void UpdateView();
 		void UpdateViewportAABB();
 
-		void Initialize(Transform2D& transform);
+		void Initialize(Transform2DComponent& transform);
 		void Destroy();
 
-		Transform2D* m_Transform = nullptr;
-		static Camera2D* s_Main;
+		Transform2DComponent* m_Transform = nullptr;
+		static Camera2DComponent* s_Main;
 		float m_Zoom{ 1.0f };
 		float m_OrthographicSize{ 5.0f };
 		Viewport* m_Viewport;

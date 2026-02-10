@@ -17,13 +17,13 @@
 namespace Bolt {
 	Entity Scene::CreateEntity() {
 		auto entityHandle = CreateEntityHandle();
-		AddComponent<Transform2D>(entityHandle);
+		AddComponent<Transform2DComponent>(entityHandle);
 		return Entity(entityHandle, m_Registry);
 	}
 	Entity Scene::CreateEntity(const std::string& name) {
 		auto entityHandle = CreateEntityHandle();
-		AddComponent<Transform2D>(entityHandle);
-		AddComponent<NameTag>(entityHandle, name);
+		AddComponent<Transform2DComponent>(entityHandle);
+		AddComponent<NameComponent>(entityHandle, name);
 		return Entity(entityHandle, m_Registry);
 	}
 
@@ -66,25 +66,25 @@ namespace Bolt {
 		, m_Persistent(IsPersistent)
 		, m_IsLoaded(false) {
 
-		m_Registry.on_construct<Rigidbody2D>().connect<&Scene::OnRigidBody2DComponentConstruct>(this);
-		m_Registry.on_construct<BoxCollider2D>().connect<&Scene::OnBoxCollider2DComponentConstruct>(this);
-		m_Registry.on_construct<Camera2D>().connect<&Scene::OnCamera2DComponentConstruct>(this);
-		m_Registry.on_construct<ParticleSystem2D>().connect<&Scene::OnParticleSystem2DComponentConstruct>(this);
+		m_Registry.on_construct<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentConstruct>(this);
+		m_Registry.on_construct<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentConstruct>(this);
+		m_Registry.on_construct<Camera2DComponent>().connect<&Scene::OnCamera2DComponentConstruct>(this);
+		m_Registry.on_construct<ParticleSystem2DComponent>().connect<&Scene::OnParticleSystem2DComponentConstruct>(this);
 
-		m_Registry.on_destroy<Rigidbody2D>().connect<&Scene::OnRigidBody2DComponentDestroy>(this);
-		m_Registry.on_destroy<BoxCollider2D>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
-		m_Registry.on_destroy<Camera2D>().connect<&Scene::OnCamera2DComponentDestruct>(this);
+		m_Registry.on_destroy<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentDestroy>(this);
+		m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
+		m_Registry.on_destroy<Camera2DComponent>().connect<&Scene::OnCamera2DComponentDestruct>(this);
 	}
 
 	void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, EntityHandle entity)
 	{
 		bool isEnabled = !registry.all_of<DisabledTag>(entity);
-		Rigidbody2D& rb2D = registry.get<Rigidbody2D>(entity);
+		Rigidbody2DComponent& rb2D = registry.get<Rigidbody2DComponent>(entity);
 
 		// Info: Check if there is any 2d Collider attached to the entity
 		// Get the body of the Collider and set it to Dynamic
-		if (HasAnyComponent<BoxCollider2D>(entity)) {
-			rb2D.m_BodyId = GetComponent<BoxCollider2D>(entity).m_BodyId;
+		if (HasAnyComponent<BoxCollider2DComponent>(entity)) {
+			rb2D.m_BodyId = GetComponent<BoxCollider2DComponent>(entity).m_BodyId;
 			rb2D.SetBodyType(BodyType::Dynamic);
 		}
 		else {
@@ -95,11 +95,11 @@ namespace Bolt {
 	}
 
 	void Scene::OnRigidBody2DComponentDestroy(entt::registry& registry, EntityHandle entity) {
-		auto& rb2D = GetComponent<Rigidbody2D>(entity);
+		auto& rb2D = GetComponent<Rigidbody2DComponent>(entity);
 
 		if (!rb2D.IsValid()) return;
 
-		if (HasAnyComponent<BoxCollider2D>(entity)) {
+		if (HasAnyComponent<BoxCollider2DComponent>(entity)) {
 			rb2D.SetBodyType(BodyType::Static);
 		}
 		else {
@@ -109,13 +109,13 @@ namespace Bolt {
 
 	void Scene::OnBoxCollider2DComponentConstruct(entt::registry& registry, EntityHandle entity) {
 		bool isEnabled = !registry.all_of<DisabledTag>(entity);
-		BoxCollider2D& boxCollider = GetComponent<BoxCollider2D>(entity);
+		BoxCollider2DComponent& boxCollider = GetComponent<BoxCollider2DComponent>(entity);
 
 		// Info: Check if the collider already has the Rigidbody2D component
 		// Get the body and assign it to the boxCollider
 		// Else Create a new Static body
-		if (HasComponent<Rigidbody2D>(entity)) {
-			auto& rb = GetComponent<Rigidbody2D>(entity);
+		if (HasComponent<Rigidbody2DComponent>(entity)) {
+			auto& rb = GetComponent<Rigidbody2DComponent>(entity);
 			boxCollider.m_BodyId = rb.GetBodyHandle();
 		}
 		else {
@@ -127,25 +127,25 @@ namespace Bolt {
 	}
 
 	void Scene::OnBoxCollider2DComponentDestroy(entt::registry& registry, EntityHandle entity) {
-		auto& boxCollider2D = GetComponent<BoxCollider2D>(entity);
+		auto& boxCollider2D = GetComponent<BoxCollider2DComponent>(entity);
 		boxCollider2D.Destroy();
 	}
 
 	void Scene::OnCamera2DComponentConstruct(entt::registry& registry, EntityHandle entity)
 	{
-		Camera2D& camera2D = GetComponent<Camera2D>(entity);
-		camera2D.Initialize(GetComponent<Transform2D>(entity));
+		Camera2DComponent& camera2D = GetComponent<Camera2DComponent>(entity);
+		camera2D.Initialize(GetComponent<Transform2DComponent>(entity));
 		camera2D.UpdateViewport();
 	}
 
 	void Scene::OnCamera2DComponentDestruct(entt::registry& registry, EntityHandle entity)
 	{
-		Camera2D& camera2D = GetComponent<Camera2D>(entity);
+		Camera2DComponent& camera2D = GetComponent<Camera2DComponent>(entity);
 		camera2D.Destroy();
 	}
 
 	void Scene::OnParticleSystem2DComponentConstruct(entt::registry& registry, EntityHandle entity) {
-		auto& ps = registry.get<ParticleSystem2D>(entity);
-		ps.m_EmitterTransform = &GetComponent<Transform2D>(entity);
+		auto& ps = registry.get<ParticleSystem2DComponent>(entity);
+		ps.m_EmitterTransform = &GetComponent<Transform2DComponent>(entity);
 	}
 }

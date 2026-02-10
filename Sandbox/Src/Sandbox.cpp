@@ -17,13 +17,13 @@
 #include <algorithm>
 
 int main() {
-	REGISTER_COMPONENT(NameTag, ComponentInfo("Name", ComponentCategory::Component));
-	REGISTER_COMPONENT(Transform2D,ComponentInfo("Transform2D", ComponentCategory::Component));
-	REGISTER_COMPONENT(ParticleSystem2D, ComponentInfo("ParticleSystem2D", ComponentCategory::Component));
-	REGISTER_COMPONENT(BoxCollider2D, ComponentInfo("BoxCollider2D", ComponentCategory::Component));
-	REGISTER_COMPONENT(Rigidbody2D , ComponentInfo("Rigidbody2D", ComponentCategory::Component));
-	REGISTER_COMPONENT(Camera2D, ComponentInfo("Camera2D", ComponentCategory::Component));
-	REGISTER_COMPONENT(SpriteRenderer, ComponentInfo("SpriteRenderer", ComponentCategory::Component));
+	REGISTER_COMPONENT(NameComponent, ComponentInfo("Name", ComponentCategory::Component));
+	REGISTER_COMPONENT(Transform2DComponent,ComponentInfo("Transform2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(ParticleSystem2DComponent, ComponentInfo("ParticleSystem2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(BoxCollider2DComponent, ComponentInfo("BoxCollider2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(Rigidbody2DComponent , ComponentInfo("Rigidbody2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(Camera2DComponent, ComponentInfo("Camera2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(SpriteRendererComponent, ComponentInfo("SpriteRenderer", ComponentCategory::Component));
 
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
 	def.AddSystem<GameSystem>();

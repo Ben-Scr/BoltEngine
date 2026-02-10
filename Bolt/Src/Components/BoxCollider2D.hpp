@@ -6,10 +6,10 @@
 #include <box2d/box2d.h>
 
 namespace Bolt {
-	class BoxCollider2D : public Collider2D {
+	class BoxCollider2DComponent : public Collider2D {
 		friend class PhysicsSystem2D;
 	public:
-		BoxCollider2D() = default;
+		BoxCollider2DComponent() = default;
 
 		void SetScale(const Vec2& scale, const Scene& scene);
 		void SetEnabled(bool enabled);

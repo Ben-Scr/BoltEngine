@@ -2,7 +2,7 @@
 
 namespace Bolt {
 	class Collider2D;
-	class Rigidbody2D;
+	class Rigidbody2DComponent;
 }
 
 struct b2BodyId;
@@ -12,7 +12,7 @@ namespace Bolt {
 	class PhysicsUtility {
 	public:
 		static EntityHandle GetEntityHandleFromCollider(const Collider2D& collider);
-		static EntityHandle GetEntityHandleFromRigidbody(const Rigidbody2D& rb);
+		static EntityHandle GetEntityHandleFromRigidbody(const Rigidbody2DComponent& rb);
 		static EntityHandle GetEntityHandleFromBodyId(b2BodyId bodyId);
 		static EntityHandle GetEntityHandleFromShapeID(b2ShapeId shapeId);
 	};

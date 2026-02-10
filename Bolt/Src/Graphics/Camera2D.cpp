@@ -8,22 +8,22 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Bolt {
-	Camera2D* Camera2D::s_Main = nullptr;
+	Camera2DComponent* Camera2DComponent::s_Main = nullptr;
 
-	Camera2D* Camera2D::Main() {
+	Camera2DComponent* Camera2DComponent::Main() {
 		return s_Main;
 	}
 
-	void Camera2D::UpdateViewport() {
+	void Camera2DComponent::UpdateViewport() {
 		UpdateProj();
 		UpdateViewportAABB();
 	}
 
-	glm::mat4 Camera2D::GetViewProjectionMatrix() const {
+	glm::mat4 Camera2DComponent::GetViewProjectionMatrix() const {
 		return m_ProjMat * m_ViewMat;
 	}
 
-	void Camera2D::UpdateProj() {
+	void Camera2DComponent::UpdateProj() {
 		const float aspect = m_Viewport->GetAspect();
 		const float halfH = m_OrthographicSize * m_Zoom;
 		const float halfW = halfH * aspect;
@@ -35,7 +35,7 @@ namespace Bolt {
 		m_ProjMat = glm::ortho(-halfW, +halfW, -halfH, +halfH, zNear, zFar);
 	}
 
-	void Camera2D::UpdateView() {
+	void Camera2DComponent::UpdateView() {
 		const float rotZ = m_Transform->Rotation;
 		glm::mat4 camModel(1.0f);
 		camModel = glm::translate(camModel, glm::vec3(m_Transform->Position.x, m_Transform->Position.y, 0.0f));
@@ -45,19 +45,19 @@ namespace Bolt {
 		UpdateViewportAABB();
 	}
 
-	void Camera2D::UpdateViewportAABB() {
+	void Camera2DComponent::UpdateViewportAABB() {
 		Vec2 worldViewport = WorldViewPort();
 		m_WorldViewportAABB = AABB::Create(m_Transform->Position, worldViewport / 2.f);
 	}
 
-	Vec2 Camera2D::WorldViewPort() const {
+	Vec2 Camera2DComponent::WorldViewPort() const {
 		float aspect = m_Viewport->GetAspect();
 		float worldHeight = 2.0f * (m_OrthographicSize / m_Zoom);
 		float worldWidth = worldHeight * aspect;
 		return { worldWidth, worldHeight };
 	}
 
-	Vec2 Camera2D::ScreenToWorld(Vec2 pos) const
+	Vec2 Camera2DComponent::ScreenToWorld(Vec2 pos) const
 	{
 		const float xNdc = (2.0f * pos.x / float(m_Viewport->GetWidth())) - 1.0f;
 		const float yNdc = 1.0f - (2.0f * pos.y / float(m_Viewport->GetHeight()));
@@ -76,7 +76,7 @@ namespace Bolt {
 		return { world.x, world.y };
 	}
 
-	void Camera2D::Initialize(Transform2D& transform) {
+	void Camera2DComponent::Initialize(Transform2DComponent& transform) {
 		s_Main = this;
 		m_Viewport = Window::GetMainViewport();
 		m_Transform = &transform;
@@ -86,7 +86,7 @@ namespace Bolt {
 		UpdateView();
 	}
 
-	void Camera2D::Destroy() {
+	void Camera2DComponent::Destroy() {
 		if (s_Main == this)
 			s_Main = nullptr;
 

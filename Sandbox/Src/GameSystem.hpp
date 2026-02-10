@@ -11,16 +11,16 @@ public:
 	virtual void Update();
 	virtual void OnApplicationPaused();
 
-	Entity CreatePhysicsEntity(Scene& scene, Transform2D transform, BodyType bodyType, Color color = Color::White()) {
+	Entity CreatePhysicsEntity(Scene& scene, Transform2DComponent transform, BodyType bodyType, Color color = Color::White()) {
 		Entity blockEntity = scene.CreateEntity();
-		SpriteRenderer& sp = blockEntity.AddComponent<SpriteRenderer>();
+		SpriteRendererComponent& sp = blockEntity.AddComponent<SpriteRendererComponent>();
 		sp.TextureHandle = m_AsteriodTexture;
 		sp.Color = color;
-		auto& tr = blockEntity.GetComponent<Transform2D>();
+		auto& tr = blockEntity.GetComponent<Transform2DComponent>();
 		tr = transform;
 
-		auto& boxCollider = blockEntity.AddComponent<BoxCollider2D>();
-		auto& rb2D = blockEntity.AddComponent<Rigidbody2D>();
+		auto& boxCollider = blockEntity.AddComponent<BoxCollider2DComponent>();
+		auto& rb2D = blockEntity.AddComponent<Rigidbody2DComponent>();
 		rb2D.SetBodyType(bodyType);
 		return blockEntity;
 	}

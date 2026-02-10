@@ -36,7 +36,7 @@ namespace Bolt {
 		m_SpriteShader.Bind();
 
 		// Camera 2D Region
-		Camera2D* camera2D = Camera2D::Main();
+		Camera2DComponent* camera2D = Camera2DComponent::Main();
 		BOLT_ASSERT(camera2D, BoltErrorCode::NullReference, "There is no main camera");
 
 		camera2D->UpdateViewport();

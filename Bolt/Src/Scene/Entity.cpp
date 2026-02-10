@@ -23,7 +23,7 @@ namespace Bolt {
 		BOLT_ASSERT(activeScene.IsLoaded(), BoltErrorCode::Undefined, "There is no active Scene Loaded");
 
 		auto entity = Entity(activeScene.CreateEntityHandle(), activeScene.GetRegistry());
-		entity.AddComponent<Transform2D>();
+		entity.AddComponent<Transform2DComponent>();
 		return entity;
 	}
 
@@ -39,8 +39,8 @@ namespace Bolt {
 	}
 
 	std::string Entity::GetName() const {
-		if (HasComponent<NameTag>()) {
-			return GetComponent<NameTag>().Name;
+		if (HasComponent<NameComponent>()) {
+			return GetComponent<NameComponent>().Name;
 		}
 		else {
 			return "Unnamed Entity (" + std::to_string(static_cast<std::uint32_t>(m_EntityHandle)) + ")";

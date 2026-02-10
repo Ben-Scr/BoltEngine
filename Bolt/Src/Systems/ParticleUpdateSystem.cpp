@@ -11,7 +11,7 @@
 
 namespace Bolt {
 	void ParticleUpdateSystem::Update() {
-		for (const auto& [ent, particleSystem] : SceneManager::GetActiveScene()->GetRegistry().view<ParticleSystem2D>(entt::exclude<DisabledTag>).each())
+		for (const auto& [ent, particleSystem] : SceneManager::GetActiveScene()->GetRegistry().view<ParticleSystem2DComponent>(entt::exclude<DisabledTag>).each())
 			particleSystem.Update();
 	}
 }

@@ -32,7 +32,7 @@ void GameSystem::Start() {
 	OpenGL::SetClearColor(Color(0.1f, 0.1f, 0.1f));
 
 	m_PlayerEmissionPts = scene.CreateEntity();
-	ParticleSystem2D& pts2D = m_PlayerEmissionPts.AddComponent<ParticleSystem2D>();
+	ParticleSystem2DComponent& pts2D = m_PlayerEmissionPts.AddComponent<ParticleSystem2DComponent>();
 	pts2D.EmissionSettings.EmitOverTime = 1000;
 	pts2D.SetTexture(TextureManager::GetDefaultTexture(DefaultTexture::Circle));
 
@@ -48,13 +48,13 @@ void GameSystem::Start() {
 
 	m_PlayerEntity = scene.CreateEntity("Player");
 	m_PlayerEntity.AddComponent<ImageComponent>();
-	auto& spriteRenderer = m_PlayerEntity.AddComponent<SpriteRenderer>();
+	auto& spriteRenderer = m_PlayerEntity.AddComponent<SpriteRendererComponent>();
 	spriteRenderer.TextureHandle = m_PlayerTexture;
 }
 
 void GameSystem::Update() {
 	Scene& scene = GetScene();
-	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
+	auto mousePos = Camera2DComponent::Main()->ScreenToWorld(Input::GetMousePosition());
 	bool cntrlDown = Input::GetKey(KeyCode::LeftControl);
 
 	if (Input::GetKeyDown(KeyCode::R) && cntrlDown) {
@@ -64,7 +64,7 @@ void GameSystem::Update() {
 	if (Input::GetKeyDown(KeyCode::O)) {
 		for (int x = 0; x < 50; x++)
 			for (int y = 0; y < 50; y++) {
-				auto& tr = EntityHelper::CreateSpriteEntity().GetComponent<Transform2D>();
+				auto& tr = EntityHelper::CreateSpriteEntity().GetComponent<Transform2DComponent>();
 				tr.Position = Vec2(x, y) + mousePos;
 			}
 	}
@@ -81,8 +81,8 @@ void GameSystem::Update() {
 	}
 
 	if (Input::GetKey(KeyCode::E)) {
-		Entity ent = EntityHelper::CreateWith<Transform2D, SpriteRenderer>();
-		SpriteRenderer& sp = ent.GetComponent<SpriteRenderer>();
+		Entity ent = EntityHelper::CreateWith<Transform2DComponent, SpriteRendererComponent>();
+		SpriteRendererComponent& sp = ent.GetComponent<SpriteRendererComponent>();
 		sp.TextureHandle = m_AsteriodTexture;
 
 
@@ -91,8 +91,8 @@ void GameSystem::Update() {
 		asteriod.LifeTime = 15.f;
 		asteriod.RotationSpeed = 14.f;
 
-		Transform2D& tr2D = ent.GetComponent<Transform2D>();
-		auto playerTransform = m_PlayerEntity.GetComponent<Transform2D>();
+		Transform2DComponent& tr2D = ent.GetComponent<Transform2DComponent>();
+		auto playerTransform = m_PlayerEntity.GetComponent<Transform2DComponent>();
 		tr2D = playerTransform.Position + RandomOnCircle(10.f);
 
 		float scale = Random::NextFloat(1.f, 5.f);
@@ -101,12 +101,12 @@ void GameSystem::Update() {
 
 	if (Input::GetKeyDown(KeyCode::Space)) {
 		Entity ent = scene.CreateEntity();
-		SpriteRenderer& sp = ent.AddComponent<SpriteRenderer>();
+		SpriteRendererComponent& sp = ent.AddComponent<SpriteRendererComponent>();
 		sp.TextureHandle = m_LaserTexture;
 
 		ent.AddComponent<LaserTag>();
-		Transform2D& tr2D = ent.GetComponent<Transform2D>();
-		tr2D = m_PlayerEntity.GetComponent<Transform2D>();
+		Transform2DComponent& tr2D = ent.GetComponent<Transform2DComponent>();
+		tr2D = m_PlayerEntity.GetComponent<Transform2DComponent>();
 		tr2D.Scale = Vec2(0.26f, 1.08f) * 0.75f;
 	}
 
@@ -118,9 +118,9 @@ void GameSystem::Update() {
 }
 
 void GameSystem::UpdatePlayerPts() {
-	auto& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
-	auto& pts2D = m_PlayerEmissionPts.GetComponent<ParticleSystem2D>();
-	auto& tr = m_PlayerEmissionPts.GetComponent<Transform2D>();
+	auto& playerTr = m_PlayerEntity.GetComponent<Transform2DComponent>();
+	auto& pts2D = m_PlayerEmissionPts.GetComponent<ParticleSystem2DComponent>();
+	auto& tr = m_PlayerEmissionPts.GetComponent<Transform2DComponent>();
 	pts2D.ParticleSettings.MoveDirection = -playerTr.GetForwardDirection();
 	tr.Position = playerTr.Position - (playerTr.GetForwardDirection() * 0.4f);
 }
@@ -129,8 +129,8 @@ void GameSystem::UpdatePlayerPts() {
 void GameSystem::PlayerMovement() {
 	Scene& scene = GetScene();
 
-	auto& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
-	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
+	auto& playerTr = m_PlayerEntity.GetComponent<Transform2DComponent>();
+	auto mousePos = Camera2DComponent::Main()->ScreenToWorld(Input::GetMousePosition());
 
 	float speed = Input::GetKey(KeyCode::LeftShift) ? 15.f : 5.0f;
 
@@ -140,7 +140,7 @@ void GameSystem::PlayerMovement() {
 		control = !control;
 		if (!control)
 		{
-			auto& pts = m_PlayerEmissionPts.GetComponent<ParticleSystem2D>();
+			auto& pts = m_PlayerEmissionPts.GetComponent<ParticleSystem2DComponent>();
 			pts.Play();
 		}
 	}
@@ -153,9 +153,9 @@ void GameSystem::PlayerMovement() {
 		playerTr.Rotation += Input::GetAxis().x * 10 * Time::GetDeltaTime();
 
 		if (LengthSquared(controlInput) == 0)
-			m_PlayerEmissionPts.GetComponent<ParticleSystem2D>().Stop();
+			m_PlayerEmissionPts.GetComponent<ParticleSystem2DComponent>().Stop();
 		else
-			m_PlayerEmissionPts.GetComponent<ParticleSystem2D>().Play();
+			m_PlayerEmissionPts.GetComponent<ParticleSystem2DComponent>().Play();
 	}
 
 	if (control || Distance(playerTr.Position, mousePos) > 0.25f)
@@ -168,9 +168,9 @@ void GameSystem::PlayerMovement() {
 void GameSystem::CameraMovement() {
 	static bool followPlayer = false;
 
-	Transform2D& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
-	Camera2D* mainCam = Camera2D::Main();
-	auto mousePos = Camera2D::Main()->ScreenToWorld(Input::GetMousePosition());
+	Transform2DComponent& playerTr = m_PlayerEntity.GetComponent<Transform2DComponent>();
+	Camera2DComponent* mainCam = Camera2DComponent::Main();
+	auto mousePos = Camera2DComponent::Main()->ScreenToWorld(Input::GetMousePosition());
 
 	if (Input::GetKeyDown(KeyCode::F1))
 		followPlayer = !followPlayer;
@@ -207,15 +207,15 @@ void GameSystem::CameraMovement() {
 
 void GameSystem::MoveEntities() {
 	Scene& scene = GetScene();
-	Transform2D& playerTr = m_PlayerEntity.GetComponent<Transform2D>();
+	Transform2DComponent& playerTr = m_PlayerEntity.GetComponent<Transform2DComponent>();
 
 	// Info: Move laser enties forward
-	for (auto [ent, tr] : scene.GetRegistry().view<Transform2D, LaserTag>().each()) {
+	for (auto [ent, tr] : scene.GetRegistry().view<Transform2DComponent, LaserTag>().each()) {
 		tr.Position += tr.GetForwardDirection() * Time::GetDeltaTime() * 10.f;
 	}
 
 	// Info: Move Asteriod entities forward and chase player
-	for (auto [ent, tr, ast] : scene.GetRegistry().view<Transform2D, AsteriodData>().each()) {
+	for (auto [ent, tr, ast] : scene.GetRegistry().view<Transform2DComponent, AsteriodData>().each()) {
 		Vec2 lookPlayerDir = playerTr.Position - tr.Position;
 		float lookAtZ = atan2(lookPlayerDir.x, lookPlayerDir.y);
 		float delta = std::remainder(lookAtZ - tr.Rotation, 2.0f * 3.14159265358979323846f);
@@ -233,17 +233,17 @@ void GameSystem::DrawGizmos() {
 
 	Gizmo::SetColor(Color::Green());
 
-	for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2D, BoxCollider2D>().each()) {
+	for (auto [ent, tr, box] : scene.GetRegistry().view<Transform2DComponent, BoxCollider2DComponent>().each()) {
 		Gizmo::DrawSquare(box.GetBodyPosition(), box.GetScale(), box.GetRotationDegrees());
 	}
 
 	Gizmo::SetColor(Color::Gray());
 
-	for (auto [ent, tr] : scene.GetRegistry().view<Transform2D>().each()) {
+	for (auto [ent, tr] : scene.GetRegistry().view<Transform2DComponent>().each()) {
 		AABB aabb = AABB::FromTransform(tr);
 		Gizmo::DrawSquare(tr.Position, aabb.Scale(), 0);
 	}
-	for (auto [ent, pts2D] : scene.GetRegistry().view<ParticleSystem2D>().each()) {
+	for (auto [ent, pts2D] : scene.GetRegistry().view<ParticleSystem2DComponent>().each()) {
 		for (const auto& particle : pts2D.GetParticles())
 		{
 			AABB aabb = AABB::FromTransform(particle.Transform);

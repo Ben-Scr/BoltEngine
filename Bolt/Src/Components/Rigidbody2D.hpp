@@ -4,14 +4,14 @@
 
 namespace Bolt {
 	class Scene;
-	struct Transform2D;
+	struct Transform2DComponent;
 	enum class BodyType;
 }
 
 namespace Bolt {
-	class Rigidbody2D {
+	class Rigidbody2DComponent {
 	public:
-		Rigidbody2D() = default;
+		Rigidbody2DComponent() = default;
 
 		void SetBodyType(BodyType bodyType);
 
@@ -36,7 +36,7 @@ namespace Bolt {
 		void SetPosition(const Vec2& position);
 		Vec2 GetPosition() const;
 
-		void SetTransform(const Transform2D& tr);
+		void SetTransform(const Transform2DComponent& tr);
 
 		float GetRotation() const;
 
@@ -50,7 +50,7 @@ namespace Bolt {
 		b2BodyId m_BodyId;
 
 
-		friend class BoxCollider2D;
+		friend class BoxCollider2DComponent;
 		friend class Collider2D;
 		friend class PhysicsSystem2D;
 		friend class Physics2D;

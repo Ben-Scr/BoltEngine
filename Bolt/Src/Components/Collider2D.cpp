@@ -49,7 +49,7 @@ namespace Bolt {
 	void Collider2D::SetPosition(const Vec2& position) {
 		b2Body_SetTransform(m_BodyId, b2Vec2(position.x, position.y), b2Body_GetRotation(m_BodyId));
 	}
-	void Collider2D::SetTransform(const Transform2D& tr) {
+	void Collider2D::SetTransform(const Transform2DComponent& tr) {
 		b2Body_SetTransform(m_BodyId, b2Vec2(tr.Position.x, tr.Position.y), tr.GetB2Rotation());
 	}
 }

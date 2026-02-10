@@ -197,8 +197,8 @@ namespace Bolt {
 
 		m_GizmoShader->Submit();
 
-		if (Camera2D::Main()) {
-			glm::mat4 mvp = Camera2D::Main()->GetViewProjectionMatrix();
+		if (Camera2DComponent::Main()) {
+			glm::mat4 mvp = Camera2DComponent::Main()->GetViewProjectionMatrix();
 			if (m_uMVP >= 0) {
 				glUniformMatrix4fv(m_uMVP, 1, GL_FALSE, glm::value_ptr(mvp));
 			}

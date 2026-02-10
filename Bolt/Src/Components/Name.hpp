@@ -2,9 +2,9 @@
 #include <string>
 
 namespace Bolt {
-	struct NameTag {
+	struct NameComponent {
 		std::string Name;
-		NameTag() = default;
-		explicit NameTag(std::string name) : Name(std::move(name)) {}
+		NameComponent() = default;
+		explicit NameComponent(std::string name) : Name(std::move(name)) {}
 	};
 }

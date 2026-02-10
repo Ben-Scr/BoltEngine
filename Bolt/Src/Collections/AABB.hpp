@@ -51,7 +51,7 @@ namespace Bolt {
 			return { minVec, maxVec };
 		}
 
-		static AABB FromTransform(const Transform2D& transform) {
+		static AABB FromTransform(const Transform2DComponent& transform) {
 			if (IsAxisAligned(transform.Rotation)) {
 				return AABB::Create(
 					Vec2(transform.Position.x, transform.Position.y),
