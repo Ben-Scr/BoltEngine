@@ -212,11 +212,11 @@ namespace Bolt {
 			{
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0); ImGui::Text("Total Allocated:");
-				ImGui::TableSetColumnIndex(1); ImGui::TextUnformatted(StringHelper::FromMemoryIEC(stats.TotalAllocated).c_str());
+				ImGui::TableSetColumnIndex(1); ImGui::TextUnformatted(StringHelper::ToIEC(stats.TotalAllocated).c_str());
 
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0); ImGui::Text("Active Usage:");
-				ImGui::TableSetColumnIndex(1); ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f), "%s", StringHelper::FromMemoryIEC(activeMem).c_str());
+				ImGui::TableSetColumnIndex(1); ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f), "%s", StringHelper::ToIEC(activeMem).c_str());
 
 				ImGui::EndTable();
 			}

@@ -10,32 +10,28 @@ namespace Bolt {
 		using Duration = std::chrono::duration<double>;
 
 	public:
-		Timer() : m_startTime(Clock::now())
+		Timer() : m_StartTime(Clock::now())
 			, m_pausedDuration(Duration::zero())
 			, m_paused(false) {
 
 		}
 
-		static Timer Start() {
-			return Timer(Clock::now());
-		}
-
 		void Continue() {
 			if (m_paused) {
-				m_startTime = Clock::now();
+				m_StartTime = Clock::now();
 				m_paused = false;
 			}
 		}
 
 		void Pause() {
 			if (!m_paused) {
-				m_pausedDuration += Clock::now() - m_startTime;
+				m_pausedDuration += Clock::now() - m_StartTime;
 				m_paused = true;
 			}
 		}
 
 		void Reset() {
-			m_startTime = Clock::now();
+			m_StartTime = Clock::now();
 			m_pausedDuration = Duration::zero();
 			m_paused = false;
 		}
@@ -60,22 +56,16 @@ namespace Bolt {
 		}
 
 	private:
-		explicit Timer(TimePoint startTime)
-			: m_startTime(startTime)
-			, m_pausedDuration(Duration::zero())
-			, m_paused(false) {
-		}
-
 		Duration GetTotalElapsed() const {
 			if (m_paused) {
 				return m_pausedDuration;
 			}
 			else {
-				return m_pausedDuration + (Clock::now() - m_startTime);
+				return m_pausedDuration + (Clock::now() - m_StartTime);
 			}
 		}
 
-		TimePoint m_startTime;
+		TimePoint m_StartTime;
 		Duration m_pausedDuration;
 		bool m_paused;
 	};

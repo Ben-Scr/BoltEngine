@@ -91,7 +91,7 @@ namespace Bolt {
 		}
 
 
-		static std::string FromMemoryIEC(std::size_t size)
+		static std::string ToIEC(std::size_t size)
 		{
 			const double s = static_cast<double>(size);
 			constexpr double k = 1024.0;
@@ -106,7 +106,7 @@ namespace Bolt {
 			return ToString(s / t, " TiB");
 		}
 
-		static std::string FromMemorySI(std::size_t size) {
+		static std::string ToSI(std::size_t size) {
 			const double s = static_cast<double>(size);
 
 			if (s < 1000.0) return ToString(s, " B");
