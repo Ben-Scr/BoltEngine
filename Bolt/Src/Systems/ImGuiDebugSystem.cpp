@@ -127,13 +127,11 @@ namespace Bolt {
 		ImGui::Separator();
 		if (ImGui::Button("Reload Scene", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
 			SceneManager::ReloadScene(GetScene().GetName());
+			ImGui::End();
+			return;
 		}
 
 		ImGui::End();
-
-		if (&GetScene() == nullptr) {
-			return;
-		}
 
 		if (ImGui::Begin("Scene Hierarchy")) {
 			Scene& scene = GetScene();
@@ -154,9 +152,9 @@ namespace Bolt {
 					Entity entity = scene.GetEntity(handle);
 					const bool selected = (m_SelectedEntity == handle);
 
-					//if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
-					//	m_SelectedEntity = handle;
-					//}
+					if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
+						m_SelectedEntity = handle;
+					}
 				}
 			}
 		}

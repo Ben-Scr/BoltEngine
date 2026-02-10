@@ -76,4 +76,8 @@ namespace Bolt {
 	};
 
 	// Note: Makro festlegen
+#define REGISTER_COMPONENT(Type, componentInfo) \
+    do { \
+        SceneManager::RegisterComponentType<Type>(componentInfo); \
+    } while (0)
 }

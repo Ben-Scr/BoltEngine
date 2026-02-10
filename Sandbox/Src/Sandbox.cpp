@@ -2,7 +2,9 @@
 #include "GameSystem.hpp"
 #include "Systems/ParticleUpdateSystem.hpp"
 #include "Systems/ImGuiDebugSystem.hpp"
+#include "Scene/SceneManager.hpp"
 #include "Core/Memory.hpp"
+#include "Components/Name.hpp"
 
 #include <iostream>
 #include <string>
@@ -15,6 +17,11 @@
 #include <algorithm>
 
 int main() {
+	SceneManager::RegisterComponentType<NameTag>(ComponentInfo("Name", ComponentCategory::Component));
+	SceneManager::RegisterComponentType<Transform2D>(ComponentInfo("Transform2D", ComponentCategory::Component));
+
+	REGISTER_COMPONENT(ParticleSystem2D, ComponentInfo("ParticleSystem2D", ComponentCategory::Component));
+
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
 	def.AddSystem<GameSystem>();
 	def.AddSystem<Bolt::ParticleUpdateSystem>();
