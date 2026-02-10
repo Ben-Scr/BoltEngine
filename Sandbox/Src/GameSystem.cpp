@@ -13,8 +13,19 @@ void GameSystem::Awake() {
 	m_LaserTexture = TextureManager::LoadTexture("../Assets/Textures/Laser.png");
 }
 
+struct LaserTag {};
+
+struct AsteriodData {
+	float Speed;
+	float RotationSpeed;
+	float LifeTime;
+};
+
 
 void GameSystem::Start() {
+
+	REGISTER_COMPONENT(AsteriodData, ComponentInfo("AsteriodData", ComponentCategory::Component));
+	REGISTER_COMPONENT(LaserTag, ComponentInfo("LaserTag", ComponentCategory::Tag));
 	Scene& scene = GetScene();
 
 	EntityHelper::CreateCamera2DEntity();
@@ -40,14 +51,6 @@ void GameSystem::Start() {
 	auto& spriteRenderer = m_PlayerEntity.AddComponent<SpriteRenderer>();
 	spriteRenderer.TextureHandle = m_PlayerTexture;
 }
-
-struct LaserTag {};
-
-struct AsteriodData {
-	float Speed;
-	float RotationSpeed;
-	float LifeTime;
-};
 
 void GameSystem::Update() {
 	Scene& scene = GetScene();

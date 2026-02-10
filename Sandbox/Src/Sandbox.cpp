@@ -17,10 +17,13 @@
 #include <algorithm>
 
 int main() {
-	SceneManager::RegisterComponentType<NameTag>(ComponentInfo("Name", ComponentCategory::Component));
-	SceneManager::RegisterComponentType<Transform2D>(ComponentInfo("Transform2D", ComponentCategory::Component));
-
+	REGISTER_COMPONENT(NameTag, ComponentInfo("Name", ComponentCategory::Component));
+	REGISTER_COMPONENT(Transform2D,ComponentInfo("Transform2D", ComponentCategory::Component));
 	REGISTER_COMPONENT(ParticleSystem2D, ComponentInfo("ParticleSystem2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(BoxCollider2D, ComponentInfo("BoxCollider2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(Rigidbody2D , ComponentInfo("Rigidbody2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(Camera2D, ComponentInfo("Camera2D", ComponentCategory::Component));
+	REGISTER_COMPONENT(SpriteRenderer, ComponentInfo("SpriteRenderer", ComponentCategory::Component));
 
 	Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
 	def.AddSystem<GameSystem>();
