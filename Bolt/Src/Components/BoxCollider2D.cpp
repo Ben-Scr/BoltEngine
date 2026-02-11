@@ -20,11 +20,11 @@ namespace Bolt {
 	Vec2 BoxCollider2DComponent::GetScale() {
 		b2ShapeType shapeType = b2Shape_GetType(m_ShapeId);
 
-		BOLT_ASSERT(shapeType == b2_polygonShape, BoltErrorCode::Undefined, "This boxshape type isn't type of b2_polygonShape");
+		BOLT_ASSERT(shapeType == b2_polygonShape, BoltErrorCode::Undefined, "This b2shape type isn't type of b2_polygonShape");
 
 		b2Polygon polygon = b2Shape_GetPolygon(m_ShapeId);
 
-		BOLT_ASSERT(polygon.count == 4, BoltErrorCode::Undefined, "This boxshape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
+		BOLT_ASSERT(polygon.count == 4, BoltErrorCode::Undefined, "b2shape polygon count equals " + std::to_string(polygon.count) + " instead of 4");
 
 		Vec2 size = Vec2(
 			polygon.vertices[2].x - polygon.vertices[0].x,
