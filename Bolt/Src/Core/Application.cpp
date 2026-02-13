@@ -243,7 +243,7 @@ namespace Bolt {
 		Logger::Message("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
 		try {
-			auto handle = TextureManager::LoadTexture("../Assets/Textures/icon.png");
+			auto handle = TextureManager::LoadTexture("Assets/Textures/icon.png");
 			auto texture = TextureManager::GetTexture(handle);
 			m_Window->SetWindowIcon(texture);
 		}

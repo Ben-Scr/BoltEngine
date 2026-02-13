@@ -3,15 +3,15 @@
 
 namespace Bolt {
 	std::array<std::string, 9> TextureManager::s_DefaultTextures = {
-		   "../Assets/Textures/Square.png",
-		   "../Assets/Textures/Pixel.png",
-		   "../Assets/Textures/Circle.png",
-		   "../Assets/Textures/Capsule.png",
-		   "../Assets/Textures/IsometricDiamond.png",
-		   "../Assets/Textures/HexagonFlatTop.png",
-		   "../Assets/Textures/HexagonPointedTop.png",
-		   "../Assets/Textures/9sliced.png",
-			"../Assets/Textures/Invisible.png"
+		   "Assets/Textures/Square.png",
+		   "Assets/Textures/Pixel.png",
+		   "Assets/Textures/Circle.png",
+		   "Assets/Textures/Capsule.png",
+		   "Assets/Textures/IsometricDiamond.png",
+		   "Assets/Textures/HexagonFlatTop.png",
+		   "Assets/Textures/HexagonPointedTop.png",
+		   "Assets/Textures/9sliced.png",
+		   "Assets/Textures/Invisible.png"
 	};
 
 	std::vector<TextureEntry> TextureManager::s_Textures = {};

@@ -2,7 +2,7 @@
 #include "Scene/Scene.hpp"
 #include "Scene/Entity.hpp"
 
-#include "Audio/AudioSource.hpp"
+#include "Components/AudioSourceComponent.hpp"
 
 #include "Components/Rigidbody2DComponent.hpp"
 #include "Components/BoxCollider2DComponent.hpp"
