@@ -5,6 +5,7 @@
 
 # Custom
 Builds/
+External/** linguist-vendored
 
 # User-specific files
 *.rsuser
