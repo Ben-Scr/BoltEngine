@@ -20,7 +20,6 @@ namespace Bolt {
 		Overflow,
 		NullReference,
 		LoadFailed,
-		Internal,
 		Undefined
 	};
 
@@ -42,7 +41,6 @@ namespace Bolt {
 		case BoltErrorCode::Overflow:          return "Overflow";
 		case BoltErrorCode::NullReference:     return "NullReference";
 		case BoltErrorCode::LoadFailed:        return "LoadFailed";
-		case BoltErrorCode::Internal:          return "Internal";
 		default:                               return "Undefined";
 		}
 	}
