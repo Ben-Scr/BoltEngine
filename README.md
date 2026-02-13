@@ -22,3 +22,20 @@ Windows Compatible C++ Engine
 - Game Development
 
 ## How to Build
+### CMake (recommended)
+1. Install **CMake 3.22+** and a C++23-compatible compiler (Visual Studio 2022 on Windows).
+2. Configure the project:
+   ```bash
+   cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+   ```
+3. Build all targets (engine + sandbox):
+   ```bash
+   cmake --build build --config Debug
+   ```
+4. Run the sandbox executable from:
+   `build/Sandbox/Debug/BoltSandbox.exe`
+
+Optional: disable sandbox target when you only want the engine library:
+```bash
+cmake -S . -B build -DBOLT_BUILD_SANDBOX=OFF
+```
