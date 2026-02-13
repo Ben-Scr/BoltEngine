@@ -1,10 +1,10 @@
 #include "pch.hpp"
 #include "Renderer2D.hpp"
-#include "Camera2D.hpp"
 
 #include "Scene/SceneManager.hpp"
-#include "Components/SpriteRenderer.hpp"
-#include "Components/ParticleSystem2D.hpp";
+#include "Components/SpriteRendererComponent.hpp"
+#include "Components/ParticleSystem2DComponent.hpp";
+#include "Components/Camera2DComponent.hpp"
 #include "Components/Tags.hpp"
 
 #include "Scene/Scene.hpp"
@@ -20,7 +20,7 @@ namespace Bolt {
 	}
 
 	void Renderer2D::BeginFrame() {
-		Timer timer = Timer::Start();
+		Timer timer = Timer();
 
 		glClear(GL_COLOR_BUFFER_BIT);
 

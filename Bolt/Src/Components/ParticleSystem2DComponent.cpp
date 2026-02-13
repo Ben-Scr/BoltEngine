@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Components/ParticleSystem2D.hpp"
+#include "Components/ParticleSystem2DComponent.hpp"
 #include "Core/Time.hpp"
 #include "Math/Random.hpp"
 

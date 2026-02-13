@@ -1,5 +1,5 @@
 #pragma once
-#include "Components/Transform2D.hpp"
+#include "Components/Transform2DComponent.hpp"
 #include "Collections/AABB.hpp"
 #include "Collections/Viewport.hpp"
 

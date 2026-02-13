@@ -1,6 +1,6 @@
 #include "pch.hpp"
 #include "Physics/PhysicsUtility.hpp"
-#include "Components/Rigidbody2D.hpp"
+#include "Components/Rigidbody2DComponent.hpp"
 #include "Components/Collider2D.hpp"
 
 namespace Bolt {

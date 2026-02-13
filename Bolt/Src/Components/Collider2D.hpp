@@ -1,5 +1,5 @@
 #pragma once
-#include "Rigidbody2D.hpp"
+#include "Rigidbody2DComponent.hpp"
 #include "Debugging/Logger.hpp"
 #include "Physics/PhysicsSystem2D.hpp"
 #include "Physics/Box2DWorld.hpp"

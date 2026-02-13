@@ -1,6 +1,6 @@
 #pragma once
 #include "Collider2D.hpp"
-#include "Rigidbody2D.hpp"
+#include "Rigidbody2DComponent.hpp"
 #include "Physics/PhysicsSystem2D.hpp"
 
 #include <box2d/box2d.h>

@@ -38,7 +38,7 @@ namespace Bolt {
 
 
 			Logger::Message("Initializing Application");
-			Timer timer = Timer::Start();
+			Timer timer = Timer();
 			Initialize();
 			Logger::Message("Application Initialization took " + StringHelper::ToString(timer));
 			m_LastFrameTime = Clock::now();
@@ -193,7 +193,7 @@ namespace Bolt {
 	}
 
 	void Application::Initialize() {
-		Timer timer = Timer::Start();
+		Timer timer = Timer();
 		Window::Initialize();
 		m_Window = std::make_unique<Window>(Window(GLFWWindowProperties(800, 800, "Space Shooter", true, true, false)));
 		m_Window->SetVsync(true);

@@ -13,14 +13,7 @@ Bolt specific includes
 #include "Collections/Mat2.hpp"
 
 // Components
-#include "Components/BoxCollider2D.hpp"
-#include "Components/Rigidbody2D.hpp"
-#include "Components/SpriteRenderer.hpp"
-#include "Components/Transform2D.hpp"
-#include "Components/ParticleSystem2D.hpp"
-#include "Components/Image.hpp"
-#include "Components/RectTransform.hpp"
-#include "Components/Tags.hpp"
+#include "Components/Components.hpp"
 
 // Core
 #include "Core/Application.hpp"
@@ -36,7 +29,6 @@ Bolt specific includes
 #include "Graphics/TextureHandle.hpp"
 #include "Graphics/TextureManager.hpp"
 #include "Graphics/Gizmos.hpp"
-#include "Graphics/Camera2D.hpp"
 
 // Math
 #include "Math/Common.hpp"
@@ -50,7 +42,6 @@ Bolt specific includes
 // Audio
 #include "Audio/Audio.hpp"
 #include "Audio/AudioManager.hpp"
-#include "Audio/AudioSource.hpp"
 #include "Audio/AudioHandle.hpp"
 
 

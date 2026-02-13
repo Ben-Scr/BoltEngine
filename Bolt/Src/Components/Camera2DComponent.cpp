@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Graphics/Camera2D.hpp"
+#include "Camera2DComponent.hpp"
 #include "Collections/Viewport.hpp"
 #include "Core/Window.hpp"
 

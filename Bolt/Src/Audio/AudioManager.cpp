@@ -1,8 +1,9 @@
 #include "pch.hpp"
 
-#include "Audio/AudioManager.hpp"
-#include "Audio/AudioSource.hpp"
-#include "Audio/Audio.hpp"
+#include "AudioManager.hpp"
+#include "Audio.hpp"
+
+#include "Components/AudioSourceComponent.hpp"
 
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio/miniaudio.h>
@@ -204,7 +205,7 @@ namespace Bolt {
 		s_nextHandle = 1;
 	}
 
-	void AudioManager::PlayAudioSource(AudioSource& source) {
+	void AudioManager::PlayAudioSource(AudioSourceComponent& source) {
 		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager not initialized");
 		BOLT_ASSERT(source.GetAudioHandle().IsValid(), BoltErrorCode::InvalidHandle, "Invalid Audiohandle");
 
@@ -234,7 +235,7 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::PauseAudioSource(AudioSource& source) {
+	void AudioManager::PauseAudioSource(AudioSourceComponent& source) {
 		if (!s_IsInitialized || source.GetInstanceId() == 0) {
 			return;
 		}
@@ -245,7 +246,7 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::StopAudioSource(AudioSource& source) {
+	void AudioManager::StopAudioSource(AudioSourceComponent& source) {
 		if (!s_IsInitialized || source.GetInstanceId() == 0) {
 			return;
 		}
@@ -254,7 +255,7 @@ namespace Bolt {
 		source.SetInstanceId(0);
 	}
 
-	void AudioManager::ResumeAudioSource(AudioSource& source) {
+	void AudioManager::ResumeAudioSource(AudioSourceComponent& source) {
 		if (!s_IsInitialized || source.GetInstanceId() == 0) {
 			return;
 		}

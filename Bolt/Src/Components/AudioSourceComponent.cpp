@@ -1,41 +1,41 @@
 #include "pch.hpp"
-#include "Audio/AudioSource.hpp"
+#include "Components/AudioSourceComponent.hpp"
 #include "Audio/AudioManager.hpp"
 
 
 namespace Bolt {
 
-	AudioSource::AudioSource(const AudioHandle& audioHandle)
+	AudioSourceComponent::AudioSourceComponent(const AudioHandle& audioHandle)
 		: m_audioHandle(audioHandle)
 	{
 	}
 
-	void AudioSource::Play() {
+	void AudioSourceComponent::Play() {
 		BOLT_ASSERT(m_audioHandle.IsValid(), BoltErrorCode::InvalidHandle, "Cannot play invalid audio handle");
 		AudioManager::PlayAudioSource(*this);
 	}
 
-	void AudioSource::Pause() {
+	void AudioSourceComponent::Pause() {
 		BOLT_ASSERT(m_instanceId != 0, BoltErrorCode::InvalidHandle, "Cannot pause invalid audio handle");
 		AudioManager::PauseAudioSource(*this);
 	}
 
-	void AudioSource::Stop() {
+	void AudioSourceComponent::Stop() {
 		BOLT_ASSERT(m_instanceId != 0, BoltErrorCode::InvalidHandle, "Cannot stop invalid audio handle");
 		AudioManager::StopAudioSource(*this);
 	}
 
-	void AudioSource::Resume() {
+	void AudioSourceComponent::Resume() {
 		BOLT_ASSERT(m_instanceId != 0, BoltErrorCode::InvalidHandle, "Cannot resume invalid audio handle");
 		AudioManager::ResumeAudioSource(*this);
 	}
 
-	void AudioSource::Destroy() {
+	void AudioSourceComponent::Destroy() {
 		BOLT_ASSERT(m_instanceId != 0, BoltErrorCode::InvalidHandle, "Cannot destroy invalid audio handle");
 		AudioManager::DestroySoundInstance(m_instanceId);
 	}
 
-	void AudioSource::SetVolume(float volume) {
+	void AudioSourceComponent::SetVolume(float volume) {
 		m_Volume = Max(0.0f, volume);
 
 		if (m_instanceId != 0) {
@@ -47,7 +47,7 @@ namespace Bolt {
 		}
 	}
 
-	void AudioSource::SetPitch(float pitch) {
+	void AudioSourceComponent::SetPitch(float pitch) {
 		m_Pitch = Max(0.01f, pitch);
 
 		if (m_instanceId != 0) {
@@ -58,7 +58,7 @@ namespace Bolt {
 		}
 	}
 
-	void AudioSource::SetLoop(bool loop) {
+	void AudioSourceComponent::SetLoop(bool loop) {
 		m_Loop = loop;
 
 
@@ -70,7 +70,7 @@ namespace Bolt {
 		}
 	}
 
-	bool AudioSource::IsPlaying() const {
+	bool AudioSourceComponent::IsPlaying() const {
 		if (m_instanceId == 0) {
 			return false;
 		}
@@ -83,7 +83,7 @@ namespace Bolt {
 		return false;
 	}
 
-	bool AudioSource::IsPaused() const {
+	bool AudioSourceComponent::IsPaused() const {
 		if (m_instanceId == 0) {
 			return false;
 		}
@@ -97,7 +97,7 @@ namespace Bolt {
 	}
 
 
-	void AudioSource::SetAudioHandle(const AudioHandle& blockTexture) {
+	void AudioSourceComponent::SetAudioHandle(const AudioHandle& blockTexture) {
 		if (IsPlaying()) {
 			Stop();
 		}
@@ -105,10 +105,10 @@ namespace Bolt {
 		m_audioHandle = blockTexture;
 	}
 
-	void AudioSource::PlayOneShot() {
+	void AudioSourceComponent::PlayOneShot() {
 		BOLT_ASSERT(m_audioHandle.IsValid(), BoltErrorCode::InvalidHandle, "AudioSource cannot play one-shot - invalid audio handle");
 		AudioManager::PlayOneShot(m_audioHandle, m_Volume);
 	}
 
-	bool AudioSource::IsValid() const { return m_audioHandle.IsValid(); }
+	bool AudioSourceComponent::IsValid() const { return m_audioHandle.IsValid(); }
 }

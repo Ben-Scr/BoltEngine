@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Components/Transform2D.hpp"
+#include "Components/Transform2DComponent.hpp"
 
 namespace Bolt {
 

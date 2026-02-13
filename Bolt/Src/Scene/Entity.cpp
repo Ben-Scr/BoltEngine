@@ -2,7 +2,7 @@
 #include "Scene/Entity.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
-#include "Components/Name.hpp"
+#include "Components/NameComponent.hpp"
 
 
 
@@ -30,6 +30,7 @@ namespace Bolt {
 	void Entity::Destroy(Entity entity) {
 		entity.Destroy();
 	}
+
 	void Entity::Destroy() {
 		BOLT_ASSERT(m_Registry, BoltErrorCode::InvalidHandle, "Entity is not valid or has already been destroyed.");
 

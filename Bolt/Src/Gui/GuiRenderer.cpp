@@ -3,11 +3,11 @@
 
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
-#include "Graphics/Camera2D.hpp"
 #include "Graphics/TextureManager.hpp"
 
-#include "Components/Image.hpp"
-#include "Components/RectTransform.hpp"
+#include "Components/ImageComponent.hpp"
+#include "Components/RectTransformComponent.hpp"
+#include "Components/Camera2DComponent.hpp"
 
 #include "Graphics/Shader.hpp"
 #include "Graphics/Instance44.hpp"

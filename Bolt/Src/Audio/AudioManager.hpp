@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../Audio/AudioHandle.hpp"
+#include "AudioHandle.hpp"
 
 #include <miniaudio/miniaudio.h>
 #include <queue>
 
 namespace Bolt {
-	class AudioSource;
+	class AudioSourceComponent;
 	class Audio;
 
 	class AudioManager {
@@ -25,10 +25,10 @@ namespace Bolt {
 		static void UnloadAllAudio();
 
 
-		static void PlayAudioSource(AudioSource& source);
-		static void PauseAudioSource(AudioSource& source);
-		static void StopAudioSource(AudioSource& source);
-		static void ResumeAudioSource(AudioSource& source);
+		static void PlayAudioSource(AudioSourceComponent& source);
+		static void PauseAudioSource(AudioSourceComponent& source);
+		static void StopAudioSource(AudioSourceComponent& source);
+		static void ResumeAudioSource(AudioSourceComponent& source);
 
 
 		static void SetMasterVolume(float volume);
@@ -117,6 +117,6 @@ namespace Bolt {
 		static void UpdateListener();
 		static void UpdateSoundInstances();
 
-		friend class AudioSource;
+		friend class AudioSourceComponent;
 	};
 }

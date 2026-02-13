@@ -1,17 +1,8 @@
 #include "ImGuiDebugSystem.hpp"
 #include <imgui.h>
 
-#include "Scene/Entity.hpp"
-#include "Components/Name.hpp"
-#include "Components/Transform2D.hpp"
-#include "Components/SpriteRenderer.hpp"
-#include "Components/Rigidbody2D.hpp"
-#include "Components/BoxCollider2D.hpp"
-#include "Components/ParticleSystem2D.hpp"
-#include "Components/RectTransform.hpp"
-#include "Components/Image.hpp"
-#include "Graphics/Camera2D.hpp"
-#include "Audio/AudioSource.hpp"
+#include "Components/Components.hpp"
+#include "Components/AudioSourceComponent.hpp"
 
 #include "Core/Application.hpp"
 #include "Scene/EntityHelper.hpp"

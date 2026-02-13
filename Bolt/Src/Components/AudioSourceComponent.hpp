@@ -3,10 +3,10 @@
 
 namespace Bolt {
 
-	class AudioSource {
+	class AudioSourceComponent {
 	public:
-		AudioSource() = default;
-		AudioSource(const AudioHandle& audioHandle);
+		AudioSourceComponent() = default;
+		AudioSourceComponent(const AudioHandle& audioHandle);
 
 
 		void Play();

@@ -4,7 +4,7 @@
 #include "Systems/ImGuiDebugSystem.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Core/Memory.hpp"
-#include "Components/Name.hpp"
+#include "Components/NameComponent.hpp"
 
 #include <iostream>
 #include <string>

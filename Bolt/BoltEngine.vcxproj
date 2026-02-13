@@ -165,12 +165,12 @@
   <ItemGroup>
     <ClCompile Include="Src\Audio\Audio.cpp" />
     <ClCompile Include="Src\Audio\AudioManager.cpp" />
-    <ClCompile Include="Src\Audio\AudioSource.cpp" />
-    <ClCompile Include="Src\Components\BoxCollider2D.cpp" />
+    <ClCompile Include="Src\Components\AudioSourceComponent.cpp" />
+    <ClCompile Include="Src\Components\BoxCollider2DComponent.cpp" />
     <ClCompile Include="Src\Components\Collider2D.cpp" />
-    <ClCompile Include="Src\Components\ParticleSystem2D.cpp" />
-    <ClCompile Include="Src\Components\Rigidbody2D.cpp" />
-    <ClCompile Include="Src\Components\Transform2D.cpp" />
+    <ClCompile Include="Src\Components\ParticleSystem2DComponent.cpp" />
+    <ClCompile Include="Src\Components\Rigidbody2DComponent.cpp" />
+    <ClCompile Include="Src\Components\Transform2DComponent.cpp" />
     <ClCompile Include="Src\Core\Application.cpp" />
     <ClCompile Include="Src\Core\Input.cpp" />
     <ClCompile Include="Src\Core\Memory.cpp" />
@@ -211,7 +211,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\Camera2D.cpp" />
+    <ClCompile Include="Src\Components\Camera2DComponent.cpp" />
     <ClCompile Include="Src\Graphics\GizmoRenderer.cpp" />
     <ClCompile Include="Src\Graphics\Gizmos.cpp" />
     <ClCompile Include="Src\Gui\GuiRenderer.cpp" />
@@ -255,7 +255,7 @@
     <ClInclude Include="Src\Audio\Audio.hpp" />
     <ClInclude Include="Src\Audio\AudioHandle.hpp" />
     <ClInclude Include="Src\Audio\AudioManager.hpp" />
-    <ClInclude Include="Src\Audio\AudioSource.hpp" />
+    <ClInclude Include="Src\Components\AudioSourceComponent.hpp" />
     <ClInclude Include="Src\Bolt.hpp" />
     <ClInclude Include="Src\Collections\AABB.hpp" />
     <ClInclude Include="Src\Collections\Ids.hpp" />
@@ -265,17 +265,18 @@
     <ClInclude Include="Src\Collections\Vec2.hpp" />
     <ClInclude Include="Src\Collections\Vec4.hpp" />
     <ClInclude Include="Src\Collections\Viewport.hpp" />
-    <ClInclude Include="Src\Components\BoxCollider2D.hpp" />
+    <ClInclude Include="Src\Components\BoxCollider2DComponent.hpp" />
     <ClInclude Include="Src\Components\Collider2D.hpp" />
+    <ClInclude Include="Src\Components\Components.hpp" />
     <ClInclude Include="Src\Components\ComponentUtils.hpp" />
-    <ClInclude Include="Src\Components\Image.hpp" />
-    <ClInclude Include="Src\Components\Name.hpp" />
-    <ClInclude Include="Src\Components\ParticleSystem2D.hpp" />
-    <ClInclude Include="Src\Components\RectTransform.hpp" />
-    <ClInclude Include="Src\Components\Rigidbody2D.hpp" />
-    <ClInclude Include="Src\Components\SpriteRenderer.hpp" />
+    <ClInclude Include="Src\Components\ImageComponent.hpp" />
+    <ClInclude Include="Src\Components\NameComponent.hpp" />
+    <ClInclude Include="Src\Components\ParticleSystem2DComponent.hpp" />
+    <ClInclude Include="Src\Components\RectTransformComponent.hpp" />
+    <ClInclude Include="Src\Components\Rigidbody2DComponent.hpp" />
+    <ClInclude Include="Src\Components\SpriteRendererComponent.hpp" />
     <ClInclude Include="Src\Components\Tags.hpp" />
-    <ClInclude Include="Src\Components\Transform2D.hpp" />
+    <ClInclude Include="Src\Components\Transform2DComponent.hpp" />
     <ClInclude Include="Src\Core\Application.hpp" />
     <ClInclude Include="Src\Core\Memory.hpp" />
     <ClInclude Include="Src\Core\Input.hpp" />
@@ -294,7 +295,7 @@
     <ClInclude Include="Src\External\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Src\External\ImGui\imstb_textedit.h" />
     <ClInclude Include="Src\External\ImGui\imstb_truetype.h" />
-    <ClInclude Include="Src\Graphics\Camera2D.hpp" />
+    <ClInclude Include="Src\Components\Camera2DComponent.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Src\Graphics\Gizmos.hpp" />
     <ClInclude Include="Src\Gui\GuiRenderer.hpp" />

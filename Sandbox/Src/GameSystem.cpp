@@ -3,7 +3,7 @@
 #include "Graphics/OpenGL.hpp"
 #include "Scene/EntityHelper.hpp"
 #include "Utils/Timer.hpp"
-#include "Components/Name.hpp"
+#include "Components/NameComponent.hpp"
 
 void GameSystem::Awake() {
 	Gizmo::SetEnabled(false);
