@@ -23,7 +23,6 @@ struct AsteriodData {
 
 
 void GameSystem::Start() {
-
 	REGISTER_COMPONENT(AsteriodData, ComponentInfo("AsteriodData", ComponentCategory::Component));
 	REGISTER_COMPONENT(LaserTag, ComponentInfo("LaserTag", ComponentCategory::Tag));
 	Scene& scene = GetScene();

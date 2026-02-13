@@ -15,8 +15,11 @@
 #include <cstdio>
 #include <vector>
 #include <algorithm>
+#include <filesystem>
 
 int main() {
+	std::cout << std::filesystem::current_path() << '\n';
+
 	REGISTER_COMPONENT(NameComponent, ComponentInfo("Name", ComponentCategory::Component));
 	REGISTER_COMPONENT(Transform2DComponent,ComponentInfo("Transform2D", ComponentCategory::Component));
 	REGISTER_COMPONENT(ParticleSystem2DComponent, ComponentInfo("ParticleSystem2D", ComponentCategory::Component));
