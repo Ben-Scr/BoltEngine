@@ -24,6 +24,17 @@ add_custom_command(TARGET BoltSandbox POST_BUILD
     COMMENT "Copying Assets to runtime output directory"
 )
 
+
+# Installation makes the sandbox runnable independently from the source/build
+# tree by packaging executable + Assets into one install prefix.
+install(TARGETS BoltSandbox
+    RUNTIME DESTINATION .
+)
+
+install(DIRECTORY "${BOLT_ASSETS_SOURCE_DIR}"
+    DESTINATION .
+)
+
 if(MSVC)
     # Ensure debugging from Visual Studio uses the same folder that contains
     # the executable and copied Assets directory.
