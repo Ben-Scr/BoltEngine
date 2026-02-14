@@ -20,7 +20,7 @@ namespace Bolt {
 		static void Update();
 
 
-		static AudioHandle LoadAudio(const std::string& filepath);
+		static AudioHandle LoadAudio(const std::string_view& path);
 		static void UnloadAudio(const AudioHandle& audioHandle);
 		static void UnloadAllAudio();
 
@@ -107,6 +107,7 @@ namespace Bolt {
 
 
 		static float s_masterVolume;
+		static std::string s_RootPath;
 
 
 		static AudioHandle::HandleType GenerateHandle();

@@ -3,21 +3,23 @@
 
 namespace Bolt {
 	std::array<std::string, 9> TextureManager::s_DefaultTextures = {
-		   "Assets/Textures/Square.png",
-		   "Assets/Textures/Pixel.png",
-		   "Assets/Textures/Circle.png",
-		   "Assets/Textures/Capsule.png",
-		   "Assets/Textures/IsometricDiamond.png",
-		   "Assets/Textures/HexagonFlatTop.png",
-		   "Assets/Textures/HexagonPointedTop.png",
-		   "Assets/Textures/9sliced.png",
-		   "Assets/Textures/Invisible.png"
+		   "Default/Square.png",
+		   "Default/Pixel.png",
+		   "Default/Circle.png",
+		   "Default/Capsule.png",
+		   "Default/IsometricDiamond.png",
+		   "Default/HexagonFlatTop.png",
+		   "Default/HexagonPointedTop.png",
+		   "Default/9sliced.png",
+		   "Default/Invisible.png"
 	};
 
 	std::vector<TextureEntry> TextureManager::s_Textures = {};
 	std::queue<uint16_t> TextureManager::s_FreeIndices = {};
 
 	bool TextureManager::s_IsInitialized = false;
+	std::string TextureManager::s_RootPath = Path::Combine("Assets", "Textures");
+
 	constexpr uint16_t k_InvalidIndex = std::numeric_limits<uint16_t>::max();
 
 	void TextureManager::Initialize() {
@@ -44,11 +46,13 @@ namespace Bolt {
 		s_IsInitialized = false;
 	}
 
-	TextureHandle TextureManager::LoadTexture(const std::string& path, Filter filter, Wrap u, Wrap v) {
-		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "TextureManager isn't initialized");
-		BOLT_ASSERT(File::Exists(path), BoltErrorCode::FileNotFound, "File with path '" + path + "' doesn't exist");
+	TextureHandle TextureManager::LoadTexture(const std::string_view& path, Filter filter, Wrap u, Wrap v) {
+		const std::string fullpath = Path::Combine(s_RootPath, path);
 
-		auto existingHandle = FindTextureByPath(path);
+		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "TextureManager isn't initialized");
+		BOLT_ASSERT(File::Exists(fullpath), BoltErrorCode::FileNotFound, "File with path '" + fullpath + "' doesn't exist");
+
+		auto existingHandle = FindTextureByPath(fullpath);
 		if (existingHandle.index != k_InvalidIndex) {
 			return existingHandle;
 		}
@@ -60,9 +64,9 @@ namespace Bolt {
 
 			auto& entry = s_Textures[index];
 			entry.Texture.Destroy();
-			entry.Texture = Texture2D(path.c_str(), filter, u, v);
+			entry.Texture = Texture2D(fullpath.c_str(), filter, u, v);
 
-			BOLT_ASSERT(entry.Texture.IsValid(), BoltErrorCode::LoadFailed, "Failed to load texture with path '" + path + "'");
+			BOLT_ASSERT(entry.Texture.IsValid(), BoltErrorCode::LoadFailed, "Failed to load texture with path '" + fullpath + "'");
 
 			entry.Generation++;
 			entry.IsValid = true;
@@ -72,13 +76,13 @@ namespace Bolt {
 			index = static_cast<uint16_t>(s_Textures.size());
 
 			TextureEntry entry;
-			entry.Texture = Texture2D(path.c_str(), filter, u, v);
+			entry.Texture = Texture2D(fullpath.c_str(), filter, u, v);
 
-			BOLT_ASSERT(entry.Texture.IsValid(),BoltErrorCode::LoadFailed, "Failed to load texture with path '" + path + "'");
+			BOLT_ASSERT(entry.Texture.IsValid(),BoltErrorCode::LoadFailed, "Failed to load texture with path '" + fullpath + "'");
 
 			entry.Generation = 0;
 			entry.IsValid = true;
-			entry.Name = path;
+			entry.Name = fullpath;
 
 			s_Textures.push_back(std::move(entry));
 		}
@@ -167,7 +171,7 @@ namespace Bolt {
 
 		for (const auto& texPath : s_DefaultTextures) {
 			TextureEntry entry;
-			entry.Texture = Texture2D(texPath.c_str(), Filter::Point, Wrap::Clamp, Wrap::Clamp);
+			entry.Texture = Texture2D(Path::Combine(s_RootPath, texPath).c_str(), Filter::Point, Wrap::Clamp, Wrap::Clamp);
 
 			BOLT_ASSERT(entry.Texture.IsValid(), BoltErrorCode::LoadFailed, "Failed to load default texture at path: " + texPath);
 

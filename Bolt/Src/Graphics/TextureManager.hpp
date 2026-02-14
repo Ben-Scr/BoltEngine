@@ -3,6 +3,8 @@
 #include "TextureHandle.hpp"
 #include "Core/Core.hpp"
 
+#include "Utils/Path.hpp"
+
 #include <vector>
 #include <queue>
 #include <memory>
@@ -45,7 +47,7 @@ namespace Bolt {
             static void Initialize();
             static void Shutdown();
 
-            static TextureHandle LoadTexture(const std::string& path, Filter filter = Filter::Point, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
+            static TextureHandle LoadTexture(const std::string_view& path, Filter filter = Filter::Point, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
             static TextureHandle GetDefaultTexture(DefaultTexture type);
             static void UnloadTexture(TextureHandle blockTexture);
             static TextureHandle GetTextureHandle(const std::string& name);
@@ -67,6 +69,8 @@ namespace Bolt {
             static std::vector<TextureEntry> s_Textures;
             static std::queue<uint16_t> s_FreeIndices;
             static bool s_IsInitialized;
+
+            static std::string s_RootPath;
 
             friend class Renderer2D;
         };

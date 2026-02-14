@@ -3,6 +3,8 @@
 #include "AudioManager.hpp"
 #include "Audio.hpp"
 
+#include "Utils/Path.hpp"
+
 #include "Components/AudioSourceComponent.hpp"
 
 #define MINIAUDIO_IMPLEMENTATION
@@ -16,6 +18,7 @@ namespace Bolt {
 	std::vector<AudioManager::SoundInstance> AudioManager::s_soundInstances;
 	std::vector<uint32_t> AudioManager::s_freeInstanceIndices;
 	float AudioManager::s_masterVolume = 1.0f;
+	std::string AudioManager::s_RootPath = Path::Combine("Assets", "Audio");
 
 	uint32_t AudioManager::s_maxConcurrentSounds = MAX_CONCURRENT_SOUNDS;
 	uint32_t AudioManager::s_maxSoundsPerFrame = MAX_SOUNDS_PER_FRAME;
@@ -160,11 +163,13 @@ namespace Bolt {
 		return s_activeSoundCount;
 	}
 
-	AudioHandle AudioManager::LoadAudio(const std::string& filepath) {
+	AudioHandle AudioManager::LoadAudio(const std::string_view& path) {
+		const std::string fullpath = Path::Combine(s_RootPath, path);
+
 		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager not initialized");
 
 		auto audio = std::make_unique<Audio>();
-		BOLT_ASSERT(audio->LoadFromFile(filepath), BoltErrorCode::LoadFailed, "AudioManager: Failed to load audio from file: " + filepath);
+		BOLT_ASSERT(audio->LoadFromFile(fullpath), BoltErrorCode::LoadFailed, "AudioManager: Failed to load audio from file: " + fullpath);
 
 		AudioHandle::HandleType blockTexture = GenerateHandle();
 		s_audioMap[blockTexture] = std::move(audio);

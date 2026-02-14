@@ -300,6 +300,7 @@
     <ClInclude Include="Src\Components\Camera2DComponent.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
     <ClInclude Include="Src\Graphics\Gizmos.hpp" />
+    <ClInclude Include="Src\Graphics\ShaderManager.hpp" />
     <ClInclude Include="Src\Gui\GuiRenderer.hpp" />
     <ClInclude Include="Src\Graphics\Instance44.hpp" />
     <ClInclude Include="Src\Graphics\OpenGL.hpp" />
@@ -345,6 +346,7 @@
     </ClInclude>
     <ClInclude Include="Src\Utils\Eventbus.Hpp" />
     <ClInclude Include="Src\Utils\File.hpp" />
+    <ClInclude Include="Src\Utils\Path.hpp" />
     <ClInclude Include="Src\Utils\Serializer.hpp" />
     <ClInclude Include="Src\Utils\StringHelper.hpp" />
     <ClInclude Include="Src\Utils\Timer.hpp" />

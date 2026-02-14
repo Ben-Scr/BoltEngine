@@ -12,10 +12,10 @@
 
 void GameSystem::Awake() {
 	Gizmo::SetEnabled(false);
-	m_AsteriodTexture = TextureManager::LoadTexture("Assets/Textures/Meteor.png");
-	m_LightTexture = TextureManager::LoadTexture("Assets/Textures/Light.png");
-	m_PlayerTexture = TextureManager::LoadTexture("Assets/Textures/Player.png");
-	m_LaserTexture = TextureManager::LoadTexture("Assets/Textures/Laser.png");
+	m_AsteriodTexture = TextureManager::LoadTexture("Game/Meteor.png");
+	m_LightTexture = TextureManager::LoadTexture("Game/Light.png");
+	m_PlayerTexture = TextureManager::LoadTexture("Game/Player.png");
+	m_LaserTexture = TextureManager::LoadTexture("Game/Laser.png");
 }
 
 struct LaserTag {};

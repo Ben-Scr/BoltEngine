@@ -116,6 +116,14 @@ namespace Bolt {
 			return ToString(s / 1e12, " TB");
 		}
 
+		static std::string Remove(std::string s, size_t start, size_t count)
+		{
+			if (start >= s.size() || count == 0) return s;
+			count = std::min(count, s.size() - start);
+			s.erase(start, count);
+			return s;
+		}
+
 		//static bool IsDigit(const std::string& str) {
 		//	return !str.empty() && std::all_of(str.begin(), str.end(), std::isdigit);
 		//}
