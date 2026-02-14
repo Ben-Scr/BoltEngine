@@ -3,7 +3,7 @@ file(GLOB_RECURSE BOLT_ENGINE_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/Src/*.c"
 )
 
-add_library(BoltEngine STATIC ${BOLT_ENGINE_SOURCES})
+add_library(BoltEngine SHARED ${BOLT_ENGINE_SOURCES})
 
 # Match the Visual Studio setup where ImGui/glad are compiled without PCH.
 foreach(non_pch_source IN LISTS BOLT_ENGINE_SOURCES)
@@ -12,6 +12,7 @@ foreach(non_pch_source IN LISTS BOLT_ENGINE_SOURCES)
     endif()
 endforeach()
 
+target_compile_definitions(BoltEngine PRIVATE BT_BUILD_DLL)
 target_precompile_headers(BoltEngine PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Src/pch.hpp")
 
 target_include_directories(BoltEngine
