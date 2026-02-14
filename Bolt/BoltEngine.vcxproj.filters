@@ -425,6 +425,9 @@
     <ClInclude Include="Src\Components\Components.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Core\Core.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Core\hello.rml" />

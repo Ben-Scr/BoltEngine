@@ -8,6 +8,8 @@
 #include  "Utils/Event.hpp"
 #include <chrono>
 
+#include "Core.hpp"
+
 namespace Bolt {
 	struct ApplicationSpecs {
 		std::string Name = "Bolt Application";
@@ -16,7 +18,7 @@ namespace Bolt {
 		float TargetFramerate = 144.f;
 	};
 
-	class Application {
+	class BOLT_API Application {
 		friend class Window;
 		using DurationChrono = std::chrono::high_resolution_clock::duration;
 		using Clock = std::chrono::high_resolution_clock;

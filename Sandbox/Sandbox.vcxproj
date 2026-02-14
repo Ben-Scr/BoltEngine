@@ -110,7 +110,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RMLUI_STATIC_LIB;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RMLUI_STATIC_LIB;BT_PLATFORM_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)\External\Include;$(SolutionDir)\Bolt\Src\External\ImGui;$(SolutionDir)\Bolt\Src;$(SolutionDir)\Bolt\Engine;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -129,7 +129,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RMLUI_STATIC_LIB;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RMLUI_STATIC_LIB;BT_PLATFORM_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)\External\Include;$(SolutionDir)\Bolt\Src\External\ImGui;$(SolutionDir)\Bolt\Src;$(SolutionDir)\Bolt\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
