@@ -1,6 +1,7 @@
 #pragma once
 #include "Texture2D.hpp"
 #include "TextureHandle.hpp"
+#include "Core/Core.hpp"
 
 #include <vector>
 #include <queue>
@@ -11,10 +12,6 @@
 
 namespace Bolt {
     class Application;
-}
-
-namespace bgfx {
-    struct TextureHandle;
 }
 
 namespace Bolt {
@@ -31,7 +28,7 @@ namespace Bolt {
             bool IsValid = false;
         };
 
-        enum class DefaultTexture : uint8_t {
+        enum class BOLT_API DefaultTexture : uint8_t {
             Square,
             Pixel,
             Circle,
@@ -43,7 +40,7 @@ namespace Bolt {
             Invisible
         };
 
-        class TextureManager {
+        class BOLT_API TextureManager {
         public:
             static void Initialize();
             static void Shutdown();

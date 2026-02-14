@@ -12,6 +12,7 @@
 #include <vector>
 #include "Debugging/Logger.hpp"
 #include "SceneDefinition.hpp"
+#include "Components/Components.hpp"
 
 namespace Bolt {
 	bool SceneManager::s_IsInitialized = false;
@@ -22,6 +23,14 @@ namespace Bolt {
 
 	void SceneManager::Initialize() {
 		BOLT_ASSERT(!s_IsInitialized, BoltErrorCode::AlreadyInitialized, "SceneManager already is initialized");
+
+		REGISTER_COMPONENT(NameComponent, ComponentInfo("Name", ComponentCategory::Component));
+		REGISTER_COMPONENT(Transform2DComponent, ComponentInfo("Transform2D", ComponentCategory::Component));
+		REGISTER_COMPONENT(ParticleSystem2DComponent, ComponentInfo("ParticleSystem2D", ComponentCategory::Component));
+		REGISTER_COMPONENT(BoxCollider2DComponent, ComponentInfo("BoxCollider2D", ComponentCategory::Component));
+		REGISTER_COMPONENT(Rigidbody2DComponent, ComponentInfo("Rigidbody2D", ComponentCategory::Component));
+		REGISTER_COMPONENT(Camera2DComponent, ComponentInfo("Camera2D", ComponentCategory::Component));
+		REGISTER_COMPONENT(SpriteRendererComponent, ComponentInfo("SpriteRenderer", ComponentCategory::Component));
 
 		s_IsInitialized = true;
 		auto& firstPair = *s_SceneDefinitions.begin();
@@ -83,7 +92,7 @@ namespace Bolt {
 
 		s_LoadedScenes.push_back(std::move(newScene));
 
-		BOLT_ASSERT(s_ActiveScene, BoltErrorCode::NullReference ,"Active Scene is null");
+		BOLT_ASSERT(s_ActiveScene, BoltErrorCode::NullReference, "Active Scene is null");
 		return std::weak_ptr<Scene>(s_LoadedScenes.back());
 	}
 

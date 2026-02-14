@@ -41,6 +41,7 @@ namespace Bolt {
 			Timer timer = Timer();
 			Initialize();
 			Logger::Message("Application Initialization took " + StringHelper::ToString(timer));
+			Start();
 			m_LastFrameTime = Clock::now();
 
 			while ((!m_Window || !m_Window->ShouldClose()) && !s_ShouldQuit) {
@@ -108,6 +109,8 @@ namespace Bolt {
 			err = -1;
 		}
 
+		BeforeQuit();
+
 		try {
 			Shutdown();
 		}
@@ -134,6 +137,7 @@ namespace Bolt {
 
 		if (!s_IsPaused) {
 			AudioManager::Update();
+			Update();
 			SceneManager::UpdateScenes();
 
 			if (m_Renderer2D) m_Renderer2D->BeginFrame();

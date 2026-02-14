@@ -6,9 +6,10 @@
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
 #include "Components/ComponentUtils.hpp"
+#include "Core/Core.hpp"
 
 namespace Bolt {
-	class EntityHelper {
+	class BOLT_API EntityHelper {
 	public:
         // Info: Creates an entity with the entered Components
         template<typename... Components>

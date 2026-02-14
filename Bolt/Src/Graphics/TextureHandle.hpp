@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Core.hpp"
 
 namespace Bolt {
     struct BOLT_API TextureHandle {

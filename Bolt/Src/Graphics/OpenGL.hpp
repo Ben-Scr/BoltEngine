@@ -2,6 +2,7 @@
 #include "Collections\Vec2.hpp"
 #include "Collections\Color.hpp"
 #include "Collections\Viewport.hpp"
+#include "Core/Core.hpp"
 
 namespace Bolt {
 	enum GLCullingMode {
@@ -28,7 +29,7 @@ namespace Bolt {
 
 
 
-	class OpenGL {
+	class BOLT_API OpenGL {
 	public:
 		OpenGL() = delete;
 

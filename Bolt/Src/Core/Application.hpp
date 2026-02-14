@@ -24,7 +24,9 @@ namespace Bolt {
 		using Clock = std::chrono::high_resolution_clock;
 
 	public:
-		Application() { Application::s_Instance = this; };
+		Application() {
+			Application::s_Instance = this; 
+		};
 		Application(std::string name)
 		{
 			s_Name = name;
@@ -32,6 +34,10 @@ namespace Bolt {
 		};
 
 		int Run();
+
+		virtual void Start() = 0;
+		virtual void Update() = 0;
+		virtual void BeforeQuit() = 0;
 
 		static void SetName(const std::string& s) { s_Name = s; }
 		static void SetTargetFramerate(float framerate) { s_TargetFramerate = framerate; }

@@ -1,9 +1,10 @@
 #pragma once
 #include "Audio/AudioHandle.hpp"
+#include "Core/Core.hpp"
 
 namespace Bolt {
 
-	class AudioSourceComponent {
+	class BOLT_API AudioSourceComponent {
 	public:
 		AudioSourceComponent() = default;
 		AudioSourceComponent(const AudioHandle& audioHandle);

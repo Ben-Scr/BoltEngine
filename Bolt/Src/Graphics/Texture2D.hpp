@@ -1,13 +1,14 @@
 #pragma once
 #include "Collections/Vec2.hpp"
+#include "Core/Core.hpp"
 #include <cstdint>
 #include <string>
 
 namespace Bolt {
-	enum class Filter { Point, Bilinear, Trilinear, Anisotropic };
-	enum class Wrap : uint32_t { Repeat = 0x2901, Clamp = 0x812F, Mirror = 0x8370, Border = 0x812D };
+	enum class BOLT_API Filter { Point, Bilinear, Trilinear, Anisotropic };
+	enum class BOLT_API Wrap : uint32_t { Repeat = 0x2901, Clamp = 0x812F, Mirror = 0x8370, Border = 0x812D };
 
-	struct ImageData {
+	struct BOLT_API ImageData {
 		ImageData(int width, int height, unsigned char* pixels)
 			: Width(width), Height(height), Pixels(pixels) {
 		}
@@ -202,7 +203,7 @@ namespace Bolt {
 
 	};
 
-	class Texture2D {
+	class BOLT_API Texture2D {
 	public:
 		Texture2D() = default;
 		Texture2D(const char* path,

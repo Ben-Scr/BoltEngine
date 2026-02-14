@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Core.hpp"
 #include "Rigidbody2DComponent.hpp"
 #include "Debugging/Logger.hpp"
 #include "Physics/PhysicsSystem2D.hpp"
@@ -12,7 +13,7 @@
 namespace Bolt {
 	struct Collision2D;
 
-	class Collider2D {
+	class BOLT_API Collider2D {
 	public:
 		Collider2D() = default;
 

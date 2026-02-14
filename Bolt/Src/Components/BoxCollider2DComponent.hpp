@@ -6,7 +6,7 @@
 #include <box2d/box2d.h>
 
 namespace Bolt {
-	class BoxCollider2DComponent : public Collider2D {
+	class BOLT_API BoxCollider2DComponent : public Collider2D {
 		friend class PhysicsSystem2D;
 	public:
 		BoxCollider2DComponent() = default;
