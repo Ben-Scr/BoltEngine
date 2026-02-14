@@ -93,4 +93,7 @@ namespace Bolt {
 		void EndFixedFrame();
 		void EndFrame();
 	};
+
+	// To be defined in client
+	Application* CreateApplication();
 }
