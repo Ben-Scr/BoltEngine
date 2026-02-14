@@ -20,6 +20,7 @@ namespace Bolt {
 		Overflow,
 		NullReference,
 		LoadFailed,
+		InvalidValue,
 		Undefined
 	};
 

@@ -277,13 +277,16 @@ namespace Bolt {
 	}
 	void Window::SetWindowIcon(const Texture2D* tex2D) {		
 		BOLT_ASSERT(tex2D, BoltErrorCode::NullReference, "Texture is null");
-		BOLT_ASSERT((tex2D->GetWidth() <= 256 && tex2D->GetHeight() <= 256), BoltErrorCode::Undefined, "Texture format can't be bigger than 256x256");
-
-
 		std::unique_ptr<ImageData> imgData(tex2D->GetImageData());
-
-	
 		BOLT_ASSERT(imgData, BoltErrorCode::NullReference, "Image data is null");
+
+
+		const int w = imgData->Width;
+		const int h = imgData->Height;
+
+		BOLT_ASSERT(w > 0 && h > 0, BoltErrorCode::InvalidValue, "Icon size must be > 0");
+		BOLT_ASSERT(imgData->Pixels != nullptr, BoltErrorCode::NullReference, "Icon pixels null");
+
 		imgData->FlipVerticalRGBA();
 
 		GLFWimage img;
