@@ -3,6 +3,7 @@
 #include "Collections\Color.hpp"
 #include "Collections\Viewport.hpp"
 #include "Core/Core.hpp"
+#include <glad/glad.h>
 
 namespace Bolt {
 	enum GLCullingMode {

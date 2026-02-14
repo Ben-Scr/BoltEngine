@@ -16,7 +16,7 @@ endif()
 
 target_link_libraries(BoltSandbox PRIVATE BoltEngine)
 
-set(BOLT_ASSETS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/Assets")
+set(BOLT_ASSETS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/Sandbox/Assets")
 set(BOLT_ASSETS_RUNTIME_DIR "$<TARGET_FILE_DIR:BoltSandbox>/Assets")
 
 # Keep the runtime-relative path "Assets/..." valid by mirroring the repository

@@ -3,6 +3,7 @@
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
 #include "Components/Components.hpp"
+#include "GameSystem.hpp"
 
 #include <iostream>
 
@@ -12,6 +13,7 @@ class Sandbox : public Bolt::Application {
 public:
 	Sandbox() {
 		Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
+		def.AddSystem<GameSystem>();
 	}
 
 	void Start() override {

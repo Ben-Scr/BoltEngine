@@ -13,6 +13,7 @@
 #include "Debugging/Logger.hpp"
 #include "SceneDefinition.hpp"
 #include "Components/Components.hpp"
+#include "Systems/ParticleUpdateSystem.hpp"
 
 namespace Bolt {
 	bool SceneManager::s_IsInitialized = false;
@@ -53,6 +54,7 @@ namespace Bolt {
 
 		auto definition = std::make_unique<SceneDefinition>(name);
 		SceneDefinition& ref = *definition;
+		ref.AddSystem<ParticleUpdateSystem>();
 
 		s_SceneDefinitions[name] = std::move(definition);
 		return ref;

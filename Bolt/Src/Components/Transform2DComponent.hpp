@@ -1,7 +1,9 @@
 #pragma once
 #include "Core/Core.hpp"
 #include "Collections/Vec2.hpp"
+#include "Math/Trigonometry.hpp"
 #include <box2d/types.h>
+#include <glm/glm.hpp>
 
 namespace Bolt {
     static inline Vec2 Hadamard(const Vec2& a, const Vec2& b) {
