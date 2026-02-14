@@ -275,11 +275,14 @@ namespace Bolt {
 
 		m_Cursor = newCursor;
 	}
-	void Window::SetWindowIcon(const Texture2D* tex2D) {
+	void Window::SetWindowIcon(const Texture2D* tex2D) {		
 		BOLT_ASSERT(tex2D, BoltErrorCode::NullReference, "Texture is null");
+		BOLT_ASSERT((tex2D->GetWidth() <= 256 && tex2D->GetHeight() <= 256), BoltErrorCode::Undefined, "Texture format can't be bigger than 256x256");
 
-		std::unique_ptr<ImageData> imgData = tex2D->GetImageData();
 
+		std::unique_ptr<ImageData> imgData(tex2D->GetImageData());
+
+	
 		BOLT_ASSERT(imgData, BoltErrorCode::NullReference, "Image data is null");
 		imgData->FlipVerticalRGBA();
 
