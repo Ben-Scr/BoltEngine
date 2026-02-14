@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Core.hpp"
 #include "Graphics/TextureHandle.hpp"
+#include "Collections/Color.hpp"
 
 namespace Bolt {
 	struct BOLT_API SpriteRendererComponent {

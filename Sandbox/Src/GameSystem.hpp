@@ -1,5 +1,4 @@
 #pragma once
-#include <Bolt.hpp>
 #include <functional>
 #include "Components/Components.hpp"
 #include "Scene/ISystem.hpp"

@@ -8,6 +8,7 @@
 #include "Core/Input.hpp"
 #include "Core/Time.hpp"
 #include "Scene/EntityHelper.hpp"
+#include "Core/Application.hpp"
 
 void GameSystem::Awake() {
 	Gizmo::SetEnabled(false);
