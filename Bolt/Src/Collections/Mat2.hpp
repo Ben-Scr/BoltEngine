@@ -4,7 +4,7 @@
 #include <glm/mat2x2.hpp>
 #include <glm/mat3x3.hpp>
 
-namespace Bolt {
+namespace  Bolt {
 	using Mat2 = glm::mat2x2;
 	using Mat3 = glm::mat3x3;
 

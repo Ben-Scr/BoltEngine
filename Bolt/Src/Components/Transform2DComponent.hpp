@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Core.hpp"
 #include "Collections/Vec2.hpp"
 #include <box2d/types.h>
 
@@ -13,7 +14,7 @@ namespace Bolt {
         return { c * v.x - s * v.y, s * v.x + c * v.y };
     }
 
-	class Transform2DComponent {
+	class BOLT_API Transform2DComponent {
     public:
 		Vec2 Position{ 0.0f, 0.0f };
 		Vec2 Scale{ 1.0f, 1.0f };

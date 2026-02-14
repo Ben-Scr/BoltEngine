@@ -15,7 +15,7 @@ namespace Bolt {
 	class Scene;
 	
 
-	class SceneManager {
+	class BOLT_API SceneManager {
 		friend class Window;
 
 	public:

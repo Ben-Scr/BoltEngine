@@ -1,9 +1,10 @@
 #pragma once
 #include <cstdint>
+#include "Core/Core.hpp"
 
 namespace Bolt {
     template <class IdTag>
-    struct StrongId {
+    struct BOLT_API StrongId {
         std::uint64_t value{ 0 };
 
         StrongId() = default;

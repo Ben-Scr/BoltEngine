@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Bolt {
-    struct TextureHandle {
+    struct BOLT_API TextureHandle {
         uint16_t index;
         uint16_t generation;
 

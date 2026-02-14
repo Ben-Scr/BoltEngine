@@ -4,7 +4,7 @@
 
 namespace Bolt {
 
-	class Entity {
+	class BOLT_API Entity {
 		friend class Scene;
 		friend class EntityHelper;
 

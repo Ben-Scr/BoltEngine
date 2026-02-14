@@ -1,9 +1,10 @@
 #pragma once
+#include "Core/Core.hpp"
 
 namespace Bolt {
 	class Scene;
 
-	class ISystem {
+	class BOLT_API ISystem {
 	public:
 		// Info: Gets called every frame
 		virtual void Update() {}

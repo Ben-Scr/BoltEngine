@@ -1,9 +1,10 @@
 #pragma once
 #include "Vec2.hpp"
+#include "Core/Core.hpp"
 #include "Math/Common.hpp"
 
 namespace Bolt {
-	class Viewport {
+	class BOLT_API Viewport {
 	public:
 		Viewport() = default;
 		Viewport(int width, int height) : Width{ width }, Height{ height } {}

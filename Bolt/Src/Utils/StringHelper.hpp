@@ -3,7 +3,7 @@
 #include <algorithm>
 
 namespace Bolt {
-	class StringHelper {
+	class BOLT_API StringHelper {
 	public:
 		static std::string WrapWith(std::string_view s, char mark) {
 			std::string out;

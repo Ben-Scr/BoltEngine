@@ -1,10 +1,11 @@
 #pragma once
 #include "Scene/Entity.hpp"
 #include "Scene/ISystem.hpp"
+#include "Core/Core.hpp"
 
 namespace Bolt {
 	class SceneDefinition;
-	class Scene {
+	class BOLT_API Scene {
 		friend class SceneManager;
 		friend class SceneDefinition;
 		friend class Application;

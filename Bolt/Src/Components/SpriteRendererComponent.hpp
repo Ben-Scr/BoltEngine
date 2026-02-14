@@ -1,8 +1,9 @@
 #pragma once
+#include "Core/Core.hpp"
 #include "Graphics/TextureHandle.hpp"
 
 namespace Bolt {
-	struct SpriteRendererComponent {
+	struct BOLT_API SpriteRendererComponent {
 		SpriteRendererComponent() = default;
 
 		short SortingOrder{0};

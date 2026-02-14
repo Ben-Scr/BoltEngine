@@ -1,5 +1,6 @@
 #pragma once
 #include "Components/Transform2DComponent.hpp"
+#include "Core/Core.hpp"
 #include "Graphics/TextureHandle.hpp"
 #include "Collections/Color.hpp"
 #include <variant>
@@ -59,7 +60,7 @@ namespace Bolt {
 	using ShapeParams = std::variant<CircleParams, SquareParams>;
 
 
-	class ParticleSystem2DComponent {
+	class BOLT_API ParticleSystem2DComponent {
 		friend class Scene;
 		friend class Renderer2D;
 		friend class ParticleUpdateSystem;

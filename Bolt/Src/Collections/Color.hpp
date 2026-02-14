@@ -4,9 +4,10 @@
 #include <cmath>
 #include <array>
 #include <ostream>
+#include "Core/Core.hpp"
 
 namespace Bolt {
-	struct Color {
+	struct BOLT_API Color {
 		float r, g, b, a;
 		Color() : r(1.0f), g(1.0f), b(1.0f), a(1.0f) {}
 

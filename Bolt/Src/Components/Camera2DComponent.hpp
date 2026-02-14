@@ -9,7 +9,7 @@
 namespace Bolt {
 	struct Viewport;
 
-	class Camera2DComponent {
+	class BOLT_API Camera2DComponent {
 	public:
 		Camera2DComponent() = default;
 

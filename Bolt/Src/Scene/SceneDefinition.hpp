@@ -4,12 +4,13 @@
 #include <memory>
 #include <functional>
 #include <typeindex>
+#include "Core/Core.hpp"
 
 namespace Bolt {
     class Scene;
     class ISystem;
 
-    class SceneDefinition {
+    class BOLT_API SceneDefinition {
         friend class Scene;
         friend class SceneManager;
 

@@ -2,10 +2,11 @@
 #include "Vec2.hpp"
 #include "Mat2.hpp"
 #include "Components/Transform2DComponent.hpp"
+#include "Core/Core.hpp"
 #include <ostream>
 
 namespace Bolt {
-	struct AABB {
+	struct BOLT_API AABB {
 		Vec2 Min;
 		Vec2 Max;
 

@@ -1,6 +1,8 @@
 #pragma once
 #include "KeyCodes.hpp"
 #include "Collections/Vec2.hpp"
+#include "Core/Core.hpp"
+
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -9,7 +11,7 @@
 namespace Bolt {
     class Application;
 
-    class Input {
+    class BOLT_API Input {
     public:
         friend class Application;
         friend class Window;

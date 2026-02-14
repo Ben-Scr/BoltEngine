@@ -1,8 +1,9 @@
 #pragma once
 #include <ostream>
+#include "Core/Core.hpp"
 
 namespace Bolt {
-    enum class KeyCode : uint16_t {
+    enum class BOLT_API KeyCode : uint16_t {
         Space = 32, Apostrophe = 39, Comma = 44, Minus = 45, Period = 46, Slash = 47,
         Alpha0 = 48, Alpha1 = 49, Alpha2 = 50, Alpha3 = 51, Alpha4 = 52, Alpha5 = 53,
         Alpha6 = 54, Alpha7 = 55, Alpha8 = 56, Alpha9 = 57, Semicolon = 59, Equal = 61,

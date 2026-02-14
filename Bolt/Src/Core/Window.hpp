@@ -2,6 +2,7 @@
 #include "Collections/Vec2.hpp"
 #include "Collections/Color.hpp"
 #include "Collections/Viewport.hpp"
+#include "Core/Core.hpp"
 
 #include <GLFW/glfw3.h>
 #include <string>
@@ -29,7 +30,7 @@ namespace Bolt {
 		}
 	};
 
-	class Window {
+	class BOLT_API Window {
 		friend class Application;
 
 	public:

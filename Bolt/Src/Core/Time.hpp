@@ -1,10 +1,11 @@
 #pragma once
 #include <chrono>
+#include "Core/Core.hpp"
 
 namespace Bolt {
 	class Application;
 
-	class Time {
+	class BOLT_API Time {
 	public:
 		static float GetDeltaTime() { return s_DeltaTime * s_TimeScale; }
 		static float GetDeltaTimeUnscaled() { return s_DeltaTime; }

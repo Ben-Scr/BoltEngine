@@ -1,11 +1,12 @@
 #pragma once
+#include "Core/Core.hpp"
 #include <random>
 #include <cstdint>
 
 namespace Bolt {
     struct Color;
 
-    class Random {
+    class BOLT_API Random {
     public:
         Random() = delete;
 

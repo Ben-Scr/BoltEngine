@@ -12,7 +12,7 @@ namespace Bolt {
 	struct Sphere { Vec3 Center; float Radius; int Segments; Color Color; };
 	struct Line3D { Vec3 Start; Vec3 End; Color Color; };
 
-	class Gizmo {
+	class BOLT_API Gizmo {
 	public:
 		// 2D
 		static void DrawSquare(const Vec2& center, const Vec2& scale, float degrees);
