@@ -1,7 +1,11 @@
 #pragma once
 
+#include "Application.hpp"
+
 #ifdef BT_PLATFORM_WINDOWS
-extern Bolt::Application* Bolt::CreateApplication();
+namespace Bolt {
+	Application* CreateApplication();
+}
 
 int main(int argc, char** argv) {
 	auto app = Bolt::CreateApplication();
