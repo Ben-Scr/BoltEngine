@@ -12,7 +12,6 @@ foreach(non_pch_source IN LISTS BOLT_ENGINE_SOURCES)
     endif()
 endforeach()
 
-target_compile_definitions(BoltEngine PRIVATE BT_BUILD_DLL)
 target_precompile_headers(BoltEngine PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Src/pch.hpp")
 
 target_include_directories(BoltEngine
@@ -21,6 +20,13 @@ target_include_directories(BoltEngine
         "${CMAKE_SOURCE_DIR}/External/Include"
         "${CMAKE_CURRENT_SOURCE_DIR}/Src/External/ImGui"
 )
+
+# Build the engine as a DLL and export symbols when compiling the engine target.
+target_compile_definitions(BoltEngine PRIVATE BT_BUILD_DLL)
+
+if(WIN32)
+    target_compile_definitions(BoltEngine PUBLIC BT_PLATFORM_WINDOWS)
+endif()
 
 set(BOLT_THIRDPARTY_LIB_DIR "${CMAKE_SOURCE_DIR}/External/Lib")
 
