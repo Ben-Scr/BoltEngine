@@ -252,7 +252,7 @@ namespace Bolt {
 		glfwSetInputMode(m_GLFWwindow, GLFW_CURSOR, enabled ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
 	}
 	void Window::SetCursorImage(const Texture2D* tex2D) {
-		ImageData* imgData = tex2D->GetImageData();
+		std::unique_ptr<ImageData> imgData = tex2D->GetImageData();
 		imgData->Width;
 		imgData->Height;
 
@@ -278,7 +278,7 @@ namespace Bolt {
 	void Window::SetWindowIcon(const Texture2D* tex2D) {
 		BOLT_ASSERT(tex2D, BoltErrorCode::NullReference, "Texture is null");
 
-		ImageData* imgData = tex2D->GetImageData();
+		std::unique_ptr<ImageData> imgData = tex2D->GetImageData();
 
 		BOLT_ASSERT(imgData, BoltErrorCode::NullReference, "Image data is null");
 		imgData->FlipVerticalRGBA();

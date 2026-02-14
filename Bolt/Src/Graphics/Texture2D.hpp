@@ -236,7 +236,7 @@ namespace Bolt {
 
 		bool IsValid() const { return m_Tex != 0; }
 
-		ImageData* GetImageData() const;
+		std::unique_ptr<ImageData> GetImageData() const;
 		unsigned GetHandle() const { return m_Tex; }
 		Vec2 Size() const { return Vec2{ float(m_Width), float(m_Height) }; }
 		float AspectRatio() const { return m_Height != 0 ? float(m_Width) / float(m_Height) : 0.0f; }

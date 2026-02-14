@@ -100,7 +100,7 @@ namespace Bolt {
 		if (IsValid()) ApplySamplerParams();
 	}
 
-	ImageData* Texture2D::GetImageData() const {
+	std::unique_ptr<ImageData> Texture2D::GetImageData() const {
 		BOLT_ASSERT(IsValid(), BoltErrorCode::InvalidHandle, "Texture isn't valid!");
 
 		int w = 0, h = 0;
@@ -119,7 +119,7 @@ namespace Bolt {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		return new ImageData(w, h, pixels.data());
+		return std::make_unique<ImageData>(ImageData(w, h, pixels.data()));
 	}
 
 	void Texture2D::ApplySamplerParams() const {
