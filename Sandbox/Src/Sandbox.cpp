@@ -13,14 +13,16 @@ class Sandbox : public Bolt::Application {
 public:
 	Sandbox() {
 		Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
-		def.AddSystem<GameSystem>();
+		//def.AddSystem<GameSystem>();
 	}
 
 	void Start() override {
-		Bolt::Scene* activeScene = Bolt::SceneManager::GetActiveScene();
-		activeScene->CreateEntityHandle<Transform2DComponent, Camera2DComponent>();
+		
 	}
 	void Update() override {
+		
+	}
+	void OnPaused() override {
 
 	}
 	void BeforeQuit() override {

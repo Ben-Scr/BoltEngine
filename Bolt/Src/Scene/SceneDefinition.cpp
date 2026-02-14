@@ -11,7 +11,6 @@ namespace Bolt {
 			auto system = factory();
 
 			if (system) {
-				system->SetScene(scene);
 				scene->m_Systems.push_back(std::move(system));
 			}
 			else {

@@ -10,7 +10,7 @@
 #include "Scene/EntityHelper.hpp"
 #include "Core/Application.hpp"
 
-void GameSystem::Awake() {
+void GameSystem::Awake(Scene& scene) {
 	Gizmo::SetEnabled(false);
 	m_AsteriodTexture = TextureManager::LoadTexture("Game/Meteor.png");
 	m_LightTexture = TextureManager::LoadTexture("Game/Light.png");
@@ -27,10 +27,9 @@ struct AsteriodData {
 };
 
 
-void GameSystem::Start() {
+void GameSystem::Start(Scene& scene) {
 	REGISTER_COMPONENT(AsteriodData, ComponentInfo("AsteriodData", ComponentCategory::Component));
 	REGISTER_COMPONENT(LaserTag, ComponentInfo("LaserTag", ComponentCategory::Tag));
-	Scene& scene = GetScene();
 
 	EntityHelper::CreateCamera2DEntity();
 	OpenGL::SetClearColor(Color(0.1f, 0.1f, 0.1f));
@@ -56,8 +55,7 @@ void GameSystem::Start() {
 	spriteRenderer.TextureHandle = m_PlayerTexture;
 }
 
-void GameSystem::Update() {
-	Scene& scene = GetScene();
+void GameSystem::Update(Scene& scene) {
 	auto mousePos = Camera2DComponent::Main()->ScreenToWorld(Input::GetMousePosition());
 	bool cntrlDown = Input::GetKey(KeyCode::LeftControl);
 
@@ -115,10 +113,10 @@ void GameSystem::Update() {
 	}
 
 	UpdatePlayerPts();
-	PlayerMovement();
-	MoveEntities();
+	PlayerMovement(scene);
+	MoveEntities(scene);
 	CameraMovement();
-	DrawGizmos();
+	DrawGizmos(scene);
 }
 
 void GameSystem::UpdatePlayerPts() {
@@ -130,9 +128,7 @@ void GameSystem::UpdatePlayerPts() {
 }
 
 
-void GameSystem::PlayerMovement() {
-	Scene& scene = GetScene();
-
+void GameSystem::PlayerMovement(Scene& scene) {
 	auto& playerTr = m_PlayerEntity.GetComponent<Transform2DComponent>();
 	auto mousePos = Camera2DComponent::Main()->ScreenToWorld(Input::GetMousePosition());
 
@@ -209,8 +205,7 @@ void GameSystem::CameraMovement() {
 	}
 }
 
-void GameSystem::MoveEntities() {
-	Scene& scene = GetScene();
+void GameSystem::MoveEntities(Scene& scene) {
 	Transform2DComponent& playerTr = m_PlayerEntity.GetComponent<Transform2DComponent>();
 
 	// Info: Move laser enties forward
@@ -232,8 +227,7 @@ void GameSystem::MoveEntities() {
 	}
 }
 
-void GameSystem::DrawGizmos() {
-	Scene& scene = GetScene();
+void GameSystem::DrawGizmos(Scene& scene) {
 
 	Gizmo::SetColor(Color::Green());
 
@@ -253,11 +247,5 @@ void GameSystem::DrawGizmos() {
 			AABB aabb = AABB::FromTransform(particle.Transform);
 			Gizmo::DrawSquare(particle.Transform.Position, aabb.Scale(), 0);
 		}
-	}
-}
-
-void GameSystem::OnApplicationPaused() {
-	if (Input::GetKeyDown(KeyCode::P)) {
-		Application::Pause(!Application::IsPaused());
 	}
 }

@@ -4,6 +4,6 @@
 namespace Bolt {
 	class ParticleUpdateSystem : public ISystem {
 	public:
-		virtual void Update();
+		virtual void Update(Scene& scene);
 	};
 }

@@ -61,7 +61,6 @@ namespace Bolt {
 
 		static void UpdateScenes();
 		static void OnGuiScenes();
-		static void OnApplicationPaused();
 		static void FixedUpdateScenes();
 		static void InitializeStartupScenes();
 

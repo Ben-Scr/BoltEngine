@@ -10,8 +10,8 @@
 #include <entt/entt.hpp>
 
 namespace Bolt {
-	void ParticleUpdateSystem::Update() {
-		for (const auto& [ent, particleSystem] : SceneManager::GetActiveScene()->GetRegistry().view<ParticleSystem2DComponent>(entt::exclude<DisabledTag>).each())
+	void ParticleUpdateSystem::Update(Scene& scene) {
+		for (const auto& [ent, particleSystem] : scene.GetRegistry().view<ParticleSystem2DComponent>(entt::exclude<DisabledTag>).each())
 			particleSystem.Update();
 	}
 }

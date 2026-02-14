@@ -151,3 +151,14 @@ namespace Bolt {
         } \
     } while (0)
 }
+
+#define BOLT_TRY_CATCH_LOG(stmt)                     \
+    do {                                       \
+        try {                                  \
+            stmt;                              \
+        } catch (const std::exception& ex) {   \
+            Logger::Message(ex.what());        \
+        } catch (...) {                        \
+            Logger::Message("Unknown exception"); \
+        }                                      \
+    } while (0)

@@ -33,31 +33,27 @@ namespace Bolt {
 	void Scene::DestroyEntity(EntityHandle nativeEntity) { m_Registry.destroy(nativeEntity); }
 
 	void Scene::AwakeSystems() {
-		ForeachEnabledSystem([](ISystem& s) { s.Awake(); });
+		ForeachEnabledSystem([this](ISystem& s) { s.Awake(*this); });
 	}
 
 	void Scene::StartSystems() {
-		ForeachEnabledSystem([](ISystem& s) { s.Start(); });
+		ForeachEnabledSystem([this](ISystem& s) { s.Start(*this); });
 	}
 
 	void Scene::UpdateSystems() {
-		ForeachEnabledSystem([](ISystem& s) { s.Update(); });
+		ForeachEnabledSystem([this](ISystem& s) { s.Update(*this); });
 	}
 
 	void Scene::FixedUpdateSystems() {
-		ForeachEnabledSystem([](ISystem& s) { s.FixedUpdate(); });
+		ForeachEnabledSystem([this](ISystem& s) { s.FixedUpdate(*this); });
 	}
 
 	void Scene::OnGuiSystems() {
-		ForeachEnabledSystem([](ISystem& s) { s.OnGui(); });
-	}
-
-	void Scene::OnApplicationPausedSystems() {
-		ForeachEnabledSystem([](ISystem& s) { s.OnApplicationPaused(); });
+		ForeachEnabledSystem([this](ISystem& s) { s.OnGui(*this); });
 	}
 
 	void Scene::DestroyScene() {
-		ForeachEnabledSystem([](ISystem& s) { s.OnDestroy(); });
+		ForeachEnabledSystem([this](ISystem& s) { s.OnDestroy(*this); });
 	}
 
 	Scene::Scene(const std::string& name, const SceneDefinition* definition, bool IsPersistent)

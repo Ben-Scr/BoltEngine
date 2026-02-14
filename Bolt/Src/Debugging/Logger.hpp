@@ -1,17 +1,18 @@
 #pragma once
 #include "Utils/Event.hpp"
+#include "Core/Core.hpp"
 #include <string>
 #include <source_location>
 
 namespace Bolt {
-	enum LogLevel {
+	enum class BOLT_API LogLevel {
 		None,
 		Info,
 		Warning,
 		Error
 	};
 
-	class Logger {
+	class BOLT_API Logger {
 	public:
 		static void Message(const std::string& message, const std::source_location& loc = std::source_location::current());
 		static void Message(const std::string& topic, const std::string& message, const std::source_location& loc = std::source_location::current());

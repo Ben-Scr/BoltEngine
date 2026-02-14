@@ -20,9 +20,11 @@ namespace Bolt {
 		static void DrawCircle(const Vec2& center, float radius, int segments = 32);
 
 		// 3D
+		/*
 		static void DrawBox(const Vec3& center, const Vec3& scale, const Vec3& rotation);
 		static void DrawSphere(const Vec3& center, const float radius);
 		static void DrawLine3D(const Vec3& start, const Vec3& end);
+		*/
 
 		static void SetLineWidth(float width) { s_LineWidth = Max(0.001f, width); }
 		static float GetLineWidth() { return s_LineWidth; }

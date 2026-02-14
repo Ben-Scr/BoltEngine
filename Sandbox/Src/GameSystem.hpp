@@ -9,10 +9,9 @@ using namespace Bolt;
 
 class GameSystem : public ISystem {
 public:
-	virtual void Awake();
-	virtual void Start();
-	virtual void Update();
-	virtual void OnApplicationPaused();
+	virtual void Awake(Scene& scene);
+	virtual void Start(Scene& scene);
+	virtual void Update(Scene& scene);
 
 	Entity CreatePhysicsEntity(Scene& scene, Transform2DComponent transform, BodyType bodyType, Color color = Color::White()) {
 		Entity blockEntity = scene.CreateEntity();
@@ -29,10 +28,10 @@ public:
 	}
 
 	void UpdatePlayerPts();
-	void PlayerMovement();
+	void PlayerMovement(Scene& scene);
 	void CameraMovement();
-	void MoveEntities();
-	void DrawGizmos();
+	void MoveEntities(Scene& scene);
+	void DrawGizmos(Scene& scene);
 private:
 	Entity m_CameraEntity{ Entity::Null };
 	Entity m_PlayerEntity{ Entity::Null };

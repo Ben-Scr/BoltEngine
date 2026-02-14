@@ -7,7 +7,7 @@
 namespace Bolt {
 	class BOLT_API ImGuiDebugSystem : public ISystem {
 	public:
-		virtual void OnGui();
+		virtual void OnGui(Scene& scene);
 	private:
 		EntityHandle m_SelectedEntity = entt::null;
 	};

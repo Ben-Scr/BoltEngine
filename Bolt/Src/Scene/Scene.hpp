@@ -23,13 +23,6 @@ namespace Bolt {
 		Entity GetEntity(EntityHandle nativeEntity) { return Entity(nativeEntity, m_Registry); }
 		Entity GetEntity(EntityHandle nativeEntity) const { return Entity(nativeEntity, const_cast<entt::registry&>(m_Registry)); }
 
-		template<typename... TComponent>
-		EntityHandle CreateEntityHandle() {
-			auto entity = m_Registry.create();
-			(m_Registry.emplace<TComponent>(entity), ...);
-			return entity;
-		}
-
 		void DestroyEntity(Entity entity);
 		void DestroyEntity(EntityHandle nativeEntity);
 
@@ -209,7 +202,6 @@ namespace Bolt {
 		void AwakeSystems();
 		void StartSystems();
 		void UpdateSystems();
-		void OnApplicationPausedSystems();
 		void FixedUpdateSystems();
 		void OnGuiSystems();
 		void DestroyScene();

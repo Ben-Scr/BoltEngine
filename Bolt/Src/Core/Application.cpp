@@ -140,19 +140,22 @@ namespace Bolt {
 			Update();
 			SceneManager::UpdateScenes();
 
-			if (m_Renderer2D) m_Renderer2D->BeginFrame();
+			if (m_Renderer2D)
+				BOLT_TRY_CATCH_LOG(m_Renderer2D->BeginFrame());
 
 			if (m_ImGuiRenderer) {
-				m_ImGuiRenderer->BeginFrame();
+				BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
 				SceneManager::OnGuiScenes();
 			}
 
-			if (m_GuiRenderer) m_GuiRenderer->BeginFrame();
+			if (m_GuiRenderer) 
+				BOLT_TRY_CATCH_LOG(m_GuiRenderer->BeginFrame());
 
-			if (m_GizmoRenderer2D) m_GizmoRenderer2D->BeginFrame();
+			if (m_GizmoRenderer2D)
+				BOLT_TRY_CATCH_LOG(m_GizmoRenderer2D->BeginFrame());
 		}
 		else {
-			SceneManager::OnApplicationPaused();
+			OnPaused();
 		}
 	}
 
@@ -167,10 +170,17 @@ namespace Bolt {
 
 	void Application::EndFrame() {
 		if (!s_IsPaused) {
-			if (m_Renderer2D) m_Renderer2D->EndFrame();
-			if (m_ImGuiRenderer) m_ImGuiRenderer->EndFrame();
-			if (m_GuiRenderer) m_GuiRenderer->EndFrame();
-			if (m_GizmoRenderer2D) m_GizmoRenderer2D->EndFrame();
+			if (m_Renderer2D)
+				BOLT_TRY_CATCH_LOG(m_Renderer2D->EndFrame());
+
+			if (m_ImGuiRenderer)
+				BOLT_TRY_CATCH_LOG( m_ImGuiRenderer->EndFrame());
+
+			if (m_GuiRenderer) 
+				BOLT_TRY_CATCH_LOG(m_GuiRenderer->EndFrame());
+			if (m_GizmoRenderer2D) 
+				BOLT_TRY_CATCH_LOG(m_GizmoRenderer2D->EndFrame());
+
 			if (m_Window) m_Window->SwapBuffers();
 		}
 

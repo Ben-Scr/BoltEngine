@@ -14,7 +14,7 @@
 #include "Scene/Scene.hpp"
 
 namespace Bolt {
-	void ImGuiDebugSystem::OnGui() {
+	void ImGuiDebugSystem::OnGui(Scene& scene) {
 		auto* window = Application::GetInstance()->GetWindow();
 		auto* renderer2D = Application::GetInstance()->GetRenderer2D();
 
@@ -120,7 +120,7 @@ namespace Bolt {
 		ImGui::Spacing();
 		ImGui::Separator();
 		if (ImGui::Button("Reload Scene", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-			SceneManager::ReloadScene(GetScene().GetName());
+			SceneManager::ReloadScene(scene.GetName());
 			ImGui::End();
 			return;
 		}
@@ -128,8 +128,6 @@ namespace Bolt {
 		ImGui::End();
 
 		if (ImGui::Begin("Scene Hierarchy")) {
-			Scene& scene = GetScene();
-
 			static bool enabledHierachy = true;
 
 			if (ImGui::Checkbox("Enabled Hierachy", &enabledHierachy));
@@ -155,8 +153,6 @@ namespace Bolt {
 		ImGui::End();
 
 		if (ImGui::Begin("Entity Components")) {
-			Scene& scene = GetScene();
-
 			if (m_SelectedEntity == entt::null || !scene.IsValid(m_SelectedEntity)) {
 				ImGui::TextDisabled("Select an entity in the Scene Hierarchy.");
 			}

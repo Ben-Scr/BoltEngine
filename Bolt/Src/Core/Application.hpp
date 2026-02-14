@@ -37,6 +37,7 @@ namespace Bolt {
 
 		virtual void Start() = 0;
 		virtual void Update() = 0;
+		virtual void OnPaused() = 0;
 		virtual void BeforeQuit() = 0;
 
 		static void SetName(const std::string& s) { s_Name = s; }
