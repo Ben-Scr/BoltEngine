@@ -11,29 +11,19 @@
 #include "Core.hpp"
 
 namespace Bolt {
-	struct ApplicationSpecs {
-		std::string Name = "Bolt Application";
-		bool ForceSingleInstance = true;
-		bool RunInBackground = false;
-		float TargetFramerate = 144.f;
-	};
-
 	class BOLT_API Application {
 		friend class Window;
 		using DurationChrono = std::chrono::high_resolution_clock::duration;
 		using Clock = std::chrono::high_resolution_clock;
 
 	public:
-		Application() {
-			Application::s_Instance = this; 
-		};
-		Application(std::string name)
-		{
-			s_Name = name;
+		Application() : m_FixedUpdateAccumulator{ 0 } {
 			Application::s_Instance = this;
 		};
 
-		int Run();
+		virtual ~Application() {}
+
+		void Run();
 
 		virtual void Start() = 0;
 		virtual void Update() = 0;
@@ -61,12 +51,7 @@ namespace Bolt {
 		static void Pause(bool paused) { s_IsPaused = paused; }
 		static void Reload() { s_ShouldQuit = true; s_CanReload = true; };
 		static const bool IsPaused() { return s_IsPaused; }
-
-		static void OnApplicationQuit(Bolt::Event<>::Callback cb) { s_OnApplicationQuit.Add(cb); }
 	private:
-		static Event<> s_OnApplicationQuit;
-		static Event<> OnApplicationInitialize;
-
 		static std::string s_Name;
 
 		static bool s_ForceSingleInstance;
@@ -75,9 +60,9 @@ namespace Bolt {
 		static bool s_CanReload;
 		static bool s_IsPaused;
 
-		static double s_TargetFramerate;
-		static double s_MaxPossibleFPS;
-		static const double k_PausedTargetFrameRate;
+		static float s_TargetFramerate;
+		static float s_MaxPossibleFPS;
+		static const float k_PausedTargetFrameRate;
 
 		static Application* s_Instance;
 

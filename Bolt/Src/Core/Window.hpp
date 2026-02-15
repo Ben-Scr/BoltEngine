@@ -10,7 +10,7 @@
 namespace Bolt {
 	class Texture2D;
 
-	struct GLFWWindowProperties {
+	struct WindowProps {
 		int Width{ 800 }, Height{ 800 };
 		std::string Title{ "GLFW Window" };
 		bool Resizeable{ true };
@@ -18,13 +18,13 @@ namespace Bolt {
 		bool Fullscreen{ false };
 		Color BackgroundColor;
 
-		GLFWWindowProperties() = default;
+		WindowProps() = default;
 
-		GLFWWindowProperties(int width, int height, const std::string& title)
+		WindowProps(int width, int height, const std::string& title)
 			: Width{ width }, Height{ height }, Title{ title }
 		{
 		}
-		GLFWWindowProperties(int width, int height, const std::string& title, bool resizeable, bool decorated, bool fullscreen)
+		WindowProps(int width, int height, const std::string& title, bool resizeable, bool decorated, bool fullscreen)
 			: Width{ width }, Height{ height }, Title{ title }, Resizeable{ resizeable }, Decorated{ decorated }, Fullscreen{ fullscreen }
 		{
 		}
@@ -35,7 +35,7 @@ namespace Bolt {
 
 	public:
 		Window(int width, int height, const std::string& title);
-		Window(const GLFWWindowProperties& props);
+		Window(const WindowProps& props);
 
 		// Info: Initializes the GLFW library
 		static void Initialize();
@@ -47,7 +47,7 @@ namespace Bolt {
 
 		void Destroy();
 
-		void SetClipboardString(const std::string s) { glfwSetClipboardString(m_GLFWwindow, s.c_str()); }
+		void SetClipboardString(const std::string& s) { glfwSetClipboardString(m_GLFWwindow, s.c_str()); }
 		void SetWindowResizeable(bool enabled) { glfwWindowHint(GLFW_RESIZABLE, enabled ? GLFW_TRUE : GLFW_FALSE); }
 		void SetWindowMoveable(bool enabled) { glfwWindowHint(GLFW_DECORATED, enabled ? GLFW_TRUE : GLFW_FALSE); }
 		void SetPosition(Vec2Int pos) { glfwSetWindowPos(m_GLFWwindow, pos.x, pos.y); }
@@ -82,7 +82,7 @@ namespace Bolt {
 			glfwGetWindowPos(m_GLFWwindow, &pos.x, &pos.y);
 			return pos;
 		}
-		void GetClipboardString(const std::string s) const { glfwGetClipboardString(m_GLFWwindow); }
+		void GetClipboardString(const std::string& s) const { glfwGetClipboardString(m_GLFWwindow); }
 		Vec2 GetCursorPosition() const;
 
 
@@ -107,7 +107,7 @@ namespace Bolt {
 		static Viewport* GetMainViewport() { return s_MainViewport; }
 
 	private:
-		void CreateWindow(const GLFWWindowProperties& props);
+		void CreateWindow(const WindowProps& props);
 		void UpdateViewport();
 		void SwapBuffers() const { glfwSwapBuffers(m_GLFWwindow); }
 

@@ -3,6 +3,8 @@
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
 #include "Components/Components.hpp"
+
+#include "Systems/ImGuiDebugSystem.hpp"
 #include "GameSystem.hpp"
 
 #include <iostream>
@@ -13,7 +15,12 @@ class Sandbox : public Bolt::Application {
 public:
 	Sandbox() {
 		Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
-		//def.AddSystem<GameSystem>();
+		def.AddSystem<GameSystem>();
+		def.AddSystem<ImGuiDebugSystem>();
+	}
+
+	~Sandbox() {
+		Logger::Message("Destroy");
 	}
 
 	void Start() override {
@@ -26,7 +33,7 @@ public:
 
 	}
 	void BeforeQuit() override {
-
+		Logger::Message("Quit");
 	}
 };
 

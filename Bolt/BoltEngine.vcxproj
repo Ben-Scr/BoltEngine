@@ -279,7 +279,7 @@
     <ClInclude Include="Src\Components\Transform2DComponent.hpp" />
     <ClInclude Include="Src\Core\Application.hpp" />
     <ClInclude Include="Src\Core\Core.hpp" />
-    <ClInclude Include="Src\Core\EntryPoint.hpp" />
+    <ClInclude Include="Src\EntryPoint.hpp" />
     <ClInclude Include="Src\Core\Memory.hpp" />
     <ClInclude Include="Src\Core\Input.hpp" />
     <ClInclude Include="Src\Core\KeyCodes.hpp" />

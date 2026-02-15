@@ -5,7 +5,7 @@
 Bolt specific includes
 */
 
-#include "Core/EntryPoint.hpp"
+#include "EntryPoint.hpp"
 
 /*
 // Collections

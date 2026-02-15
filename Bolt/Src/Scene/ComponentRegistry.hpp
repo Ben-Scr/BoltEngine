@@ -17,7 +17,7 @@ namespace Bolt {
 
         ComponentInfo() = default;
 		ComponentInfo(const std::string& displayName, ComponentCategory category)
-            : displayName(std::move(displayName)), category(category) {}
+            : displayName(displayName), category(category) {}
 
         bool (*has)(Entity) = nullptr;
         void (*add)(Entity) = nullptr;

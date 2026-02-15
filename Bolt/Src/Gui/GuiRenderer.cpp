@@ -35,7 +35,6 @@ namespace Bolt {
 		BOLT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
 		m_SpriteShader.Bind();
 
-		// Camera 2D Region
 		Camera2DComponent* camera2D = Camera2DComponent::Main();
 		BOLT_ASSERT(camera2D, BoltErrorCode::NullReference, "There is no main camera");
 
@@ -46,15 +45,13 @@ namespace Bolt {
 		int w = vp->GetWidth();
 		int h = vp->GetHeight();
 
-		const float aspect = vp->GetAspect();
-		const float halfH = w;
-		const float halfW = halfH * aspect;
+		float halfW = 0.5f * w;
+		float halfH = 0.5f * h;
 
-		const float zNear = 0.0f;
-		const float zFar = 100.0f;
+		float zNear = -1.0f;
+		float zFar = 1.0f;
 
 		m_SpriteShader.SetMVP(glm::ortho(-halfW, +halfW, -halfH, +halfH, zNear, zFar));
-		// Camera 2D Region
 		std::vector<Instance44> instances;
 
 
@@ -87,7 +84,7 @@ namespace Bolt {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		// Final Rendering
+		// Info: Final Rendering
 		for (const Instance44& instance : instances) {
 			m_SpriteShader.SetSpritePosition(instance.Position);
 			m_SpriteShader.SetScale(instance.Scale);

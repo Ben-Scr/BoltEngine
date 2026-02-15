@@ -16,10 +16,10 @@ namespace Bolt {
 
 	Window::Window(int width, int height, const std::string& title)
 	{
-		CreateWindow(GLFWWindowProperties{ width , height, title });
+		CreateWindow(WindowProps{ width , height, title });
 	}
 
-	Window::Window(const GLFWWindowProperties& props)
+	Window::Window(const WindowProps& props)
 	{
 		CreateWindow(props);
 	}
@@ -30,19 +30,19 @@ namespace Bolt {
 		if (!app) return;
 
 		if (app->m_Renderer2D) {
-			app->m_Renderer2D->BeginFrame();
-			app->m_Renderer2D->EndFrame();
+			BOLT_TRY_CATCH_LOG( app->m_Renderer2D->BeginFrame());
+			BOLT_TRY_CATCH_LOG(app->m_Renderer2D->EndFrame());
 		}
 
 		if (app->m_ImGuiRenderer) {
-			app->m_ImGuiRenderer->BeginFrame();
-			SceneManager::OnGuiScenes();
-			app->m_ImGuiRenderer->EndFrame();
+			BOLT_TRY_CATCH_LOG(app->m_ImGuiRenderer->BeginFrame());
+			BOLT_TRY_CATCH_LOG(SceneManager::OnGuiScenes());
+			BOLT_TRY_CATCH_LOG(app->m_ImGuiRenderer->EndFrame());
 		}
 
 		if (app->m_GizmoRenderer2D) {
-			app->m_GizmoRenderer2D->BeginFrame();
-			app->m_GizmoRenderer2D->EndFrame();
+			BOLT_TRY_CATCH_LOG(app->m_GizmoRenderer2D->BeginFrame());
+			BOLT_TRY_CATCH_LOG(app->m_GizmoRenderer2D->EndFrame());
 		}
 
 		if (app->m_Window) app->m_Window->SwapBuffers();
@@ -74,7 +74,7 @@ namespace Bolt {
 		}
 	}
 
-	void Window::CreateWindow(const GLFWWindowProperties& props) {
+	void Window::CreateWindow(const WindowProps& props) {
 		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "The Window isn't initialized");
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
