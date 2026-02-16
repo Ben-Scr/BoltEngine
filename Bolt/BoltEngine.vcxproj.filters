@@ -54,7 +54,7 @@
     <ClCompile Include="Src\Debugging\Logger.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\glad.c">
+    <ClCompile Include="Src\External\Glad\glad.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Src\Components\Camera2DComponent.cpp">
