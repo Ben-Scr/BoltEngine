@@ -3,8 +3,8 @@ Windows Compatible C++ Engine
 
 ## Preview
 <p align="center">
-  <img src="Assets/Documentation/Screenshot2.png" width="45%" alt="Preview 1">
-  <img src="Assets/Documentation/Screenshot3.png" width="45%" alt="Preview 2">
+  <img src="Assets/Documentation/Preview_2.png" width="45%" alt="Preview 1">
+  <img src="Assets/Documentation/Preview_3.png" width="45%" alt="Preview 2">
 </p>
 
 
