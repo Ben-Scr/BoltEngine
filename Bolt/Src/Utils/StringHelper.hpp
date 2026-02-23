@@ -131,4 +131,8 @@ namespace Bolt {
 		//	return !str.empty() && std::all_of(str.begin(), str.end(), std::isalpha);
 		//}
 	};
+
+	inline std::ostream& operator<<(std::ostream& os, bool b) {
+		return os << (b ? "true" : "false");
+	}
 }

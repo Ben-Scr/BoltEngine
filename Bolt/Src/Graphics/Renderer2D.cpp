@@ -16,7 +16,7 @@ namespace Bolt {
 		m_SpriteShader.Initialize();
 
 		BOLT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Sprite shader is invalid.");
-		m_Initialized = true;
+		m_IsInitialized = true;
 	}
 
 	void Renderer2D::BeginFrame() {
@@ -24,7 +24,7 @@ namespace Bolt {
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		if (m_Initialized && m_IsEnabled)
+		if (m_IsInitialized && m_IsEnabled)
 			RenderScenes();
 		else
 			m_RenderedInstancesCount = 0;

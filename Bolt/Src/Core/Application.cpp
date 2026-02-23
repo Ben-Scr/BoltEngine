@@ -236,7 +236,7 @@ namespace Bolt {
 
 
 	void Application::Shutdown() {
-		BeforeQuit();
+		OnQuit();
 
 		if (m_PhysicsSystem2D) m_PhysicsSystem2D->Shutdown();
 		if (m_PhysicsSystem2D) m_GizmoRenderer2D->Shutdown();

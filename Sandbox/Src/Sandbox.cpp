@@ -11,6 +11,9 @@
 
 using namespace Bolt;
 
+
+
+
 class Sandbox : public Bolt::Application {
 public:
 	Sandbox() {
@@ -20,7 +23,7 @@ public:
 	}
 
 	~Sandbox() {
-		Logger::Message("Destroy");
+		Logger::Message("SceneManager is init: " + StringHelper::ToString(SceneManager::IsInitialized()));
 	}
 
 	void Start() override {
@@ -32,10 +35,11 @@ public:
 	void OnPaused() override {
 
 	}
-	void BeforeQuit() override {
+	void OnQuit() override {
 		Logger::Message("Quit");
 	}
 };
+
 
 
 Bolt::Application* Bolt::CreateApplication() {

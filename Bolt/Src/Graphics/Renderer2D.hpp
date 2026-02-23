@@ -15,6 +15,7 @@ namespace Bolt {
 		void Shutdown();
 		void SetEnabled(bool enabled) { m_IsEnabled = enabled; }
 		bool IsEnabled()const { return m_IsEnabled; }
+		bool IsInitialized() const { return m_IsInitialized; }
 
 		const size_t GetRenderedInstancesCount() const { return m_RenderedInstancesCount; }
 		const float GetRRenderLoopDuration() const { return m_RenderLoopDuration; }
@@ -28,7 +29,7 @@ namespace Bolt {
 		// Info: Duration in ms
 		float m_RenderLoopDuration;
 
-		bool m_Initialized;
+		bool m_IsInitialized;
 		bool m_IsEnabled{ true };
 
 		QuadMesh m_QuadMesh;
