@@ -13,7 +13,6 @@ namespace Bolt {
 
 namespace Bolt {
 	class Scene;
-	
 
 	class BOLT_API SceneManager {
 		friend class Window;
@@ -44,6 +43,7 @@ namespace Bolt {
 		static bool HasSceneDefinition(const std::string& name);
 		static bool IsSceneLoaded(const std::string& name);
 
+		static bool IsInitialized() { return s_IsInitialized; }
 
 		static std::vector<std::string> GetRegisteredSceneNames();
 		static std::vector<std::string> GetLoadedSceneNames();
