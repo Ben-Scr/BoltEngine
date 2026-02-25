@@ -162,7 +162,7 @@ void GameSystem::PlayerMovement(Scene& scene) {
 		playerTr.Position += input;
 
 	if (!control)
-		playerTr.Rotation = LookAt2D(playerTr, mousePos) * 14;
+		playerTr.Rotation = LookAt2D(playerTr, mousePos);
 }
 
 void GameSystem::CameraMovement() {
