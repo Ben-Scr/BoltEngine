@@ -23,7 +23,7 @@ Windows Compatible C++ Engine
 
 ## How to Build
 ### CMake (recommended)
-1. Install **CMake 3.22+** and a C++23-compatible compiler (Visual Studio 2022 on Windows).
+1. Install **CMake 3.22+** and a C++23-compatible compiler.
 2. Configure the project:
    ```bash
    cmake -S . -B build -G "Visual Studio 17 2022" -A x64
