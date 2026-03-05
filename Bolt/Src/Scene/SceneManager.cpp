@@ -25,6 +25,17 @@ namespace Bolt {
 	void SceneManager::Initialize() {
 		BOLT_ASSERT(!s_IsInitialized, BoltErrorCode::AlreadyInitialized, "SceneManager already is initialized");
 
+
+
+		s_IsInitialized = true;
+		auto& firstPair = *s_SceneDefinitions.begin();
+		std::string firstSceneName = firstPair.first;
+		RegisterCoreComponents();
+		LoadScene(firstSceneName);
+		Logger::Message("SceneManager", "Loaded Scene '" + firstSceneName + "'");
+	}
+
+	void SceneManager::RegisterCoreComponents() {
 		REGISTER_COMPONENT(NameComponent, ComponentInfo("Name", ComponentCategory::Component));
 		REGISTER_COMPONENT(Transform2DComponent, ComponentInfo("Transform2D", ComponentCategory::Component));
 		REGISTER_COMPONENT(ParticleSystem2DComponent, ComponentInfo("ParticleSystem2D", ComponentCategory::Component));
@@ -32,12 +43,6 @@ namespace Bolt {
 		REGISTER_COMPONENT(Rigidbody2DComponent, ComponentInfo("Rigidbody2D", ComponentCategory::Component));
 		REGISTER_COMPONENT(Camera2DComponent, ComponentInfo("Camera2D", ComponentCategory::Component));
 		REGISTER_COMPONENT(SpriteRendererComponent, ComponentInfo("SpriteRenderer", ComponentCategory::Component));
-
-		s_IsInitialized = true;
-		auto& firstPair = *s_SceneDefinitions.begin();
-		std::string firstSceneName = firstPair.first;
-		LoadScene(firstSceneName);
-		Logger::Message("SceneManager", "Loaded Scene '" + firstSceneName + "'");
 	}
 
 	void SceneManager::Shutdown() {

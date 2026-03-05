@@ -57,6 +57,7 @@ namespace Bolt {
 
 	private:
 		static void Initialize();
+		static void RegisterCoreComponents();
 		static void Shutdown();
 
 		static void UpdateScenes();
