@@ -1,5 +1,5 @@
 # Bolt Engine
-Windows Compatible C++ Engine
+Windows (only) Compatible C++ Engine
 
 ## Preview
 <p align="center">
