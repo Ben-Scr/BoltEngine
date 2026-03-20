@@ -1,5 +1,5 @@
 # Bolt Engine
-Windows (only) Compatible C++ Engine
+Windows (only) Compatible Game-Engine written in C++
 
 ## Preview
 <p align="center">
