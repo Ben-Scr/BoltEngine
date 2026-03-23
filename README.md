@@ -9,11 +9,12 @@ Windows (only) Compatible Game-Engine written in C++
 
 
 ## External Libraries / API's
+- [BoltPhys](https://github.com/Ben-Scr/BoltPhys) - Lightweight 2D Physics Library
 - [OpenGL](https://www.opengl.org/) - Rendering API
 - [STB](https://github.com/nothings/stb) - Graphics Image Library
 - [GLM](https://github.com/g-truc/glm) - Graphics Math Library
 - [GLFW](https://github.com/glfw/glfw) - Window Library
-- [Box2D](https://github.com/erincatto/box2d) - 2D Physics Library/Engine
+- [Box2D](https://github.com/erincatto/box2d) - 2D Physics Library
 - [ENTT](https://github.com/skypjack/entt) - ECS Library
 - [Miniaudio](https://github.com/mackron/miniaudio) - Multiplatform Audio Library
 
