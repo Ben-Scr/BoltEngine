@@ -14,7 +14,7 @@ namespace Bolt {
         // Info: Creates an entity with the entered Components
         template<typename... Components>
         static Entity CreateWith() {
-            Scene& activeScene = *SceneManager::GetActiveScene();
+            Scene& activeScene = *SceneManager::Get().GetActiveScene();
 
             BOLT_ASSERT(activeScene.IsLoaded(), 
                 BoltErrorCode::Undefined,
@@ -29,7 +29,7 @@ namespace Bolt {
 
         template<typename... Components>
         static EntityHandle CreateHandleWith() {
-            Scene& activeScene = *SceneManager::GetActiveScene();
+            Scene& activeScene = *SceneManager::Get().GetActiveScene();
 
             BOLT_ASSERT(activeScene.IsLoaded(),
                 BoltErrorCode::Undefined,

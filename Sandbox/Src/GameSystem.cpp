@@ -60,7 +60,7 @@ void GameSystem::Update(Scene& scene) {
 	bool cntrlDown = Input::GetKey(KeyCode::LeftControl);
 
 	if (Input::GetKeyDown(KeyCode::R) && cntrlDown) {
-		//SceneManager::ReloadScene(scene.GetName());
+		SceneManager::Get().ReloadScene(scene.GetName());
 		return;
 	}
 	if (Input::GetKeyDown(KeyCode::O)) {

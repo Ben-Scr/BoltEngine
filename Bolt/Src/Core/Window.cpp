@@ -30,13 +30,13 @@ namespace Bolt {
 		if (!app) return;
 
 		if (app->m_Renderer2D) {
-			BOLT_TRY_CATCH_LOG( app->m_Renderer2D->BeginFrame());
+			BOLT_TRY_CATCH_LOG(app->m_Renderer2D->BeginFrame());
 			BOLT_TRY_CATCH_LOG(app->m_Renderer2D->EndFrame());
 		}
 
 		if (app->m_ImGuiRenderer) {
 			BOLT_TRY_CATCH_LOG(app->m_ImGuiRenderer->BeginFrame());
-			BOLT_TRY_CATCH_LOG(SceneManager::OnGuiScenes());
+			BOLT_TRY_CATCH_LOG(SceneManager::Get().OnGuiScenes());
 			BOLT_TRY_CATCH_LOG(app->m_ImGuiRenderer->EndFrame());
 		}
 

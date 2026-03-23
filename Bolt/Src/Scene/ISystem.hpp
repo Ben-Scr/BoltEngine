@@ -6,6 +6,9 @@ namespace Bolt {
 
 	class BOLT_API ISystem {
 	public:
+		friend class Scene;
+		friend class SceneDefinition;
+
 		virtual ~ISystem() = default;
 
 		// Info: Gets called every frame
@@ -29,10 +32,19 @@ namespace Bolt {
 		// Info: Gets called when gui can renders (every frame)
 		virtual void OnGui(Scene& scene) {}
 
-		bool IsEnabled() { return m_Enabled; }
+		bool IsEnabled() const { return m_Enabled; }
+
 	private:
+		void SetEnabled(bool enabled, Scene& scene) {
+			if (m_Enabled == enabled) {
+				return;
+			}
+			m_Enabled = enabled;
+			if (!m_Enabled) {
+				OnDisable(scene);
+			}
+		}
+
 		bool m_Enabled = true;
-		friend class Scene;
-		friend class SceneDefinition;
 	};
 }

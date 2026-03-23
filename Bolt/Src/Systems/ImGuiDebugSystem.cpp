@@ -120,7 +120,7 @@ namespace Bolt {
 		ImGui::Spacing();
 		ImGui::Separator();
 		if (ImGui::Button("Reload Scene", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-			SceneManager::ReloadScene(scene.GetName());
+			SceneManager::Get().ReloadScene(scene.GetName());
 			ImGui::End();
 			return;
 		}
@@ -161,7 +161,7 @@ namespace Bolt {
 				ImGui::Text("Entity: %s", entity.GetName().c_str());
 				ImGui::Separator();
 
-				SceneManager::GetComponentRegistry().ForEachComponentInfo(
+				SceneManager::Get().GetComponentRegistry().ForEachComponentInfo(
 					[&](std::type_index id, const ComponentInfo& info) {
 						if (info.has && info.has(entity)) {
 							ImGui::BulletText("%s", info.displayName.c_str());
@@ -216,7 +216,7 @@ namespace Bolt {
 		{
 			ImGui::Text("Loaded Scenes");
 
-			SceneManager::ForeachLoadedScene([](const Scene& scene) {
+			SceneManager::Get().ForeachLoadedScene([](const Scene& scene) {
 				ImGui::BulletText("%s", scene.GetName().c_str());
 				});
 		}

@@ -155,9 +155,8 @@ namespace Bolt {
 
 			for (auto& sysPtr : m_Systems) {
 				if (auto ptr = dynamic_cast<T*>(sysPtr.get())) {
-					if (ptr->m_enabled) {
-						ptr->disable(*this);
-						ptr->m_enabled = false;
+					if (ptr->IsEnabled()) {
+						ptr->SetEnabled(false, *this);
 					}
 				}
 			}
@@ -169,8 +168,7 @@ namespace Bolt {
 
 			for (auto& sysPtr : m_Systems) {
 				if (auto ptr = dynamic_cast<T*>(sysPtr.get())) {
-					ptr->m_enabled = true;
-					ptr->enable(*this);
+					ptr->SetEnabled(true, *this);
 				}
 			}
 		}
@@ -209,7 +207,7 @@ namespace Bolt {
 		void ForeachEnabledSystem(const std::function<void(ISystem&)>& func) {
 			for (size_t i = 0; i < m_Systems.size(); ++i) {
 				ISystem& s = *m_Systems[i];
-				if (s.m_Enabled)
+				if (s.IsEnabled())
 				{
 					try {
 						func(s);

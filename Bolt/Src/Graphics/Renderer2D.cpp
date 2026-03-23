@@ -37,7 +37,7 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScenes() {
-		SceneManager::ForeachLoadedScene([&](const Scene& scene) {
+		SceneManager::Get().ForeachLoadedScene([&](const Scene& scene) {
 			RenderScene(scene);
 			});
 	}

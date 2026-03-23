@@ -18,12 +18,19 @@ namespace Bolt {
 		friend class Window;
 
 	public:
+		SceneManager() = default;
+		SceneManager(const SceneManager&) = delete;
+		SceneManager& operator=(const SceneManager&) = delete;
+
 		template<typename T>
 		void RegisterComponentType(ComponentInfo componentInfo) {
-			s_ComponentRegistry.Register<T>(componentInfo);
+			m_ComponentRegistry.Register<T>(componentInfo);
 		}
 		ComponentRegistry& GetComponentRegistry() {
-			return s_ComponentRegistry;
+			return m_ComponentRegistry;
+		}
+		const ComponentRegistry& GetComponentRegistry() const {
+			return m_ComponentRegistry;
 		}
 		SceneDefinition& RegisterScene(const std::string& name);
 		std::weak_ptr<Scene> LoadScene(const std::string& name);
@@ -43,17 +50,20 @@ namespace Bolt {
 		bool HasSceneDefinition(const std::string& name);
 		bool IsSceneLoaded(const std::string& name);
 
-		bool IsInitialized() { return s_IsInitialized; }
+		bool IsInitialized() const { return m_IsInitialized; }
 
 		std::vector<std::string> GetRegisteredSceneNames();
 		std::vector<std::string> GetLoadedSceneNames();
 
-		void ForeachLoadedScene(const std::function<void(const Scene&)>& func) {
-			for (const std::weak_ptr<Scene>& scenePointer : s_LoadedScenes) {
-				if (auto scene = scenePointer.lock())
-					func(*scene);
+		void ForeachLoadedScene(const std::function<void(const Scene&)>& func) const {
+			for (const std::shared_ptr<Scene>& scenePointer : m_LoadedScenes) {
+				if (scenePointer) {
+					func(*scenePointer);
+				}
 			}
 		}
+
+		static SceneManager& Get();
 
 	private:
 		void Initialize();
@@ -65,19 +75,19 @@ namespace Bolt {
 		void FixedUpdateScenes();
 		void InitializeStartupScenes();
 
-		std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> s_SceneDefinitions;
-		std::vector<std::shared_ptr<Scene>> s_LoadedScenes;
-	    ComponentRegistry s_ComponentRegistry;
-		Scene* s_ActiveScene;
-		bool s_IsInitialized;
+		std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> m_SceneDefinitions;
+		std::vector<std::shared_ptr<Scene>> m_LoadedScenes;
+		ComponentRegistry m_ComponentRegistry;
+		Scene* m_ActiveScene = nullptr;
+		bool m_IsInitialized = false;
 
 		friend class Application;
 		friend class PhysicsSystem2D;
 	};
 
-//	// Note: Makro festlegen
-//#define REGISTER_COMPONENT(Type, componentInfo) \
-//    do { \
-//        SceneManager::RegisterComponentType<Type>(componentInfo); \
-//    } while (0)
+	//	// Note: Makro festlegen
+	//#define REGISTER_COMPONENT(Type, componentInfo) \
+	//    do { \
+	//        SceneManager::RegisterComponentType<Type>(componentInfo); \
+	//    } while (0)
 }

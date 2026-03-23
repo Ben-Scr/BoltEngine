@@ -20,11 +20,13 @@ namespace Bolt {
 		s_MainWorld.Step(dt);
 		s_MainWorld.GetDispatcher().Process(s_MainWorld.GetWorldID());
 
-		for (auto& scene : SceneManager::s_LoadedScenes)
+		for (auto& weakScene : SceneManager::Get().GetLoadedScenes())
 		{
-			for (auto [ent, rb, tf] : scene->GetRegistry().view<Rigidbody2DComponent, Transform2DComponent>(entt::exclude<DisabledTag>).each()) {
-				tf.Position = rb.GetPosition();
-				tf.Rotation = rb.GetRotation();
+			if (auto scene = weakScene.lock()) {
+				for (auto [ent, rb, tf] : scene->GetRegistry().view<Rigidbody2DComponent, Transform2DComponent>(entt::exclude<DisabledTag>).each()) {
+					tf.Position = rb.GetPosition();
+					tf.Rotation = rb.GetRotation();
+				}
 			}
 		}
 	}

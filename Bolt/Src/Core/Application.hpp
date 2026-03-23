@@ -14,6 +14,8 @@
 namespace Bolt {
 	class BOLT_API Application {
 		friend class Window;
+		friend class SceneManager;
+
 		using DurationChrono = std::chrono::high_resolution_clock::duration;
 		using Clock = std::chrono::high_resolution_clock;
 
@@ -48,12 +50,15 @@ namespace Bolt {
 
 		static Application* GetInstance() { return s_Instance; }
 
+		SceneManager* GetSceneManager() { return m_SceneManager.get(); }
+		const SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
+
 		static void Quit();
 		static void Pause(bool paused) { s_IsPaused = paused; }
 		static void Reload() { s_ShouldQuit = true; s_CanReload = true; };
 		static const bool IsPaused() { return s_IsPaused; }
 
-
+	private:
 		std::unique_ptr<Window> m_Window;
 		std::unique_ptr<Renderer2D> m_Renderer2D;
 		std::unique_ptr<ImGuiRenderer> m_ImGuiRenderer;
@@ -62,7 +67,6 @@ namespace Bolt {
 		std::unique_ptr<PhysicsSystem2D> m_PhysicsSystem2D;
 		std::unique_ptr<SceneManager> m_SceneManager;
 
-	private:
 		static std::string s_Name;
 
 		static bool s_ForceSingleInstance;
