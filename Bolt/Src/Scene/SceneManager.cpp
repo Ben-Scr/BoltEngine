@@ -25,8 +25,6 @@ namespace Bolt {
 	void SceneManager::Initialize() {
 		BOLT_ASSERT(!s_IsInitialized, BoltErrorCode::AlreadyInitialized, "SceneManager already is initialized");
 
-
-
 		s_IsInitialized = true;
 		auto& firstPair = *s_SceneDefinitions.begin();
 		std::string firstSceneName = firstPair.first;

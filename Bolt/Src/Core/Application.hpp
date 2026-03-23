@@ -3,6 +3,7 @@
 #include "Graphics/GizmoRenderer.hpp"
 #include "Core/Window.hpp"
 #include "Physics/PhysicsSystem2D.hpp"
+#include "Scene/SceneManager.hpp"
 #include "Gui/ImGuiRenderer.hpp"
 #include "Gui/GuiRenderer.hpp"
 #include  "Utils/Event.hpp"
@@ -51,6 +52,16 @@ namespace Bolt {
 		static void Pause(bool paused) { s_IsPaused = paused; }
 		static void Reload() { s_ShouldQuit = true; s_CanReload = true; };
 		static const bool IsPaused() { return s_IsPaused; }
+
+
+		std::unique_ptr<Window> m_Window;
+		std::unique_ptr<Renderer2D> m_Renderer2D;
+		std::unique_ptr<ImGuiRenderer> m_ImGuiRenderer;
+		std::unique_ptr<GuiRenderer> m_GuiRenderer;
+		std::unique_ptr<GizmoRenderer2D> m_GizmoRenderer2D;
+		std::unique_ptr<PhysicsSystem2D> m_PhysicsSystem2D;
+		std::unique_ptr<SceneManager> m_SceneManager;
+
 	private:
 		static std::string s_Name;
 
@@ -66,12 +77,6 @@ namespace Bolt {
 
 		static Application* s_Instance;
 
-		std::unique_ptr<Window> m_Window;
-		std::unique_ptr<Renderer2D> m_Renderer2D;
-		std::unique_ptr<ImGuiRenderer> m_ImGuiRenderer;
-		std::unique_ptr<GuiRenderer> m_GuiRenderer;
-		std::unique_ptr<GizmoRenderer2D> m_GizmoRenderer2D;
-		std::unique_ptr<PhysicsSystem2D> m_PhysicsSystem2D;
 
 		double m_FixedUpdateAccumulator;
 		std::chrono::steady_clock::time_point m_LastFrameTime = Clock::now();

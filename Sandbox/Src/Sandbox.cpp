@@ -17,13 +17,13 @@ using namespace Bolt;
 class Sandbox : public Bolt::Application {
 public:
 	Sandbox() {
-		Bolt::SceneDefinition& def = Bolt::SceneManager::RegisterScene("Game");
+		Bolt::SceneDefinition& def = m_SceneManager->RegisterScene("Game");
 		def.AddSystem<GameSystem>();
 		def.AddSystem<ImGuiDebugSystem>();
 	}
 
 	~Sandbox() {
-		Logger::Message("SceneManager is init: " + StringHelper::ToString(SceneManager::IsInitialized()));
+		Logger::Message("SceneManager is init: " + StringHelper::ToString(m_SceneManager->IsInitialized()));
 	}
 
 	void Start() override {

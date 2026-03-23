@@ -19,36 +19,36 @@ namespace Bolt {
 
 	public:
 		template<typename T>
-		static void RegisterComponentType(ComponentInfo componentInfo) {
+		void RegisterComponentType(ComponentInfo componentInfo) {
 			s_ComponentRegistry.Register<T>(componentInfo);
 		}
-		static ComponentRegistry& GetComponentRegistry() {
+		ComponentRegistry& GetComponentRegistry() {
 			return s_ComponentRegistry;
 		}
-		static SceneDefinition& RegisterScene(const std::string& name);
-		static std::weak_ptr<Scene> LoadScene(const std::string& name);
+		SceneDefinition& RegisterScene(const std::string& name);
+		std::weak_ptr<Scene> LoadScene(const std::string& name);
 
-		static std::weak_ptr<Scene> LoadSceneAdditive(const std::string& name);
-		static std::weak_ptr<Scene> ReloadScene(const std::string name);
+		std::weak_ptr<Scene> LoadSceneAdditive(const std::string& name);
+		std::weak_ptr<Scene> ReloadScene(const std::string name);
 
-		static void UnloadScene(const std::string& name);
-		static void UnloadAllScenes(bool includePersistent = false);
+		void UnloadScene(const std::string& name);
+		void UnloadAllScenes(bool includePersistent = false);
 
-		static std::vector< std::weak_ptr<Scene>> GetLoadedScenes();
-		static std::weak_ptr<Scene> GetLoadedScene(const std::string& name);
-		static Scene* GetActiveScene();
+		std::vector< std::weak_ptr<Scene>> GetLoadedScenes();
+		std::weak_ptr<Scene> GetLoadedScene(const std::string& name);
+		Scene* GetActiveScene();
 
-		static void SetActiveScene(const std::string& name);
+		void SetActiveScene(const std::string& name);
 
-		static bool HasSceneDefinition(const std::string& name);
-		static bool IsSceneLoaded(const std::string& name);
+		bool HasSceneDefinition(const std::string& name);
+		bool IsSceneLoaded(const std::string& name);
 
-		static bool IsInitialized() { return s_IsInitialized; }
+		bool IsInitialized() { return s_IsInitialized; }
 
-		static std::vector<std::string> GetRegisteredSceneNames();
-		static std::vector<std::string> GetLoadedSceneNames();
+		std::vector<std::string> GetRegisteredSceneNames();
+		std::vector<std::string> GetLoadedSceneNames();
 
-		static void ForeachLoadedScene(const std::function<void(const Scene&)>& func) {
+		void ForeachLoadedScene(const std::function<void(const Scene&)>& func) {
 			for (const std::weak_ptr<Scene>& scenePointer : s_LoadedScenes) {
 				if (auto scene = scenePointer.lock())
 					func(*scene);
@@ -56,28 +56,28 @@ namespace Bolt {
 		}
 
 	private:
-		static void Initialize();
-		static void RegisterCoreComponents();
-		static void Shutdown();
+		void Initialize();
+		void RegisterCoreComponents();
+		void Shutdown();
 
-		static void UpdateScenes();
-		static void OnGuiScenes();
-		static void FixedUpdateScenes();
-		static void InitializeStartupScenes();
+		void UpdateScenes();
+		void OnGuiScenes();
+		void FixedUpdateScenes();
+		void InitializeStartupScenes();
 
-		static std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> s_SceneDefinitions;
-		static std::vector<std::shared_ptr<Scene>> s_LoadedScenes;
-		static ComponentRegistry s_ComponentRegistry;
-		static Scene* s_ActiveScene;
-		static bool s_IsInitialized;
+		std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> s_SceneDefinitions;
+		std::vector<std::shared_ptr<Scene>> s_LoadedScenes;
+	    ComponentRegistry s_ComponentRegistry;
+		Scene* s_ActiveScene;
+		bool s_IsInitialized;
 
 		friend class Application;
 		friend class PhysicsSystem2D;
 	};
 
-	// Note: Makro festlegen
-#define REGISTER_COMPONENT(Type, componentInfo) \
-    do { \
-        SceneManager::RegisterComponentType<Type>(componentInfo); \
-    } while (0)
+//	// Note: Makro festlegen
+//#define REGISTER_COMPONENT(Type, componentInfo) \
+//    do { \
+//        SceneManager::RegisterComponentType<Type>(componentInfo); \
+//    } while (0)
 }

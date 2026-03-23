@@ -28,8 +28,8 @@ struct AsteriodData {
 
 
 void GameSystem::Start(Scene& scene) {
-	REGISTER_COMPONENT(AsteriodData, ComponentInfo("AsteriodData", ComponentCategory::Component));
-	REGISTER_COMPONENT(LaserTag, ComponentInfo("LaserTag", ComponentCategory::Tag));
+	//REGISTER_COMPONENT(AsteriodData, ComponentInfo("AsteriodData", ComponentCategory::Component));
+	//REGISTER_COMPONENT(LaserTag, ComponentInfo("LaserTag", ComponentCategory::Tag));
 
 	EntityHelper::CreateCamera2DEntity();
 	OpenGL::SetClearColor(Color(0.1f, 0.1f, 0.1f));
@@ -60,7 +60,7 @@ void GameSystem::Update(Scene& scene) {
 	bool cntrlDown = Input::GetKey(KeyCode::LeftControl);
 
 	if (Input::GetKeyDown(KeyCode::R) && cntrlDown) {
-		SceneManager::ReloadScene(scene.GetName());
+		//SceneManager::ReloadScene(scene.GetName());
 		return;
 	}
 	if (Input::GetKeyDown(KeyCode::O)) {
