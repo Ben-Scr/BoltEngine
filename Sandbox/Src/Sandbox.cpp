@@ -9,11 +9,20 @@
 
 #include <iostream>
 
+#include <BoltPhys/Body.hpp>
+#include <BoltPhys/Collider.hpp>
+#include <BoltPhys/PhysicsWorld.hpp>
+#include <BoltPhys/StaticBody.hpp>
+#include <BoltPhys/BoxCollider.hpp>
+
 using namespace Bolt;
+using namespace BoltPhys;
 
 
 class Sandbox : public Bolt::Application {
 public:
+	PhysicsWorld world;
+
 	void ConfigureScenes() override {
 		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("Game");
 		def.AddSystem<GameSystem>();
@@ -24,7 +33,14 @@ public:
 	~Sandbox() override = default;
 
 	void Start() override {
-		
+		BoltPhys::DynamicBody player;
+		BoltPhys::BoxCollider playerCollider({ 0.5f, 1.0f });
+
+		world.RegisterBody(player);
+		world.RegisterCollider(playerCollider);
+		world.AttachCollider(player, playerCollider);
+
+		world.Step(1.0f / 60.0f);
 	}
 	void Update() override {
 		
