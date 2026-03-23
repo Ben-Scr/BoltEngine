@@ -20,14 +20,18 @@ namespace Bolt {
 		using Clock = std::chrono::high_resolution_clock;
 
 	public:
-		Application() : m_FixedUpdateAccumulator{ 0 } {
+		Application()
+			: m_SceneManager(std::make_unique<SceneManager>())
+			, m_FixedUpdateAccumulator{ 0 } {
 			Application::s_Instance = this;
 		};
 
 		virtual ~Application() {}
 
+
 		void Run();
 
+		virtual void ConfigureScenes() {}
 		virtual void Start() = 0;
 		virtual void Update() = 0;
 		virtual void OnPaused() = 0;
@@ -43,7 +47,7 @@ namespace Bolt {
 		static bool GetForceSingleInstance() { return s_ForceSingleInstance; }
 		static bool GetRunInBackground() { return s_RunInBackground; }
 		static float GetMaxPossibleFPS() { return s_MaxPossibleFPS; }
-		static Window* GetWindow() { return s_Instance->m_Window.get(); }
+		static Window* GetWindow() { return s_Instance ? s_Instance->m_Window.get() : nullptr; }
 
 		Renderer2D* GetRenderer2D() { return m_Renderer2D.get(); }
 		static std::string GetVersion() { return "1.0"; }

@@ -1,8 +1,9 @@
 #pragma once
-#include <string>
+#include <functional>
 #include <memory>
-#include <vector>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/ComponentRegistry.hpp"
@@ -36,24 +37,25 @@ namespace Bolt {
 		std::weak_ptr<Scene> LoadScene(const std::string& name);
 
 		std::weak_ptr<Scene> LoadSceneAdditive(const std::string& name);
-		std::weak_ptr<Scene> ReloadScene(const std::string name);
+		std::weak_ptr<Scene> ReloadScene(const std::string& name);
 
 		void UnloadScene(const std::string& name);
 		void UnloadAllScenes(bool includePersistent = false);
 
-		std::vector< std::weak_ptr<Scene>> GetLoadedScenes();
+		std::vector<std::weak_ptr<Scene>> GetLoadedScenes();
 		std::weak_ptr<Scene> GetLoadedScene(const std::string& name);
 		Scene* GetActiveScene();
+		const Scene* GetActiveScene() const;
 
 		void SetActiveScene(const std::string& name);
 
-		bool HasSceneDefinition(const std::string& name);
-		bool IsSceneLoaded(const std::string& name);
+		bool HasSceneDefinition(const std::string& name) const;
+		bool IsSceneLoaded(const std::string& name) const;
 
 		bool IsInitialized() const { return m_IsInitialized; }
 
-		std::vector<std::string> GetRegisteredSceneNames();
-		std::vector<std::string> GetLoadedSceneNames();
+		std::vector<std::string> GetRegisteredSceneNames() const;
+		std::vector<std::string> GetLoadedSceneNames() const;
 
 		void ForeachLoadedScene(const std::function<void(const Scene&)>& func) const {
 			for (const std::shared_ptr<Scene>& scenePointer : m_LoadedScenes) {
@@ -66,6 +68,9 @@ namespace Bolt {
 		static SceneManager& Get();
 
 	private:
+		using SceneDefinitionMap = std::unordered_map<std::string, std::unique_ptr<SceneDefinition>>;
+		using LoadedSceneList = std::vector<std::shared_ptr<Scene>>;
+
 		void Initialize();
 		void RegisterCoreComponents();
 		void Shutdown();
@@ -74,9 +79,16 @@ namespace Bolt {
 		void OnGuiScenes();
 		void FixedUpdateScenes();
 		void InitializeStartupScenes();
+		std::shared_ptr<Scene> LoadSceneInternal(const std::string& name, bool additive);
+		SceneDefinition& GetSceneDefinitionOrThrow(const std::string& name);
+		const SceneDefinition& GetSceneDefinitionOrThrow(const std::string& name) const;
+		LoadedSceneList::iterator FindLoadedSceneIterator(const std::string& name);
+		LoadedSceneList::const_iterator FindLoadedSceneIterator(const std::string& name) const;
+		void ReleaseScene(LoadedSceneList::iterator it);
+		void RefreshActiveScene();
 
-		std::unordered_map<std::string, std::unique_ptr<SceneDefinition>> m_SceneDefinitions;
-		std::vector<std::shared_ptr<Scene>> m_LoadedScenes;
+		SceneDefinitionMap m_SceneDefinitions;
+		LoadedSceneList m_LoadedScenes;
 		ComponentRegistry m_ComponentRegistry;
 		Scene* m_ActiveScene = nullptr;
 		bool m_IsInitialized = false;
@@ -84,10 +96,4 @@ namespace Bolt {
 		friend class Application;
 		friend class PhysicsSystem2D;
 	};
-
-	//	// Note: Makro festlegen
-	//#define REGISTER_COMPONENT(Type, componentInfo) \
-	//    do { \
-	//        SceneManager::RegisterComponentType<Type>(componentInfo); \
-	//    } while (0)
 }

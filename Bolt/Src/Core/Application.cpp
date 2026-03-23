@@ -147,7 +147,7 @@ namespace Bolt {
 
 		timer.Reset();
 		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
-		m_SceneManager = std::make_unique<SceneManager>();
+		ConfigureScenes();
 		m_SceneManager->Initialize();
 		Logger::Message("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
@@ -168,14 +168,14 @@ namespace Bolt {
 		if (!s_IsPaused) {
 			AudioManager::Update();
 			Update();
-			m_SceneManager->UpdateScenes();
+			if (m_SceneManager) m_SceneManager->UpdateScenes();
 
 			if (m_Renderer2D)
 				BOLT_TRY_CATCH_LOG(m_Renderer2D->BeginFrame());
 
 			if (m_ImGuiRenderer) {
 				BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
-				m_SceneManager->OnGuiScenes();
+				if (m_SceneManager) m_SceneManager->OnGuiScenes();
 			}
 
 			if (m_GuiRenderer)
@@ -194,8 +194,8 @@ namespace Bolt {
 	}
 
 	void Application::BeginFixedFrame() {
-		m_SceneManager->FixedUpdateScenes();
-		m_PhysicsSystem2D->FixedUpdate(Time::GetFixedDeltaTime());
+		if (m_SceneManager) m_SceneManager->FixedUpdateScenes();
+		if (m_PhysicsSystem2D) m_PhysicsSystem2D->FixedUpdate(Time::GetFixedDeltaTime());
 	}
 
 	void Application::EndFrame() {
@@ -240,11 +240,11 @@ namespace Bolt {
 		OnQuit();
 
 		if (m_PhysicsSystem2D) m_PhysicsSystem2D->Shutdown();
-		if (m_PhysicsSystem2D) m_GizmoRenderer2D->Shutdown();
+		if (m_GizmoRenderer2D) m_GizmoRenderer2D->Shutdown();
 		if (m_Renderer2D) m_Renderer2D->Shutdown();
 		if (m_ImGuiRenderer) m_ImGuiRenderer->Shutdown();
 
-		m_SceneManager->Shutdown();
+		if (m_SceneManager) m_SceneManager->Shutdown();
 		TextureManager::Shutdown();
 
 		if (AudioManager::IsInitialized())

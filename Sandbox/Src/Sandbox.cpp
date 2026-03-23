@@ -12,19 +12,16 @@
 using namespace Bolt;
 
 
-
-
 class Sandbox : public Bolt::Application {
 public:
-	Sandbox() {
-		Bolt::SceneDefinition& def = SceneManager::Get().RegisterScene("Game");
+	void ConfigureScenes() override {
+		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("Game");
 		def.AddSystem<GameSystem>();
 		def.AddSystem<ImGuiDebugSystem>();
+		def.SetAsStartupScene();
 	}
 
-	~Sandbox() {
-		Logger::Message("SceneManager is init: " + StringHelper::ToString(SceneManager::Get().IsInitialized()));
-	}
+	~Sandbox() override = default;
 
 	void Start() override {
 		
