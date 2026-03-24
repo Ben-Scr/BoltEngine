@@ -194,6 +194,7 @@ namespace Bolt {
 	}
 
 	void Application::BeginFixedFrame() {
+		FixedUpdate();
 		if (m_SceneManager) m_SceneManager->FixedUpdateScenes();
 		if (m_PhysicsSystem2D) m_PhysicsSystem2D->FixedUpdate(Time::GetFixedDeltaTime());
 	}

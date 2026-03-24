@@ -21,6 +21,7 @@
 #include <Graphics/Gizmos.hpp>
 
 #include <Core/Time.hpp>
+#include <Core/Input.hpp>
 
 using namespace Bolt;
 using namespace BoltPhys;
@@ -67,10 +68,17 @@ public:
 		world.AttachCollider(player, playerCollider);
 	}
 	void Update() override {
-		world.Step(Bolt::Time::GetFixedDeltaTime());
 		Bolt::Gizmo::DrawSquare(obstacle.GetPosition(), obstacleCollider.GetHalfExtents() * 2.0f, 0);
 		playerEntity.GetComponent<Transform2DComponent>().Position = player.GetPosition();
+
+		if(Input::GetAxis() != Zero())
+		player.SetVelocity(Input::GetAxis() * 5.0f);
 	}
+
+	void FixedUpdate() override {
+		world.Step(Bolt::Time::GetFixedDeltaTime());
+	}
+
 	void OnPaused() override {
 
 	}

@@ -34,6 +34,7 @@ namespace Bolt {
 		virtual void ConfigureScenes() {}
 		virtual void Start() = 0;
 		virtual void Update() = 0;
+		virtual void FixedUpdate() = 0;
 		virtual void OnPaused() = 0;
 		virtual void OnQuit() = 0;
 
