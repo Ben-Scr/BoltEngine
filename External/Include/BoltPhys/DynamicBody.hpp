@@ -3,9 +3,9 @@
 #include "Body.hpp"
 
 namespace BoltPhys {
-    class BOLT_PHYS_API StaticBody final : public Body
+    class BOLT_PHYS_API DynamicBody final : public Body
     {
     public:
-        StaticBody();
+        DynamicBody();
     };
 }

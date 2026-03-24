@@ -39,11 +39,9 @@ public:
 		world.RegisterBody(player);
 		world.RegisterCollider(playerCollider);
 		world.AttachCollider(player, playerCollider);
-
-		world.Step(1.0f / 60.0f);
 	}
 	void Update() override {
-		
+		world.Step(1.0f / 60.0f);
 	}
 	void OnPaused() override {
 
