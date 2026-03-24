@@ -9,7 +9,7 @@ namespace BoltPhys {
     class BOLT_PHYS_API Body
     {
     public:
-        virtual ~Body() = default;
+        virtual ~Body();
 
         BodyType GetType() const noexcept;
 

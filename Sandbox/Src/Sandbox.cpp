@@ -15,7 +15,10 @@
 #include <BoltPhys/PhysicsWorld.hpp>
 #include <BoltPhys/StaticBody.hpp>
 #include <BoltPhys/DynamicBody.hpp>
+#include <BoltPhys/KinematicBody.hpp>
 #include <BoltPhys/BoxCollider.hpp>
+
+#include <Graphics/Gizmos.hpp>
 
 #include <Core/Time.hpp>
 
@@ -28,6 +31,8 @@ public:
 	PhysicsWorld world;
 	BoltPhys::DynamicBody player;
 	Entity playerEntity{ Entity::Null };
+	BoltPhys::BoxCollider playerCollider = BoltPhys::BoxCollider({ 0.5f, 0.5f });
+	BoltPhys::BoxCollider obstacleCollider = BoltPhys::BoxCollider({ 10.f, 0.5f });
 
 	BoltPhys::StaticBody obstacle;
 
@@ -45,17 +50,17 @@ public:
 
 		playerEntity = Bolt::EntityHelper::CreateWith<SpriteRendererComponent, Transform2DComponent>();
 
-		BoltPhys::BoxCollider playerCollider({ 0.5f, 1.0f });
-		BoltPhys::BoxCollider obstacleCollider({ 10.f, 1.0f });
-
 		obstacle.SetPosition(BoltPhys::Vec2(0, -5.0f));
+		obstacle.SetGravityEnabled(false);
 
 		world.RegisterBody(obstacle);
 		world.RegisterCollider(obstacleCollider);
 		world.AttachCollider(obstacle, obstacleCollider);
 
+		auto& obstacleTr  = obstacleEnt.GetComponent<Transform2DComponent>();
 
-		obstacleEnt.GetComponent<Transform2DComponent>().Position = Bolt::Vec2(0, -5.0f);
+		obstacleTr.Position = obstacle.GetPosition();
+		obstacleTr.Scale = obstacleCollider.GetHalfExtents() * 2.0f;
 
 		world.RegisterBody(player);
 		world.RegisterCollider(playerCollider);
@@ -63,8 +68,8 @@ public:
 	}
 	void Update() override {
 		world.Step(Bolt::Time::GetFixedDeltaTime());
-		auto position = player.GetPosition();
-		playerEntity.GetComponent<Transform2DComponent>().Position = Bolt::Vec2(position.x, position.y);
+		Bolt::Gizmo::DrawSquare(obstacle.GetPosition(), obstacleCollider.GetHalfExtents() * 2.0f, 0);
+		playerEntity.GetComponent<Transform2DComponent>().Position = player.GetPosition();
 	}
 	void OnPaused() override {
 

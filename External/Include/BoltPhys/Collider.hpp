@@ -9,7 +9,7 @@ namespace BoltPhys {
     class BOLT_PHYS_API Collider
     {
     public:
-        virtual ~Collider() = default;
+        virtual ~Collider();
 
         ColliderType GetType() const noexcept;
 

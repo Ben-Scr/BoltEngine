@@ -37,6 +37,8 @@ namespace BoltPhys {
         void IntegrateBodies(float dt);
         void ApplyWorldBounds(Body& body) const noexcept;
         void DetectCollisions();
+        void ResolveContacts();
+
         Contact BuildContact(Body& bodyA, Body& bodyB) const;
 
         WorldSettings m_settings;

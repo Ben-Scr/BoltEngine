@@ -1,62 +1,8 @@
 #pragma once
+#include <glm/vec2.hpp>
 
 namespace BoltPhys {
-    struct Vec2
-    {
-        float x = 0.0f;
-        float y = 0.0f;
-
-        constexpr Vec2 operator+(const Vec2& other) const noexcept
-        {
-            return { x + other.x, y + other.y };
-        }
-
-        constexpr Vec2 operator-(const Vec2& other) const noexcept
-        {
-            return { x - other.x, y - other.y };
-        }
-
-        constexpr Vec2 operator-() const noexcept
-        {
-            return { -x, -y };
-        }
-
-        constexpr Vec2 operator*(float scalar) const noexcept
-        {
-            return { x * scalar, y * scalar };
-        }
-
-        constexpr Vec2 operator/(float scalar) const noexcept
-        {
-            return { x / scalar, y / scalar };
-        }
-
-        constexpr Vec2& operator+=(const Vec2& other) noexcept
-        {
-            x += other.x;
-            y += other.y;
-            return *this;
-        }
-
-        constexpr Vec2& operator-=(const Vec2& other) noexcept
-        {
-            x -= other.x;
-            y -= other.y;
-            return *this;
-        }
-
-        constexpr Vec2& operator*=(float scalar) noexcept
-        {
-            x *= scalar;
-            y *= scalar;
-            return *this;
-        }
-    };
-
-    constexpr Vec2 operator*(float scalar, const Vec2& value) noexcept
-    {
-        return value * scalar;
-    }
+    using Vec2 = glm::vec2;
 
     constexpr float Dot(const Vec2& a, const Vec2& b) noexcept
     {
