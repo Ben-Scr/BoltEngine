@@ -36,7 +36,7 @@ public:
 	~Sandbox() override = default;
 
 	void Start() override {
-	
+		EntityHelper::CreateCamera2DEntity();
 	}
 	void Update() override {
 		

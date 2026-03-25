@@ -166,6 +166,10 @@
     <ClCompile Include="Src\Audio\Audio.cpp" />
     <ClCompile Include="Src\Audio\AudioManager.cpp" />
     <ClCompile Include="Src\Components\Audio\AudioSourceComponent.cpp" />
+    <ClCompile Include="Src\Components\General\NameComponent.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Src\Components\Physics\BoxCollider2DComponent.cpp" />
     <ClCompile Include="Src\Components\Physics\Collider2D.cpp" />
     <ClCompile Include="Src\Components\Graphics\ParticleSystem2DComponent.cpp" />

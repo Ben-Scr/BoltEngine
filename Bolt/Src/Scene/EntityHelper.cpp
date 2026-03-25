@@ -5,6 +5,7 @@
 #include "Components/Graphics/SpriteRendererComponent.hpp"
 #include "Components/General/RectTransformComponent.hpp"
 #include "Components/Graphics/ImageComponent.hpp"
+#include "Components/General/NameComponent.hpp"
 #include "Components/Tags.hpp"
 
 namespace Bolt {
@@ -18,9 +19,20 @@ namespace Bolt {
 		return !entity.HasComponent<DisabledTag>();
 	}
 
+	std::size_t EntityHelper::EntitiesCount() {
+		std::size_t count = 0;
+
+		SceneManager::Get().ForeachLoadedScene([&](const Scene& scene) {
+			count += scene.GetRegistry().view<EntityHandle>().size();
+			});
+
+		return count;
+	}
 
 	Entity EntityHelper::CreateCamera2DEntity() {
-		return CreateWith<Transform2DComponent, Camera2DComponent>();
+		Entity entity = CreateWith<Transform2DComponent, Camera2DComponent>();
+		entity.AddComponent<NameComponent>(NameComponent("Camera 2D"));
+		return entity;
 	}
 
 	Entity EntityHelper::CreateSpriteEntity() {

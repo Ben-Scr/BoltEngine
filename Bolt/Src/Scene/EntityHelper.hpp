@@ -44,6 +44,8 @@ namespace Bolt {
         static void SetEnabled(Entity entity, bool enabled);
         static bool IsEnabled(Entity entity);
 
+        // Info: Gives you back the global entities count
+        static std::size_t EntitiesCount();
 
         // Info: Basically calls CreateWith<Transform2D, Canera2D>();
         static Entity CreateCamera2DEntity();
