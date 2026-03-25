@@ -10,22 +10,14 @@
 #include <GLFW/glfw3.h>
 
 namespace Bolt {
-	float Application::s_TargetFramerate = 144;
-	float Application::s_MaxPossibleFPS = 0;
 	const float Application::k_PausedTargetFrameRate = 10;
 	std::string Application::s_Name = "App";
 
-	bool Application::s_ShouldQuit = false;
-	bool Application::s_RunInBackground = false;
-	bool Application::s_IsPaused = false;
-	bool Application::s_CanReload = false;
-
 	Application* Application::s_Instance = nullptr;
-	bool Application::s_ForceSingleInstance = false;
 
 	void Application::Run()
 	{
-		if (s_ForceSingleInstance) {
+		if (m_ForceSingleInstance) {
 			static SingleInstance instance(s_Name);
 			BOLT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 		}
@@ -37,13 +29,13 @@ namespace Bolt {
 		Start();
 		m_LastFrameTime = Clock::now();
 
-		while (m_Window && !m_Window->ShouldClose() && !s_ShouldQuit) {
+		while (m_Window && !m_Window->ShouldClose() && !m_ShouldQuit) {
 			const float targetFps = Max(GetTargetFramerate(), 1.0f);
 			DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / targetFps));
 			auto now = Clock::now();
 
-			// Info: CPU idling for fps cut if window isn't vsync or app is paused
-			if (!m_Window->IsVsync() || s_IsPaused)
+			// Info: CPU idling for fps cap if vsync is disabled, or for paused frame cap.
+			if (!m_Window->IsVsync() || m_IsPaused)
 			{
 				auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
 
@@ -54,6 +46,7 @@ namespace Bolt {
 
 			auto frameStart = Clock::now();
 			float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
+			m_MaxPossibleFPS = deltaTime > 0.0f ? 1.0f / deltaTime : 0.0f;
 
 			if (deltaTime >= 0.25f) {
 				ResetTimePoints();
@@ -65,7 +58,7 @@ namespace Bolt {
 			m_FixedUpdateAccumulator += m_Time.GetDeltaTime();
 			while (m_FixedUpdateAccumulator >= m_Time.GetUnscaledFixedDeltaTime()) {
 				try {
-					if (!s_IsPaused) {
+					if (!m_IsPaused) {
 
 						BeginFixedFrame();
 						EndFixedFrame();
@@ -73,7 +66,7 @@ namespace Bolt {
 				}
 				catch (const std::exception& e) {
 					Logger::Error(e.what());
-					s_ShouldQuit = true;
+					m_ShouldQuit = true;
 					break;
 				}
 
@@ -91,8 +84,8 @@ namespace Bolt {
 
 		Shutdown();
 
-		if (s_CanReload) {
-			s_CanReload = false;
+		if (m_CanReload) {
+			m_CanReload = false;
 			Run();
 		}
 	}
@@ -176,7 +169,7 @@ namespace Bolt {
 	void Application::BeginFrame() {
 		CoreInput();
 
-		if (!s_IsPaused) {
+		if (!m_IsPaused) {
 			if (m_Configuration.EnableAudio) AudioManager::Update();
 			Update();
 			if (m_SceneManager) m_SceneManager->UpdateScenes();
@@ -201,7 +194,7 @@ namespace Bolt {
 	}
 
 	void Application::Quit() {
-		s_ShouldQuit = true;
+		if (s_Instance) s_Instance->m_ShouldQuit = true;
 	}
 
 	void Application::BeginFixedFrame() {
@@ -211,7 +204,7 @@ namespace Bolt {
 	}
 
 	void Application::EndFrame() {
-		if (!s_IsPaused) {
+		if (!m_IsPaused) {
 			if (m_Renderer2D)
 				BOLT_TRY_CATCH_LOG(m_Renderer2D->EndFrame());
 
@@ -265,6 +258,6 @@ namespace Bolt {
 		if (m_Window) m_Window->Destroy();
 		Window::Shutdown();
 
-		s_ShouldQuit = false;
+		m_ShouldQuit = false;
 	}
 }

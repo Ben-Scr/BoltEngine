@@ -68,7 +68,7 @@ namespace Bolt {
 			Logger::Message("Focused " + std::to_string(focused));
 		}
 		else {
-			if (!Application::s_RunInBackground)
+			if (!Application::GetRunInBackground())
 				Application::Pause(true);
 
 			Logger::Message("Unfocused " + std::to_string(focused));

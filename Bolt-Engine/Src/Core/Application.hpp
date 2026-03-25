@@ -56,15 +56,15 @@ namespace Bolt {
 		virtual void OnQuit() = 0;
 
 		static void SetName(const std::string& s) { s_Name = s; }
-		static void SetTargetFramerate(float framerate) { s_TargetFramerate = framerate; }
-		static void SetForceSingleInstance(bool value) { s_ForceSingleInstance = value; }
-		static void SetRunInBackground(bool value) { s_RunInBackground = value; }
+		static void SetTargetFramerate(float framerate) { if (s_Instance) s_Instance->m_TargetFramerate = framerate; }
+		static void SetForceSingleInstance(bool value) { if (s_Instance) s_Instance->m_ForceSingleInstance = value; }
+		static void SetRunInBackground(bool value) { if (s_Instance) s_Instance->m_RunInBackground = value; }
 
 		static const std::string& GetName() { return s_Name; }
-		static float GetTargetFramerate() { return s_IsPaused ? k_PausedTargetFrameRate : s_TargetFramerate; }
-		static bool GetForceSingleInstance() { return s_ForceSingleInstance; }
-		static bool GetRunInBackground() { return s_RunInBackground; }
-		static float GetMaxPossibleFPS() { return s_MaxPossibleFPS; }
+		static float GetTargetFramerate() { return s_Instance ? (s_Instance->m_IsPaused ? k_PausedTargetFrameRate : s_Instance->m_TargetFramerate) : 0.0f; }
+		static bool GetForceSingleInstance() { return s_Instance ? s_Instance->m_ForceSingleInstance : false; }
+		static bool GetRunInBackground() { return s_Instance ? s_Instance->m_RunInBackground : false; }
+		static float GetMaxPossibleFPS() { return s_Instance ? s_Instance->m_MaxPossibleFPS : 0.0f; }
 		static Window* GetWindow() { return s_Instance ? s_Instance->m_Window.get() : nullptr; }
 
 
@@ -81,9 +81,9 @@ namespace Bolt {
 		const SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
 
 		static void Quit();
-		static void Pause(bool paused) { s_IsPaused = paused; }
-		static void Reload() { s_ShouldQuit = true; s_CanReload = true; };
-		static bool IsPaused() { return s_IsPaused; }
+		static void Pause(bool paused) { if (s_Instance) s_Instance->m_IsPaused = paused; }
+		static void Reload() { if (s_Instance) { s_Instance->m_ShouldQuit = true; s_Instance->m_CanReload = true; } };
+		static bool IsPaused() { return s_Instance ? s_Instance->m_IsPaused : false; }
 
 	private:
 		std::unique_ptr<Window> m_Window;
@@ -99,14 +99,14 @@ namespace Bolt {
 
 		static std::string s_Name;
 
-		static bool s_ForceSingleInstance;
-		static bool s_RunInBackground;
-		static bool s_ShouldQuit;
-		static bool s_CanReload;
-		static bool s_IsPaused;
+		bool m_ForceSingleInstance = false;
+		bool m_RunInBackground = false;
+		bool m_ShouldQuit = false;
+		bool m_CanReload = false;
+		bool m_IsPaused = false;
 
-		static float s_TargetFramerate;
-		static float s_MaxPossibleFPS;
+		float m_TargetFramerate = 144.0f;
+		float m_MaxPossibleFPS = 0.0f;
 		static const float k_PausedTargetFrameRate;
 
 		static Application* s_Instance;
