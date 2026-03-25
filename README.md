@@ -1,5 +1,5 @@
 # Bolt
-Windows (only) Compatible Game-Engine written in C++
+Windows (only) Compatible 2D Game-Engine written in C++
 
 ## Preview
 <p align="center">
@@ -9,7 +9,7 @@ Windows (only) Compatible Game-Engine written in C++
 
 
 ## External Libraries / API's
-- [BoltPhys](https://github.com/Ben-Scr/BoltPhys) - Lightweight 2D Physics Library
+- [Bolt-Physics2D](https://github.com/Ben-Scr/Bolt-Physics2D) - Lightweight 2D Physics Library
 - [OpenGL](https://www.opengl.org/) - Rendering API
 - [STB](https://github.com/nothings/stb) - Graphics Image Library
 - [GLM](https://github.com/g-truc/glm) - Graphics Math Library
