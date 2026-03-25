@@ -18,14 +18,14 @@
 
 namespace Bolt {
 	struct ApplicationConfig {
-		WindowProps windowProps{ 800, 800, "Bolt Runtime", true, true, false };
-		bool enableImGui = true;
-		bool enableGuiRenderer = true;
-		bool enableGizmoRenderer = true;
-		bool enablePhysics2D = true;
-		bool enableAudio = false;
-		bool setWindowIcon = true;
-		bool vsync = true;
+		WindowProps WindowProps{ 800, 800, "Bolt Runtime", true, true, false };
+		bool EnableImGui = true;
+		bool EnableGuiRenderer = true;
+		bool EnableGizmoRenderer = true;
+		bool EnablePhysics2D = true;
+		bool EnableAudio = false;
+		bool SetWindowIcon = true;
+		bool Vsync = true;
 	};
 
 	class BOLT_API Application {

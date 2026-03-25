@@ -12,8 +12,9 @@ class Sandbox : public Bolt::Application {
 public:
 	ApplicationConfig GetConfiguration() const override {
 		ApplicationConfig config;
-		config.windowProps = WindowProps(800, 800, "Bolt Runtime", true, true, false);
-		config.enableAudio = false;
+		config.WindowProps = WindowProps(800, 800, "Bolt Runtime", true, true, false);
+		config.EnableAudio = false;
+		//config.Vsync = false;
 		return config;
 	}
 

@@ -102,9 +102,9 @@ namespace Bolt {
 
 		Timer timer = Timer();
 		Window::Initialize();
-		m_Window = std::make_unique<Window>(m_Configuration.windowProps);
-		m_Window->SetVsync(m_Configuration.vsync);
-		m_Window->SetWindowResizeable(m_Configuration.windowProps.Resizeable);
+		m_Window = std::make_unique<Window>(m_Configuration.WindowProps);
+		m_Window->SetVsync(m_Configuration.Vsync);
+		m_Window->SetWindowResizeable(m_Configuration.WindowProps.Resizeable);
 		Logger::Message("Window", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
@@ -116,28 +116,28 @@ namespace Bolt {
 		m_Renderer2D->Initialize();
 		Logger::Message("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
 
-		if (m_Configuration.enableGizmoRenderer) {
+		if (m_Configuration.EnableGizmoRenderer) {
 			timer.Reset();
 			m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
 			m_GizmoRenderer2D->Initialize();
 			Logger::Message("GizmoRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
-		if (m_Configuration.enableImGui) {
+		if (m_Configuration.EnableImGui) {
 			timer.Reset();
 			m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
 			m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
 			Logger::Message("ImGuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
-		if (m_Configuration.enableGuiRenderer) {
+		if (m_Configuration.EnableGuiRenderer) {
 			timer.Reset();
 			m_GuiRenderer = std::make_unique<GuiRenderer>();
 			m_GuiRenderer->Initialize();
 			Logger::Message("GuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
-		if (m_Configuration.enablePhysics2D) {
+		if (m_Configuration.EnablePhysics2D) {
 			timer.Reset();
 			m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
 			m_PhysicsSystem2D->Initialize();
@@ -148,7 +148,7 @@ namespace Bolt {
 		TextureManager::Initialize();
 		Logger::Message("TextureManager", "Initialization took " + StringHelper::ToString(timer));
 
-		if (m_Configuration.enableAudio) {
+		if (m_Configuration.EnableAudio) {
 			timer.Reset();
 			AudioManager::Initialize();
 			Logger::Message("AudioManager", "Initialization took " + StringHelper::ToString(timer));
@@ -160,7 +160,7 @@ namespace Bolt {
 		m_SceneManager->Initialize();
 		Logger::Message("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
-		if (m_Configuration.setWindowIcon) {
+		if (m_Configuration.SetWindowIcon) {
 			try {
 				auto handle = TextureManager::LoadTexture("icon.png");
 				auto texture = TextureManager::GetTexture(handle);
@@ -177,7 +177,7 @@ namespace Bolt {
 		CoreInput();
 
 		if (!s_IsPaused) {
-			if (m_Configuration.enableAudio) AudioManager::Update();
+			if (m_Configuration.EnableAudio) AudioManager::Update();
 			Update();
 			if (m_SceneManager) m_SceneManager->UpdateScenes();
 
