@@ -29,7 +29,6 @@ class Sandbox : public Bolt::Application {
 public:
 	void ConfigureScenes() override {
 		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("Game");
-		def.AddSystem<GameSystem>();
 		def.AddSystem<ImGuiDebugSystem>();
 		def.SetAsStartupScene();
 	}
