@@ -1,10 +1,4 @@
-# Bolt
-Windows (only) Compatible 2D Game-Engine written in C++
-
-## Preview
-<p align="center">
-  <img src="Documentation/Preview_2.png" width="45%" alt="Preview 1">
-  <img src="Documentation/Preview_3.png" width="45%" alt="Preview 2">
+<img src="Documentation/Preview_3.png" width="45%" alt="Preview 2">
 </p>
 
 
@@ -29,14 +23,14 @@ Windows (only) Compatible 2D Game-Engine written in C++
    ```bash
    cmake -S . -B build -G "Visual Studio 17 2022" -A x64
    ```
-3. Build all targets (engine + sandbox):
+3. Build all targets (engine + runtime):
    ```bash
    cmake --build build --config Debug
    ```
 4. Run the sandbox executable from:
-   `build/Sandbox/Debug/BoltSandbox.exe`
+   `build/Bolt-Runtime/Debug/BoltRuntime.exe`
 
-Optional: disable sandbox target when you only want the engine library:
+Optional: disable runtime target when you only want the engine library:
 ```bash
-cmake -S . -B build -DBOLT_BUILD_SANDBOX=OFF
+cmake -S . -B build -DBOLT_BUILD_RUNTIME=OFF
 ```

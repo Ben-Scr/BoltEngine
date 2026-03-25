@@ -2,7 +2,7 @@
 #include "Collections/Vec2.hpp"
 
 namespace Bolt {
-	struct RectTransform {
+	struct RectTransformComponent {
 		Vec2 Position;
 		Vec2 Pivot{ 0.0f, 0.0f };
 		float Width{ 100 }, Height{ 100 };

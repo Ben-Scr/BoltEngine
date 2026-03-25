@@ -98,11 +98,13 @@ namespace Bolt {
 	}
 
 	void Application::Initialize() {
+		m_Configuration = GetConfiguration();
+
 		Timer timer = Timer();
 		Window::Initialize();
-		m_Window = std::make_unique<Window>(WindowProps(800, 800, "Space Shooter", true, true, false));
-		m_Window->SetVsync(true);
-		m_Window->SetWindowResizeable(true);
+		m_Window = std::make_unique<Window>(m_Configuration.windowProps);
+		m_Window->SetVsync(m_Configuration.vsync);
+		m_Window->SetWindowResizeable(m_Configuration.windowProps.Resizeable);
 		Logger::Message("Window", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
@@ -114,33 +116,43 @@ namespace Bolt {
 		m_Renderer2D->Initialize();
 		Logger::Message("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
 
-		timer.Reset();
-		m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
-		m_GizmoRenderer2D->Initialize();
-		Logger::Message("GizmoRenderer", "Initialization took " + StringHelper::ToString(timer));
+		if (m_Configuration.enableGizmoRenderer) {
+			timer.Reset();
+			m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
+			m_GizmoRenderer2D->Initialize();
+			Logger::Message("GizmoRenderer", "Initialization took " + StringHelper::ToString(timer));
+		}
 
-		timer.Reset();
-		m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
-		m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
-		Logger::Message("ImGuiRenderer", "Initialization took " + StringHelper::ToString(timer));
+		if (m_Configuration.enableImGui) {
+			timer.Reset();
+			m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
+			m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
+			Logger::Message("ImGuiRenderer", "Initialization took " + StringHelper::ToString(timer));
+		}
 
-		timer.Reset();
-		m_GuiRenderer = std::make_unique<GuiRenderer>();
-		m_GuiRenderer->Initialize();
-		Logger::Message("GuiRenderer", "Initialization took " + StringHelper::ToString(timer));
+		if (m_Configuration.enableGuiRenderer) {
+			timer.Reset();
+			m_GuiRenderer = std::make_unique<GuiRenderer>();
+			m_GuiRenderer->Initialize();
+			Logger::Message("GuiRenderer", "Initialization took " + StringHelper::ToString(timer));
+		}
 
-		timer.Reset();
-		m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
-		m_PhysicsSystem2D->Initialize();
-		Logger::Message("PhysicsSystem", "Initialization took " + StringHelper::ToString(timer));
+		if (m_Configuration.enablePhysics2D) {
+			timer.Reset();
+			m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
+			m_PhysicsSystem2D->Initialize();
+			Logger::Message("PhysicsSystem", "Initialization took " + StringHelper::ToString(timer));
+		}
 
 		timer.Reset();
 		TextureManager::Initialize();
 		Logger::Message("TextureManager", "Initialization took " + StringHelper::ToString(timer));
 
-		timer.Reset();
-		//AudioManager::Initialize();
-		Logger::Message("AudioManager", "Initialization took " + StringHelper::ToString(timer));
+		if (m_Configuration.enableAudio) {
+			timer.Reset();
+			AudioManager::Initialize();
+			Logger::Message("AudioManager", "Initialization took " + StringHelper::ToString(timer));
+		}
 
 		timer.Reset();
 		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
@@ -148,13 +160,15 @@ namespace Bolt {
 		m_SceneManager->Initialize();
 		Logger::Message("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
-		try {
-			auto handle = TextureManager::LoadTexture("icon.png");
-			auto texture = TextureManager::GetTexture(handle);
-			m_Window->SetWindowIcon(texture);
-		}
-		catch (const std::runtime_error& e) {
-			Logger::Error(e.what());
+		if (m_Configuration.setWindowIcon) {
+			try {
+				auto handle = TextureManager::LoadTexture("icon.png");
+				auto texture = TextureManager::GetTexture(handle);
+				m_Window->SetWindowIcon(texture);
+			}
+			catch (const std::runtime_error& e) {
+				Logger::Error(e.what());
+			}
 		}
 	}
 
@@ -163,7 +177,7 @@ namespace Bolt {
 		CoreInput();
 
 		if (!s_IsPaused) {
-			AudioManager::Update();
+			if (m_Configuration.enableAudio) AudioManager::Update();
 			Update();
 			if (m_SceneManager) m_SceneManager->UpdateScenes();
 

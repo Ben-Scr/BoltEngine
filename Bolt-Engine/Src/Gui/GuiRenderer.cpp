@@ -55,7 +55,7 @@ namespace Bolt {
 		std::vector<Instance44> instances;
 
 
-		auto guiImageView = scene.GetRegistry().view<RectTransform, ImageComponent>(entt::exclude<DisabledTag>);
+		auto guiImageView = scene.GetRegistry().view<RectTransformComponent, ImageComponent>(entt::exclude<DisabledTag>);
 		instances.reserve(guiImageView.size_hint());
 
 		for (const auto& [ent, rt, guiImage] : guiImageView.each()) {

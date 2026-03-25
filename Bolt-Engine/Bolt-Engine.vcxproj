@@ -242,6 +242,7 @@
     <ClCompile Include="Src\Physics\Physics2D.cpp" />
     <ClCompile Include="Src\Physics\PhysicsSystem2D.cpp" />
     <ClCompile Include="Src\Physics\PhysicsUtility.cpp" />
+    <ClCompile Include="Src\Scene\BuiltInComponentRegistration.cpp" />
     <ClCompile Include="Src\Scene\Entity.cpp" />
     <ClCompile Include="Src\Scene\EntityHelper.cpp" />
     <ClCompile Include="Src\Scene\Scene.cpp" />
@@ -330,6 +331,7 @@
     <ClInclude Include="Src\Physics\PhysicsSystem2D.hpp" />
     <ClInclude Include="Src\Physics\PhysicsTypes.hpp" />
     <ClInclude Include="Src\Physics\PhysicsUtility.hpp" />
+    <ClInclude Include="Src\Scene\BuiltInComponentRegistration.hpp" />
     <ClInclude Include="Src\Scene\ComponentRegistry.hpp" />
     <ClInclude Include="Src\Scene\Entity.hpp" />
     <ClInclude Include="Src\Scene\EntityHandle.hpp" />

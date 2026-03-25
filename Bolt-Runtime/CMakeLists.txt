@@ -1,44 +1,39 @@
-file(GLOB SANDBOX_SOURCES CONFIGURE_DEPENDS
+file(GLOB BOLT_RUNTIME_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/Src/*.cpp"
 )
 
-add_executable(BoltSandbox ${SANDBOX_SOURCES})
+add_executable(BoltRuntime ${BOLT_RUNTIME_SOURCES})
 
-target_include_directories(BoltSandbox
+target_include_directories(BoltRuntime
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/Src"
         "${CMAKE_SOURCE_DIR}/External/Include"
 )
 
 if(WIN32)
-    target_compile_definitions(BoltSandbox PRIVATE BT_PLATFORM_WINDOWS)
+    target_compile_definitions(BoltRuntime PRIVATE BT_PLATFORM_WINDOWS)
 endif()
 
-target_link_libraries(BoltSandbox PRIVATE BoltEngine)
+target_link_libraries(BoltRuntime PRIVATE BoltEngine)
 
-set(BOLT_ASSETS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/Sandbox/Assets")
-set(BOLT_ASSETS_RUNTIME_DIR "$<TARGET_FILE_DIR:BoltSandbox>/Assets")
+set(BOLT_ASSETS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Assets")
+set(BOLT_ASSETS_RUNTIME_DIR "$<TARGET_FILE_DIR:BoltRuntime>/Assets")
 
-# Keep the runtime-relative path "Assets/..." valid by mirroring the repository
-# Assets folder next to the built sandbox executable.
-add_custom_command(TARGET BoltSandbox POST_BUILD
+add_custom_command(TARGET BoltRuntime POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${BOLT_ASSETS_SOURCE_DIR}"
             "${BOLT_ASSETS_RUNTIME_DIR}"
-    COMMENT "Copying Assets to runtime output directory"
+    COMMENT "Copying runtime assets to output directory"
 )
 
-# Ensure the engine DLL is next to BoltSandbox.exe at runtime.
-add_custom_command(TARGET BoltSandbox POST_BUILD
+add_custom_command(TARGET BoltRuntime POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "$<TARGET_FILE:BoltEngine>"
-            "$<TARGET_FILE_DIR:BoltSandbox>"
+            "$<TARGET_FILE_DIR:BoltRuntime>"
     COMMENT "Copying BoltEngine DLL to runtime output directory"
 )
 
-# Installation makes the sandbox runnable independently from the source/build
-# tree by packaging executable + Assets into one install prefix.
-install(TARGETS BoltSandbox
+install(TARGETS BoltRuntime
     RUNTIME DESTINATION .
 )
 
@@ -51,17 +46,15 @@ install(DIRECTORY "${BOLT_ASSETS_SOURCE_DIR}"
 )
 
 if(MSVC)
-    # Ensure debugging from Visual Studio uses the same folder that contains
-    # the executable and copied Assets directory.
-    set_target_properties(BoltSandbox PROPERTIES
-        VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:BoltSandbox>"
+    set_target_properties(BoltRuntime PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:BoltRuntime>"
     )
 endif()
 
 set(BOLT_THIRDPARTY_LIB_DIR "${CMAKE_SOURCE_DIR}/External/Lib")
 
 if(WIN32)
-    target_link_libraries(BoltSandbox PRIVATE
+    target_link_libraries(BoltRuntime PRIVATE
         "${BOLT_THIRDPARTY_LIB_DIR}/freetype.lib"
         gdi32
     )

@@ -5,14 +5,13 @@
 #include <algorithm>
 #include <exception>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 #include "Debugging/Logger.hpp"
 #include "SceneDefinition.hpp"
-#include "Components/Components.hpp"
+#include "Scene/BuiltInComponentRegistration.hpp"
 #include "Systems/ParticleUpdateSystem.hpp"
 #include "Core/Application.hpp"
 
@@ -39,7 +38,7 @@ namespace Bolt {
 	}
 
 	void SceneManager::RegisterCoreComponents() {
-	
+		RegisterBuiltInComponents(*this);
 	}
 
 	void SceneManager::Shutdown() {

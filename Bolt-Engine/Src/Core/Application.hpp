@@ -17,6 +17,17 @@
 #include <chrono>
 
 namespace Bolt {
+	struct ApplicationConfig {
+		WindowProps windowProps{ 800, 800, "Bolt Runtime", true, true, false };
+		bool enableImGui = true;
+		bool enableGuiRenderer = true;
+		bool enableGizmoRenderer = true;
+		bool enablePhysics2D = true;
+		bool enableAudio = false;
+		bool setWindowIcon = true;
+		bool vsync = true;
+	};
+
 	class BOLT_API Application {
 		friend class Window;
 		friend class SceneManager;
@@ -36,6 +47,7 @@ namespace Bolt {
 
 		void Run();
 
+		virtual ApplicationConfig GetConfiguration() const { return {}; }
 		virtual void ConfigureScenes() {}
 		virtual void Start() = 0;
 		virtual void Update() = 0;
@@ -83,6 +95,7 @@ namespace Bolt {
 		std::unique_ptr<SceneManager> m_SceneManager;
 		Input m_Input;
 		Time m_Time;
+		ApplicationConfig m_Configuration;
 
 		static std::string s_Name;
 

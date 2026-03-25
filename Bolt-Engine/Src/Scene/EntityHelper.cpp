@@ -40,6 +40,6 @@ namespace Bolt {
 	}
 
 	Entity EntityHelper::CreateImageEntity() {
-		return CreateWith<RectTransform, ImageComponent>();
+		return CreateWith<RectTransformComponent, ImageComponent>();
 	}
 }

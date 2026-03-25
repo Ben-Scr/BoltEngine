@@ -6,10 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-option(BOLT_BUILD_SANDBOX "Build the Sandbox sample application" ON)
+option(BOLT_BUILD_RUNTIME "Build the Bolt-Runtime sample application" ON)
 
-add_subdirectory(Bolt)
+add_subdirectory(Bolt-Engine)
 
-if(BOLT_BUILD_SANDBOX)
-    add_subdirectory(Sandbox)
+if(BOLT_BUILD_RUNTIME)
+    add_subdirectory(Bolt-Runtime)
 endif()
