@@ -4,14 +4,15 @@
 #include "Vec2.hpp"
 
 namespace BoltPhys {
-    class Collider;
+    class Collider2D;
 
-    class BOLT_PHYS_API Body
+    class BOLT_PHYS_API Body2D
     {
     public:
-        Body() noexcept;
-        explicit Body(BodyType type) noexcept;
-        ~Body();
+        Body2D() noexcept;
+        explicit Body2D(BodyType type) noexcept;
+        ~Body2D() = default;
+        void Destroy();
 
         BodyType GetBodyType() const noexcept;
         void SetBodyType(BodyType type) noexcept;
@@ -31,9 +32,9 @@ namespace BoltPhys {
         bool IsGravityEnabled() const noexcept;
         void SetGravityEnabled(bool enabled) noexcept;
 
-        Collider* GetCollider() noexcept;
-        const Collider* GetCollider() const noexcept;
-        void AttachCollider(Collider* collider) noexcept;
+        Collider2D* GetCollider() noexcept;
+        const Collider2D* GetCollider() const noexcept;
+        void AttachCollider(Collider2D* collider) noexcept;
 
     private:
         BodyType m_bodyType = BodyType::Dynamic;
@@ -42,6 +43,6 @@ namespace BoltPhys {
         float m_mass = 1.0f;
         bool m_boundaryCheckEnabled = true;
         bool m_gravityEnabled = true;
-        Collider* m_collider = nullptr;
+        Collider2D* m_collider = nullptr;
     };
 }

@@ -4,7 +4,7 @@
 #include "Contact.hpp"
 
 namespace BoltPhys {
-    class Collider;
+    class Collider2D;
     class PhysicsWorld;
 
     class BOLT_PHYS_API Physics2D
@@ -13,11 +13,11 @@ namespace BoltPhys {
         static void SetContext(PhysicsWorld& world) noexcept;
         static void ClearContext() noexcept;
 
-        static Contact* OverlapsWith(Collider& collider);
-        static Contact* OverlapsWith(Collider& colliderA, Collider& colliderB);
+        static Contact* OverlapsWith(Collider2D& collider);
+        static Contact* OverlapsWith(Collider2D& colliderA, Collider2D& colliderB);
 
-        static const Collider* ContainsPoint(const Vec2& point);
-        static bool ContainsPoint(Collider& collider, const Vec2& point);
+        static const Collider2D* ContainsPoint(const Vec2& point);
+        static bool ContainsPoint(Collider2D& collider, const Vec2& point);
 
     private:
         static PhysicsWorld* s_context;

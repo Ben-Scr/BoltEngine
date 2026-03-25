@@ -1,11 +1,11 @@
 #pragma once
-#include "Body.hpp"
+#include "Body2D.hpp"
 #include "BodyType.hpp"
 
-#include "Collider.hpp"
-#include "BoxCollider.hpp"
+#include "Collider2D.hpp"
+#include "BoxCollider2D.hpp"
 #include "CircleCollider.hpp"
-#include "PolygonCollider.hpp"
+#include "PolygonCollider2D.hpp"
 #include "ColliderType.hpp"
 
 #include "Contact.hpp"
