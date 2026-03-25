@@ -168,44 +168,59 @@ namespace Bolt {
 
 	void Window::SetKeyCallback(GLFWwindow* window, int key, int, int action, int mods) {
 		(void)window;
+		(void)mods;
 		if (key == GLFW_KEY_UNKNOWN) {
 			return;
 		}
 
+		Application* app = Application::GetInstance();
+		if (!app) return;
+
 		switch (action) {
 		case GLFW_PRESS:
-			Input::OnKeyDown(key);
+			app->m_Input.OnKeyDown(key);
 			break;
 		case GLFW_RELEASE:
-			Input::OnKeyUp(key);
+			app->m_Input.OnKeyUp(key);
 			break;
 		case GLFW_REPEAT:
-			Input::OnKeyDown(key);
+			app->m_Input.OnKeyDown(key);
 			break;
 		default:
 			break;
 		}
 	}
+
 	void Window::SetMouseButtonCallback(GLFWwindow*, int button, int action, int mods) {
+		(void)mods;
+		Application* app = Application::GetInstance();
+		if (!app) return;
+
 		switch (action) {
 		case GLFW_PRESS:
-			Input::OnMouseDown(button);
+			app->m_Input.OnMouseDown(button);
 			break;
 		case GLFW_RELEASE:
-			Input::OnMouseUp(button);
+			app->m_Input.OnMouseUp(button);
 			break;
 		default:
 			break;
 		}
 	}
 	void Window::SetCursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
-		Input::OnMouseMove(xPos, yPos);
+		(void)window;
+		Application* app = Application::GetInstance();
+		if (!app) return;
+		app->m_Input.OnMouseMove(xPos, yPos);
 	}
 	void Window::SetScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
 		(void)window;
 		(void)xoffset;
-		Input::OnScroll(static_cast<float>(yoffset));
+		Application* app = Application::GetInstance();
+		if (!app) return;
+		app->m_Input.OnScroll(static_cast<float>(yoffset));
 	}
+
 	void Window::SetFullScreen(bool enabled) {
 		bool isFullScreen = IsFullScreen();
 

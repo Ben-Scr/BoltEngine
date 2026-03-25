@@ -215,7 +215,7 @@ namespace Bolt {
 			if (m_Window) m_Window->SwapBuffers();
 		}
 
-		Input::Update();
+		m_Input.Update();
 	}
 
 	void Application::EndFixedFrame() {
@@ -223,10 +223,10 @@ namespace Bolt {
 	}
 
 	void Application::CoreInput() {
-		if (Input::GetKeyDown(KeyCode::Esc)) {
+		if (m_Input.GetKeyDown(KeyCode::Esc)) {
 			if (m_Window) m_Window->MinimizeWindow();
 		}
-		if (Input::GetKeyDown(KeyCode::F11)) {
+		if (m_Input.GetKeyDown(KeyCode::F11)) {
 			if (m_Window) m_Window->SetFullScreen(!m_Window->IsFullScreen());
 		}
 	}

@@ -1,15 +1,19 @@
 #pragma once
 #include "Graphics/Renderer2D.hpp"
 #include "Graphics/GizmoRenderer.hpp"
-#include "Core/Window.hpp"
+
 #include "Physics/PhysicsSystem2D.hpp"
+
 #include "Scene/SceneManager.hpp"
 #include "Gui/ImGuiRenderer.hpp"
 #include "Gui/GuiRenderer.hpp"
 #include  "Utils/Event.hpp"
-#include <chrono>
 
+#include "Input.hpp"
+#include "Window.hpp"
 #include "Core.hpp"
+
+#include <chrono>
 
 namespace Bolt {
 	class BOLT_API Application {
@@ -50,7 +54,10 @@ namespace Bolt {
 		static float GetMaxPossibleFPS() { return s_MaxPossibleFPS; }
 		static Window* GetWindow() { return s_Instance ? s_Instance->m_Window.get() : nullptr; }
 
+
 		Renderer2D* GetRenderer2D() { return m_Renderer2D.get(); }
+		Input& GetInput() { return m_Input; }
+
 		static std::string GetVersion() { return "1.0"; }
 
 		static Application* GetInstance() { return s_Instance; }
@@ -71,6 +78,7 @@ namespace Bolt {
 		std::unique_ptr<GizmoRenderer2D> m_GizmoRenderer2D;
 		std::unique_ptr<PhysicsSystem2D> m_PhysicsSystem2D;
 		std::unique_ptr<SceneManager> m_SceneManager;
+		Input m_Input;
 
 		static std::string s_Name;
 
