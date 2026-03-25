@@ -5,7 +5,6 @@
 #include "Components/Components.hpp"
 
 #include "Systems/ImGuiDebugSystem.hpp"
-#include "GameSystem.hpp"
 #include <Scene/EntityHelper.hpp>
 
 #include <iostream>
