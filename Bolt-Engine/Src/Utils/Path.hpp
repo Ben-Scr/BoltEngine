@@ -1,7 +1,6 @@
 #pragma once
 #include <filesystem>
 #include <string>
-#include <sstream>
 
 namespace Bolt {
     class Path {
@@ -9,7 +8,7 @@ namespace Bolt {
         template <typename... Args>
         static std::string Combine(Args&&... args) {
             std::filesystem::path combined;
-            (combined.append(std::filesystem::path(std::forward<Args>(args))), ...);
+            ((combined /= std::filesystem::path(std::forward<Args>(args))), ...);
             return combined.make_preferred().string();
         }
 

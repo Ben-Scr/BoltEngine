@@ -80,14 +80,14 @@
     <IncludePath>$(SolutionDir)External\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(SolutionDir)Bolt\Src\External\Glad;$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\Src\External\Glad;$(ProjectDir)\Src\External\ImGui;$(SolutionDir)\External\Include;$(ProjectDir)\Src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>$(SolutionDir)External\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\External\Lib;$(LibraryPath)</LibraryPath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <IncludePath>$(SolutionDir)Bolt\Src\External\Glad;$(SolutionDir)Bolt\Src\External\ImGui;$(SolutionDir)External\Include;$(SolutionDir)Bolt\Src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\Src\External\Glad;$(ProjectDir)\Src\External\ImGui;$(SolutionDir)\External\Include;$(ProjectDir)\Src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
