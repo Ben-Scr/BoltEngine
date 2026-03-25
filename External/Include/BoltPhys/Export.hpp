@@ -1,10 +1,12 @@
 #pragma once
 
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64))
 #ifdef BT_BUILD_DLL
 #define BOLT_PHYS_API __declspec(dllexport)
-#else
+#elif BT_IMPORT_DLL
 #define BOLT_PHYS_API __declspec(dllimport)
+#else
+#define BOLT_PHYS_API
 #endif
 #else
 #define BOLT_PHYS_API
