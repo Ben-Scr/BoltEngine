@@ -27,14 +27,6 @@ using namespace BoltPhys;
 
 class Sandbox : public Bolt::Application {
 public:
-	PhysicsWorld world;
-	BoltPhys::Body player = Body(BoltPhys::BodyType::Dynamic);
-	Entity playerEntity{ Entity::Null };
-	BoltPhys::BoxCollider playerCollider = BoltPhys::BoxCollider({ 0.5f, 0.5f });
-	BoltPhys::BoxCollider obstacleCollider = BoltPhys::BoxCollider({ 10.f, 0.5f });
-
-	BoltPhys::Body obstacle = Body(BoltPhys::BodyType::Static);
-
 	void ConfigureScenes() override {
 		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("Game");
 		def.AddSystem<GameSystem>();
@@ -45,38 +37,14 @@ public:
 	~Sandbox() override = default;
 
 	void Start() override {
-		Entity obstacleEnt = Bolt::EntityHelper::CreateWith<SpriteRendererComponent, Transform2DComponent>();
-
-		playerEntity = Bolt::EntityHelper::CreateWith<SpriteRendererComponent, Transform2DComponent>();
-
-		obstacle.SetPosition(BoltPhys::Vec2(0, -5.0f));
-		obstacle.SetGravityEnabled(false);
-
-		world.RegisterBody(obstacle);
-		world.RegisterCollider(obstacleCollider);
-		world.AttachCollider(obstacle, obstacleCollider);
-
-		auto& obstacleTr  = obstacleEnt.GetComponent<Transform2DComponent>();
-
-		obstacleTr.Position = obstacle.GetPosition();
-		obstacleTr.Scale = obstacleCollider.GetHalfExtents() * 2.0f;
-
-		world.RegisterBody(player);
-		world.RegisterCollider(playerCollider);
-		world.AttachCollider(player, playerCollider);
+	
 	}
 	void Update() override {
-		Bolt::Gizmo::DrawSquare(obstacle.GetPosition(), obstacleCollider.GetHalfExtents() * 2.0f, 0);
-		playerEntity.GetComponent<Transform2DComponent>().Position = player.GetPosition();
-
-		if(Input::GetAxis() != Zero())
-		player.SetVelocity(Input::GetAxis() * 5.0f);
+		
 	}
-
 	void FixedUpdate() override {
-		world.Step(Bolt::Time::GetFixedDeltaTime());
-	}
 
+	}
 	void OnPaused() override {
 
 	}
