@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <algorithm>
+#include <sstream>
+#include <iomanip>
 
 namespace Bolt {
 	class BOLT_API StringHelper {
@@ -49,7 +51,7 @@ namespace Bolt {
 			return oss.str();
 		}
 		template <typename... Args>
-		static char* ToCharString(Args&&... args) {
+		static std::string ToCharString(Args&&... args) {
 			std::ostringstream oss;
 			((oss << std::forward<Args>(args)), ...);
 			return oss.str();
@@ -77,8 +79,19 @@ namespace Bolt {
 			return std::equal(prefix.begin(), prefix.end(), str.begin());
 		}
 
-		static std::string Replace(const std::string& str, const std::string& to) {
-			return str;
+		static std::string Replace(const std::string& str, const std::string& from, const std::string& to) {
+			if (from.empty()) {
+				return str;
+			}
+
+			std::string result = str;
+			std::size_t pos = 0;
+			while ((pos = result.find(from, pos)) != std::string::npos) {
+				result.replace(pos, from.length(), to);
+				pos += to.length();
+			}
+
+			return result;
 		}
 
 		static std::string Trim(const std::string& str) {
@@ -99,21 +112,21 @@ namespace Bolt {
 			constexpr double g = m * k;
 			constexpr double t = g * k;
 
-			if (s < k) return ToString(s, " B");
-			if (s < m) return ToString(s / k, " KiB");
-			if (s < g) return ToString(s / m, " MiB");
-			if (s < t) return ToString(s / g, " GiB");
-			return ToString(s / t, " TiB");
+			if (s < k) return ToString(static_cast<std::size_t>(s), " B");
+			if (s < m) return FormatWithPrecision(s / k, " KiB");
+			if (s < g) return FormatWithPrecision(s / m, " MiB");
+			if (s < t) return FormatWithPrecision(s / g, " GiB");
+			return FormatWithPrecision(s / t, " TiB");
 		}
 
 		static std::string ToSI(std::size_t size) {
 			const double s = static_cast<double>(size);
 
-			if (s < 1000.0) return ToString(s, " B");
-			if (s < 1e6)    return ToString(s / 1e3, " kB");
-			if (s < 1e9)    return ToString(s / 1e6, " MB");
-			if (s < 1e12)   return ToString(s / 1e9, " GB");
-			return ToString(s / 1e12, " TB");
+			if (s < 1000.0) return ToString(static_cast<std::size_t>(s), " B");
+			if (s < 1e6)    return FormatWithPrecision(s / 1e3, " kB");
+			if (s < 1e9)    return FormatWithPrecision(s / 1e6, " MB");
+			if (s < 1e12)   return FormatWithPrecision(s / 1e9, " GB");
+			return FormatWithPrecision(s / 1e12, " TB");
 		}
 
 		static std::string Remove(std::string s, size_t start, size_t count)
@@ -130,5 +143,11 @@ namespace Bolt {
 		//static bool IsAlpha(const std::string& str) {
 		//	return !str.empty() && std::all_of(str.begin(), str.end(), std::isalpha);
 		//}
+	private:
+		static std::string FormatWithPrecision(double value, std::string_view unit) {
+			std::ostringstream oss;
+			oss << std::fixed << std::setprecision(2) << value << unit;
+			return oss.str();
+		}
 	};
 }

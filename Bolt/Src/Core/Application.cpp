@@ -37,8 +37,9 @@ namespace Bolt {
 		Start();
 		m_LastFrameTime = Clock::now();
 
-		while ((!m_Window || !m_Window->ShouldClose()) && !s_ShouldQuit) {
-			DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / GetTargetFramerate()));
+		while (m_Window && !m_Window->ShouldClose() && !s_ShouldQuit) {
+			const float targetFps = Max(GetTargetFramerate(), 1.0f);
+			DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / targetFps));
 			auto now = Clock::now();
 
 			// Info: CPU idling for fps cut if window isn't vsync or app is paused
@@ -46,11 +47,8 @@ namespace Bolt {
 			{
 				auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
 
-				if (now + std::chrono::milliseconds(10) < nextFrameTime)
-					std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
-
-				while (Clock::now() < nextFrameTime) {
-					_mm_pause();
+				if (now < nextFrameTime) {
+					std::this_thread::sleep_until(nextFrameTime);
 				}
 			}
 
@@ -75,6 +73,7 @@ namespace Bolt {
 				}
 				catch (const std::exception& e) {
 					Logger::Error(e.what());
+					s_ShouldQuit = true;
 					break;
 				}
 
@@ -101,7 +100,7 @@ namespace Bolt {
 	void Application::Initialize() {
 		Timer timer = Timer();
 		Window::Initialize();
-		m_Window = std::make_unique<Window>(Window(WindowProps(800, 800, "Space Shooter", true, true, false)));
+		m_Window = std::make_unique<Window>(WindowProps(800, 800, "Space Shooter", true, true, false));
 		m_Window->SetVsync(true);
 		m_Window->SetWindowResizeable(true);
 		Logger::Message("Window", "Initialization took " + StringHelper::ToString(timer));

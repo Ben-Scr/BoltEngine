@@ -2,6 +2,7 @@
 #include "Core/Core.hpp"
 #include <random>
 #include <cstdint>
+#include <mutex>
 
 namespace Bolt {
     struct Color;
@@ -29,10 +30,11 @@ namespace Bolt {
         static  int NextInt(int max);
         static int NextInt(int min, int max);
 
-        static void SetSeed(uint32_t seed) { s_Gen.seed(seed); }
+        static void SetSeed(uint32_t seed) { std::scoped_lock lock(s_Mutex); s_Gen.seed(seed); }
 
     private:
         inline static std::mt19937 s_Gen{ std::random_device{}() };
+        inline static std::mutex s_Mutex;
     };
 
 }

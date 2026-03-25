@@ -104,7 +104,6 @@ namespace Bolt {
 
 		glfwMakeContextCurrent(m_GLFWwindow);
 		glfwSetWindowUserPointer(m_GLFWwindow, this);
-		glfwSetScrollCallback(m_GLFWwindow, SetScrollCallback);
 
 		glfwSetKeyCallback(m_GLFWwindow, SetKeyCallback);
 		glfwSetMouseButtonCallback(m_GLFWwindow, SetMouseButtonCallback);
@@ -238,9 +237,11 @@ namespace Bolt {
 
 		glfwSetWindowMonitor(
 			m_GLFWwindow,
-			enabled ? GetMainMonitor() : NULL,
-			0, 0,
-			k_Videomode->width, k_Videomode->height,
+			enabled ? GetMainMonitor() : nullptr,
+			enabled ? 0 : m_RestorePos.x,
+			enabled ? 0 : m_RestorePos.y,
+			enabled ? k_Videomode->width : m_RestoreSize.x,
+			enabled ? k_Videomode->height : m_RestoreSize.y,
 			k_Videomode->refreshRate
 		);
 

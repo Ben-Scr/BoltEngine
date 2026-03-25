@@ -39,9 +39,12 @@ namespace Bolt {
 		case BoltErrorCode::FileNotFound:      return "FileNotFound";
 		case BoltErrorCode::InvalidHandle:     return "InvalidHandle";
 		case BoltErrorCode::OutOfRange:        return "OutOfRange";
+		case BoltErrorCode::OutOfBounds:       return "OutOfBounds";
 		case BoltErrorCode::Overflow:          return "Overflow";
 		case BoltErrorCode::NullReference:     return "NullReference";
 		case BoltErrorCode::LoadFailed:        return "LoadFailed";
+		case BoltErrorCode::InvalidValue:      return "InvalidValue";
+		case BoltErrorCode::Undefined:         return "Undefined";
 		default:                               return "Undefined";
 		}
 	}
@@ -157,8 +160,8 @@ namespace Bolt {
         try {                                  \
             stmt;                              \
         } catch (const std::exception& ex) {   \
-            Logger::Message(ex.what());        \
+            Logger::Error(ex.what());        \
         } catch (...) {                        \
-            Logger::Message("Unknown exception"); \
+            Logger::Error("Unknown exception"); \
         }                                      \
     } while (0)

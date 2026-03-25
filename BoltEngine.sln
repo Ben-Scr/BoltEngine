@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.2.11415.280 d18.0
+VisualStudioVersion = 18.2.11415.280
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BoltEngine", "Bolt\BoltEngine.vcxproj", "{436C9D57-D50B-4AB2-8DC5-6E4A13E72FEB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bolt-Engine", "Bolt\BoltEngine.vcxproj", "{436C9D57-D50B-4AB2-8DC5-6E4A13E72FEB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sandbox", "Sandbox\Sandbox.vcxproj", "{ED46424F-E4D7-469C-86FE-F98B8342EEF3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bolt-Runtime", "Sandbox\Sandbox.vcxproj", "{ED46424F-E4D7-469C-86FE-F98B8342EEF3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bolt-Editor", "BoltEditor\BoltEditor.vcxproj", "{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +33,14 @@ Global
 		{ED46424F-E4D7-469C-86FE-F98B8342EEF3}.Release|x64.Build.0 = Release|x64
 		{ED46424F-E4D7-469C-86FE-F98B8342EEF3}.Release|x86.ActiveCfg = Release|Win32
 		{ED46424F-E4D7-469C-86FE-F98B8342EEF3}.Release|x86.Build.0 = Release|Win32
+		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Debug|x64.ActiveCfg = Debug|x64
+		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Debug|x64.Build.0 = Debug|x64
+		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Debug|x86.ActiveCfg = Debug|Win32
+		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Debug|x86.Build.0 = Debug|Win32
+		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Release|x64.ActiveCfg = Release|x64
+		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Release|x64.Build.0 = Release|x64
+		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Release|x86.ActiveCfg = Release|Win32
+		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

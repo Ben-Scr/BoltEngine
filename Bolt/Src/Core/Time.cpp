@@ -3,20 +3,22 @@
 
 namespace Bolt {
 	void Time::SetTargetFramerate(float framerate) {
-		m_TargetFPS = framerate;
-		if (m_TargetFPS > 0)
-			m_UpdateDeltaTime = 1.0f / m_TargetFPS;
-		else
+		if (framerate <= 0.0f) {
+			m_TargetFPS = 0.0f;
 			m_UpdateDeltaTime = std::numeric_limits<float>::infinity();
+			m_FrameDuration = std::chrono::steady_clock::duration::max();
+			return;
+		}
 
-		m_FrameDuration =
-			std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-				std::chrono::duration<float>(1.0f / m_TargetFPS)
-			);
+		m_TargetFPS = framerate;
+		m_UpdateDeltaTime = 1.0f / m_TargetFPS;
+		m_FrameDuration = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+			std::chrono::duration<float>(m_UpdateDeltaTime)
+		);
 	}
 
 	void Time::SetTimeScale(float scale) {
-		m_TimeScale = scale;
+		m_TimeScale = std::max(0.0f, scale);
 	}
 
 	void Time::SetFixedDeltaTime(float step) {
