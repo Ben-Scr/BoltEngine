@@ -1,4 +1,4 @@
-# Bolt Engine
+# Bolt
 Windows (only) Compatible Game-Engine written in C++
 
 ## Preview
