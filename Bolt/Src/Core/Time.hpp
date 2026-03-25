@@ -28,7 +28,7 @@ namespace Bolt {
 
 	private:
 		void Update(float deltaTime);
-		void IncrementFrameCount() { m_FrameCount++; }
+		void AdvanceFrameCount() { m_FrameCount++; }
 
 		float m_DeltaTime = 0.0f;
 		float m_TargetFPS = 144.f;

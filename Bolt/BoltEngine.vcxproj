@@ -349,7 +349,6 @@
       <SubType>
       </SubType>
     </ClInclude>
-    <ClInclude Include="Src\Utils\Eventbus.Hpp" />
     <ClInclude Include="Src\Utils\File.hpp" />
     <ClInclude Include="Src\Utils\Path.hpp" />
     <ClInclude Include="Src\Utils\Serializer.hpp" />

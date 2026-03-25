@@ -29,10 +29,12 @@ namespace Bolt {
         }
 
         void Invoke(Args... args) {
-            for (auto& e : m_Listeners) {
+            const auto listenersSnapshot = m_Listeners;
+            for (const auto& e : listenersSnapshot) {
                 e.cb(args...);
             }
         }
+
 
     private:
         struct Entry {

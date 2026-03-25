@@ -10,7 +10,7 @@
 namespace Bolt {
 	Window* Window::s_ActiveWindow = nullptr;
 	bool Window::s_IsVsync = true;
-	Viewport* Window::s_MainViewport;
+	std::unique_ptr<Viewport> Window::s_MainViewport = nullptr;
 	bool Window::s_IsInitialized = false;
 	const GLFWvidmode* Window::k_Videomode = nullptr;
 
@@ -58,6 +58,7 @@ namespace Bolt {
 	}
 
 	void Window::Shutdown() {
+		s_MainViewport.reset();
 		glfwTerminate();
 	}
 
@@ -86,8 +87,7 @@ namespace Bolt {
 		glfwWindowHint(GLFW_RESIZABLE, props.Resizeable);
 
 
-		s_MainViewport = new Viewport
-		(
+		s_MainViewport = std::make_unique<Viewport>(
 			props.Fullscreen ? k_Videomode->width : props.Width,
 			props.Fullscreen ? k_Videomode->height : props.Height
 		);
@@ -124,6 +124,10 @@ namespace Bolt {
 			s_ActiveWindow = this;
 	}
 	void Window::Destroy() {
+		if (m_Cursor) {
+			glfwDestroyCursor(m_Cursor);
+			m_Cursor = nullptr;
+		}
 		glfwDestroyWindow(m_GLFWwindow);
 		m_GLFWwindow = nullptr;
 	}
@@ -267,9 +271,16 @@ namespace Bolt {
 		glfwSetInputMode(m_GLFWwindow, GLFW_CURSOR, enabled ? GLFW_CURSOR_HIDDEN : GLFW_CURSOR_NORMAL);
 	}
 	void Window::SetCursorImage(const Texture2D* tex2D) {
+		if (!tex2D) {
+			Logger::Warning("Window", "Cannot set cursor image from null texture");
+			return;
+		}
+
 		std::unique_ptr<ImageData> imgData = tex2D->GetImageData();
-		imgData->Width;
-		imgData->Height;
+		if (!imgData || !imgData->Pixels) {
+			Logger::Warning("Window", "Cannot set cursor image from invalid texture data");
+			return;
+		}
 
 		GLFWimage img;
 		img.width = imgData->Width;
@@ -326,6 +337,10 @@ namespace Bolt {
 		double x, y;
 		glfwGetCursorPos(m_GLFWwindow, &x, &y);
 		return Vec2(x, y);
+	}
+	std::string Window::GetClipboardString() const {
+		const char* clipboard = glfwGetClipboardString(m_GLFWwindow);
+		return clipboard ? std::string(clipboard) : std::string{};
 	}
 	Vec2Int Window::GetScreenCenter() const {
 		return Vec2Int(k_Videomode->width / 2, k_Videomode->height / 2);

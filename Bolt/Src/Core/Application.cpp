@@ -65,8 +65,7 @@ namespace Bolt {
 			m_Time.Update(deltaTime);
 
 			m_FixedUpdateAccumulator += m_Time.GetDeltaTime();
-
-			while (m_FixedUpdateAccumulator >= m_Time.m_FixedDeltaTime) {
+			while (m_FixedUpdateAccumulator >= m_Time.GetUnscaledFixedDeltaTime()) {
 				try {
 					if (!s_IsPaused) {
 
@@ -74,12 +73,12 @@ namespace Bolt {
 						EndFixedFrame();
 					}
 				}
-				catch (std::runtime_error e) {
+				catch (const std::exception& e) {
 					Logger::Error(e.what());
 					break;
 				}
 
-				m_FixedUpdateAccumulator -= m_Time.m_FixedDeltaTime;
+				m_FixedUpdateAccumulator -= m_Time.GetUnscaledFixedDeltaTime();
 			}
 
 			BeginFrame();
@@ -88,7 +87,7 @@ namespace Bolt {
 			glfwPollEvents();
 
 			m_LastFrameTime = frameStart;
-			m_Time.m_FrameCount++;
+			m_Time.AdvanceFrameCount();
 		}
 
 		Shutdown();

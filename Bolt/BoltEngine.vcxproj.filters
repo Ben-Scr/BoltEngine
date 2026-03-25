@@ -350,9 +350,6 @@
     <ClInclude Include="Src\Utils\Event.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Utils\Eventbus.Hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Utils\File.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>

@@ -5,11 +5,11 @@
 #include <typeindex>
 
 namespace Bolt {
-    enum ComponentCategory {
+    enum class ComponentCategory {
         Component,
         Tag,
         System,
-	};
+    };
 
     struct ComponentInfo {
         std::string displayName;

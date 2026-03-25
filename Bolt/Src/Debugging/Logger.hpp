@@ -26,14 +26,14 @@ namespace Bolt {
 	
 		static Event<const std::string&, LogLevel> OnLog;
 	private:
-		static std::string ToString(const std::string& topic, const std::string& message, const std::source_location& loc = std::source_location::current());
 		static std::string LogLevelToString(LogLevel logLevel) {
 			switch (logLevel) {
-			case LogLevel::None: return "None"; break;
-			case LogLevel::Info: return "Info"; break;
-			case LogLevel::Warning: return "Warning"; break;
-			case LogLevel::Error: return "Error"; break;
+			case LogLevel::None: return "None";
+			case LogLevel::Info: return "Info";
+			case LogLevel::Warning: return "Warning";
+			case LogLevel::Error: return "Error";
 			}
+			return "Unknown";
 		}
 		static void Log(const std::string& topic, const std::string& message, LogLevel logLevel, const std::source_location& loc = std::source_location::current());
 		static void Log(const std::string& message, LogLevel logLevel, const std::source_location& loc = std::source_location::current());

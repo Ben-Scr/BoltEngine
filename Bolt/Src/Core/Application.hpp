@@ -48,7 +48,7 @@ namespace Bolt {
 		static void SetForceSingleInstance(bool value) { s_ForceSingleInstance = value; }
 		static void SetRunInBackground(bool value) { s_RunInBackground = value; }
 
-		static const std::string GetName() { return s_Name; }
+		static const std::string& GetName() { return s_Name; }
 		static float GetTargetFramerate() { return s_IsPaused ? k_PausedTargetFrameRate : s_TargetFramerate; }
 		static bool GetForceSingleInstance() { return s_ForceSingleInstance; }
 		static bool GetRunInBackground() { return s_RunInBackground; }
@@ -71,7 +71,7 @@ namespace Bolt {
 		static void Quit();
 		static void Pause(bool paused) { s_IsPaused = paused; }
 		static void Reload() { s_ShouldQuit = true; s_CanReload = true; };
-		static const bool IsPaused() { return s_IsPaused; }
+		static bool IsPaused() { return s_IsPaused; }
 
 	private:
 		std::unique_ptr<Window> m_Window;
