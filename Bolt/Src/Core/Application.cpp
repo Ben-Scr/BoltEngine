@@ -6,7 +6,6 @@
 #include "Core/SingleInstance.hpp"
 #include "Audio/AudioManager.hpp"
 
-#include "Time.hpp"
 #include "Input.hpp"
 #include <GLFW/glfw3.h>
 
@@ -63,11 +62,11 @@ namespace Bolt {
 				deltaTime = 0.0f;
 			}
 
-			Time::Update(deltaTime);
+			m_Time.Update(deltaTime);
 
-			m_FixedUpdateAccumulator += Time::GetDeltaTime();
+			m_FixedUpdateAccumulator += m_Time.GetDeltaTime();
 
-			while (m_FixedUpdateAccumulator >= Time::s_FixedDeltaTime) {
+			while (m_FixedUpdateAccumulator >= m_Time.m_FixedDeltaTime) {
 				try {
 					if (!s_IsPaused) {
 
@@ -80,7 +79,7 @@ namespace Bolt {
 					break;
 				}
 
-				m_FixedUpdateAccumulator -= Time::s_FixedDeltaTime;
+				m_FixedUpdateAccumulator -= m_Time.m_FixedDeltaTime;
 			}
 
 			BeginFrame();
@@ -89,7 +88,7 @@ namespace Bolt {
 			glfwPollEvents();
 
 			m_LastFrameTime = frameStart;
-			Time::s_FrameCount++;
+			m_Time.m_FrameCount++;
 		}
 
 		Shutdown();
@@ -196,7 +195,7 @@ namespace Bolt {
 	void Application::BeginFixedFrame() {
 		FixedUpdate();
 		if (m_SceneManager) m_SceneManager->FixedUpdateScenes();
-		if (m_PhysicsSystem2D) m_PhysicsSystem2D->FixedUpdate(Time::GetFixedDeltaTime());
+		if (m_PhysicsSystem2D) m_PhysicsSystem2D->FixedUpdate(m_Time.GetFixedDeltaTime());
 	}
 
 	void Application::EndFrame() {

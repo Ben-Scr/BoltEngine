@@ -1,11 +1,14 @@
 #include "pch.hpp"
 #include "Components/Graphics/ParticleSystem2DComponent.hpp"
-#include "Core/Time.hpp"
+
 #include "Math/Random.hpp"
+
+#include <Core/Time.hpp>
+#include <Core/Application.hpp>
 
 namespace Bolt {
 	void ParticleSystem2DComponent::Update() {
-		float deltaTime = Time::GetDeltaTime();
+		float deltaTime = Application::GetInstance()->GetTime().GetDeltaTime();
 		if (deltaTime == 0.f) return;
 
 		if (m_IsEmitting) {

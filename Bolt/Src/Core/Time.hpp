@@ -7,37 +7,41 @@ namespace Bolt {
 
 	class BOLT_API Time {
 	public:
-		static float GetDeltaTime() { return s_DeltaTime * s_TimeScale; }
-		static float GetDeltaTimeUnscaled() { return s_DeltaTime; }
-		static void SetTargetFramerate(float fps);
+		float GetDeltaTime() const { return m_DeltaTime * m_TimeScale; }
+		float GetDeltaTimeUnscaled() const { return m_DeltaTime; }
+		void SetTargetFramerate(float fps);
 
-		static float GetFixedDeltaTime() { return s_FixedDeltaTime * s_TimeScale; }
-		static void SetFixedDeltaTime(float step);
+		float GetFixedDeltaTime() const { return m_FixedDeltaTime * m_TimeScale; }
+		void SetFixedDeltaTime(float step);
 
-		static float GetUnscaledFixedDeltaTime() { return s_FixedDeltaTime; }
+		float GetUnscaledFixedDeltaTime() const { return m_FixedDeltaTime; }
 
-		static float GetTimeScale() { return s_TimeScale; }
-		static void SetTimeScale(float scale);
+		float GetTimeScale() const { return m_TimeScale; }
+		void SetTimeScale(float scale);
 
 		// Note: Realtime elapsed time
-		static float GetElapsedTime();
+		float GetElapsedTime() const;
 		// Note: Elapsed time based on timescale
-		static float GetSimulatedElapsedTime();
+		float GetSimulatedElapsedTime() const;
 
-		static int GetFrameCount() { return s_FrameCount; }
+		int GetFrameCount() const { return m_FrameCount; }
 
 	private:
-		static void Update(float deltaTime);
-		static float s_DeltaTime;
-		static float s_TargetFPS;
-		static float s_TimeScale;
-		static float s_UpdateDeltaTime;
-		static float s_FixedDeltaTime;
-		static float s_SimulatedElapsedTime;
-		static int s_FrameCount;
+		void Update(float deltaTime);
+		void IncrementFrameCount() { m_FrameCount++; }
 
-		static std::chrono::steady_clock::duration s_FrameDuration;
-		static std::chrono::high_resolution_clock::time_point s_StartTime;
+		float m_DeltaTime = 0.0f;
+		float m_TargetFPS = 144.f;
+		float m_TimeScale = 1.f;
+		float m_UpdateDeltaTime = 1.0f / m_TargetFPS;
+		float m_FixedDeltaTime = 1.0f / 50.f;
+		float m_SimulatedElapsedTime = 0.0f;
+		int m_FrameCount = 0;
+
+		std::chrono::steady_clock::duration m_FrameDuration = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+			std::chrono::duration<float>(1.0f / m_TargetFPS)
+		);
+		std::chrono::high_resolution_clock::time_point m_StartTime = std::chrono::high_resolution_clock::now();
 
 		friend class Application;
 	};

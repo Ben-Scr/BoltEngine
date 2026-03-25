@@ -10,6 +10,7 @@
 #include  "Utils/Event.hpp"
 
 #include "Input.hpp"
+#include "Time.hpp"
 #include "Window.hpp"
 #include "Core.hpp"
 
@@ -57,6 +58,8 @@ namespace Bolt {
 
 		Renderer2D* GetRenderer2D() { return m_Renderer2D.get(); }
 		Input& GetInput() { return m_Input; }
+		Time& GetTime() { return m_Time; }
+		const Time& GetTime() const { return m_Time; }
 
 		static std::string GetVersion() { return "1.0"; }
 
@@ -79,6 +82,7 @@ namespace Bolt {
 		std::unique_ptr<PhysicsSystem2D> m_PhysicsSystem2D;
 		std::unique_ptr<SceneManager> m_SceneManager;
 		Input m_Input;
+		Time m_Time;
 
 		static std::string s_Name;
 

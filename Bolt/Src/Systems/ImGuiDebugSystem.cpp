@@ -66,14 +66,15 @@ namespace Bolt {
 		}
 
 		if (ImGui::CollapsingHeader("Time & Simulation")) {
-			float timeScale = Time::GetTimeScale();
+			auto& time = Application::GetInstance()->GetTime();
+			float timeScale = time.GetTimeScale();
 			if (ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f, "%.2fx")) {
-				Time::SetTimeScale(timeScale);
+				time.SetTimeScale(timeScale);
 			}
 
-			float fixedFPS = 1.f / Time::GetUnscaledFixedDeltaTime();
+			float fixedFPS = 1.f / time.GetUnscaledFixedDeltaTime();
 			if (ImGui::SliderFloat("Fixed Update (Hz)", &fixedFPS, 10.f, 244.f, "%.0f Hz")) {
-				Time::SetFixedDeltaTime(1.f / fixedFPS);
+				time.SetFixedDeltaTime(1.f / fixedFPS);
 			}
 
 			bool runInBG = Application::GetRunInBackground();
@@ -182,14 +183,15 @@ namespace Bolt {
 
 		if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen))
 		{
-			float fpsValue = 1.f / Time::GetDeltaTimeUnscaled();
+			auto& time = Application::GetInstance()->GetTime();
+			float fpsValue = 1.f / time.GetDeltaTimeUnscaled();
 			ImVec4 fpsColor = fpsValue < 30.0f ? ImVec4(1.0f, 0.3f, 0.3f, 1.0f) : ImVec4(0.3f, 1.0f, 0.3f, 1.0f);
 
 			ImGui::Text("FPS: "); ImGui::SameLine();
 			ImGui::TextColored(fpsColor, "%.2f", fpsValue);
 
-			ImGui::Text("Frame Count: %d", Time::GetFrameCount());
-			ImGui::Text("Time Scale:  %.2f", Time::GetTimeScale());
+			ImGui::Text("Frame Count: %d", time.GetFrameCount());
+			ImGui::Text("Time Scale:  %.2f", time.GetTimeScale());
 		}
 
 		if (ImGui::CollapsingHeader("Memory"))
