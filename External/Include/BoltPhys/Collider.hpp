@@ -15,6 +15,7 @@ namespace BoltPhys {
 
         Body* GetBody() noexcept;
         const Body* GetBody() const noexcept;
+
         void SetBody(Body* body) noexcept;
 
         virtual AABB ComputeAABB() const = 0;

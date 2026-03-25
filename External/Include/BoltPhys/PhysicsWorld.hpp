@@ -31,6 +31,7 @@ namespace BoltPhys {
 
         std::size_t GetBodyCount() const noexcept;
         std::size_t GetColliderCount() const noexcept;
+        const std::vector<Collider*>& GetColliders() const noexcept;
         const std::vector<Contact>& GetContacts() const noexcept;
 
     private:
