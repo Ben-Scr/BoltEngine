@@ -39,13 +39,7 @@ namespace Bolt {
 	}
 
 	void SceneManager::RegisterCoreComponents() {
-		/*REGISTER_COMPONENT(NameComponent, ComponentInfo("Name", ComponentCategory::Component));
-		REGISTER_COMPONENT(Transform2DComponent, ComponentInfo("Transform2D", ComponentCategory::Component));
-		REGISTER_COMPONENT(ParticleSystem2DComponent, ComponentInfo("ParticleSystem2D", ComponentCategory::Component));
-		REGISTER_COMPONENT(BoxCollider2DComponent, ComponentInfo("BoxCollider2D", ComponentCategory::Component));
-		REGISTER_COMPONENT(Rigidbody2DComponent, ComponentInfo("Rigidbody2D", ComponentCategory::Component));
-		REGISTER_COMPONENT(Camera2DComponent, ComponentInfo("Camera2D", ComponentCategory::Component));
-		REGISTER_COMPONENT(SpriteRendererComponent, ComponentInfo("SpriteRenderer", ComponentCategory::Component));*/
+	
 	}
 
 	void SceneManager::Shutdown() {
