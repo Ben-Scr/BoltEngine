@@ -39,8 +39,11 @@ namespace Bolt {
 			{
 				auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
 
-				if (now < nextFrameTime) {
-					std::this_thread::sleep_until(nextFrameTime);
+				if (now + std::chrono::milliseconds(10) < nextFrameTime)
+					std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
+
+				while (Clock::now() < nextFrameTime) {
+					_mm_pause();
 				}
 			}
 
