@@ -2,9 +2,9 @@
 #include "Renderer2D.hpp"
 
 #include "Scene/SceneManager.hpp"
-#include "Components/SpriteRendererComponent.hpp"
-#include "Components/ParticleSystem2DComponent.hpp";
-#include "Components/Camera2DComponent.hpp"
+#include "Components/Graphics/SpriteRendererComponent.hpp"
+#include "Components/Graphics/ParticleSystem2DComponent.hpp";
+#include "Components/Graphics/Camera2DComponent.hpp"
 #include "Components/Tags.hpp"
 
 #include "Scene/Scene.hpp"

@@ -5,7 +5,7 @@
 
 #include "Utils/Path.hpp"
 
-#include "Components/AudioSourceComponent.hpp"
+#include "Components/Audio/AudioSourceComponent.hpp"
 
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio/miniaudio.h>

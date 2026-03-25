@@ -21,22 +21,22 @@
     <ClCompile Include="Src\Audio\AudioManager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\AudioSourceComponent.cpp">
+    <ClCompile Include="Src\Components\Audio\AudioSourceComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\BoxCollider2DComponent.cpp">
+    <ClCompile Include="Src\Components\Physics\BoxCollider2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Collider2D.cpp">
+    <ClCompile Include="Src\Components\Physics\Collider2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\ParticleSystem2DComponent.cpp">
+    <ClCompile Include="Src\Components\Graphics\ParticleSystem2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Rigidbody2DComponent.cpp">
+    <ClCompile Include="Src\Components\Physics\Rigidbody2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Transform2DComponent.cpp">
+    <ClCompile Include="Src\Components\General\Transform2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Src\Core\Application.cpp">
@@ -57,7 +57,7 @@
     <ClCompile Include="Src\External\Glad\glad.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Camera2DComponent.cpp">
+    <ClCompile Include="Src\Components\Graphics\Camera2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="Src\Graphics\GizmoRenderer.cpp">
@@ -170,7 +170,7 @@
     <ClInclude Include="Src\Audio\AudioManager.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\AudioSourceComponent.hpp">
+    <ClInclude Include="Src\Components\Audio\AudioSourceComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Bolt.hpp">
@@ -200,28 +200,28 @@
     <ClInclude Include="Src\Collections\Viewport.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\BoxCollider2DComponent.hpp">
+    <ClInclude Include="Src\Components\Physics\BoxCollider2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Collider2D.hpp">
+    <ClInclude Include="Src\Components\Physics\Collider2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Components\ComponentUtils.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\ParticleSystem2DComponent.hpp">
+    <ClInclude Include="Src\Components\Graphics\ParticleSystem2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Rigidbody2DComponent.hpp">
+    <ClInclude Include="Src\Components\Physics\Rigidbody2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\SpriteRendererComponent.hpp">
+    <ClInclude Include="Src\Components\Graphics\SpriteRendererComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Components\Tags.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Transform2DComponent.hpp">
+    <ClInclude Include="Src\Components\General\Transform2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Core\Application.hpp">
@@ -248,7 +248,7 @@
     <ClInclude Include="Src\Debugging\Logger.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Camera2DComponent.hpp">
+    <ClInclude Include="Src\Components\Graphics\Camera2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp">
@@ -395,10 +395,10 @@
     <ClInclude Include="Src\Gui\ImGui.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\ImageComponent.hpp">
+    <ClInclude Include="Src\Components\Graphics\ImageComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\RectTransformComponent.hpp">
+    <ClInclude Include="Src\Components\General\RectTransformComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Gui\GuiRenderer.hpp">
@@ -416,7 +416,7 @@
     <ClInclude Include="Src\Systems\ImGuiDebugSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\NameComponent.hpp">
+    <ClInclude Include="Src\Components\General\NameComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Scene\ComponentRegistry.hpp">

@@ -1,6 +1,6 @@
 #include "pch.hpp"
 #include "Gizmos.hpp"
-#include "Components/Camera2DComponent.hpp"
+#include "Components/Graphics/Camera2DComponent.hpp"
 
 namespace Bolt {
 	std::vector<Square> Gizmo::s_Squares;

@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Components/Collider2D.hpp"
+#include "Components/Physics/Collider2D.hpp"
 
 
 namespace Bolt {

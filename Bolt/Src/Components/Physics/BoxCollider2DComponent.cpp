@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Components/BoxCollider2DComponent.hpp"
+#include "Components/Physics/BoxCollider2DComponent.hpp"
 #include "Scene/Scene.hpp"
 
 namespace Bolt {

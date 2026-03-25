@@ -9,9 +9,12 @@ namespace BoltPhys {
     class BOLT_PHYS_API Body
     {
     public:
-        virtual ~Body();
+        Body() noexcept;
+        explicit Body(BodyType type) noexcept;
+        ~Body();
 
-        BodyType GetType() const noexcept;
+        BodyType GetBodyType() const noexcept;
+        void SetBodyType(BodyType type) noexcept;
 
         const Vec2& GetPosition() const noexcept;
         void SetPosition(const Vec2& p) noexcept;
@@ -32,11 +35,8 @@ namespace BoltPhys {
         const Collider* GetCollider() const noexcept;
         void AttachCollider(Collider* collider) noexcept;
 
-    protected:
-        explicit Body(BodyType type) noexcept;
-
     private:
-        BodyType m_type;
+        BodyType m_bodyType = BodyType::Dynamic;
         Vec2 m_position{};
         Vec2 m_velocity{};
         float m_mass = 1.0f;

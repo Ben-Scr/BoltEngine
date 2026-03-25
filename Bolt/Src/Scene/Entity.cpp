@@ -2,7 +2,7 @@
 #include "Scene/Entity.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
-#include "Components/NameComponent.hpp"
+#include "Components/General/NameComponent.hpp"
 
 
 

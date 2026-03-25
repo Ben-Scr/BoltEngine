@@ -1,7 +1,7 @@
 #include "pch.hpp"
 #include "GizmoRenderer.hpp"
 #include "Shader.hpp"
-#include "Components/Camera2DComponent.hpp"
+#include "Components/Graphics/Camera2DComponent.hpp"
 #include "Gizmos.hpp"
 
 #include <glad/glad.h>

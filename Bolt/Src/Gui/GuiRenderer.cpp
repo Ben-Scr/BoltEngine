@@ -5,9 +5,9 @@
 #include "Scene/Scene.hpp"
 #include "Graphics/TextureManager.hpp"
 
-#include "Components/ImageComponent.hpp"
-#include "Components/RectTransformComponent.hpp"
-#include "Components/Camera2DComponent.hpp"
+#include "Components/Graphics/ImageComponent.hpp"
+#include "Components/General/RectTransformComponent.hpp"
+#include "Components/Graphics/Camera2DComponent.hpp"
 
 #include "Graphics/Shader.hpp"
 #include "Graphics/Instance44.hpp"

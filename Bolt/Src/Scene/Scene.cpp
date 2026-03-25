@@ -2,17 +2,17 @@
 #include "Scene/Scene.hpp"
 #include "Scene/Entity.hpp"
 
-#include "Components/AudioSourceComponent.hpp"
+#include "Components/Audio/AudioSourceComponent.hpp"
 
-#include "Components/Rigidbody2DComponent.hpp"
-#include "Components/BoxCollider2DComponent.hpp"
-#include "Components/ParticleSystem2DComponent.hpp"
-#include "Components/SpriteRendererComponent.hpp"
-#include "Components/NameComponent.hpp"
+#include "Components/Physics/Rigidbody2DComponent.hpp"
+#include "Components/Physics/BoxCollider2DComponent.hpp"
+#include "Components/Graphics/ParticleSystem2DComponent.hpp"
+#include "Components/Graphics/SpriteRendererComponent.hpp"
+#include "Components/General/NameComponent.hpp"
 
 #include "Physics/Box2DWorld.hpp"
 
-#include "Components/Camera2DComponent.hpp"
+#include "Components/Graphics/Camera2DComponent.hpp"
 
 namespace Bolt {
 	Entity Scene::CreateEntity() {

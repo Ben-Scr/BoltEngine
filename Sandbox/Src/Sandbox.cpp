@@ -11,11 +11,9 @@
 #include <iostream>
 
 #include <BoltPhys/Body.hpp>
+#include <BoltPhys/BodyType.hpp>
 #include <BoltPhys/Collider.hpp>
 #include <BoltPhys/PhysicsWorld.hpp>
-#include <BoltPhys/StaticBody.hpp>
-#include <BoltPhys/DynamicBody.hpp>
-#include <BoltPhys/KinematicBody.hpp>
 #include <BoltPhys/BoxCollider.hpp>
 
 #include <Graphics/Gizmos.hpp>
@@ -30,12 +28,12 @@ using namespace BoltPhys;
 class Sandbox : public Bolt::Application {
 public:
 	PhysicsWorld world;
-	BoltPhys::DynamicBody player;
+	BoltPhys::Body player = Body(BoltPhys::BodyType::Dynamic);
 	Entity playerEntity{ Entity::Null };
 	BoltPhys::BoxCollider playerCollider = BoltPhys::BoxCollider({ 0.5f, 0.5f });
 	BoltPhys::BoxCollider obstacleCollider = BoltPhys::BoxCollider({ 10.f, 0.5f });
 
-	BoltPhys::StaticBody obstacle;
+	BoltPhys::Body obstacle = Body(BoltPhys::BodyType::Static);
 
 	void ConfigureScenes() override {
 		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("Game");

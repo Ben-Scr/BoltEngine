@@ -1,5 +1,5 @@
 #pragma once
-#include "Components/Transform2DComponent.hpp"
+#include "Components/General/Transform2DComponent.hpp"
 #include "Core/Core.hpp"
 #include "Graphics/TextureHandle.hpp"
 #include "Collections/Color.hpp"

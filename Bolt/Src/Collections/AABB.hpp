@@ -1,7 +1,7 @@
 #pragma once
 #include "Vec2.hpp"
 #include "Mat2.hpp"
-#include "Components/Transform2DComponent.hpp"
+#include "Components/General/Transform2DComponent.hpp"
 #include "Core/Core.hpp"
 #include <ostream>
 

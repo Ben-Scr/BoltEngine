@@ -1,10 +1,10 @@
 #include "pch.hpp"
 #include "EntityHelper.hpp"
 
-#include "Components/Camera2DComponent.hpp"
-#include "Components/SpriteRendererComponent.hpp"
-#include "Components/RectTransformComponent.hpp"
-#include "Components/ImageComponent.hpp"
+#include "Components/Graphics/Camera2DComponent.hpp"
+#include "Components/Graphics/SpriteRendererComponent.hpp"
+#include "Components/General/RectTransformComponent.hpp"
+#include "Components/Graphics/ImageComponent.hpp"
 #include "Components/Tags.hpp"
 
 namespace Bolt {

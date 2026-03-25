@@ -4,7 +4,7 @@
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
 
-#include "Components/ParticleSystem2DComponent.hpp"
+#include "Components/Graphics/ParticleSystem2DComponent.hpp"
 #include "Components/Tags.hpp"
 
 #include <entt/entt.hpp>

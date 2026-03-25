@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Components/AudioSourceComponent.hpp"
+#include "Components/Audio/AudioSourceComponent.hpp"
 #include "Audio/AudioManager.hpp"
 
 
