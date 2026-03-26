@@ -72,10 +72,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Bolt-Engine\Src;$(SolutionDir)\Bolt-Engine\Src\External;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Bolt-Engine\Src;$(ProjectDir)\src\External;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Bolt-Engine\Src;$(SolutionDir)\Bolt-Engine\Src\External;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Bolt-Engine\Src;$(ProjectDir)\src\External;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -117,6 +117,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)\External\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;box2d.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,10 +135,35 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)\External\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;box2d.lib;gdi32.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\External\ImGui\imgui.cpp" />
+    <ClCompile Include="src\External\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="src\External\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="src\External\ImGui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="src\External\ImGui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="src\External\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="src\External\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\External\ImGui\imconfig.h" />
+    <ClInclude Include="src\External\ImGui\imgui.h" />
+    <ClInclude Include="src\External\ImGui\imgui_impl_glfw.h" />
+    <ClInclude Include="src\External\ImGui\imgui_impl_opengl3.h" />
+    <ClInclude Include="src\External\ImGui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="src\External\ImGui\imgui_internal.h" />
+    <ClInclude Include="src\External\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="src\External\ImGui\imstb_textedit.h" />
+    <ClInclude Include="src\External\ImGui\imstb_truetype.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Bolt-Engine\Bolt-Engine.vcxproj">
+      <Project>{436c9d57-d50b-4ab2-8dc5-6e4a13e72feb}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

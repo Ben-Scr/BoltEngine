@@ -114,14 +114,14 @@ namespace {
 			}
 
 			Entity entity = scene.GetEntity(m_SelectedEntity);
-			if (entity.HasComponent<NameComponent>()) {
-				auto& name = entity.GetComponent<NameComponent>().Name;
-				char buffer[128]{};
-				std::snprintf(buffer, sizeof(buffer), "%s", name.c_str());
-				if (ImGui::InputText("Name", buffer, sizeof(buffer))) {
-					name = buffer;
-				}
-			}
+			//if (entity.HasComponent<NameComponent>()) {
+			//	auto& name = entity.GetComponent<NameComponent>().Name;
+			//	char buffer[128]{};
+			//	std::snprintf(buffer, sizeof(buffer), "%s", name.c_str());
+			//	if (ImGui::InputText("Name", buffer, sizeof(buffer))) {
+			//		name = buffer;
+			//	}
+			//}
 
 			if (entity.HasComponent<Transform2DComponent>()) {
 				auto& transform = entity.GetComponent<Transform2DComponent>();
