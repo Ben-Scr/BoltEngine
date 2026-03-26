@@ -1730,7 +1730,7 @@ void ImGuiIO::ClearInputKeys()
         if (ImGui::IsMouseKey((ImGuiKey)key))
             continue;
         ImGuiKeyData* key_data = &g.IO.KeysData[key - ImGuiKey_NamedKey_BEGIN];
-        key_data->Down = false;
+        key_data->Bottom = false;
         key_data->DownDuration = -1.0f;
         key_data->DownDurationPrev = -1.0f;
     }
@@ -1744,7 +1744,7 @@ void ImGuiIO::ClearInputMouse()
     for (ImGuiKey key = ImGuiKey_Mouse_BEGIN; key < ImGuiKey_Mouse_END; key = (ImGuiKey)(key + 1))
     {
         ImGuiKeyData* key_data = &KeysData[key - ImGuiKey_NamedKey_BEGIN];
-        key_data->Down = false;
+        key_data->Bottom = false;
         key_data->DownDuration = -1.0f;
         key_data->DownDurationPrev = -1.0f;
     }
@@ -1804,7 +1804,7 @@ void ImGuiIO::AddKeyAnalogEvent(ImGuiKey key, bool down, float analog_value)
     // Filter duplicate (in particular: key mods and gamepad analog values are commonly spammed)
     const ImGuiInputEvent* latest_event = FindLatestInputEvent(&g, ImGuiInputEventType_Key, (int)key);
     const ImGuiKeyData* key_data = ImGui::GetKeyData(&g, key);
-    const bool latest_key_down = latest_event ? latest_event->Key.Down : key_data->Down;
+    const bool latest_key_down = latest_event ? latest_event->Key.Bottom : key_data->Bottom;
     const float latest_key_analog = latest_event ? latest_event->Key.AnalogValue : key_data->AnalogValue;
     if (latest_key_down == down && latest_key_analog == analog_value)
         return;
@@ -1815,7 +1815,7 @@ void ImGuiIO::AddKeyAnalogEvent(ImGuiKey key, bool down, float analog_value)
     e.Source = ImGui::IsGamepadKey(key) ? ImGuiInputSource_Gamepad : ImGuiInputSource_Keyboard;
     e.EventId = g.InputEventsNextEventId++;
     e.Key.Key = key;
-    e.Key.Down = down;
+    e.Key.Bottom = down;
     e.Key.AnalogValue = analog_value;
     g.InputEventsQueue.push_back(e);
 }
@@ -1894,7 +1894,7 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
 
     // Filter duplicate
     const ImGuiInputEvent* latest_event = FindLatestInputEvent(&g, ImGuiInputEventType_MouseButton, (int)mouse_button);
-    const bool latest_button_down = latest_event ? latest_event->MouseButton.Down : g.IO.MouseDown[mouse_button];
+    const bool latest_button_down = latest_event ? latest_event->MouseButton.Bottom : g.IO.MouseDown[mouse_button];
     if (latest_button_down == down)
         return;
 
@@ -1904,7 +1904,7 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
     if (ConfigMacOSXBehaviors && mouse_button == 0 && down)
     {
         const ImGuiInputEvent* latest_super_event = FindLatestInputEvent(&g, ImGuiInputEventType_Key, (int)ImGuiMod_Super);
-        if (latest_super_event ? latest_super_event->Key.Down : g.IO.KeySuper)
+        if (latest_super_event ? latest_super_event->Key.Bottom : g.IO.KeySuper)
         {
             IMGUI_DEBUG_LOG_IO("[io] Super+Left Click aliased into Right Click\n");
             MouseCtrlLeftAsRightClick = true;
@@ -1918,7 +1918,7 @@ void ImGuiIO::AddMouseButtonEvent(int mouse_button, bool down)
     e.Source = ImGuiInputSource_Mouse;
     e.EventId = g.InputEventsNextEventId++;
     e.MouseButton.Button = mouse_button;
-    e.MouseButton.Down = down;
+    e.MouseButton.Bottom = down;
     e.MouseButton.MouseSource = g.InputEventsNextMouseSource;
     g.InputEventsQueue.push_back(e);
 }
@@ -9435,7 +9435,7 @@ int ImGui::GetKeyPressedAmount(ImGuiKey key, float repeat_delay, float repeat_ra
 {
     ImGuiContext& g = *GImGui;
     const ImGuiKeyData* key_data = GetKeyData(key);
-    if (!key_data->Down) // In theory this should already be encoded as (DownDuration < 0.0f), but testing this facilitates eating mechanism (until we finish work on key ownership)
+    if (!key_data->Bottom) // In theory this should already be encoded as (DownDuration < 0.0f), but testing this facilitates eating mechanism (until we finish work on key ownership)
         return 0;
     const float t = key_data->DownDuration;
     return CalcTypematicRepeatAmount(t - g.IO.DeltaTime, t, repeat_delay, repeat_rate);
@@ -9725,7 +9725,7 @@ bool ImGui::IsKeyDown(ImGuiKey key)
 bool ImGui::IsKeyDown(ImGuiKey key, ImGuiID owner_id)
 {
     const ImGuiKeyData* key_data = GetKeyData(key);
-    if (!key_data->Down)
+    if (!key_data->Bottom)
         return false;
     if (!TestKeyOwner(key, owner_id))
         return false;
@@ -9741,7 +9741,7 @@ bool ImGui::IsKeyPressed(ImGuiKey key, bool repeat)
 bool ImGui::IsKeyPressed(ImGuiKey key, ImGuiInputFlags flags, ImGuiID owner_id)
 {
     const ImGuiKeyData* key_data = GetKeyData(key);
-    if (!key_data->Down) // In theory this should already be encoded as (DownDuration < 0.0f), but testing this facilitates eating mechanism (until we finish work on key ownership)
+    if (!key_data->Bottom) // In theory this should already be encoded as (DownDuration < 0.0f), but testing this facilitates eating mechanism (until we finish work on key ownership)
         return false;
     const float t = key_data->DownDuration;
     if (t < 0.0f)
@@ -9785,7 +9785,7 @@ bool ImGui::IsKeyReleased(ImGuiKey key)
 bool ImGui::IsKeyReleased(ImGuiKey key, ImGuiID owner_id)
 {
     const ImGuiKeyData* key_data = GetKeyData(key);
-    if (key_data->DownDurationPrev < 0.0f || key_data->Down)
+    if (key_data->DownDurationPrev < 0.0f || key_data->Bottom)
         return false;
     if (!TestKeyOwner(key, owner_id))
         return false;
@@ -10011,7 +10011,7 @@ static void UpdateAliasKey(ImGuiKey key, bool v, float analog_value)
 {
     IM_ASSERT(ImGui::IsAliasKey(key));
     ImGuiKeyData* key_data = ImGui::GetKeyData(key);
-    key_data->Down = v;
+    key_data->Bottom = v;
     key_data->AnalogValue = analog_value;
 }
 
@@ -10059,7 +10059,7 @@ static void ImGui::UpdateKeyboardInputs()
     if ((io.BackendFlags & ImGuiBackendFlags_HasGamepad) == 0)
         for (int key = ImGuiKey_Gamepad_BEGIN; key < ImGuiKey_Gamepad_END; key++)
         {
-            io.KeysData[key - ImGuiKey_NamedKey_BEGIN].Down = false;
+            io.KeysData[key - ImGuiKey_NamedKey_BEGIN].Bottom = false;
             io.KeysData[key - ImGuiKey_NamedKey_BEGIN].AnalogValue = 0.0f;
         }
 
@@ -10068,7 +10068,7 @@ static void ImGui::UpdateKeyboardInputs()
     {
         ImGuiKeyData* key_data = &io.KeysData[key - ImGuiKey_NamedKey_BEGIN];
         key_data->DownDurationPrev = key_data->DownDuration;
-        key_data->DownDuration = key_data->Down ? (key_data->DownDuration < 0.0f ? 0.0f : key_data->DownDuration + io.DeltaTime) : -1.0f;
+        key_data->DownDuration = key_data->Bottom ? (key_data->DownDuration < 0.0f ? 0.0f : key_data->DownDuration + io.DeltaTime) : -1.0f;
         if (key_data->DownDuration == 0.0f)
         {
             if (IsKeyboardKey((ImGuiKey)key))
@@ -10084,9 +10084,9 @@ static void ImGui::UpdateKeyboardInputs()
         ImGuiKeyData* key_data = &io.KeysData[key - ImGuiKey_NamedKey_BEGIN];
         ImGuiKeyOwnerData* owner_data = &g.KeysOwnerData[key - ImGuiKey_NamedKey_BEGIN];
         owner_data->OwnerCurr = owner_data->OwnerNext;
-        if (!key_data->Down) // Important: ownership is released on the frame after a release. Ensure a 'MouseDown -> CloseWindow -> MouseUp' chain doesn't lead to someone else seeing the MouseUp.
+        if (!key_data->Bottom) // Important: ownership is released on the frame after a release. Ensure a 'MouseDown -> CloseWindow -> MouseUp' chain doesn't lead to someone else seeing the MouseUp.
             owner_data->OwnerNext = ImGuiKeyOwner_NoOwner;
-        owner_data->LockThisFrame = owner_data->LockUntilRelease = owner_data->LockUntilRelease && key_data->Down;  // Clear LockUntilRelease when key is not Down anymore
+        owner_data->LockThisFrame = owner_data->LockUntilRelease = owner_data->LockUntilRelease && key_data->Bottom;  // Clear LockUntilRelease when key is not Down anymore
     }
 
     // Update key routing (for e.g. shortcuts)
@@ -10351,9 +10351,9 @@ static void DebugPrintInputEvent(const char* prefix, const ImGuiInputEvent* e)
     ImGuiContext& g = *GImGui;
     char buf[5];
     if (e->Type == ImGuiInputEventType_MousePos)    { if (e->MousePos.PosX == -FLT_MAX && e->MousePos.PosY == -FLT_MAX) IMGUI_DEBUG_LOG_IO("[io] %s: MousePos (-FLT_MAX, -FLT_MAX)\n", prefix); else IMGUI_DEBUG_LOG_IO("[io] %s: MousePos (%.1f, %.1f) (%s)\n", prefix, e->MousePos.PosX, e->MousePos.PosY, GetMouseSourceName(e->MousePos.MouseSource)); return; }
-    if (e->Type == ImGuiInputEventType_MouseButton) { IMGUI_DEBUG_LOG_IO("[io] %s: MouseButton %d %s (%s)\n", prefix, e->MouseButton.Button, e->MouseButton.Down ? "Down" : "Up", GetMouseSourceName(e->MouseButton.MouseSource)); return; }
+    if (e->Type == ImGuiInputEventType_MouseButton) { IMGUI_DEBUG_LOG_IO("[io] %s: MouseButton %d %s (%s)\n", prefix, e->MouseButton.Button, e->MouseButton.Bottom ? "Down" : "Up", GetMouseSourceName(e->MouseButton.MouseSource)); return; }
     if (e->Type == ImGuiInputEventType_MouseWheel)  { IMGUI_DEBUG_LOG_IO("[io] %s: MouseWheel (%.3f, %.3f) (%s)\n", prefix, e->MouseWheel.WheelX, e->MouseWheel.WheelY, GetMouseSourceName(e->MouseWheel.MouseSource)); return; }
-    if (e->Type == ImGuiInputEventType_Key)         { IMGUI_DEBUG_LOG_IO("[io] %s: Key \"%s\" %s\n", prefix, ImGui::GetKeyName(e->Key.Key), e->Key.Down ? "Down" : "Up"); return; }
+    if (e->Type == ImGuiInputEventType_Key)         { IMGUI_DEBUG_LOG_IO("[io] %s: Key \"%s\" %s\n", prefix, ImGui::GetKeyName(e->Key.Key), e->Key.Bottom ? "Down" : "Up"); return; }
     if (e->Type == ImGuiInputEventType_Text)        { ImTextCharToUtf8(buf, e->Text.Char); IMGUI_DEBUG_LOG_IO("[io] %s: Text: '%s' (U+%08X)\n", prefix, buf, e->Text.Char); return; }
     if (e->Type == ImGuiInputEventType_Focus)       { IMGUI_DEBUG_LOG_IO("[io] %s: AppFocused %d\n", prefix, e->AppFocused.Focused); return; }
 }
@@ -10402,7 +10402,7 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
                 break;
             if (trickle_fast_inputs && e->MouseButton.MouseSource == ImGuiMouseSource_TouchScreen && mouse_moved) // #2702: TouchScreen have no initial hover.
                 break;
-            io.MouseDown[button] = e->MouseButton.Down;
+            io.MouseDown[button] = e->MouseButton.Bottom;
             io.MouseSource = e->MouseButton.MouseSource;
             mouse_button_changed |= (1 << button);
         }
@@ -10425,14 +10425,14 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
             IM_ASSERT(key != ImGuiKey_None);
             ImGuiKeyData* key_data = GetKeyData(key);
             const int key_data_index = (int)(key_data - g.IO.KeysData);
-            if (trickle_fast_inputs && key_data->Down != e->Key.Down && (key_changed_mask.TestBit(key_data_index) || mouse_button_changed != 0))
+            if (trickle_fast_inputs && key_data->Bottom != e->Key.Bottom && (key_changed_mask.TestBit(key_data_index) || mouse_button_changed != 0))
                 break;
 
             const bool key_is_potentially_for_char_input = IsKeyChordPotentiallyCharInput(GetMergedModsFromKeys() | key);
             if (trickle_interleaved_nonchar_keys_and_text && (text_inputted && !key_is_potentially_for_char_input))
                 break;
 
-            if (key_data->Down != e->Key.Down) // Analog change only do not trigger this, so it won't block e.g. further mouse pos events testing key_changed.
+            if (key_data->Bottom != e->Key.Bottom) // Analog change only do not trigger this, so it won't block e.g. further mouse pos events testing key_changed.
             {
                 key_changed = true;
                 key_changed_mask.SetBit(key_data_index);
@@ -10440,7 +10440,7 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
                     key_changed_nonchar = true;
             }
 
-            key_data->Down = e->Key.Down;
+            key_data->Bottom = e->Key.Bottom;
             key_data->AnalogValue = e->Key.AnalogValue;
         }
         else if (e->Type == ImGuiInputEventType_Text)

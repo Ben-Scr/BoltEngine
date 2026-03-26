@@ -7,7 +7,7 @@ Bolt specific includes
 
 #include "EntryPoint.hpp"
 
-/*
+
 // Collections
 #include "Collections/Vec2.hpp"
 #include "Collections/Color.hpp"
@@ -56,4 +56,3 @@ Bolt specific includes
 
 // Utils
 #include "Utils/StringHelper.hpp"
-*/

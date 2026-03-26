@@ -14,7 +14,6 @@ public:
 		ApplicationConfig config;
 		config.WindowProps = WindowProps(800, 800, "Bolt Runtime", true, true, false);
 		config.EnableAudio = false;
-		//config.Vsync = false;
 		return config;
 	}
 
