@@ -24,7 +24,7 @@ namespace Bolt {
 		bool EnableGuiRenderer = true;
 		bool EnableGizmoRenderer = true;
 		bool EnablePhysics2D = true;
-		bool EnableAudio = false;
+		bool EnableAudio = true;
 		bool SetWindowIcon = true;
 		bool Vsync = true;
 	};
