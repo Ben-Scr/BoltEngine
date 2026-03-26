@@ -12,6 +12,7 @@
 #include "Input.hpp"
 #include "Time.hpp"
 #include "Window.hpp"
+#include "EngineContext.hpp"
 #include "Core.hpp"
 
 #include <chrono>
@@ -79,11 +80,13 @@ namespace Bolt {
 
 		SceneManager* GetSceneManager() { return m_SceneManager.get(); }
 		const SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
+		const EngineContext& GetEngineContext() const { return m_EngineContext; }
 
 		static void Quit();
 		static void Pause(bool paused) { if (s_Instance) s_Instance->m_IsPaused = paused; }
 		static void Reload() { if (s_Instance) { s_Instance->m_ShouldQuit = true; s_Instance->m_CanReload = true; } };
 		static bool IsPaused() { return s_Instance ? s_Instance->m_IsPaused : false; }
+		void RenderOnceForRefresh();
 
 	private:
 		std::unique_ptr<Window> m_Window;
@@ -96,6 +99,7 @@ namespace Bolt {
 		Input m_Input;
 		Time m_Time;
 		ApplicationConfig m_Configuration;
+		EngineContext m_EngineContext{};
 
 		static std::string s_Name;
 
@@ -123,6 +127,7 @@ namespace Bolt {
 		void BeginFixedFrame();
 		void EndFixedFrame();
 		void EndFrame();
+		void RenderPipelineOnly();
 	};
 
 	// To be defined in client

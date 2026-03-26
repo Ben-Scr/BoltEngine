@@ -3,7 +3,6 @@
 #include "Application.hpp"
 #include "Graphics/Texture2D.hpp"
 #include "Graphics/OpenGL.hpp"
-#include "Scene/SceneManager.hpp"
 
 #include <glad/glad.h>
 
@@ -25,27 +24,10 @@ namespace Bolt {
 	}
 
 	void Window::RefreshCallback(GLFWwindow* window) {
+		(void)window;
 		Application* app = Application::GetInstance();
-
 		if (!app) return;
-
-		if (app->m_Renderer2D) {
-			BOLT_TRY_CATCH_LOG(app->m_Renderer2D->BeginFrame());
-			BOLT_TRY_CATCH_LOG(app->m_Renderer2D->EndFrame());
-		}
-
-		if (app->m_ImGuiRenderer) {
-			BOLT_TRY_CATCH_LOG(app->m_ImGuiRenderer->BeginFrame());
-			BOLT_TRY_CATCH_LOG(SceneManager::Get().OnGuiScenes());
-			BOLT_TRY_CATCH_LOG(app->m_ImGuiRenderer->EndFrame());
-		}
-
-		if (app->m_GizmoRenderer2D) {
-			BOLT_TRY_CATCH_LOG(app->m_GizmoRenderer2D->BeginFrame());
-			BOLT_TRY_CATCH_LOG(app->m_GizmoRenderer2D->EndFrame());
-		}
-
-		if (app->m_Window) app->m_Window->SwapBuffers();
+		app->RenderOnceForRefresh();
 	}
 
 	void Window::Initialize() {

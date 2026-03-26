@@ -99,6 +99,7 @@ namespace Bolt {
 		Timer timer = Timer();
 		Window::Initialize();
 		m_Window = std::make_unique<Window>(m_Configuration.WindowProps);
+		m_EngineContext.Window = m_Window.get();
 		m_Window->SetVsync(m_Configuration.Vsync);
 		m_Window->SetWindowResizeable(m_Configuration.WindowProps.Resizeable);
 		Logger::Message("Window", "Initialization took " + StringHelper::ToString(timer));
@@ -110,12 +111,14 @@ namespace Bolt {
 		timer.Reset();
 		m_Renderer2D = std::make_unique<Renderer2D>();
 		m_Renderer2D->Initialize();
+		m_EngineContext.Renderer2D = m_Renderer2D.get();
 		Logger::Message("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.EnableGizmoRenderer) {
 			timer.Reset();
 			m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
 			m_GizmoRenderer2D->Initialize();
+			m_EngineContext.GizmoRenderer2D = m_GizmoRenderer2D.get();
 			Logger::Message("GizmoRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
@@ -123,6 +126,7 @@ namespace Bolt {
 			timer.Reset();
 			m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
 			m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
+			m_EngineContext.ImGuiRenderer = m_ImGuiRenderer.get();
 			Logger::Message("ImGuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
@@ -130,6 +134,7 @@ namespace Bolt {
 			timer.Reset();
 			m_GuiRenderer = std::make_unique<GuiRenderer>();
 			m_GuiRenderer->Initialize();
+			m_EngineContext.GuiRenderer = m_GuiRenderer.get();
 			Logger::Message("GuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
@@ -137,6 +142,7 @@ namespace Bolt {
 			timer.Reset();
 			m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
 			m_PhysicsSystem2D->Initialize();
+			m_EngineContext.Physics2D = m_PhysicsSystem2D.get();
 			Logger::Message("PhysicsSystem", "Initialization took " + StringHelper::ToString(timer));
 		}
 
@@ -154,6 +160,7 @@ namespace Bolt {
 		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
 		ConfigureScenes();
 		m_SceneManager->Initialize();
+		m_EngineContext.SceneManager = m_SceneManager.get();
 		Logger::Message("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.SetWindowIcon) {
@@ -186,7 +193,7 @@ namespace Bolt {
 			}
 
 			if (m_GuiRenderer)
-				BOLT_TRY_CATCH_LOG(m_GuiRenderer->BeginFrame());
+				BOLT_TRY_CATCH_LOG(m_GuiRenderer->BeginFrame(*m_SceneManager));
 
 			if (m_GizmoRenderer2D)
 				BOLT_TRY_CATCH_LOG(m_GizmoRenderer2D->BeginFrame());
@@ -208,21 +215,50 @@ namespace Bolt {
 
 	void Application::EndFrame() {
 		if (!m_IsPaused) {
-			if (m_Renderer2D)
-				BOLT_TRY_CATCH_LOG(m_Renderer2D->EndFrame());
-
-			if (m_ImGuiRenderer)
-				BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->EndFrame());
-
-			if (m_GuiRenderer)
-				BOLT_TRY_CATCH_LOG(m_GuiRenderer->EndFrame());
-			if (m_GizmoRenderer2D)
-				BOLT_TRY_CATCH_LOG(m_GizmoRenderer2D->EndFrame());
-
-			if (m_Window) m_Window->SwapBuffers();
+			RenderPipelineOnly();
 		}
 
 		m_Input.Update();
+	}
+
+	void Application::RenderPipelineOnly() {
+		if (m_Renderer2D)
+			BOLT_TRY_CATCH_LOG(m_Renderer2D->EndFrame());
+
+		if (m_ImGuiRenderer)
+			BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->EndFrame());
+
+		if (m_GuiRenderer)
+			BOLT_TRY_CATCH_LOG(m_GuiRenderer->EndFrame());
+		if (m_GizmoRenderer2D)
+			BOLT_TRY_CATCH_LOG(m_GizmoRenderer2D->EndFrame());
+
+		if (m_Window) m_Window->SwapBuffers();
+	}
+
+	void Application::RenderOnceForRefresh() {
+		if (m_Renderer2D) {
+			BOLT_TRY_CATCH_LOG(m_Renderer2D->BeginFrame());
+			BOLT_TRY_CATCH_LOG(m_Renderer2D->EndFrame());
+		}
+
+		if (m_ImGuiRenderer) {
+			BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
+			if (m_SceneManager) BOLT_TRY_CATCH_LOG(m_SceneManager->OnGuiScenes());
+			BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->EndFrame());
+		}
+
+		if (m_GuiRenderer && m_SceneManager) {
+			BOLT_TRY_CATCH_LOG(m_GuiRenderer->BeginFrame(*m_SceneManager));
+			BOLT_TRY_CATCH_LOG(m_GuiRenderer->EndFrame());
+		}
+
+		if (m_GizmoRenderer2D) {
+			BOLT_TRY_CATCH_LOG(m_GizmoRenderer2D->BeginFrame());
+			BOLT_TRY_CATCH_LOG(m_GizmoRenderer2D->EndFrame());
+		}
+
+		if (m_Window) m_Window->SwapBuffers();
 	}
 
 	void Application::EndFixedFrame() {
@@ -260,6 +296,7 @@ namespace Bolt {
 
 		if (m_Window) m_Window->Destroy();
 		Window::Shutdown();
+		m_EngineContext = {};
 
 		m_ShouldQuit = false;
 	}

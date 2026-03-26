@@ -25,8 +25,8 @@ namespace Bolt {
 		m_IsInitialized = false;
 	}
 
-	void GuiRenderer::BeginFrame() {
-		SceneManager::Get().ForeachLoadedScene([&](const Scene& scene) { RenderScene(scene); });
+	void GuiRenderer::BeginFrame(const SceneManager& sceneManager) {
+		sceneManager.ForeachLoadedScene([&](const Scene& scene) { RenderScene(scene); });
 	}
 	void GuiRenderer::EndFrame() {
 
