@@ -20,10 +20,10 @@ namespace {
 	class EditorUiSystem : public ISystem {
 	public:
 		void OnGui(Scene& scene) override {
-			DrawDockspace();
-			DrawMenuBar(scene);
-			DrawHierarchy(scene);
-			DrawInspector(scene);
+			//DrawDockspace();
+			//DrawMenuBar(scene);
+			//DrawHierarchy(scene);
+			//DrawInspector(scene);
 			DrawStats();
 		}
 
@@ -32,6 +32,7 @@ namespace {
 		int m_EntityCounter = 0;
 
 		void DrawDockspace() {
+			return;
 			ImGuiWindowFlags flags = /*ImGuiWindowFlags_NoDocking |*/ ImGuiWindowFlags_NoTitleBar |
 				ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
 				ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
