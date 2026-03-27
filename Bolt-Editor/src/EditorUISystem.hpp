@@ -20,15 +20,10 @@ namespace Bolt {
 		int m_EntityCounter = 0;
 
 		void DrawDockspace();
-
 		void DrawMenuBar(Scene& scene);
-
 		void DrawHierarchy(Scene& scene);
-
 		void DrawInspector(Scene& scene);
-
 		void DrawStats();
-
 		void CreateEntity(Scene& scene);
 	};
 }

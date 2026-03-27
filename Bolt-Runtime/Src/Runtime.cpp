@@ -20,7 +20,7 @@ public:
 	}
 
 	void ConfigureScenes() override {
-		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("Game");
+		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("SampleScene");
 		def.AddSystem<EditorUISystem>();
 		def.SetAsStartupScene();
 	}
