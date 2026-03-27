@@ -18,7 +18,6 @@ namespace Bolt {
 		World
 	};
 
-
 	struct Burst {
 		uint32_t Count{ 10 };
 		float Interval{ 1.f };

@@ -111,8 +111,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\External\Include;$(SolutionDir)\Bolt\Src</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\External\Include;</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,8 +130,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)\External\Include;$(SolutionDir)\Bolt\Src</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp23</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)\External\Include;</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,9 +148,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Bolt-Engine\Bolt-Engine.vcxproj">
       <Project>{436c9d57-d50b-4ab2-8dc5-6e4a13e72feb}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\ImGui\ImGui.vcxproj">
-      <Project>{6638f333-a2ae-46df-b369-5a64c6bbd30c}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,6 @@
-#include <Bolt.hpp>
+//#include <Bolt.hpp>
 
-#include "Components/Components.hpp"
+//#include "Components/Components.hpp"
 #include "Core/Application.hpp"
 #include "Core/Time.hpp"
 #include "Graphics/Renderer2D.hpp"
@@ -9,7 +9,7 @@
 #include "Scene/Scene.hpp"
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
-#include "EditorUISystem.hpp"
+#include "Systems/EditorUISystem.hpp"
 
 #include <imgui.h>
 
