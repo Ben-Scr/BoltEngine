@@ -220,6 +220,7 @@
     <ClCompile Include="Src\Scene\Scene.cpp" />
     <ClCompile Include="Src\Scene\SceneDefinition.cpp" />
     <ClCompile Include="Src\Scene\SceneManager.cpp" />
+    <ClCompile Include="Src\Systems\EditorUISystem.cpp" />
     <ClCompile Include="Src\Systems\ImGuiDebugSystem.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -304,6 +305,7 @@
     <ClInclude Include="Src\Scene\SceneDefinition.hpp" />
     <ClInclude Include="Src\Scene\SceneManager.hpp" />
     <ClInclude Include="Src\Math\Random.hpp" />
+    <ClInclude Include="Src\Systems\EditorUISystem.hpp" />
     <ClInclude Include="Src\Systems\ImGuiDebugSystem.hpp" />
     <ClInclude Include="Src\Systems\ParticleUpdateSystem.hpp" />
     <ClInclude Include="Src\Utils\CommandBuffer.hpp">

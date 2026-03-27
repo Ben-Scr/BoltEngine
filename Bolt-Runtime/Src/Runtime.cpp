@@ -5,6 +5,8 @@
 #include "Systems/ImGuiDebugSystem.hpp"
 #include <Scene/EntityHelper.hpp>
 
+#include <Systems/EditorUISystem.hpp>
+
 using namespace Bolt;
 
 
@@ -19,7 +21,7 @@ public:
 
 	void ConfigureScenes() override {
 		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("Game");
-		def.AddSystem<ImGuiDebugSystem>();
+		def.AddSystem<EditorUISystem>();
 		def.SetAsStartupScene();
 	}
 
