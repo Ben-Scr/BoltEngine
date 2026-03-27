@@ -1,0 +1,22 @@
+{
+  "projectVersion": 1,
+  "activeScene": "EditorScene",
+  "entities": [
+    {
+      "id": 0,
+      "name": "Camera 2D",
+      "components": {
+        "Transform2D": {"position":{"x":0,"y":0},"scale":{"x":1,"y":1},"rotation":0},
+        "Camera2D": {"orthographicSize":5,"zoom":1}
+      }
+    },
+    {
+      "id": 1,
+      "name": "Entity 1",
+      "components": {
+        "Transform2D": {"position":{"x":0,"y":0},"scale":{"x":1,"y":1},"rotation":0},
+        "SpriteRenderer": {"sortingOrder":0,"sortingLayer":0,"textureHandle":{"index":0,"generation":0},"color":{"r":1,"g":1,"b":1,"a":1}}
+      }
+    }
+  ]
+}

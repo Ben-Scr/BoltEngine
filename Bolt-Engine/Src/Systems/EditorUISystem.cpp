@@ -1,21 +1,45 @@
 #include <pch.hpp>
 #include "EditorUISystem.hpp"
-#include "Editor/EditorSceneSerializer.hpp"
+#include <Utils/Path.hpp>
 #include <imgui.h>
-#include <algorithm>
-#include <algorithm>
-#include "Debugging/Logger.hpp"
-#include "Utils/Path.hpp"
-
+#include <sstream>
 
 namespace Bolt {
+	namespace {
+		std::string EscapeJsonString(std::string_view input) {
+			std::string escaped;
+			escaped.reserve(input.size() + 8);
+			for (char ch : input) {
+				switch (ch) {
+				case '\\': escaped += "\\\\"; break;
+				case '"': escaped += "\\\""; break;
+				case '\n': escaped += "\\n"; break;
+				case '\r': escaped += "\\r"; break;
+				case '\t': escaped += "\\t"; break;
+				default: escaped.push_back(ch); break;
+				}
+			}
+			return escaped;
+		}
+
+		void WriteVec2(std::ostringstream& out, const Vec2& vec) {
+			out << "{\"x\":" << vec.x << ",\"y\":" << vec.y << "}";
+		}
+
+		void WriteColor(std::ostringstream& out, const Color& color) {
+			out << "{\"r\":" << color.r << ",\"g\":" << color.g << ",\"b\":" << color.b << ",\"a\":" << color.a << "}";
+		}
+	}
+
 	void EditorUISystem::OnGui(Scene& scene) {
+		/*		ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_MenuBar);
+				ImGui::End();*/
 		DrawDockspace();
 		DrawMenuBar(scene);
+		DrawProjectBar(scene);
 		DrawHierarchy(scene);
 		DrawInspector(scene);
 		DrawStats();
-		DrawProjectLoader(scene);
 	}
 
 	void EditorUISystem::DrawDockspace() {
@@ -39,21 +63,24 @@ namespace Bolt {
 	}
 
 	void EditorUISystem::DrawMenuBar(Scene& scene) {
-		if (m_ProjectRootPath.empty()) {
-			m_ProjectRootPath = std::filesystem::path(Path::Combine(Path::Current(), "Bolt", "Projects"));
-		}
-
 		if (!ImGui::BeginMainMenuBar()) {
 			return;
 		}
 
 		if (ImGui::BeginMenu("File")) {
+			if (m_ProjectFilePath.empty()) {
+				m_ProjectFilePath = GetDefaultProjectSavePath(scene);
+			}
+
+			const ImGuiIO& io = ImGui::GetIO();
+			const bool saveShortcut = io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false);
+
+			if (ImGui::MenuItem("Save Project", "Ctrl+S") || saveShortcut) {
+				SaveProjectFromGui(scene, m_ProjectFilePath);
+			}
+
 			if (ImGui::MenuItem("New Entity")) {
 				CreateEntity(scene);
-			}
-			if (ImGui::MenuItem("Load Project...")) {
-				RefreshProjectEntries();
-				m_OpenProjectDialog = true;
 			}
 			if (ImGui::MenuItem("Reload Scene")) {
 				SceneManager::Get().ReloadScene(scene.GetName());
@@ -67,6 +94,39 @@ namespace Bolt {
 		}
 
 		ImGui::EndMainMenuBar();
+	}
+
+	void EditorUISystem::DrawProjectBar(Scene& scene) {
+		if (m_ProjectFilePath.empty()) {
+			m_ProjectFilePath = GetDefaultProjectSavePath(scene);
+		}
+
+		if (!ImGui::Begin("Project")) {
+			ImGui::End();
+			return;
+		}
+
+		char pathBuffer[512]{};
+		std::snprintf(pathBuffer, sizeof(pathBuffer), "%s", m_ProjectFilePath.c_str());
+		if (ImGui::InputText("Save Path", pathBuffer, sizeof(pathBuffer))) {
+			m_ProjectFilePath = StringHelper::Trim(pathBuffer);
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Save")) {
+			SaveProjectFromGui(scene, m_ProjectFilePath);
+		}
+
+		if (!m_LastSaveStatus.empty()) {
+			if (m_LastSaveSucceeded) {
+				ImGui::TextColored(ImVec4(0.4f, 0.85f, 0.4f, 1.0f), "%s", m_LastSaveStatus.c_str());
+			}
+			else {
+				ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.45f, 1.0f), "%s", m_LastSaveStatus.c_str());
+			}
+		}
+
+		ImGui::End();
 	}
 
 
@@ -322,9 +382,178 @@ namespace Bolt {
 		}
 	}
 
-	void EditorUISystem::SaveCurrentScene(const Scene& scene) {
-		EditorSceneSaveResult result = EditorSceneSerializer::Save(scene);
-		m_LastSaveSucceeded = result.Succeeded;
-		m_LastSaveMessage = result.Message;
+	bool EditorUISystem::SaveProject(const Scene& scene, const std::string& path, std::string& outError) const {
+		try {
+			std::filesystem::path outputPath(path);
+			if (!outputPath.has_extension()) {
+				outputPath.replace_extension(".boltproject.json");
+			}
+
+			const std::filesystem::path parent = outputPath.parent_path();
+			if (!parent.empty()) {
+				std::filesystem::create_directories(parent);
+			}
+
+			std::ostringstream projectContent;
+			projectContent << "{\n";
+			projectContent << "  \"projectVersion\": 1,\n";
+			projectContent << "  \"activeScene\": \"" << EscapeJsonString(scene.GetName()) << "\",\n";
+			projectContent << "  \"entities\": [\n";
+
+			std::vector<EntityHandle> handles;
+			handles.reserve(0);
+			for (const auto entity : scene.GetRegistry().view<entt::entity>()) {
+				handles.push_back(entity);
+			}
+			std::sort(handles.begin(), handles.end(), [](EntityHandle a, EntityHandle b) {
+				return entt::to_integral(a) < entt::to_integral(b);
+				});
+
+			for (size_t i = 0; i < handles.size(); ++i) {
+				const Entity entity = scene.GetEntity(handles[i]);
+				projectContent << "    {\n";
+				projectContent << "      \"id\": " << entt::to_integral(entity.GetHandle()) << ",\n";
+				projectContent << "      \"name\": \"" << EscapeJsonString(entity.GetName()) << "\",\n";
+				projectContent << "      \"components\": {\n";
+
+				bool wroteComponent = false;
+				auto writeSeparator = [&]() {
+					if (wroteComponent) {
+						projectContent << ",\n";
+					}
+					wroteComponent = true;
+					};
+
+				if (entity.HasComponent<Transform2DComponent>()) {
+					const auto& transform = entity.GetComponent<Transform2DComponent>();
+					writeSeparator();
+					projectContent << "        \"Transform2D\": {\"position\":";
+					WriteVec2(projectContent, transform.Position);
+					projectContent << ",\"scale\":";
+					WriteVec2(projectContent, transform.Scale);
+					projectContent << ",\"rotation\":" << transform.Rotation << "}";
+				}
+
+				if (entity.HasComponent<Camera2DComponent>()) {
+					const auto& camera = entity.GetComponent<Camera2DComponent>();
+					writeSeparator();
+					projectContent << "        \"Camera2D\": {\"orthographicSize\":"
+						<< camera.GetOrthographicSize() << ",\"zoom\":" << camera.GetZoom() << "}";
+				}
+
+				if (entity.HasComponent<SpriteRendererComponent>()) {
+					const auto& sprite = entity.GetComponent<SpriteRendererComponent>();
+					writeSeparator();
+					projectContent << "        \"SpriteRenderer\": {\"sortingOrder\":" << sprite.SortingOrder
+						<< ",\"sortingLayer\":" << static_cast<int>(sprite.SortingLayer)
+						<< ",\"textureHandle\":{\"index\":" << sprite.TextureHandle.index
+						<< ",\"generation\":" << sprite.TextureHandle.generation << "},\"color\":";
+					WriteColor(projectContent, sprite.Color);
+					projectContent << "}";
+				}
+
+				if (entity.HasComponent<ImageComponent>()) {
+					const auto& image = entity.GetComponent<ImageComponent>();
+					writeSeparator();
+					projectContent << "        \"Image\": {\"textureHandle\":{\"index\":" << image.TextureHandle.index
+						<< ",\"generation\":" << image.TextureHandle.generation << "},\"color\":";
+					WriteColor(projectContent, image.Color);
+					projectContent << "}";
+				}
+
+				if (entity.HasComponent<ParticleSystem2DComponent>()) {
+					const auto& particles = entity.GetComponent<ParticleSystem2DComponent>();
+					writeSeparator();
+					projectContent << "        \"ParticleSystem2D\": {\"isEmitting\":"
+						<< (particles.IsEmitting() ? "true" : "false")
+						<< ",\"isSimulating\":" << (particles.IsSimulating() ? "true" : "false")
+						<< ",\"textureHandle\":{\"index\":" << particles.GetTextureHandle().index
+						<< ",\"generation\":" << particles.GetTextureHandle().generation << "}}";
+				}
+
+				if (entity.HasComponent<AudioSourceComponent>()) {
+					const auto& audio = entity.GetComponent<AudioSourceComponent>();
+					writeSeparator();
+					projectContent << "        \"AudioSource\": {\"volume\":" << audio.GetVolume()
+						<< ",\"pitch\":" << audio.GetPitch()
+						<< ",\"loop\":" << (audio.IsLooping() ? "true" : "false")
+						<< ",\"audioHandle\":" << audio.GetAudioHandle().GetHandle() << "}";
+				}
+
+				if (entity.HasComponent<StaticTag>()) { writeSeparator(); projectContent << "        \"StaticTag\": true"; }
+				if (entity.HasComponent<DisabledTag>()) { writeSeparator(); projectContent << "        \"DisabledTag\": true"; }
+				if (entity.HasComponent<DeadlyTag>()) { writeSeparator(); projectContent << "        \"DeadlyTag\": true"; }
+				if (entity.HasComponent<IdTag>()) { writeSeparator(); projectContent << "        \"IdTag\": true"; }
+
+				projectContent << "\n      }\n";
+				projectContent << "    }";
+				if (i + 1 < handles.size()) {
+					projectContent << ",";
+				}
+				projectContent << "\n";
+			}
+
+			projectContent << "  ]\n";
+			projectContent << "}\n";
+
+			const std::filesystem::path tempPath = outputPath.string() + ".tmp";
+			{
+				std::ofstream output(tempPath, std::ios::out | std::ios::trunc);
+				if (!output.is_open()) {
+					outError = "Unable to open save file for writing: " + outputPath.string();
+					return false;
+				}
+				output << projectContent.str();
+			}
+
+			std::error_code ec;
+			std::filesystem::rename(tempPath, outputPath, ec);
+			if (ec) {
+				std::filesystem::remove(outputPath, ec);
+				ec.clear();
+				std::filesystem::rename(tempPath, outputPath, ec);
+			}
+
+			if (ec) {
+				outError = "Failed to finalize save file: " + ec.message();
+				return false;
+			}
+
+			return true;
+		}
+		catch (const std::exception& e) {
+			outError = e.what();
+			return false;
+		}
+	}
+
+	void EditorUISystem::SaveProjectFromGui(const Scene& scene, const std::string& path) {
+		const std::string normalizedPath = StringHelper::Trim(path);
+		if (normalizedPath.empty()) {
+			m_LastSaveSucceeded = false;
+			m_LastSaveStatus = "Save failed: path is empty.";
+			return;
+		}
+
+		std::string error;
+		if (SaveProject(scene, normalizedPath, error)) {
+			m_ProjectFilePath = normalizedPath;
+			if (!std::filesystem::path(m_ProjectFilePath).has_extension()) {
+				m_ProjectFilePath += ".boltproject.json";
+			}
+			m_LastSaveSucceeded = true;
+			m_LastSaveStatus = "Saved project to '" + m_ProjectFilePath + "'";
+			Logger::Message("Editor", m_LastSaveStatus);
+		}
+		else {
+			m_LastSaveSucceeded = false;
+			m_LastSaveStatus = "Save failed: " + error;
+			Logger::Error("Editor", m_LastSaveStatus);
+		}
+	}
+
+	std::string EditorUISystem::GetDefaultProjectSavePath(const Scene& scene) const {
+		const std::string safeSceneName = StringHelper::Replace(scene.GetName(), " ", "_");
+		return Path::Combine("Bolt-Editor", "Projects", safeSceneName + ".boltproject.json");
 	}
 }

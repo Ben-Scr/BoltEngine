@@ -18,16 +18,18 @@ namespace Bolt {
 	private:
 		EntityHandle m_SelectedEntity = entt::null;
 		int m_EntityCounter = 0;
+		std::string m_ProjectFilePath;
+		std::string m_LastSaveStatus;
+		bool m_LastSaveSucceeded = true;
 		int m_SelectedAddComponentIndex = 0;
 		std::string m_LastSaveMessage;
-		bool m_LastSaveSucceeded = false;
 
 		void DrawDockspace();
 		void DrawMenuBar(Scene& scene);
 		void DrawHierarchy(Scene& scene);
 		void DrawInspector(Scene& scene);
 		void DrawStats();
-
+		void DrawProjectBar(Scene& scene);
 		void DrawProjectLoader(Scene& scene);
 		void LoadProject(const std::filesystem::path& projectPath, Scene& scene);
 		void RefreshProjectEntries();
@@ -36,7 +38,10 @@ namespace Bolt {
 
 
 		void DrawComponentManagement(Entity entity);
-		void SaveCurrentScene(const Scene& scene);
+
+		bool SaveProject(const Scene& scene, const std::string& path, std::string& outError) const;
+		void SaveProjectFromGui(const Scene& scene, const std::string& path);
+		std::string GetDefaultProjectSavePath(const Scene& scene) const;
 
 		bool m_OpenProjectDialog = false;
 		std::filesystem::path m_ProjectRootPath;
