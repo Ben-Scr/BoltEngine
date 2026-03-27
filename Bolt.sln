@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bolt-Runtime", "Bolt-Runtim
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bolt-Editor", "Bolt-Editor\Bolt-Editor.vcxproj", "{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImGui", "ImGui\ImGui.vcxproj", "{6638F333-A2AE-46DF-B369-5A64C6BBD30C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Release|x64.Build.0 = Release|x64
 		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Release|x86.ActiveCfg = Release|Win32
 		{3C159E5E-1C43-46E7-B66B-E9436D2FA6D4}.Release|x86.Build.0 = Release|Win32
+		{6638F333-A2AE-46DF-B369-5A64C6BBD30C}.Debug|x64.ActiveCfg = Debug|x64
+		{6638F333-A2AE-46DF-B369-5A64C6BBD30C}.Debug|x64.Build.0 = Debug|x64
+		{6638F333-A2AE-46DF-B369-5A64C6BBD30C}.Debug|x86.ActiveCfg = Debug|Win32
+		{6638F333-A2AE-46DF-B369-5A64C6BBD30C}.Debug|x86.Build.0 = Debug|Win32
+		{6638F333-A2AE-46DF-B369-5A64C6BBD30C}.Release|x64.ActiveCfg = Release|x64
+		{6638F333-A2AE-46DF-B369-5A64C6BBD30C}.Release|x64.Build.0 = Release|x64
+		{6638F333-A2AE-46DF-B369-5A64C6BBD30C}.Release|x86.ActiveCfg = Release|Win32
+		{6638F333-A2AE-46DF-B369-5A64C6BBD30C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
