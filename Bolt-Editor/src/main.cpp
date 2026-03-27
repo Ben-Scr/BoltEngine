@@ -1,19 +1,12 @@
-//#include <Bolt.hpp>
+#include <Bolt.hpp>
 
 //#include "Components/Components.hpp"
 #include "Core/Application.hpp"
-#include "Core/Time.hpp"
 #include "Graphics/Renderer2D.hpp"
 #include "Scene/EntityHelper.hpp"
-#include "Scene/ISystem.hpp"
-#include "Scene/Scene.hpp"
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Systems/EditorUISystem.hpp"
-
-#include <imgui.h>
-
-#include <cstdio>
 
 using namespace Bolt;
 
@@ -34,6 +27,7 @@ public:
 	}
 
 	void Start() override {
+		Logger::Message("Start");
 		EntityHelper::CreateCamera2DEntity();
 	}
 
