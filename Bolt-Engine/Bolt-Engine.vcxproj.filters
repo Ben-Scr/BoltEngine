@@ -147,6 +147,9 @@
     <ClCompile Include="Src\Systems\EditorUISystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Editor\EditorSceneSerializer.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Audio\Audio.hpp">
@@ -402,6 +405,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Systems\EditorUISystem.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Editor\EditorSceneSerializer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

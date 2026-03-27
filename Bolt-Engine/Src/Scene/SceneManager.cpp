@@ -9,13 +9,112 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <optional>
 #include "Debugging/Logger.hpp"
 #include "SceneDefinition.hpp"
 #include "Scene/BuiltInComponentRegistration.hpp"
 #include "Systems/ParticleUpdateSystem.hpp"
 #include "Core/Application.hpp"
+#include "Components/Components.hpp"
+
 
 namespace Bolt {
+	namespace {
+		struct EntitySnapshot {
+			EntityHandle handle{ entt::null };
+			std::optional<Transform2DComponent> transform2D;
+			std::optional<RectTransformComponent> rectTransform;
+			std::optional<NameComponent> name;
+			std::optional<SpriteRendererComponent> spriteRenderer;
+			std::optional<ImageComponent> image;
+			std::optional<Camera2DComponent> camera2D;
+			std::optional<ParticleSystem2DComponent> particleSystem2D;
+			std::optional<BoxCollider2DComponent> boxCollider2D;
+			std::optional<Rigidbody2DComponent> rigidbody2D;
+			std::optional<AudioSourceComponent> audioSource;
+			bool hasIdTag = false;
+			bool hasStaticTag = false;
+			bool hasDisabledTag = false;
+			bool hasDeadlyTag = false;
+		};
+
+		using SceneSnapshot = std::vector<EntitySnapshot>;
+
+		template<typename T>
+		static void CaptureComponentIfExists(const entt::registry& registry, EntityHandle entity, std::optional<T>& out) {
+			if (registry.all_of<T>(entity)) {
+				out = registry.get<T>(entity);
+			}
+		}
+
+		template<typename T>
+		static void RestoreComponentIfExists(entt::registry& registry, EntityHandle entity, const std::optional<T>& data) {
+			if (data.has_value()) {
+				registry.emplace<T>(entity, data.value());
+			}
+		}
+
+		static SceneSnapshot CaptureSceneSnapshot(const Scene& scene) {
+			SceneSnapshot snapshot;
+			const entt::registry& registry = scene.GetRegistry();
+			auto view = registry.view<entt::entity>();
+			snapshot.reserve(view.size());
+
+			for (const EntityHandle entity : view) {
+				EntitySnapshot entitySnapshot;
+				entitySnapshot.handle = entity;
+
+				CaptureComponentIfExists(registry, entity, entitySnapshot.transform2D);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.rectTransform);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.name);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.spriteRenderer);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.image);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.camera2D);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.particleSystem2D);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.boxCollider2D);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.rigidbody2D);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.audioSource);
+
+				entitySnapshot.hasIdTag = registry.all_of<IdTag>(entity);
+				entitySnapshot.hasStaticTag = registry.all_of<StaticTag>(entity);
+				entitySnapshot.hasDisabledTag = registry.all_of<DisabledTag>(entity);
+				entitySnapshot.hasDeadlyTag = registry.all_of<DeadlyTag>(entity);
+
+				snapshot.push_back(std::move(entitySnapshot));
+			}
+
+			return snapshot;
+		}
+
+		static void RestoreSceneSnapshot(const SceneSnapshot& snapshot, Scene& scene) {
+			entt::registry& registry = scene.GetRegistry();
+			registry.clear();
+
+			for (const EntitySnapshot& entitySnapshot : snapshot) {
+				registry.create(entitySnapshot.handle);
+			}
+
+			for (const EntitySnapshot& entitySnapshot : snapshot) {
+				const EntityHandle entity = entitySnapshot.handle;
+				RestoreComponentIfExists(registry, entity, entitySnapshot.transform2D);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.rectTransform);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.name);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.spriteRenderer);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.image);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.camera2D);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.particleSystem2D);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.boxCollider2D);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.rigidbody2D);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.audioSource);
+
+				if (entitySnapshot.hasIdTag) registry.emplace<IdTag>(entity);
+				if (entitySnapshot.hasStaticTag) registry.emplace<StaticTag>(entity);
+				if (entitySnapshot.hasDisabledTag) registry.emplace<DisabledTag>(entity);
+				if (entitySnapshot.hasDeadlyTag) registry.emplace<DeadlyTag>(entity);
+			}
+		}
+	}
+
 	SceneManager& SceneManager::Get() {
 		auto* app = Application::GetInstance();
 		BOLT_ASSERT(app && app->GetSceneManager(), BoltErrorCode::NotInitialized, "SceneManager is not available before the Application instance exists");
@@ -95,8 +194,15 @@ namespace Bolt {
 	std::weak_ptr<Scene> SceneManager::ReloadScene(const std::string& name) {
 		std::shared_ptr<Scene> scene = GetLoadedScene(name).lock();
 		const bool wasActive = m_ActiveScene == scene.get();
+		const SceneSnapshot snapshot = CaptureSceneSnapshot(*scene);
+
 		UnloadScene(name);
-		return wasActive ? LoadScene(name) : LoadSceneAdditive(name);
+		std::weak_ptr<Scene> reloadedWeak = wasActive ? LoadScene(name) : LoadSceneAdditive(name);
+		if (std::shared_ptr<Scene> reloaded = reloadedWeak.lock()) {
+			RestoreSceneSnapshot(snapshot, *reloaded);
+		}
+
+		return reloadedWeak;
 	}
 
 	void SceneManager::UnloadScene(const std::string& name) {
