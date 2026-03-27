@@ -72,10 +72,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Bolt-Engine\Src;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Bolt-Engine\Src;$(SolutionDir)\ImGui\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Bolt-Engine\Src;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Bolt-Engine\Src;$(SolutionDir)\ImGui\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -140,25 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\External\ImGui\imgui.cpp" />
-    <ClCompile Include="src\External\ImGui\imgui_demo.cpp" />
-    <ClCompile Include="src\External\ImGui\imgui_draw.cpp" />
-    <ClCompile Include="src\External\ImGui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="src\External\ImGui\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="src\External\ImGui\imgui_tables.cpp" />
-    <ClCompile Include="src\External\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\External\ImGui\imconfig.h" />
-    <ClInclude Include="src\External\ImGui\imgui.h" />
-    <ClInclude Include="src\External\ImGui\imgui_impl_glfw.h" />
-    <ClInclude Include="src\External\ImGui\imgui_impl_opengl3.h" />
-    <ClInclude Include="src\External\ImGui\imgui_impl_opengl3_loader.h" />
-    <ClInclude Include="src\External\ImGui\imgui_internal.h" />
-    <ClInclude Include="src\External\ImGui\imstb_rectpack.h" />
-    <ClInclude Include="src\External\ImGui\imstb_textedit.h" />
-    <ClInclude Include="src\External\ImGui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Bolt-Engine\Bolt-Engine.vcxproj">
