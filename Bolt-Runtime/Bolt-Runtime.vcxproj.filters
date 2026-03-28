@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\Runtime.cpp">
+    <ClCompile Include="Src\RuntimeApplication.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>

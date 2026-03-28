@@ -150,7 +150,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\Runtime.cpp" />
+    <ClCompile Include="Src\RuntimeApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Bolt-Engine\Bolt-Engine.vcxproj">

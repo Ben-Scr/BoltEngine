@@ -12,11 +12,14 @@ namespace Bolt {
 	void EditorUISystem::OnGui(Scene& scene) {
 		DrawDockspace();
 		DrawMenuBar(scene);
-		DrawProjectBar(scene);
+		DrawToolbar(scene);
 		DrawProjectLoader(scene);
 		DrawHierarchy(scene);
+		DrawGameView(scene);
 		DrawInspector(scene);
-		DrawStats();
+		if (m_ShowStats) {
+			DrawStats();
+		}
 	}
 
 	void EditorUISystem::DrawDockspace() {
@@ -45,6 +48,25 @@ namespace Bolt {
 				m_ProjectFilePath = GetDefaultProjectSavePath(scene);
 			}
 
+			char projectNameBuffer[128]{};
+			std::snprintf(projectNameBuffer, sizeof(projectNameBuffer), "%s", m_ProjectName.c_str());
+
+			if (ImGui::MenuItem("New Project")) {
+				m_ProjectName = "UntitledProject";
+				m_ProjectFilePath = GetDefaultProjectSavePath(scene);
+				m_LastSaveStatus = "Created new project settings.";
+				m_LastSaveSucceeded = true;
+			}
+
+			ImGui::TextDisabled("Project Name");
+			if (ImGui::InputText("##ProjectName", projectNameBuffer, sizeof(projectNameBuffer))) {
+				m_ProjectName = StringHelper::Trim(projectNameBuffer);
+				if (m_ProjectName.empty()) {
+					m_ProjectName = "UntitledProject";
+				}
+			}
+
+			ImGui::Separator();
 			const ImGuiIO& io = ImGui::GetIO();
 			const bool saveShortcut = io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_S, false);
 
@@ -57,13 +79,6 @@ namespace Bolt {
 				m_OpenProjectDialog = true;
 			}
 
-			if (ImGui::MenuItem("New Entity")) {
-				CreateEntity(scene);
-			}
-			if (ImGui::MenuItem("Reload Scene")) {
-				SceneManager::Get().ReloadScene(scene.GetName());
-				m_SelectedEntity = entt::null;
-			}
 			ImGui::Separator();
 			if (ImGui::MenuItem("Quit")) {
 				Application::Quit();
@@ -71,28 +86,78 @@ namespace Bolt {
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::BeginMenu("Stats")) {
+			ImGui::MenuItem("Show Stats Overlay", nullptr, &m_ShowStats);
+			ImGui::EndMenu();
+		}
+
 		ImGui::EndMainMenuBar();
 	}
 
-	void EditorUISystem::DrawProjectBar(Scene& scene) {
+	void EditorUISystem::DrawToolbar(Scene& scene) {
 		if (m_ProjectFilePath.empty()) {
 			m_ProjectFilePath = GetDefaultProjectSavePath(scene);
 		}
 
-		if (!ImGui::Begin("Project")) {
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImVec2 toolbarPos(viewport->Pos.x + 8.0f, viewport->Pos.y + 26.0f);
+		ImVec2 toolbarSize(viewport->Size.x - 16.0f, 46.0f);
+		ImGui::SetNextWindowPos(toolbarPos, ImGuiCond_Always);
+		ImGui::SetNextWindowSize(toolbarSize, ImGuiCond_Always);
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+			ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar;
+
+		if (!ImGui::Begin("##EditorToolbar", nullptr, flags)) {
 			ImGui::End();
 			return;
 		}
 
+		if (ImGui::Button("Add Entity")) {
+			CreateEntity(scene);
+		}
+
+		ImGui::SameLine();
+		const bool isPlaying = !Application::IsPaused();
+		if (!isPlaying) {
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.55f, 0.35f, 1.0f));
+		}
+		if (ImGui::Button("Play")) {
+			Application::Pause(false);
+		}
+		if (!isPlaying) {
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::SameLine();
+		if (isPlaying) {
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.25f, 0.25f, 1.0f));
+		}
+		if (ImGui::Button("Stop")) {
+			Application::Pause(true);
+		}
+		if (isPlaying) {
+			ImGui::PopStyleColor();
+		}
+
+		ImGui::SameLine();
 		char pathBuffer[512]{};
 		std::snprintf(pathBuffer, sizeof(pathBuffer), "%s", m_ProjectFilePath.c_str());
-		if (ImGui::InputText("Save Path", pathBuffer, sizeof(pathBuffer))) {
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.52f);
+		if (ImGui::InputText("Project Path", pathBuffer, sizeof(pathBuffer))) {
 			m_ProjectFilePath = StringHelper::Trim(pathBuffer);
 		}
 
 		ImGui::SameLine();
-		if (ImGui::Button("Save")) {
+		if (ImGui::Button("Save Project")) {
 			SaveProjectFromGui(scene, m_ProjectFilePath);
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Load Project")) {
+			m_ProjectRootPath = std::filesystem::path(Path::Combine("Bolt-Editor", "Projects"));
+			RefreshProjectEntries();
+			m_OpenProjectDialog = true;
 		}
 
 		if (!m_LastSaveStatus.empty()) {
@@ -107,17 +172,61 @@ namespace Bolt {
 		ImGui::End();
 	}
 
+	void EditorUISystem::DrawGameView(Scene& scene) {
+		(void)scene;
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		const float menuBarHeight = 20.0f;
+		const float toolbarHeight = 46.0f;
+		const float panelTop = viewport->Pos.y + menuBarHeight + toolbarHeight + 12.0f;
+		const float panelBottomPadding = 8.0f;
+		const float panelHeight = viewport->Size.y - (panelTop - viewport->Pos.y) - panelBottomPadding;
+		const float leftWidth = 300.0f;
+		const float rightWidth = 360.0f;
+		const float gutter = 8.0f;
+		const float centerX = viewport->Pos.x + leftWidth + gutter;
+		const float centerWidth = viewport->Size.x - leftWidth - rightWidth - (gutter * 2.0f);
 
-	void EditorUISystem::DrawHierarchy(Scene& scene) {
-		if (!ImGui::Begin("Hierarchy")) {
+		ImGui::SetNextWindowPos(ImVec2(centerX, panelTop), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(centerWidth, panelHeight), ImGuiCond_Always);
+
+		if (!ImGui::Begin("Game View", nullptr,
+			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
 			ImGui::End();
 			return;
 		}
 
-		if (ImGui::Button("Add Entity")) {
-			CreateEntity(scene);
-		}
+		ImGui::TextDisabled("Live viewport");
 		ImGui::Separator();
+		ImGui::TextWrapped("The game is rendered live behind this panel. Use Play/Stop in the toolbar to control simulation.");
+
+		ImVec2 min = ImGui::GetCursorScreenPos();
+		ImVec2 avail = ImGui::GetContentRegionAvail();
+		ImVec2 max(min.x + avail.x, min.y + avail.y);
+		ImDrawList* drawList = ImGui::GetWindowDrawList();
+		drawList->AddRect(min, max, IM_COL32(180, 190, 210, 90), 8.0f, 0, 1.0f);
+		drawList->AddText(ImVec2(min.x + 12.0f, min.y + 12.0f), IM_COL32(180, 190, 210, 255), "Game Output");
+		ImGui::Dummy(avail);
+
+		ImGui::End();
+	}
+
+	void EditorUISystem::DrawHierarchy(Scene& scene) {
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		const float menuBarHeight = 20.0f;
+		const float toolbarHeight = 46.0f;
+		const float panelTop = viewport->Pos.y + menuBarHeight + toolbarHeight + 12.0f;
+		const float panelBottomPadding = 8.0f;
+		const float panelHeight = viewport->Size.y - (panelTop - viewport->Pos.y) - panelBottomPadding;
+		const float panelWidth = 300.0f;
+
+		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, panelTop), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(panelWidth, panelHeight), ImGuiCond_Always);
+
+		if (!ImGui::Begin("Hierarchy", nullptr,
+			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
+			ImGui::End();
+			return;
+		}
 
 		if (m_SelectedEntity != entt::null && !scene.IsValid(m_SelectedEntity)) {
 			m_SelectedEntity = entt::null;
@@ -135,8 +244,21 @@ namespace Bolt {
 		ImGui::End();
 	}
 
-	void  EditorUISystem::DrawInspector(Scene& scene) {
-		if (!ImGui::Begin("Inspector")) {
+	void EditorUISystem::DrawInspector(Scene& scene) {
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		const float menuBarHeight = 20.0f;
+		const float toolbarHeight = 46.0f;
+		const float panelTop = viewport->Pos.y + menuBarHeight + toolbarHeight + 12.0f;
+		const float panelBottomPadding = 8.0f;
+		const float panelHeight = viewport->Size.y - (panelTop - viewport->Pos.y) - panelBottomPadding;
+		const float panelWidth = 360.0f;
+		const float panelX = viewport->Pos.x + viewport->Size.x - panelWidth;
+
+		ImGui::SetNextWindowPos(ImVec2(panelX, panelTop), ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(panelWidth, panelHeight), ImGuiCond_Always);
+
+		if (!ImGui::Begin("Inspector", nullptr,
+			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
 			ImGui::End();
 			return;
 		}
@@ -184,7 +306,11 @@ namespace Bolt {
 	}
 
 	void EditorUISystem::DrawStats() {
-		if (!ImGui::Begin("Stats")) {
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x + viewport->Size.x - 320.0f, viewport->Pos.y + 74.0f), ImGuiCond_Always);
+		ImGui::SetNextWindowBgAlpha(0.88f);
+		if (!ImGui::Begin("Stats", nullptr,
+			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse)) {
 			ImGui::End();
 			return;
 		}
@@ -195,7 +321,7 @@ namespace Bolt {
 		ImGui::Text("FPS: %.1f", fps);
 		ImGui::Text("Frame: %d", time.GetFrameCount());
 		ImGui::Text("Rendered Instances: %d", app->GetRenderer2D()->GetRenderedInstancesCount());
-		
+
 		ImGui::Text("Registered Scenes");
 		auto registeredScenes = app->GetSceneManager()->GetRegisteredSceneNames();
 
@@ -301,7 +427,7 @@ namespace Bolt {
 	}
 
 	void EditorUISystem::CreateEntity(Scene& scene) {
-		Entity entity = scene.CreateEntity("Entity ("+ StringHelper::ToString(EntityHelper::EntitiesCount()) + ")");
+		Entity entity = scene.CreateEntity("Entity (" + StringHelper::ToString(EntityHelper::EntitiesCount()) + ")");
 		m_SelectedEntity = entity.GetHandle();
 	}
 

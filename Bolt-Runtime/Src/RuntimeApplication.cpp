@@ -10,7 +10,7 @@
 using namespace Bolt;
 
 
-class Sandbox : public Bolt::Application {
+class RuntimeApplication : public Bolt::Application {
 public:
 	ApplicationConfig GetConfiguration() const override {
 		ApplicationConfig config;
@@ -21,11 +21,11 @@ public:
 
 	void ConfigureScenes() override {
 		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene("SampleScene");
-		def.AddSystem<EditorUISystem>();
+		def.AddSystem<ImGuiDebugSystem>();
 		def.SetAsStartupScene();
 	}
 
-	~Sandbox() override = default;
+	~RuntimeApplication() override = default;
 
 	void Start() override {
 		Logger::Message("Start");
@@ -53,5 +53,5 @@ public:
 
 
 Bolt::Application* Bolt::CreateApplication() {
-	return new Sandbox();
+	return new RuntimeApplication();
 }
