@@ -138,9 +138,6 @@
     <ClCompile Include="Src\Systems\ImGuiDebugSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\General\NameComponent.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Scene\BuiltInComponentRegistration.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>

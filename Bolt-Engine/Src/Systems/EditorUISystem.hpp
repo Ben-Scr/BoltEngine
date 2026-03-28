@@ -17,7 +17,6 @@ namespace Bolt {
 
 	private:
 		EntityHandle m_SelectedEntity = entt::null;
-		int m_EntityCounter = 0;
 		std::string m_ProjectFilePath;
 		std::string m_LastSaveStatus;
 		bool m_LastSaveSucceeded = true;
@@ -33,6 +32,7 @@ namespace Bolt {
 		void DrawProjectLoader(Scene& scene);
 		void LoadProject(const std::filesystem::path& projectPath, Scene& scene);
 		void RefreshProjectEntries();
+		bool LoadProjectFromFile(Scene& scene, const std::filesystem::path& projectPath, std::string& outError);
 
 		void CreateEntity(Scene& scene);
 

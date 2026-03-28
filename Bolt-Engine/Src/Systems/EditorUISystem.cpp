@@ -2,7 +2,14 @@
 #include "EditorUISystem.hpp"
 #include <Utils/Path.hpp>
 #include <imgui.h>
+#include <cctype>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <optional>
 #include <sstream>
+#include <unordered_map>
+#include <variant>
 
 namespace Bolt {
 	namespace {
@@ -29,6 +36,337 @@ namespace Bolt {
 		void WriteColor(std::ostringstream& out, const Color& color) {
 			out << "{\"r\":" << color.r << ",\"g\":" << color.g << ",\"b\":" << color.b << ",\"a\":" << color.a << "}";
 		}
+
+		struct JsonValue {
+			using Object = std::unordered_map<std::string, JsonValue>;
+			using Array = std::vector<JsonValue>;
+			using Variant = std::variant<std::nullptr_t, bool, double, std::string, Object, Array>;
+			Variant Data = nullptr;
+
+			bool IsObject() const { return std::holds_alternative<Object>(Data); }
+			bool IsArray() const { return std::holds_alternative<Array>(Data); }
+			bool IsString() const { return std::holds_alternative<std::string>(Data); }
+			bool IsNumber() const { return std::holds_alternative<double>(Data); }
+			bool IsBool() const { return std::holds_alternative<bool>(Data); }
+
+			const Object* AsObject() const { return std::get_if<Object>(&Data); }
+			const Array* AsArray() const { return std::get_if<Array>(&Data); }
+			const std::string* AsString() const { return std::get_if<std::string>(&Data); }
+			const double* AsNumber() const { return std::get_if<double>(&Data); }
+			const bool* AsBool() const { return std::get_if<bool>(&Data); }
+		};
+
+		class JsonParser {
+		public:
+			explicit JsonParser(std::string content)
+				: m_Content(std::move(content)) {}
+
+			bool Parse(JsonValue& out, std::string& outError) {
+				SkipWhitespace();
+				if (!ParseValue(out, outError)) {
+					return false;
+				}
+
+				SkipWhitespace();
+				if (!IsEof()) {
+					outError = "Unexpected characters at end of file.";
+					return false;
+				}
+				return true;
+			}
+
+		private:
+			bool ParseValue(JsonValue& out, std::string& outError) {
+				SkipWhitespace();
+				if (IsEof()) {
+					outError = "Unexpected end of file.";
+					return false;
+				}
+
+				switch (Peek()) {
+				case '{': return ParseObject(out, outError);
+				case '[': return ParseArray(out, outError);
+				case '"': {
+					std::string parsedString;
+					if (!ParseString(parsedString, outError)) {
+						return false;
+					}
+					out.Data = std::move(parsedString);
+					return true;
+				}
+				case 't': return ParseLiteral("true", true, out, outError);
+				case 'f': return ParseLiteral("false", false, out, outError);
+				case 'n': return ParseNull(out, outError);
+				default: return ParseNumber(out, outError);
+				}
+			}
+
+			bool ParseObject(JsonValue& out, std::string& outError) {
+				Expect('{');
+				JsonValue::Object object;
+				SkipWhitespace();
+				if (TryConsume('}')) {
+					out.Data = std::move(object);
+					return true;
+				}
+
+				while (!IsEof()) {
+					std::string key;
+					if (!ParseString(key, outError)) {
+						return false;
+					}
+
+					SkipWhitespace();
+					if (!TryConsume(':')) {
+						outError = "Expected ':' after object key.";
+						return false;
+					}
+
+					JsonValue value;
+					if (!ParseValue(value, outError)) {
+						return false;
+					}
+					object.emplace(std::move(key), std::move(value));
+
+					SkipWhitespace();
+					if (TryConsume('}')) {
+						out.Data = std::move(object);
+						return true;
+					}
+
+					if (!TryConsume(',')) {
+						outError = "Expected ',' or '}' in object.";
+						return false;
+					}
+
+					SkipWhitespace();
+				}
+
+				outError = "Unexpected end of object.";
+				return false;
+			}
+
+			bool ParseArray(JsonValue& out, std::string& outError) {
+				Expect('[');
+				JsonValue::Array array;
+				SkipWhitespace();
+				if (TryConsume(']')) {
+					out.Data = std::move(array);
+					return true;
+				}
+
+				while (!IsEof()) {
+					JsonValue value;
+					if (!ParseValue(value, outError)) {
+						return false;
+					}
+					array.push_back(std::move(value));
+
+					SkipWhitespace();
+					if (TryConsume(']')) {
+						out.Data = std::move(array);
+						return true;
+					}
+
+					if (!TryConsume(',')) {
+						outError = "Expected ',' or ']' in array.";
+						return false;
+					}
+
+					SkipWhitespace();
+				}
+
+				outError = "Unexpected end of array.";
+				return false;
+			}
+
+			bool ParseString(std::string& out, std::string& outError) {
+				if (!TryConsume('"')) {
+					outError = "Expected string.";
+					return false;
+				}
+
+				out.clear();
+				while (!IsEof()) {
+					const char c = Get();
+					if (c == '"') {
+						return true;
+					}
+					if (c == '\\') {
+						if (IsEof()) {
+							outError = "Invalid escape sequence.";
+							return false;
+						}
+
+						const char escaped = Get();
+						switch (escaped) {
+						case '"': out.push_back('"'); break;
+						case '\\': out.push_back('\\'); break;
+						case '/': out.push_back('/'); break;
+						case 'b': out.push_back('\b'); break;
+						case 'f': out.push_back('\f'); break;
+						case 'n': out.push_back('\n'); break;
+						case 'r': out.push_back('\r'); break;
+						case 't': out.push_back('\t'); break;
+						default:
+							outError = "Unsupported escape sequence.";
+							return false;
+						}
+						continue;
+					}
+					out.push_back(c);
+				}
+
+				outError = "Unterminated string.";
+				return false;
+			}
+
+			bool ParseLiteral(const char* literal, bool value, JsonValue& out, std::string& outError) {
+				const size_t length = std::strlen(literal);
+				if (m_Content.compare(m_Position, length, literal) != 0) {
+					outError = "Invalid token in JSON document.";
+					return false;
+				}
+				m_Position += length;
+				out.Data = value;
+				return true;
+			}
+
+			bool ParseNull(JsonValue& out, std::string& outError) {
+				if (m_Content.compare(m_Position, 4, "null") != 0) {
+					outError = "Invalid token in JSON document.";
+					return false;
+				}
+				m_Position += 4;
+				out.Data = nullptr;
+				return true;
+			}
+
+			bool ParseNumber(JsonValue& out, std::string& outError) {
+				const size_t start = m_Position;
+
+				if (Peek() == '-') {
+					++m_Position;
+				}
+				while (!IsEof() && std::isdigit(static_cast<unsigned char>(Peek()))) {
+					++m_Position;
+				}
+				if (!IsEof() && Peek() == '.') {
+					++m_Position;
+					while (!IsEof() && std::isdigit(static_cast<unsigned char>(Peek()))) {
+						++m_Position;
+					}
+				}
+				if (!IsEof() && (Peek() == 'e' || Peek() == 'E')) {
+					++m_Position;
+					if (!IsEof() && (Peek() == '+' || Peek() == '-')) {
+						++m_Position;
+					}
+					while (!IsEof() && std::isdigit(static_cast<unsigned char>(Peek()))) {
+						++m_Position;
+					}
+				}
+
+				const std::string token = m_Content.substr(start, m_Position - start);
+				char* end = nullptr;
+				const double value = std::strtod(token.c_str(), &end);
+				if (token.empty() || end == token.c_str() || *end != '\0') {
+					outError = "Invalid number: '" + token + "'";
+					return false;
+				}
+
+				out.Data = value;
+				return true;
+			}
+
+			void SkipWhitespace() {
+				while (!IsEof() && std::isspace(static_cast<unsigned char>(m_Content[m_Position]))) {
+					++m_Position;
+				}
+			}
+
+			bool IsEof() const { return m_Position >= m_Content.size(); }
+			char Peek() const { return m_Content[m_Position]; }
+			char Get() { return m_Content[m_Position++]; }
+			void Expect(char ch) {
+				if (!IsEof() && m_Content[m_Position] == ch) {
+					++m_Position;
+				}
+			}
+			bool TryConsume(char ch) {
+				if (!IsEof() && Peek() == ch) {
+					++m_Position;
+					return true;
+				}
+				return false;
+			}
+
+			std::string m_Content;
+			size_t m_Position = 0;
+		};
+
+		const JsonValue* TryGetObjectValue(const JsonValue::Object& object, const std::string& key) {
+			const auto it = object.find(key);
+			return it == object.end() ? nullptr : &it->second;
+		}
+
+		std::optional<float> GetFloatValue(const JsonValue::Object& object, const std::string& key) {
+			const JsonValue* value = TryGetObjectValue(object, key);
+			if (!value || !value->IsNumber()) {
+				return std::nullopt;
+			}
+			return static_cast<float>(*value->AsNumber());
+		}
+
+		std::optional<int> GetIntValue(const JsonValue::Object& object, const std::string& key) {
+			const JsonValue* value = TryGetObjectValue(object, key);
+			if (!value || !value->IsNumber()) {
+				return std::nullopt;
+			}
+			return static_cast<int>(*value->AsNumber());
+		}
+
+		std::optional<bool> GetBoolValue(const JsonValue::Object& object, const std::string& key) {
+			const JsonValue* value = TryGetObjectValue(object, key);
+			if (!value || !value->IsBool()) {
+				return std::nullopt;
+			}
+			return *value->AsBool();
+		}
+
+		bool TryReadVec2(const JsonValue* value, Vec2& out) {
+			if (!value || !value->IsObject()) {
+				return false;
+			}
+			const auto& object = *value->AsObject();
+			const auto x = GetFloatValue(object, "x");
+			const auto y = GetFloatValue(object, "y");
+			if (!x.has_value() || !y.has_value()) {
+				return false;
+			}
+			out.x = *x;
+			out.y = *y;
+			return true;
+		}
+
+		bool TryReadColor(const JsonValue* value, Color& out) {
+			if (!value || !value->IsObject()) {
+				return false;
+			}
+			const auto& object = *value->AsObject();
+			const auto r = GetFloatValue(object, "r");
+			const auto g = GetFloatValue(object, "g");
+			const auto b = GetFloatValue(object, "b");
+			const auto a = GetFloatValue(object, "a");
+			if (!r || !g || !b || !a) {
+				return false;
+			}
+			out.r = *r;
+			out.g = *g;
+			out.b = *b;
+			out.a = *a;
+			return true;
+		}
 	}
 
 	void EditorUISystem::OnGui(Scene& scene) {
@@ -37,6 +375,7 @@ namespace Bolt {
 		DrawDockspace();
 		DrawMenuBar(scene);
 		DrawProjectBar(scene);
+		DrawProjectLoader(scene);
 		DrawHierarchy(scene);
 		DrawInspector(scene);
 		DrawStats();
@@ -77,6 +416,11 @@ namespace Bolt {
 
 			if (ImGui::MenuItem("Save Project", "Ctrl+S") || saveShortcut) {
 				SaveProjectFromGui(scene, m_ProjectFilePath);
+			}
+			if (ImGui::MenuItem("Load Project...")) {
+				m_ProjectRootPath = std::filesystem::path(Path::Combine("Bolt-Editor", "Projects"));
+				RefreshProjectEntries();
+				m_OpenProjectDialog = true;
 			}
 
 			if (ImGui::MenuItem("New Entity")) {
@@ -224,6 +568,15 @@ namespace Bolt {
 		ImGui::Text("FPS: %.1f", fps);
 		ImGui::Text("Frame: %d", time.GetFrameCount());
 		ImGui::Text("Rendered Instances: %d", app->GetRenderer2D()->GetRenderedInstancesCount());
+		
+		ImGui::Text("Registered Scenes");
+		auto registeredScenes = app->GetSceneManager()->GetRegisteredSceneNames();
+
+		for(auto sceneName : registeredScenes)
+		ImGui::Text(("- " + sceneName).c_str());
+
+		std::string activeScene = "Active Scene: " + app->GetSceneManager()->GetActiveScene()->GetName();
+		ImGui::Text(activeScene.c_str());
 		ImGui::End();
 	}
 
@@ -234,7 +587,7 @@ namespace Bolt {
 
 		ImGui::OpenPopup("Load Existing Project");
 		if (ImGui::BeginPopupModal("Load Existing Project", &m_OpenProjectDialog, ImGuiWindowFlags_AlwaysAutoResize)) {
-			ImGui::TextWrapped("Select a project folder from %s", m_ProjectRootPath.string().c_str());
+			ImGui::TextWrapped("Select a project file from %s", m_ProjectRootPath.string().c_str());
 			ImGui::Separator();
 
 			if (m_ProjectEntries.empty()) {
@@ -277,11 +630,23 @@ namespace Bolt {
 			return;
 		}
 
-		m_LoadedProjectPath = projectPath;
-		Logger::Message("Editor", "Loaded project from '" + projectPath.string() + "'");
-		SceneManager::Get().ReloadScene(scene.GetName());
-		m_SelectedEntity = entt::null;
+		std::string error;
+		if (LoadProjectFromFile(scene, projectPath, error)) {
+			m_LoadedProjectPath = projectPath;
+			m_ProjectFilePath = projectPath.string();
+			m_LastSaveSucceeded = true;
+			m_LastSaveStatus = "Loaded project from '" + projectPath.string() + "'";
+			Logger::Message("Editor", m_LastSaveStatus);
+			m_SelectedEntity = entt::null;
+			m_OpenProjectDialog = false;
+		}
+		else {
+			m_LastSaveSucceeded = false;
+			m_LastSaveStatus = "Load failed: " + error;
+			Logger::Error("Editor", m_LastSaveStatus);
+		}
 	}
+
 
 	void EditorUISystem::RefreshProjectEntries() {
 		m_ProjectEntries.clear();
@@ -298,7 +663,8 @@ namespace Bolt {
 				break;
 			}
 
-			if (entry.is_directory(errorCode) && !errorCode) {
+			if (entry.is_regular_file(errorCode) && !errorCode &&
+				(entry.path().extension() == ".json" || entry.path().extension() == ".boltproject.json")) {
 				m_ProjectEntries.push_back(entry.path());
 			}
 		}
@@ -306,9 +672,199 @@ namespace Bolt {
 		std::sort(m_ProjectEntries.begin(), m_ProjectEntries.end());
 	}
 
+	bool EditorUISystem::LoadProjectFromFile(Scene& scene, const std::filesystem::path& projectPath, std::string& outError) {
+		std::ifstream input(projectPath);
+		if (!input.is_open()) {
+			outError = "Unable to open project file: " + projectPath.string();
+			return false;
+		}
+
+		std::stringstream buffer;
+		buffer << input.rdbuf();
+		const std::string fileContent = buffer.str();
+
+		JsonValue root;
+		JsonParser parser(fileContent);
+		if (!parser.Parse(root, outError)) {
+			outError = "Invalid project file format: " + outError;
+			return false;
+		}
+
+		const JsonValue::Object* rootObject = root.AsObject();
+		if (!rootObject) {
+			outError = "Project root must be a JSON object.";
+			return false;
+		}
+
+		const JsonValue* entitiesValue = TryGetObjectValue(*rootObject, "entities");
+		if (!entitiesValue || !entitiesValue->IsArray()) {
+			outError = "Project file has no valid 'entities' array.";
+			return false;
+		}
+
+		std::vector<EntityHandle> entitiesToDestroy;
+		for (const EntityHandle entityHandle : scene.GetRegistry().view<entt::entity>()) {
+			entitiesToDestroy.push_back(entityHandle);
+		}
+		for (const EntityHandle entityHandle : entitiesToDestroy) {
+			scene.DestroyEntity(entityHandle);
+		}
+
+		const JsonValue::Array& entitiesArray = *entitiesValue->AsArray();
+		for (const JsonValue& entityValue : entitiesArray) {
+			const JsonValue::Object* entityObject = entityValue.AsObject();
+			if (!entityObject) {
+				continue;
+			}
+
+			std::string entityName = "Entity";
+			if (const JsonValue* nameValue = TryGetObjectValue(*entityObject, "name")) {
+				if (const std::string* name = nameValue->AsString()) {
+					entityName = *name;
+				}
+			}
+
+			Entity entity = scene.CreateEntity(entityName);
+			const JsonValue* componentsValue = TryGetObjectValue(*entityObject, "components");
+			const JsonValue::Object* components = componentsValue ? componentsValue->AsObject() : nullptr;
+			if (!components) {
+				continue;
+			}
+
+			if (const JsonValue* transformValue = TryGetObjectValue(*components, "Transform2D")) {
+				if (const JsonValue::Object* transform = transformValue->AsObject()) {
+					auto& tr = entity.GetComponent<Transform2DComponent>();
+					TryReadVec2(TryGetObjectValue(*transform, "position"), tr.Position);
+					TryReadVec2(TryGetObjectValue(*transform, "scale"), tr.Scale);
+					if (const auto rotation = GetFloatValue(*transform, "rotation")) {
+						tr.Rotation = *rotation;
+					}
+				}
+			}
+
+			if (const JsonValue* cameraValue = TryGetObjectValue(*components, "Camera2D")) {
+				if (const JsonValue::Object* camera = cameraValue->AsObject()) {
+					if (!entity.HasComponent<Camera2DComponent>()) {
+						entity.AddComponent<Camera2DComponent>();
+					}
+					auto& cam = entity.GetComponent<Camera2DComponent>();
+					if (const auto orthoSize = GetFloatValue(*camera, "orthographicSize")) {
+						cam.SetOrthographicSize(*orthoSize);
+					}
+					if (const auto zoom = GetFloatValue(*camera, "zoom")) {
+						cam.SetZoom(*zoom);
+					}
+				}
+			}
+
+			if (const JsonValue* spriteValue = TryGetObjectValue(*components, "SpriteRenderer")) {
+				if (const JsonValue::Object* sprite = spriteValue->AsObject()) {
+					if (!entity.HasComponent<SpriteRendererComponent>()) {
+						entity.AddComponent<SpriteRendererComponent>();
+					}
+					auto& sr = entity.GetComponent<SpriteRendererComponent>();
+					if (const auto sortingOrder = GetIntValue(*sprite, "sortingOrder")) {
+						sr.SortingOrder = static_cast<short>(*sortingOrder);
+					}
+					if (const auto sortingLayer = GetIntValue(*sprite, "sortingLayer")) {
+						sr.SortingLayer = static_cast<uint8_t>(*sortingLayer);
+					}
+					if (const JsonValue* textureValue = TryGetObjectValue(*sprite, "textureHandle")) {
+						if (const JsonValue::Object* texture = textureValue->AsObject()) {
+							const auto index = GetIntValue(*texture, "index");
+							const auto generation = GetIntValue(*texture, "generation");
+							if (index && generation) {
+								sr.TextureHandle = TextureHandle(static_cast<uint16_t>(*index), static_cast<uint16_t>(*generation));
+							}
+						}
+					}
+					TryReadColor(TryGetObjectValue(*sprite, "color"), sr.Color);
+				}
+			}
+
+			if (const JsonValue* imageValue = TryGetObjectValue(*components, "Image")) {
+				if (const JsonValue::Object* image = imageValue->AsObject()) {
+					if (!entity.HasComponent<ImageComponent>()) {
+						entity.AddComponent<ImageComponent>();
+					}
+					auto& img = entity.GetComponent<ImageComponent>();
+					if (const JsonValue* textureValue = TryGetObjectValue(*image, "textureHandle")) {
+						if (const JsonValue::Object* texture = textureValue->AsObject()) {
+							const auto index = GetIntValue(*texture, "index");
+							const auto generation = GetIntValue(*texture, "generation");
+							if (index && generation) {
+								img.TextureHandle = TextureHandle(static_cast<uint16_t>(*index), static_cast<uint16_t>(*generation));
+							}
+						}
+					}
+					TryReadColor(TryGetObjectValue(*image, "color"), img.Color);
+				}
+			}
+
+			if (const JsonValue* particlesValue = TryGetObjectValue(*components, "ParticleSystem2D")) {
+				if (const JsonValue::Object* particles = particlesValue->AsObject()) {
+					if (!entity.HasComponent<ParticleSystem2DComponent>()) {
+						entity.AddComponent<ParticleSystem2DComponent>();
+					}
+					auto& particleSystem = entity.GetComponent<ParticleSystem2DComponent>();
+					if (const JsonValue* textureValue = TryGetObjectValue(*particles, "textureHandle")) {
+						if (const JsonValue::Object* texture = textureValue->AsObject()) {
+							const auto index = GetIntValue(*texture, "index");
+							const auto generation = GetIntValue(*texture, "generation");
+							if (index && generation) {
+								particleSystem.SetTexture(TextureHandle(static_cast<uint16_t>(*index), static_cast<uint16_t>(*generation)));
+							}
+						}
+					}
+					if (const auto isEmitting = GetBoolValue(*particles, "isEmitting")) {
+						particleSystem.SetIsEmitting(*isEmitting);
+					}
+					if (const auto isSimulating = GetBoolValue(*particles, "isSimulating")) {
+						particleSystem.SetIsSimulating(*isSimulating);
+					}
+				}
+			}
+
+			if (const JsonValue* audioValue = TryGetObjectValue(*components, "AudioSource")) {
+				if (const JsonValue::Object* audio = audioValue->AsObject()) {
+					if (!entity.HasComponent<AudioSourceComponent>()) {
+						entity.AddComponent<AudioSourceComponent>();
+					}
+					auto& audioSource = entity.GetComponent<AudioSourceComponent>();
+					if (const auto volume = GetFloatValue(*audio, "volume")) {
+						audioSource.SetVolume(*volume);
+					}
+					if (const auto pitch = GetFloatValue(*audio, "pitch")) {
+						audioSource.SetPitch(*pitch);
+					}
+					if (const auto loop = GetBoolValue(*audio, "loop")) {
+						audioSource.SetLoop(*loop);
+					}
+					if (const auto audioHandle = GetIntValue(*audio, "audioHandle")) {
+						audioSource.SetAudioHandle(AudioHandle(static_cast<AudioHandle::HandleType>(*audioHandle)));
+					}
+				}
+			}
+
+			if (const auto isStatic = GetBoolValue(*components, "StaticTag"); isStatic && *isStatic && !entity.HasComponent<StaticTag>()) {
+				entity.AddComponent<StaticTag>();
+			}
+			if (const auto isDisabled = GetBoolValue(*components, "DisabledTag"); isDisabled && *isDisabled && !entity.HasComponent<DisabledTag>()) {
+				entity.AddComponent<DisabledTag>();
+			}
+			if (const auto isDeadly = GetBoolValue(*components, "DeadlyTag"); isDeadly && *isDeadly && !entity.HasComponent<DeadlyTag>()) {
+				entity.AddComponent<DeadlyTag>();
+			}
+			if (const auto hasIdTag = GetBoolValue(*components, "IdTag"); hasIdTag && *hasIdTag && !entity.HasComponent<IdTag>()) {
+				entity.AddComponent<IdTag>();
+			}
+		}
+
+		return true;
+	}
+
 	void EditorUISystem::CreateEntity(Scene& scene) {
-		const std::string name = "Entity " + std::to_string(++m_EntityCounter);
-		Entity entity = scene.CreateEntity(name);
+		Entity entity = scene.CreateEntity("Entity ("+ StringHelper::ToString(EntityHelper::EntitiesCount()) + ")");
 		m_SelectedEntity = entity.GetHandle();
 	}
 
