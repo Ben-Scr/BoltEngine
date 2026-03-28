@@ -1,9 +1,10 @@
 # Bolt
 Windows (only) Compatible 2D Game-Engine written in C++
 
+## Preview
 <p align="center">
-<img src="Documentation/Preview_2.png" width="45%" alt="Preview 1">
-<img src="Documentation/Preview_3.png" width="45%" alt="Preview 2">
+<img src="Documentation/Preview/Preview_2.png" width="45%" alt="Preview 1">
+<img src="Documentation/Preview/Preview_3.png" width="45%" alt="Preview 2">
 </p>
 
 
