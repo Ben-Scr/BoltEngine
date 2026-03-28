@@ -15,7 +15,6 @@
 
 #include "Components/Components.hpp"
 
-#include <cereal/cereal.hpp>
 
 namespace Bolt {
 	namespace {
