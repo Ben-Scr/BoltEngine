@@ -4,32 +4,32 @@
 #include <vector>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 
 namespace Bolt {
     static bool ReadFileToString(const std::string& path, std::string& out) {
-        FILE* f = nullptr;
-        fopen_s(&f, path.c_str(), "rb");
+        std::ifstream input(path, std::ios::binary);
+        if (!input.is_open()) {
+            return false;
+        }
 
-        if (!f) return false;
-
-        std::fseek(f, 0, SEEK_END);
-        long size = std::ftell(f);
-        std::fseek(f, 0, SEEK_SET);
-
-        if (size <= 0) { std::fclose(f); return false; }
-        out.resize(static_cast<size_t>(size));
-        size_t read = std::fread(out.data(), 1, static_cast<size_t>(size), f);
-        std::fclose(f);
-
-        return read == static_cast<size_t>(size);
+        std::ostringstream buffer;
+        buffer << input.rdbuf();
+        out = buffer.str();
+        return !out.empty();
     }
 
     GLuint Shader::LoadAndCompile(GLenum type, const std::string& path) {
         std::string src;
 
-		BOLT_ASSERT(ReadFileToString(path, src), BoltErrorCode::LoadFailed, "Failed to read shader file: " + path);
+        BOLT_ASSERT(ReadFileToString(path, src), BoltErrorCode::LoadFailed, "Failed to read shader file: " + path);
 
         GLuint shader = glCreateShader(type);
+        if (shader == 0) {
+            Logger::Error("Shader", "Failed to create shader object for file: " + path);
+            return 0;
+        }
         const char* csrc = src.c_str();
         glShaderSource(shader, 1, &csrc, nullptr);
         glCompileShader(shader);
@@ -62,6 +62,12 @@ namespace Bolt {
         if (fs == 0) { glDeleteShader(vs); return; }
 
         m_Program = glCreateProgram();
+        if (m_Program == 0) {
+            Logger::Error("Shader", "Failed to create shader program for files: " + vsPath + " + " + fsPath);
+            glDeleteShader(vs);
+            glDeleteShader(fs);
+            return;
+        }
         glAttachShader(m_Program, vs);
         glAttachShader(m_Program, fs);
         glLinkProgram(m_Program);
@@ -88,7 +94,7 @@ namespace Bolt {
     }
 
     Shader::~Shader() {
-        if (m_IsValid && m_Program != 0) {
+        if (m_Program != 0) {
             glDeleteProgram(m_Program);
             m_Program = 0;
         }
@@ -103,7 +109,7 @@ namespace Bolt {
 
     Shader& Shader::operator=(Shader&& o) noexcept {
         if (this != &o) {
-            if (m_IsValid && m_Program != 0) {
+            if (m_Program != 0) {
                 glDeleteProgram(m_Program);
             }
             m_Program = o.m_Program;

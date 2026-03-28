@@ -3,9 +3,11 @@
 #include "EditorProjectSerializer.hpp"
 
 #include <cctype>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <limits>
 #include <optional>
 #include <sstream>
 #include <unordered_map>
@@ -18,14 +20,23 @@ namespace Bolt {
 		std::string EscapeJsonString(std::string_view input) {
 			std::string escaped;
 			escaped.reserve(input.size() + 8);
-			for (char ch : input) {
+			for (const unsigned char ch : input) {
 				switch (ch) {
 				case '\\': escaped += "\\\\"; break;
 				case '"': escaped += "\\\""; break;
 				case '\n': escaped += "\\n"; break;
 				case '\r': escaped += "\\r"; break;
 				case '\t': escaped += "\\t"; break;
-				default: escaped.push_back(ch); break;
+				default:
+					if (ch < 0x20) {
+						char buffer[7];
+						std::snprintf(buffer, sizeof(buffer), "\\u%04X", ch);
+						escaped += buffer;
+					}
+					else {
+						escaped.push_back(static_cast<char>(ch));
+					}
+					break;
 				}
 			}
 			return escaped;
@@ -78,6 +89,64 @@ namespace Bolt {
 			}
 
 		private:
+			static bool IsHexDigit(char c) {
+				return (c >= '0' && c <= '9') ||
+					(c >= 'a' && c <= 'f') ||
+					(c >= 'A' && c <= 'F');
+			}
+
+			static uint32_t HexValue(char c) {
+				if (c >= '0' && c <= '9') {
+					return static_cast<uint32_t>(c - '0');
+				}
+				if (c >= 'a' && c <= 'f') {
+					return static_cast<uint32_t>(10 + (c - 'a'));
+				}
+				return static_cast<uint32_t>(10 + (c - 'A'));
+			}
+
+			static void AppendCodePointUtf8(std::string& out, uint32_t codePoint) {
+				if (codePoint <= 0x7F) {
+					out.push_back(static_cast<char>(codePoint));
+					return;
+				}
+				if (codePoint <= 0x7FF) {
+					out.push_back(static_cast<char>(0xC0 | (codePoint >> 6)));
+					out.push_back(static_cast<char>(0x80 | (codePoint & 0x3F)));
+					return;
+				}
+				if (codePoint <= 0xFFFF) {
+					out.push_back(static_cast<char>(0xE0 | (codePoint >> 12)));
+					out.push_back(static_cast<char>(0x80 | ((codePoint >> 6) & 0x3F)));
+					out.push_back(static_cast<char>(0x80 | (codePoint & 0x3F)));
+					return;
+				}
+				out.push_back(static_cast<char>(0xF0 | (codePoint >> 18)));
+				out.push_back(static_cast<char>(0x80 | ((codePoint >> 12) & 0x3F)));
+				out.push_back(static_cast<char>(0x80 | ((codePoint >> 6) & 0x3F)));
+				out.push_back(static_cast<char>(0x80 | (codePoint & 0x3F)));
+			}
+
+			bool ParseUnicodeEscape(uint32_t& outCodePoint, std::string& outError) {
+				if (m_Position + 4 > m_Content.size()) {
+					outError = "Invalid unicode escape sequence.";
+					return false;
+				}
+
+				uint32_t value = 0;
+				for (int i = 0; i < 4; ++i) {
+					const char hex = m_Content[m_Position++];
+					if (!IsHexDigit(hex)) {
+						outError = "Invalid unicode escape sequence.";
+						return false;
+					}
+					value = (value << 4) | HexValue(hex);
+				}
+
+				outCodePoint = value;
+				return true;
+			}
+
 			bool ParseValue(JsonValue& out, std::string& outError) {
 				SkipWhitespace();
 				if (IsEof()) {
@@ -104,7 +173,10 @@ namespace Bolt {
 			}
 
 			bool ParseObject(JsonValue& out, std::string& outError) {
-				Expect('{');
+				if (!TryConsume('{')) {
+					outError = "Expected '{' to start object.";
+					return false;
+				}
 				JsonValue::Object object;
 				SkipWhitespace();
 				if (TryConsume('}')) {
@@ -149,7 +221,11 @@ namespace Bolt {
 			}
 
 			bool ParseArray(JsonValue& out, std::string& outError) {
-				Expect('[');
+				if (!TryConsume('[')) {
+					outError = "Expected '[' to start array.";
+					return false;
+				}
+
 				JsonValue::Array array;
 				SkipWhitespace();
 				if (TryConsume(']')) {
@@ -290,11 +366,7 @@ namespace Bolt {
 			bool IsEof() const { return m_Position >= m_Content.size(); }
 			char Peek() const { return m_Content[m_Position]; }
 			char Get() { return m_Content[m_Position++]; }
-			void Expect(char ch) {
-				if (!IsEof() && m_Content[m_Position] == ch) {
-					++m_Position;
-				}
-			}
+			
 			bool TryConsume(char ch) {
 				if (!IsEof() && Peek() == ch) {
 					++m_Position;
@@ -325,7 +397,18 @@ namespace Bolt {
 			if (!value || !value->IsNumber()) {
 				return std::nullopt;
 			}
-			return static_cast<int>(*value->AsNumber());
+			const double numberValue = *value->AsNumber();
+			if (!std::isfinite(numberValue)) {
+				return std::nullopt;
+			}
+			if (std::floor(numberValue) != numberValue) {
+				return std::nullopt;
+			}
+			if (numberValue < static_cast<double>(std::numeric_limits<int>::min()) ||
+				numberValue > static_cast<double>(std::numeric_limits<int>::max())) {
+				return std::nullopt;
+			}
+			return static_cast<int>(numberValue);
 		}
 
 		std::optional<bool> GetBoolValue(const JsonValue::Object& object, const std::string& key) {
@@ -369,6 +452,45 @@ namespace Bolt {
 			out.a = *a;
 			return true;
 		}
+	}
+
+	std::optional<uint16_t> ToUInt16(const std::optional<int>& value) {
+		if (!value || *value < 0 || *value > static_cast<int>(std::numeric_limits<uint16_t>::max())) {
+			return std::nullopt;
+		}
+		return static_cast<uint16_t>(*value);
+	}
+
+	std::optional<uint8_t> ToUInt8(const std::optional<int>& value) {
+		if (!value || *value < 0 || *value > static_cast<int>(std::numeric_limits<uint8_t>::max())) {
+			return std::nullopt;
+		}
+		return static_cast<uint8_t>(*value);
+	}
+
+	std::optional<short> ToShort(const std::optional<int>& value) {
+		if (!value ||
+			*value < static_cast<int>(std::numeric_limits<short>::min()) ||
+			*value > static_cast<int>(std::numeric_limits<short>::max())) {
+			return std::nullopt;
+		}
+		return static_cast<short>(*value);
+	}
+
+	std::optional<TextureHandle> ReadTextureHandle(const JsonValue::Object& object, const std::string& key) {
+		const JsonValue* textureValue = TryGetObjectValue(object, key);
+		if (!textureValue || !textureValue->IsObject()) {
+			return std::nullopt;
+		}
+
+		const JsonValue::Object& textureObject = *textureValue->AsObject();
+		const auto index = ToUInt16(GetIntValue(textureObject, "index"));
+		const auto generation = ToUInt16(GetIntValue(textureObject, "generation"));
+		if (!index || !generation) {
+			return std::nullopt;
+		}
+
+		return TextureHandle(*index, *generation);
 	}
 
 	bool LoadSceneFromFile(Scene& scene, const std::filesystem::path& projectPath, std::string& outError) {
@@ -462,20 +584,14 @@ namespace Bolt {
 						entity.AddComponent<SpriteRendererComponent>();
 					}
 					auto& sr = entity.GetComponent<SpriteRendererComponent>();
-					if (const auto sortingOrder = GetIntValue(*sprite, "sortingOrder")) {
-						sr.SortingOrder = static_cast<short>(*sortingOrder);
+					if (const auto sortingOrder = ToShort(GetIntValue(*sprite, "sortingOrder"))) {
+						sr.SortingOrder = *sortingOrder;
 					}
-					if (const auto sortingLayer = GetIntValue(*sprite, "sortingLayer")) {
-						sr.SortingLayer = static_cast<uint8_t>(*sortingLayer);
+					if (const auto sortingLayer = ToUInt8(GetIntValue(*sprite, "sortingLayer"))) {
+						sr.SortingLayer = *sortingLayer;
 					}
-					if (const JsonValue* textureValue = TryGetObjectValue(*sprite, "textureHandle")) {
-						if (const JsonValue::Object* texture = textureValue->AsObject()) {
-							const auto index = GetIntValue(*texture, "index");
-							const auto generation = GetIntValue(*texture, "generation");
-							if (index && generation) {
-								sr.TextureHandle = TextureHandle(static_cast<uint16_t>(*index), static_cast<uint16_t>(*generation));
-							}
-						}
+					if (const auto textureHandle = ReadTextureHandle(*sprite, "textureHandle")) {
+						sr.TextureHandle = *textureHandle;
 					}
 					TryReadColor(TryGetObjectValue(*sprite, "color"), sr.Color);
 				}
@@ -487,14 +603,8 @@ namespace Bolt {
 						entity.AddComponent<ImageComponent>();
 					}
 					auto& img = entity.GetComponent<ImageComponent>();
-					if (const JsonValue* textureValue = TryGetObjectValue(*image, "textureHandle")) {
-						if (const JsonValue::Object* texture = textureValue->AsObject()) {
-							const auto index = GetIntValue(*texture, "index");
-							const auto generation = GetIntValue(*texture, "generation");
-							if (index && generation) {
-								img.TextureHandle = TextureHandle(static_cast<uint16_t>(*index), static_cast<uint16_t>(*generation));
-							}
-						}
+					if (const auto textureHandle = ReadTextureHandle(*image, "textureHandle")) {
+						img.TextureHandle = *textureHandle;
 					}
 					TryReadColor(TryGetObjectValue(*image, "color"), img.Color);
 				}
@@ -506,41 +616,14 @@ namespace Bolt {
 						entity.AddComponent<ParticleSystem2DComponent>();
 					}
 					auto& particleSystem = entity.GetComponent<ParticleSystem2DComponent>();
-					if (const JsonValue* textureValue = TryGetObjectValue(*particles, "textureHandle")) {
-						if (const JsonValue::Object* texture = textureValue->AsObject()) {
-							const auto index = GetIntValue(*texture, "index");
-							const auto generation = GetIntValue(*texture, "generation");
-							if (index && generation) {
-								particleSystem.SetTexture(TextureHandle(static_cast<uint16_t>(*index), static_cast<uint16_t>(*generation)));
-							}
-						}
+					if (const auto textureHandle = ReadTextureHandle(*particles, "textureHandle")) {
+						particleSystem.SetTexture(*textureHandle);
 					}
 					if (const auto isEmitting = GetBoolValue(*particles, "isEmitting")) {
 						particleSystem.SetIsEmitting(*isEmitting);
 					}
 					if (const auto isSimulating = GetBoolValue(*particles, "isSimulating")) {
 						particleSystem.SetIsSimulating(*isSimulating);
-					}
-				}
-			}
-
-			if (const JsonValue* audioValue = TryGetObjectValue(*components, "AudioSource")) {
-				if (const JsonValue::Object* audio = audioValue->AsObject()) {
-					if (!entity.HasComponent<AudioSourceComponent>()) {
-						entity.AddComponent<AudioSourceComponent>();
-					}
-					auto& audioSource = entity.GetComponent<AudioSourceComponent>();
-					if (const auto volume = GetFloatValue(*audio, "volume")) {
-						audioSource.SetVolume(*volume);
-					}
-					if (const auto pitch = GetFloatValue(*audio, "pitch")) {
-						audioSource.SetPitch(*pitch);
-					}
-					if (const auto loop = GetBoolValue(*audio, "loop")) {
-						audioSource.SetLoop(*loop);
-					}
-					if (const auto audioHandle = GetIntValue(*audio, "audioHandle")) {
-						audioSource.SetAudioHandle(AudioHandle(static_cast<AudioHandle::HandleType>(*audioHandle)));
 					}
 				}
 			}
