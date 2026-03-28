@@ -4,7 +4,7 @@
 #include <memory>
 #include <functional>
 #include <typeindex>
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
     class Scene;

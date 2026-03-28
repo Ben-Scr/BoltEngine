@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 #include "Rigidbody2DComponent.hpp"
 #include "Debugging/Logger.hpp"
 #include "Physics/PhysicsSystem2D.hpp"

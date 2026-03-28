@@ -1,7 +1,7 @@
 #pragma once
 #include "Texture2D.hpp"
 #include "TextureHandle.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 #include "Utils/Path.hpp"
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <cmath>
 #include <ostream>
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
 	struct BOLT_API Quaternion {

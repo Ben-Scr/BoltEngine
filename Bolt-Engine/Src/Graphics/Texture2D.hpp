@@ -1,6 +1,6 @@
 #pragma once
 #include "Collections/Vec2.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 #include <cstdint>
 #include <string>
 

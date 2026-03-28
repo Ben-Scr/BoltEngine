@@ -1,6 +1,6 @@
 #pragma once
 #include "Audio/AudioHandle.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
 

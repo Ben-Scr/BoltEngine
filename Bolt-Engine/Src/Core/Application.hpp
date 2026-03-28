@@ -13,7 +13,7 @@
 #include "Time.hpp"
 #include "Window.hpp"
 #include "EngineContext.hpp"
-#include "Core.hpp"
+#include "Export.hpp"
 
 #include <chrono>
 

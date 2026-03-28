@@ -1,6 +1,6 @@
 #pragma once
 #include <chrono>
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
 	class Application;

@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
     template <class IdTag>

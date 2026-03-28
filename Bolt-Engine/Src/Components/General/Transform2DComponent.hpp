@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 #include "Collections/Vec2.hpp"
 #include "Math/Trigonometry.hpp"
 #include <box2d/types.h>

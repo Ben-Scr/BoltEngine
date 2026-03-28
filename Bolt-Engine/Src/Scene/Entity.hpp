@@ -1,7 +1,7 @@
 #pragma once
 #include "Scene/EntityHandle.hpp"
 #include "Components/ComponentUtils.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
 

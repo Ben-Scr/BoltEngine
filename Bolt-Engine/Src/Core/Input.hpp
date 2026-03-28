@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Collections/Vec2.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 #include "KeyCodes.hpp"
 
 #include <GLFW/glfw3.h>

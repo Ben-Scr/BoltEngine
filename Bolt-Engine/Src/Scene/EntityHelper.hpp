@@ -6,7 +6,7 @@
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
 #include "Components/ComponentUtils.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
 	class BOLT_API EntityHelper {

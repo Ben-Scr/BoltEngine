@@ -1,6 +1,6 @@
 #pragma once
 #include <ostream>
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
     enum class BOLT_API KeyCode : uint16_t {

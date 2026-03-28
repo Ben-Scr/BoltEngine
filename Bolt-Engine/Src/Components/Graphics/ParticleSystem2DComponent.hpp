@@ -1,6 +1,6 @@
 #pragma once
 #include "Components/General/Transform2DComponent.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 #include "Graphics/TextureHandle.hpp"
 #include "Collections/Color.hpp"
 #include <variant>

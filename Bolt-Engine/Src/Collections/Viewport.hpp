@@ -1,6 +1,6 @@
 #pragma once
 #include "Vec2.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 #include "Math/Common.hpp"
 
 namespace Bolt {

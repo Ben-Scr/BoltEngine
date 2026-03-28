@@ -2,7 +2,7 @@
 #include "Vec2.hpp"
 #include "Mat2.hpp"
 #include "Components/General/Transform2DComponent.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 #include <ostream>
 
 namespace Bolt {

@@ -1,6 +1,6 @@
 #pragma once
 #include "Utils/Event.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 #include <string>
 #include <source_location>
 

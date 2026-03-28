@@ -218,7 +218,6 @@
     <ClCompile Include="Src\Scene\Scene.cpp" />
     <ClCompile Include="Src\Scene\SceneDefinition.cpp" />
     <ClCompile Include="Src\Scene\SceneManager.cpp" />
-    <ClCompile Include="Src\Systems\EditorUISystem.cpp" />
     <ClCompile Include="Src\Systems\ImGuiDebugSystem.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -254,7 +253,7 @@
     <ClInclude Include="Src\Components\Tags.hpp" />
     <ClInclude Include="Src\Components\General\Transform2DComponent.hpp" />
     <ClInclude Include="Src\Core\Application.hpp" />
-    <ClInclude Include="Src\Core\Core.hpp" />
+    <ClInclude Include="Src\Core\Export.hpp" />
     <ClInclude Include="Src\Core\EngineContext.hpp" />
     <ClInclude Include="Src\Editor\EditorProjectSerializer.hpp" />
     <ClInclude Include="Src\Editor\EditorSceneSerializer.hpp" />
@@ -305,7 +304,6 @@
     <ClInclude Include="Src\Scene\SceneDefinition.hpp" />
     <ClInclude Include="Src\Scene\SceneManager.hpp" />
     <ClInclude Include="Src\Math\Random.hpp" />
-    <ClInclude Include="Src\Systems\EditorUISystem.hpp" />
     <ClInclude Include="Src\Systems\ImGuiDebugSystem.hpp" />
     <ClInclude Include="Src\Systems\ParticleUpdateSystem.hpp" />
     <ClInclude Include="Src\Utils\CommandBuffer.hpp">
@@ -318,7 +316,7 @@
     </ClInclude>
     <ClInclude Include="Src\Utils\File.hpp" />
     <ClInclude Include="Src\Utils\Path.hpp" />
-    <ClInclude Include="Src\Utils\Serializer.hpp" />
+    <ClInclude Include="Src\Utils\Cereal.hpp" />
     <ClInclude Include="Src\Utils\StringHelper.hpp" />
     <ClInclude Include="Src\Utils\Timer.hpp" />
   </ItemGroup>

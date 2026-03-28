@@ -6,7 +6,6 @@
 #include "Scene/EntityHelper.hpp"
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
-#include "Systems/EditorUISystem.hpp"
 
 using namespace Bolt;
 
@@ -22,12 +21,10 @@ public:
 
 	void ConfigureScenes() override {
 		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("EditorScene");
-		editorScene.AddSystem<EditorUISystem>();
 		editorScene.SetAsStartupScene();
 	}
 
 	void Start() override {
-		Logger::Message("Start");
 		EntityHelper::CreateCamera2DEntity();
 	}
 

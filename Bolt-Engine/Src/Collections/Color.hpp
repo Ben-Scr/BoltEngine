@@ -4,7 +4,7 @@
 #include <cmath>
 #include <array>
 #include <ostream>
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
 	struct BOLT_API Color {

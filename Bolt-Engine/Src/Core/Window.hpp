@@ -2,7 +2,7 @@
 #include "Collections/Vec2.hpp"
 #include "Collections/Color.hpp"
 #include "Collections/Viewport.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 #include <GLFW/glfw3.h>
 #include <string>

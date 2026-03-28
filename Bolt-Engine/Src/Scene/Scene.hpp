@@ -1,7 +1,7 @@
 #pragma once
 #include "Scene/Entity.hpp"
 #include "Scene/ISystem.hpp"
-#include "Core/Core.hpp"
+#include "Core/Export.hpp"
 
 namespace Bolt {
 	class SceneDefinition;
