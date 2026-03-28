@@ -15,6 +15,8 @@
 
 #include "Components/Components.hpp"
 
+#include <cereal/cereal.hpp>
+
 namespace Bolt {
 	namespace {
 		std::string EscapeJsonString(std::string_view input) {
