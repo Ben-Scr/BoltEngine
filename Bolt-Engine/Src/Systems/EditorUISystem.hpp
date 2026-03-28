@@ -21,7 +21,6 @@ namespace Bolt {
 		std::string m_LastSaveStatus;
 		bool m_LastSaveSucceeded = true;
 		int m_SelectedAddComponentIndex = 0;
-		std::string m_LastSaveMessage;
 
 		void DrawDockspace();
 		void DrawMenuBar(Scene& scene);
@@ -32,7 +31,6 @@ namespace Bolt {
 		void DrawProjectLoader(Scene& scene);
 		void LoadProject(const std::filesystem::path& projectPath, Scene& scene);
 		void RefreshProjectEntries();
-		bool LoadProjectFromFile(Scene& scene, const std::filesystem::path& projectPath, std::string& outError);
 
 		void CreateEntity(Scene& scene);
 

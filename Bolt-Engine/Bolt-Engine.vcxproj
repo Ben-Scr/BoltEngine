@@ -177,6 +177,7 @@
     <ClCompile Include="Src\Core\Time.cpp" />
     <ClCompile Include="Src\Core\Window.cpp" />
     <ClCompile Include="Src\Debugging\Logger.cpp" />
+    <ClCompile Include="Src\Editor\EditorProjectSerializer.cpp" />
     <ClCompile Include="Src\Editor\EditorSceneSerializer.cpp" />
     <ClCompile Include="Src\External\Glad\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -255,6 +256,7 @@
     <ClInclude Include="Src\Core\Application.hpp" />
     <ClInclude Include="Src\Core\Core.hpp" />
     <ClInclude Include="Src\Core\EngineContext.hpp" />
+    <ClInclude Include="Src\Editor\EditorProjectSerializer.hpp" />
     <ClInclude Include="Src\Editor\EditorSceneSerializer.hpp" />
     <ClInclude Include="Src\EntryPoint.hpp" />
     <ClInclude Include="Src\Core\Memory.hpp" />

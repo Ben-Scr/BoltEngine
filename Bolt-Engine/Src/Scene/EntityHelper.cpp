@@ -26,7 +26,6 @@ namespace Bolt {
 			count += scene.GetRegistry().view<EntityHandle>().size();
 			});
 
-		Logger::Message("Count: " + StringHelper::ToString(count));
 		return count;
 	}
 
