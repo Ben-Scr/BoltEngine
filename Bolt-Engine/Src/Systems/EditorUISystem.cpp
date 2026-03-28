@@ -4,6 +4,7 @@
 
 #include <imgui.h>
 
+#include <Utils/File.hpp>
 #include <Utils/Path.hpp>
 
 #include "Editor/EditorProjectSerializer.hpp"
@@ -74,7 +75,7 @@ namespace Bolt {
 				SaveProjectFromGui(scene, m_ProjectFilePath);
 			}
 			if (ImGui::MenuItem("Load Project...")) {
-				m_ProjectRootPath = std::filesystem::path(Path::Combine("Bolt-Editor", "Projects"));
+				m_ProjectRootPath = File::GetEditorProjectsDirectory();
 				RefreshProjectEntries();
 				m_OpenProjectDialog = true;
 			}
@@ -155,7 +156,7 @@ namespace Bolt {
 
 		ImGui::SameLine();
 		if (ImGui::Button("Load Project")) {
-			m_ProjectRootPath = std::filesystem::path(Path::Combine("Bolt-Editor", "Projects"));
+			m_ProjectRootPath = File::GetEditorProjectsDirectory();
 			RefreshProjectEntries();
 			m_OpenProjectDialog = true;
 		}
@@ -516,9 +517,8 @@ namespace Bolt {
 		std::string error;
 		if (SaveProject(scene, normalizedPath, error)) {
 			m_ProjectFilePath = normalizedPath;
-			if (!std::filesystem::path(m_ProjectFilePath).has_extension()) {
-				m_ProjectFilePath += ".boltproject.json";
-			}
+			m_ProjectFilePath = File::NormalizeProjectFilePath(m_ProjectFilePath).string();
+
 			m_LastSaveSucceeded = true;
 			m_LastSaveStatus = "Saved project to '" + m_ProjectFilePath + "'";
 			Logger::Message("Editor", m_LastSaveStatus);
@@ -532,6 +532,6 @@ namespace Bolt {
 
 	std::string EditorUISystem::GetDefaultProjectSavePath(const Scene& scene) const {
 		const std::string safeSceneName = StringHelper::Replace(scene.GetName(), " ", "_");
-		return Path::Combine("Bolt-Editor", "Projects", safeSceneName + ".boltproject.json");
+		return (File::GetEditorProjectsDirectory() / (safeSceneName + ".boltproject.json")).string();
 	}
 }

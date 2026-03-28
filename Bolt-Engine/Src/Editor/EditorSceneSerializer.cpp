@@ -4,6 +4,7 @@
 #include "Core/Application.hpp"
 #include "Scene/Scene.hpp"
 #include "Components/Components.hpp"
+#include "Utils/File.hpp"
 
 
 #include <algorithm>
@@ -29,32 +30,6 @@ namespace Bolt {
 			return escaped;
 		}
 
-		std::filesystem::path GetUserHomeDirectory() {
-#if defined(_WIN32)
-			if (const char* userProfile = std::getenv("USERPROFILE")) {
-				return std::filesystem::path(userProfile);
-			}
-			const char* homeDrive = std::getenv("HOMEDRIVE");
-			const char* homePath = std::getenv("HOMEPATH");
-	 	if (homeDrive && homePath) {
-				return std::filesystem::path(std::string(homeDrive) + std::string(homePath));
-			}
-#else
-			if (const char* home = std::getenv("HOME")) {
-				return std::filesystem::path(home);
-			}
-#endif
-			return std::filesystem::current_path();
-		}
-
-		std::string GetProjectName() {
-			std::string projectName = Application::GetName();
-			if (projectName.empty()) {
-				projectName = "BoltProject";
-			}
-			std::replace(projectName.begin(), projectName.end(), ' ', '_');
-			return projectName;
-		}
 
 		void WriteColor(std::ofstream& out, const Color& color) {
 			out << "{ \"r\": " << color.r << ", \"g\": " << color.g << ", \"b\": " << color.b << ", \"a\": " << color.a << " }";
@@ -64,7 +39,7 @@ namespace Bolt {
 	EditorSceneSaveResult EditorSceneSerializer::Save(const Scene& scene) {
 		EditorSceneSaveResult result;
 
-		const std::filesystem::path projectRoot = GetUserHomeDirectory() / "Bolt" / "Projects" / GetProjectName();
+		const std::filesystem::path projectRoot = File::GetRuntimeProjectDirectory(Application::GetName());
 		const std::filesystem::path scenePath = projectRoot / "SampleScene.scene";
 
 		std::error_code ec;
