@@ -3,7 +3,7 @@
 #include "AudioManager.hpp"
 #include "Audio.hpp"
 
-#include "Utils/Path.hpp"
+#include "Serialization/Path.hpp"
 
 #include "Components/Audio/AudioSourceComponent.hpp"
 

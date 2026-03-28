@@ -177,8 +177,6 @@
     <ClCompile Include="Src\Core\Time.cpp" />
     <ClCompile Include="Src\Core\Window.cpp" />
     <ClCompile Include="Src\Debugging\Logger.cpp" />
-    <ClCompile Include="Src\Editor\EditorProjectSerializer.cpp" />
-    <ClCompile Include="Src\Editor\EditorSceneSerializer.cpp" />
     <ClCompile Include="Src\External\Glad\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -218,12 +216,14 @@
     <ClCompile Include="Src\Scene\Scene.cpp" />
     <ClCompile Include="Src\Scene\SceneDefinition.cpp" />
     <ClCompile Include="Src\Scene\SceneManager.cpp" />
+    <ClCompile Include="Src\Serialization\Directory.cpp" />
+    <ClCompile Include="Src\Serialization\Path.cpp" />
     <ClCompile Include="Src\Systems\ImGuiDebugSystem.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\Systems\ParticleUpdateSystem.cpp" />
-    <ClCompile Include="Src\Utils\File.cpp" />
+    <ClCompile Include="Src\Serialization\File.cpp" />
   </ItemGroup>
   <!-- ===== Headers (deduplicated) ===== -->
   <ItemGroup>
@@ -255,8 +255,6 @@
     <ClInclude Include="Src\Core\Application.hpp" />
     <ClInclude Include="Src\Core\Export.hpp" />
     <ClInclude Include="Src\Core\EngineContext.hpp" />
-    <ClInclude Include="Src\Editor\EditorProjectSerializer.hpp" />
-    <ClInclude Include="Src\Editor\EditorSceneSerializer.hpp" />
     <ClInclude Include="Src\EntryPoint.hpp" />
     <ClInclude Include="Src\Core\Memory.hpp" />
     <ClInclude Include="Src\Core\Input.hpp" />
@@ -304,6 +302,7 @@
     <ClInclude Include="Src\Scene\SceneDefinition.hpp" />
     <ClInclude Include="Src\Scene\SceneManager.hpp" />
     <ClInclude Include="Src\Math\Random.hpp" />
+    <ClInclude Include="Src\Serialization\Directory.hpp" />
     <ClInclude Include="Src\Systems\ImGuiDebugSystem.hpp" />
     <ClInclude Include="Src\Systems\ParticleUpdateSystem.hpp" />
     <ClInclude Include="Src\Utils\CommandBuffer.hpp">
@@ -314,9 +313,9 @@
       <SubType>
       </SubType>
     </ClInclude>
-    <ClInclude Include="Src\Utils\File.hpp" />
-    <ClInclude Include="Src\Utils\Path.hpp" />
-    <ClInclude Include="Src\Utils\Cereal.hpp" />
+    <ClInclude Include="Src\Serialization\File.hpp" />
+    <ClInclude Include="Src\Serialization\Path.hpp" />
+    <ClInclude Include="Src\Serialization\Cereal.hpp" />
     <ClInclude Include="Src\Utils\StringHelper.hpp" />
     <ClInclude Include="Src\Utils\Timer.hpp" />
   </ItemGroup>

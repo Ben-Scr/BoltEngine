@@ -294,7 +294,6 @@ namespace Bolt {
 		}
 		return names;
 	}
-
 	std::vector<std::string> SceneManager::GetLoadedSceneNames() const {
 		std::vector<std::string> names;
 		names.reserve(m_LoadedScenes.size());

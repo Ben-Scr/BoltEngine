@@ -3,7 +3,7 @@
 #include "TextureHandle.hpp"
 #include "Core/Export.hpp"
 
-#include "Utils/Path.hpp"
+#include "Serialization/Path.hpp"
 
 #include <vector>
 #include <queue>

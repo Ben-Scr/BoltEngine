@@ -127,51 +127,6 @@ namespace Bolt {
 
 		ImGui::End();
 
-		if (ImGui::Begin("Scene Hierarchy")) {
-			static bool enabledHierachy = true;
-
-			if (ImGui::Checkbox("Enabled Hierachy", &enabledHierachy));
-
-			if (enabledHierachy)
-			{
-				auto view = scene.GetRegistry().view<entt::entity>();
-
-				if (m_SelectedEntity != entt::null && !scene.IsValid(m_SelectedEntity)) {
-					m_SelectedEntity = entt::null;
-				}
-
-				for (EntityHandle handle : view) {
-					Entity entity = scene.GetEntity(handle);
-					const bool selected = (m_SelectedEntity == handle);
-
-					if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
-						m_SelectedEntity = handle;
-					}
-				}
-			}
-		}
-		ImGui::End();
-
-		if (ImGui::Begin("Entity Components")) {
-			if (m_SelectedEntity == entt::null || !scene.IsValid(m_SelectedEntity)) {
-				ImGui::TextDisabled("Select an entity in the Scene Hierarchy.");
-			}
-			else {
-				Entity entity = scene.GetEntity(m_SelectedEntity);
-				ImGui::Text("Entity: %s", entity.GetName().c_str());
-				ImGui::Separator();
-
-				SceneManager::Get().GetComponentRegistry().ForEachComponentInfo(
-					[&](std::type_index id, const ComponentInfo& info) {
-						if (info.has && info.has(entity)) {
-							ImGui::BulletText("%s", info.displayName.c_str());
-						}
-					}
-				);
-			}
-		}
-		ImGui::End();
-
 		ImGui::Begin("Debug Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
 #if defined(BT_RELEASE)
@@ -215,9 +170,19 @@ namespace Bolt {
 
 		if (ImGui::CollapsingHeader("Scene Manager"))
 		{
+			auto& sceneManager = SceneManager::Get();
+
+			ImGui::Text("%s", ("Active Scene: " + sceneManager.GetActiveScene()->GetName()).c_str());
+
+
+			ImGui::Text("Registered Scenes");
+
+			for(const auto& registeredScene : sceneManager.GetRegisteredSceneNames())
+				ImGui::BulletText("%s", registeredScene.c_str());
+
 			ImGui::Text("Loaded Scenes");
 
-			SceneManager::Get().ForeachLoadedScene([](const Scene& scene) {
+			sceneManager.ForeachLoadedScene([](const Scene& scene) {
 				ImGui::BulletText("%s", scene.GetName().c_str());
 				});
 		}

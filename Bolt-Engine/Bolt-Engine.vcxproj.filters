@@ -120,9 +120,6 @@
     <ClCompile Include="Src\Systems\ParticleUpdateSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Utils\File.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Gui\ImGuiRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -141,10 +138,13 @@
     <ClCompile Include="Src\Scene\BuiltInComponentRegistration.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Editor\EditorSceneSerializer.cpp">
+    <ClCompile Include="Src\Serialization\File.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Editor\EditorProjectSerializer.cpp">
+    <ClCompile Include="Src\Serialization\Path.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Serialization\Directory.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -335,10 +335,7 @@
     <ClInclude Include="Src\Utils\Event.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Utils\File.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Utils\Cereal.hpp">
+    <ClInclude Include="Src\Serialization\Cereal.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Utils\StringHelper.hpp">
@@ -389,9 +386,6 @@
     <ClInclude Include="Src\EntryPoint.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Utils\Path.hpp">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Graphics\ShaderManager.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
@@ -401,10 +395,13 @@
     <ClInclude Include="Src\Scene\BuiltInComponentRegistration.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Editor\EditorSceneSerializer.hpp">
+    <ClInclude Include="Src\Serialization\File.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Editor\EditorProjectSerializer.hpp">
+    <ClInclude Include="Src\Serialization\Path.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Serialization\Directory.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

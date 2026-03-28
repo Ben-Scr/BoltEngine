@@ -157,6 +157,7 @@ namespace Bolt {
 		}
 
 		timer.Reset();
+
 		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
 		ConfigureScenes();
 		m_SceneManager->Initialize();

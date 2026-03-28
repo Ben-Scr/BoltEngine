@@ -6,6 +6,7 @@
 #include "Scene/EntityHelper.hpp"
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
+#include <Systems/ImGuiDebugSystem.hpp>
 
 using namespace Bolt;
 
@@ -15,12 +16,17 @@ public:
 		ApplicationConfig config;
 		config.WindowProps = WindowProps(1600, 900, "Bolt Editor", true, true, false);
 		config.EnableAudio = false;
+		config.EnableGizmoRenderer = false;
+		config.EnableGuiRenderer = false;
+		config.EnablePhysics2D = false;
+		config.Vsync = false;
 		config.SetWindowIcon = false;
 		return config;
 	}
 
 	void ConfigureScenes() override {
 		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("EditorScene");
+		editorScene.AddSystem<ImGuiDebugSystem>();
 		editorScene.SetAsStartupScene();
 	}
 
