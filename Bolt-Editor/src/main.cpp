@@ -18,7 +18,6 @@ public:
 		config.EnableGizmoRenderer = false;
 		config.EnableGuiRenderer = false;
 		config.EnablePhysics2D = false;
-		config.Vsync = false;
 		config.SetWindowIcon = false;
 		return config;
 	}
