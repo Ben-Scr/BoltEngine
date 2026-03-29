@@ -1,6 +1,5 @@
 #include <Bolt.hpp>
 
-//#include "Components/Components.hpp"
 #include "Core/Application.hpp"
 #include "Graphics/Renderer2D.hpp"
 #include "Scene/EntityHelper.hpp"
