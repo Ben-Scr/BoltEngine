@@ -1,298 +1,66 @@
-\# 2) Architecture and Runtime Flow
+# Bolt Engine – Project & Architecture Documentation
 
+---
 
+# 1) Project and Engine Overview
 
-\## 2.1 High-level architecture
+## 1.1 Repository intent
 
+The repository contains a Windows-focused 2D engine in C++ (`Bolt-Engine`) plus two host applications:
 
+- **BoltRuntime**: runtime/sandbox app with a sample scene  
+- **BoltEditor**: editor host with an ImGui-based UI  
+
+The root project builds engine + runtime by default; editor is configured as a separate target.
+
+## 1.2 Repository structure (top level)
+
+- `Bolt-Engine/` – engine DLL (core logic, ECS/scene, rendering, physics, audio, utilities)  
+- `Bolt-Runtime/` – sample application consuming the engine  
+- `Bolt-Editor/` – editor application consuming the engine  
+- `External/` – third-party headers/libs (GLFW, Box2D, ENTT, GLM, stb, miniaudio, etc.)  
+- `ImGui/` – ImGui sources/includes (integrated through engine build)  
+- `Documentation/` – screenshots and technical documentation  
+
+## 1.3 Technology stack / dependencies
+
+Based on build scripts, includes, and implementation:
+
+- **Window/Input/Context**: GLFW  
+- **Rendering**: OpenGL 3.3 Core + GLAD  
+- **Math**: GLM + custom math/collection types (`Vec2`, `AABB`, `Mat2`, etc.)  
+- **ECS**: ENTT (`entt::registry`)  
+- **Physics**: Box2D (C API)  
+- **Audio**: miniaudio  
+- **GUI/Debug UI**: Dear ImGui (GLFW/OpenGL3 backend)  
+
+## 1.4 Build organization
+
+- Root `CMakeLists.txt` sets C++23 / C17 and defines option `BOLT_BUILD_RUNTIME`  
+- `Bolt-Engine/CMakeLists.txt` builds shared library **`BoltEngine`**  
+- `Bolt-Runtime/CMakeLists.txt` builds `BoltRuntime`, links `BoltEngine`, and copies assets + engine DLL to output  
+- `Bolt-Editor/CMakeLists.txt` builds `BoltEditor`, links `BoltEngine`, and copies engine DLL to output  
+
+## 1.5 Engine profile (short)
+
+- Main architecture: **Application loop + ECS scene system + subsystem pipeline**  
+- Runtime service references are exposed via `EngineContext` (window, scene manager, renderer, physics, etc.)  
+- Scenes are registered/instantiated through `SceneDefinition`; systems implement `ISystem` hooks  
+- Rendering is currently focused on 2D quad/sprite paths (including particle instances)  
+- Physics and audio are optional via `ApplicationConfig` flags  
+
+---
+
+# 2) Architecture and Runtime Flow
+
+## 2.1 High-level architecture
 
 ```text
-
 Host App (Runtime/Editor)
-
-&#x20; └─ derives from Bolt::Application
-
-&#x20;      ├─ ConfigureScenes()
-
-&#x20;      ├─ Start()/Update()/FixedUpdate()/OnPaused()/OnQuit()
-
-&#x20;      └─ Run()
-
-&#x20;          ├─ Initialize subsystems
-
-&#x20;          ├─ Main loop (variable + fixed step)
-
-&#x20;          └─ Shutdown
-
-```
-
-
-
-Main runtime building blocks:
-
-
-
-\- `Window` (GLFW window + input callbacks)
-
-\- `Input` (state-based key/mouse tracking)
-
-\- `Time` (delta/fixed delta/time scale/frame count)
-
-\- `SceneManager` (scene and system lifecycle)
-
-\- `Renderer2D`, `ImGuiRenderer`, `GuiRenderer`, `GizmoRenderer2D`
-
-\- `PhysicsSystem2D`
-
-\- `TextureManager`, `AudioManager`
-
-
-
-\## 2.2 Application lifecycle (detailed)
-
-
-
-`Application::Run()` performs, in order:
-
-
-
-1\. Optional single-instance check.
-
-2\. `Initialize()`:
-
-&#x20;  - window + OpenGL
-
-&#x20;  - Renderer2D
-
-&#x20;  - optional gizmo/ImGui/GUI/physics
-
-&#x20;  - TextureManager
-
-&#x20;  - optional AudioManager
-
-&#x20;  - host `ConfigureScenes()` then `SceneManager::Initialize()`
-
-3\. Host `Start()`.
-
-4\. Main loop until window close or quit flag.
-
-5\. `Shutdown()` all subsystems.
-
-6\. Optional self-reload (`Application::Reload()`).
-
-
-
-\### Main loop behavior
-
-
-
-\- Frame cap uses target FPS and sleep/spin-wait when needed (VSync disabled or paused mode).
-
-\- Per frame:
-
-&#x20; - `Time::Update(deltaTime)`
-
-&#x20; - fixed-step accumulator loop (`BeginFixedFrame()` while enough time is accumulated)
-
-&#x20; - `BeginFrame()` / `EndFrame()`
-
-&#x20; - `glfwPollEvents()`
-
-
-
-\### Fixed-step pipeline
-
-
-
-\- Host `FixedUpdate()`
-
-\- `SceneManager::FixedUpdateScenes()` (all loaded scenes)
-
-\- `PhysicsSystem2D::FixedUpdate()`
-
-
-
-\### Variable frame pipeline
-
-
-
-When not paused:
-
-
-
-\- AudioManager update (if enabled)
-
-\- Host `Update()`
-
-\- `SceneManager::UpdateScenes()`
-
-\- renderer begin/end, ImGui begin/end, GUI begin/end, gizmo begin/end
-
-
-
-When paused:
-
-
-
-\- `OnPaused()` is called instead of normal update pipeline.
-
-
-
-\## 2.3 Scene/ECS architecture
-
-
-
-\### 2.3.1 Scene registration via SceneDefinition
-
-
-
-\- Scenes are registered through `SceneManager::RegisterScene("Name")`.
-
-\- A definition stores:
-
-&#x20; - system factories (`AddSystem<T>()`)
-
-&#x20; - callbacks (`OnInitialize`, `OnLoad`, `OnUnload`)
-
-&#x20; - flags (`SetAsStartupScene`, `SetPersistent`)
-
-
-
-\### 2.3.2 Instantiation
-
-
-
-When loading (`LoadScene`/`LoadSceneAdditive`), a `Scene` instance is created from the definition:
-
-
-
-\- dedicated `entt::registry`
-
-\- dedicated system list (`std::vector<std::unique\_ptr<ISystem>>`)
-
-\- callback execution and lifecycle (`Awake`/`Start`)
-
-
-
-\### 2.3.3 Multiple loaded scenes
-
-
-
-\- `SceneManager` keeps `m\_LoadedScenes` (list of shared\_ptr).
-
-\- Active scene is tracked separately (`m\_ActiveScene`).
-
-\- Update/FixedUpdate/OnGui run across \*\*all loaded scenes\*\*.
-
-\- Non-additive loading unloads previously loaded non-persistent scenes.
-
-
-
-\## 2.4 Entity/component model
-
-
-
-\- Entity handles are `entt::entity` aliases (`EntityHandle`).
-
-\- `Entity` is a wrapper over handle + registry pointer.
-
-\- Components are attached/accessed through template APIs (`AddComponent<T>`, `GetComponent<T>`, etc.).
-
-\- `Scene::CreateEntity()` adds `Transform2DComponent` by default.
-
-
-
-\### Tags
-
-
-
-Empty marker components:
-
-
-
-\- `IdTag`, `StaticTag`, `DisabledTag`, `DeadlyTag`
-
-
-
-\### System base
-
-
-
-`ISystem` hooks:
-
-
-
-\- `Awake`, `Start`, `Update`, `FixedUpdate`, `OnGui`, `OnDisable`, `OnDestroy`
-
-
-
-Systems can be enabled/disabled.
-
-
-
-\## 2.5 Data flow across major subsystems
-
-
-
-\### 2.5.1 Physics ↔ ECS
-
-
-
-\- On add/remove of certain components (`Rigidbody2DComponent`, `BoxCollider2DComponent`), `Scene` automatically creates/destroys Box2D bodies/shapes.
-
-\- Each physics fixed step syncs rigidbody position/rotation back into `Transform2DComponent`.
-
-\- Collision events go through `CollisionDispatcher` (begin/end/hit callback maps by shape).
-
-
-
-\### 2.5.2 Rendering ↔ ECS
-
-
-
-\- `Renderer2D` iterates all loaded scenes.
-
-\- Reads `Transform2DComponent + SpriteRendererComponent` and `ParticleSystem2DComponent`.
-
-\- Frustum/viewport culling uses `Camera2DComponent::Main()` and `AABB`.
-
-\- Sorting is by `SortingLayer`, then `SortingOrder`.
-
-
-
-\### 2.5.3 Input/window ↔ Application
-
-
-
-\- GLFW callbacks write into `Application::m\_Input`.
-
-\- At frame end, `Input::Update()` updates previous states and axis values.
-
-
-
-\### 2.5.4 Asset managers
-
-
-
-\- `TextureManager` and `AudioManager` provide handle-based resource management.
-
-\- Asset paths are relative to asset roots (e.g., `Assets/Textures`, `Assets/Audio`).
-
-
-
-\## 2.6 Editor/runtime separation (technical)
-
-
-
-\- Both hosts use the same engine library.
-
-\- Separation is mainly through:
-
-&#x20; - different `ApplicationConfig`
-
-&#x20; - different scene configuration (`EditorUISystem` is currently used in both sample hosts)
-
-&#x20; - different window parameters/title/icon behavior
-
-\- There is no separate editor-only engine core target; editor is another engine consumer.
-
+  └─ derives from Bolt::Application
+       ├─ ConfigureScenes()
+       ├─ Start()/Update()/FixedUpdate()/OnPaused()/OnQuit()
+       └─ Run()
+           ├─ Initialize subsystems
+           ├─ Main loop (variable + fixed step)
+           └─ Shutdown
