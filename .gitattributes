@@ -4,7 +4,7 @@
 * text=auto
 
 External/** linguist-vendored
-Documentation /** linguist-documentation
+Documentation/** linguist-documentation
 
 ###############################################################################
 # Set default behavior for command prompt diff.
