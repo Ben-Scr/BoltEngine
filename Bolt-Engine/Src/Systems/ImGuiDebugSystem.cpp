@@ -17,6 +17,8 @@ namespace Bolt {
 		auto* window = Application::GetInstance()->GetWindow();
 		auto* renderer2D = Application::GetInstance()->GetRenderer2D();
 
+		ImGui::DockSpaceOverViewport(0U,nullptr);
+
 		ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_MenuBar);
 
 		if (ImGui::BeginMenuBar()) {

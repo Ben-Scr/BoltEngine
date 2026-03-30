@@ -7,6 +7,7 @@
 #include "Scene/SceneManager.hpp"
 #include <Systems/ImGuiDebugSystem.hpp>
 
+
 using namespace Bolt;
 
 class BoltEditorApplication : public Application {
@@ -19,7 +20,6 @@ public:
 		config.EnableGuiRenderer = false;
 		config.EnablePhysics2D = false;
 		config.SetWindowIcon = false;
-
 		return config;
 	}
 
