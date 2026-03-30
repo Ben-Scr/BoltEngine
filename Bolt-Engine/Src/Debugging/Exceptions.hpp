@@ -132,28 +132,28 @@ namespace Bolt {
 		return std::forward<TMessage>(msg);
 	}
 
-#define BOLT_THROW(code, msg) \
+#define BT_THROW(code, msg) \
 	::Bolt::ThrowError((code), (msg), std::source_location::current())
 
-#define BOLT_CONTRACT_FAIL(kind, cond, ...) \
+#define BT_CONTRACT_FAIL(kind, cond, ...) \
 	do { \
 		if (!(cond)) { \
 			::Bolt::ReportContractViolation((kind), #cond, ::Bolt::ContractMessage(__VA_ARGS__), std::source_location::current()); \
 		} \
 	} while (0)
 
-#if defined(BOLT_DEBUG)
-#define BOLT_ASSERT(cond, ...) BOLT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Assert, (cond), __VA_ARGS__)
-#define CORE_ASSERT(cond, ...) BOLT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreAssert, (cond), __VA_ARGS__)
+#if defined(BT_DEBUG)
+#define BT_ASSERT(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Assert, (cond), __VA_ARGS__)
+#define BT_CORE_ASSERT(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreAssert, (cond), __VA_ARGS__)
 #else
-#define BOLT_ASSERT(cond, ...) ((void)0)
-#define CORE_ASSERT(cond, ...) ((void)0)
+#define BT_ASSERT(cond, ...) (cond)
+#define BT_CORE_ASSERT(cond, ...) (cond)
 #endif
 
-#define BOLT_VERIFY(cond, ...) BOLT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Verify, (cond), __VA_ARGS__)
-#define CORE_VERIFY(cond, ...) BOLT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreVerify, (cond), __VA_ARGS__)
+#define BT_VERIFY(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Verify, (cond), __VA_ARGS__)
+#define BT_CORE_VERIFY(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreVerify, (cond), __VA_ARGS__)
 
-#define BOLT_LOG_ERROR(code, msg) \
+#define BT_LOG_ERROR(code, msg) \
 	do { \
 		::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
 		Logger::Error(::Bolt::FormatForLog(_e)); \

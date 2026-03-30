@@ -20,7 +20,7 @@ namespace Bolt {
 	Entity Entity::Create() {
 		Scene& activeScene = *SceneManager::Get().GetActiveScene();
 
-		BOLT_ASSERT(activeScene.IsLoaded(), BoltErrorCode::Undefined, "There is no active Scene Loaded");
+		BT_ASSERT(activeScene.IsLoaded(), BoltErrorCode::Undefined, "There is no active Scene Loaded");
 
 		auto entity = Entity(activeScene.CreateEntityHandle(), activeScene.GetRegistry());
 		entity.AddComponent<Transform2DComponent>();
@@ -32,7 +32,7 @@ namespace Bolt {
 	}
 
 	void Entity::Destroy() {
-		BOLT_ASSERT(m_Registry, BoltErrorCode::InvalidHandle, "Entity is not valid or has already been destroyed.");
+		BT_ASSERT(m_Registry, BoltErrorCode::InvalidHandle, "Entity is not valid or has already been destroyed.");
 
 		m_Registry->destroy(m_EntityHandle);
 		m_EntityHandle = entt::null;

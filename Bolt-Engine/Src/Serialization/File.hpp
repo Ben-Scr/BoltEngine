@@ -17,7 +17,7 @@ namespace Bolt {
 		static void WriteAllLines(const std::string& path, const std::array<std::string, Size> lines) {
 			std::ofstream file(path);
 
-			BOLT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
+			BT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
 
 			for (const std::string& line : lines) {
 				file.write(line.c_str(), line.size());
@@ -31,7 +31,7 @@ namespace Bolt {
 		static void WriteAllBytes(const std::string& path, const std::array<std::uint8_t, Size> bytes) {
 			std::ofstream file(path, std::ios::binary);
 
-			BOLT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
+			BT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
 
 			file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 			file.close();
@@ -41,7 +41,7 @@ namespace Bolt {
 		static void WriteObject(const std::string& path, const T& obj) {
 			std::ofstream file(path, std::ios::out | std::ios::binary);
 
-			BOLT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
+			BT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
 
 			file.write(reinterpret_cast<const char*>(&obj), sizeof(T));
 		}
@@ -50,7 +50,7 @@ namespace Bolt {
 		static T ReadObject(const std::string& path) {
 			std::ifstream file(path, std::ios::binary);
 
-			BOLT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
+			BT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
 
 			T obj{};
 			file.read(reinterpret_cast<char*>(&obj), sizeof(T));

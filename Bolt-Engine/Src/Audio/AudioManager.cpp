@@ -29,10 +29,10 @@ namespace Bolt {
 
 
 	bool AudioManager::Initialize() {
-		BOLT_ASSERT(!s_IsInitialized, BoltErrorCode::AlreadyInitialized, "AudioManager already initialized");
+		BT_ASSERT(!s_IsInitialized, BoltErrorCode::AlreadyInitialized, "AudioManager already initialized");
 
 		ma_result result = ma_engine_init(nullptr, &s_Engine);
-		BOLT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "Failed to initialize miniaudio engine. Error: " + result);
+		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "Failed to initialize miniaudio engine. Error: " + result);
 
 		s_soundInstances.reserve(256);
 		s_freeInstanceIndices.reserve(256);
@@ -44,7 +44,7 @@ namespace Bolt {
 	}
 
 	void AudioManager::Shutdown() {
-		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager isn't initialized");
+		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager isn't initialized");
 
 		for (auto& instance : s_soundInstances) {
 			if (instance.IsValid) {
@@ -166,10 +166,10 @@ namespace Bolt {
 	AudioHandle AudioManager::LoadAudio(const std::string_view& path) {
 		const std::string fullpath = Path::Combine(s_RootPath, path);
 
-		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager not initialized");
+		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager not initialized");
 
 		auto audio = std::make_unique<Audio>();
-		BOLT_ASSERT(audio->LoadFromFile(fullpath), BoltErrorCode::LoadFailed, "AudioManager: Failed to load audio from file: " + fullpath);
+		BT_ASSERT(audio->LoadFromFile(fullpath), BoltErrorCode::LoadFailed, "AudioManager: Failed to load audio from file: " + fullpath);
 
 		AudioHandle::HandleType blockTexture = GenerateHandle();
 		s_audioMap[blockTexture] = std::move(audio);
@@ -211,8 +211,8 @@ namespace Bolt {
 	}
 
 	void AudioManager::PlayAudioSource(AudioSourceComponent& source) {
-		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager not initialized");
-		BOLT_ASSERT(source.GetAudioHandle().IsValid(), BoltErrorCode::InvalidHandle, "Invalid Audiohandle");
+		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager not initialized");
+		BT_ASSERT(source.GetAudioHandle().IsValid(), BoltErrorCode::InvalidHandle, "Invalid Audiohandle");
 
 		if (source.GetInstanceId() != 0) {
 			StopAudioSource(source);
@@ -220,7 +220,7 @@ namespace Bolt {
 
 		uint32_t instanceId = CreateSoundInstance(source.GetAudioHandle());
 
-		BOLT_ASSERT(instanceId != 0, BoltErrorCode::Undefined, "Failed to create sound instance");
+		BT_ASSERT(instanceId != 0, BoltErrorCode::Undefined, "Failed to create sound instance");
 
 		source.SetInstanceId(instanceId);
 		SoundInstance* instance = GetSoundInstance(instanceId);
@@ -233,10 +233,10 @@ namespace Bolt {
 
 
 			ma_result result = ma_sound_start(&instance->Sound);
-			BOLT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "Failed to start sound playback.Error: " + result);
+			BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "Failed to start sound playback.Error: " + result);
 		}
 		else {
-			BOLT_THROW(BoltErrorCode::NullReference, "Failed to retrieve sound instance after creation");
+			BT_THROW(BoltErrorCode::NullReference, "Failed to retrieve sound instance after creation");
 		}
 	}
 
@@ -293,7 +293,7 @@ namespace Bolt {
 		ma_sound sound;
 		ma_result result = ma_sound_init_from_file(&s_Engine, audio->GetFilepath().c_str(), 0, nullptr, nullptr, &sound);
 
-		BOLT_ASSERT(result == MA_SUCCESS, BoltErrorCode::NullReference, "Failed to create one-shot sound. Error: " + result);
+		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::NullReference, "Failed to create one-shot sound. Error: " + result);
 
 		ma_sound_set_volume(&sound, volume * s_masterVolume);
 		ma_sound_start(&sound);
@@ -346,7 +346,7 @@ namespace Bolt {
 		ma_result result = ma_sound_init_from_file(&s_Engine, audio->GetFilepath().c_str(),
 			0, nullptr, nullptr, &instance.Sound);
 
-		BOLT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "AudioManager: Failed to create sound instance. Error: " + result);
+		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "AudioManager: Failed to create sound instance. Error: " + result);
 
 		instance.AudioHandle = audioHandle;
 		instance.IsValid = true;
@@ -377,14 +377,14 @@ namespace Bolt {
 	}
 
 	AudioManager::SoundInstance* AudioManager::GetSoundInstance(uint32_t instanceId) {
-		BOLT_ASSERT(instanceId != 0, BoltErrorCode::InvalidArgument, "Invalid instance id");
+		BT_ASSERT(instanceId != 0, BoltErrorCode::InvalidArgument, "Invalid instance id");
 
 		uint32_t index = instanceId - 1;
-		BOLT_ASSERT(index < s_soundInstances.size(), BoltErrorCode::OutOfRange, "Instance-Index out of range");
+		BT_ASSERT(index < s_soundInstances.size(), BoltErrorCode::OutOfRange, "Instance-Index out of range");
 
 		SoundInstance& instance = s_soundInstances[index];
 
-		BOLT_ASSERT(instance.IsValid, BoltErrorCode::InvalidHandle, "Invalid Audioinstance");
+		BT_ASSERT(instance.IsValid, BoltErrorCode::InvalidHandle, "Invalid Audioinstance");
 
 		return  &instance;
 	}

@@ -40,10 +40,10 @@ namespace Bolt {
 					break;
 				break;
 			default:
-				BOLT_THROW(BoltErrorCode::InvalidArgument, "Unknown SpecialFolder");
+				BT_THROW(BoltErrorCode::InvalidArgument, "Unknown SpecialFolder");
 			}
 
-			BOLT_ASSERT(FAILED(hr), BoltErrorCode::Undefined, "Failed to get folder path");
+			BT_ASSERT(FAILED(hr), BoltErrorCode::Undefined, "Failed to get folder path");
 
 			int size = WideCharToMultiByte(CP_UTF8, 0, path, -1, nullptr, 0, nullptr, nullptr);
 			std::string result(size - 1, 0);

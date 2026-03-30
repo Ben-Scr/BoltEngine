@@ -14,7 +14,7 @@ namespace Bolt {
 				scene->m_Systems.push_back(std::move(system));
 			}
 			else {
-				BOLT_LOG_ERROR(BoltErrorCode::LoadFailed, "Failed creating system for scene with name '" +
+				BT_LOG_ERROR(BoltErrorCode::LoadFailed, "Failed creating system for scene with name '" +
 					m_Name + "'");
 			}
 		}
@@ -24,11 +24,11 @@ namespace Bolt {
 				callback(*scene);
 			}
 			catch (const std::exception& e) {
-				BOLT_LOG_ERROR(BoltErrorCode::Undefined, "Exception in initialize callback for scene with name '" +
+				BT_LOG_ERROR(BoltErrorCode::Undefined, "Exception in initialize callback for scene with name '" +
 					m_Name + "': " + e.what());
 			}
 			catch (...) {
-				BOLT_LOG_ERROR(BoltErrorCode::Undefined, "Unknown Exception in initialize callback for scene with name '" +
+				BT_LOG_ERROR(BoltErrorCode::Undefined, "Unknown Exception in initialize callback for scene with name '" +
 					m_Name + "'");
 			}
 		}

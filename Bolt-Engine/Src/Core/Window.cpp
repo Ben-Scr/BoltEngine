@@ -33,7 +33,7 @@ namespace Bolt {
 	void Window::Initialize() {
 		int code = glfwInit();
 
-		BOLT_ASSERT(code == GLFW_TRUE, BoltErrorCode::Undefined, "GLFW library couldn't initialize, error code " + StringHelper::WrapWith(std::to_string(code), '\''));
+		BT_ASSERT(code == GLFW_TRUE, BoltErrorCode::Undefined, "GLFW library couldn't initialize, error code " + StringHelper::WrapWith(std::to_string(code), '\''));
 
 		k_Videomode = glfwGetVideoMode(GetMainMonitor());
 		s_IsInitialized = true;
@@ -58,7 +58,7 @@ namespace Bolt {
 	}
 
 	void Window::CreateWindow(const WindowProps& props) {
-		BOLT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "The Window isn't initialized");
+		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "The Window isn't initialized");
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -75,7 +75,7 @@ namespace Bolt {
 		);
 
 		m_GLFWwindow = glfwCreateWindow(s_MainViewport->GetWidth(), s_MainViewport->GetHeight(), props.Title.c_str(), nullptr, nullptr);
-		BOLT_ASSERT(m_GLFWwindow, BoltErrorCode::Undefined, "Failed to create window!");
+		BT_ASSERT(m_GLFWwindow, BoltErrorCode::Undefined, "Failed to create window!");
 
 		if (props.Fullscreen) {
 			SetFullScreen(true);
@@ -285,16 +285,16 @@ namespace Bolt {
 		m_Cursor = newCursor;
 	}
 	void Window::SetWindowIcon(const Texture2D* tex2D) {		
-		BOLT_ASSERT(tex2D, BoltErrorCode::NullReference, "Texture is null");
+		BT_ASSERT(tex2D, BoltErrorCode::NullReference, "Texture is null");
 		std::unique_ptr<ImageData> imgData(tex2D->GetImageData());
-		BOLT_ASSERT(imgData, BoltErrorCode::NullReference, "Image data is null");
+		BT_ASSERT(imgData, BoltErrorCode::NullReference, "Image data is null");
 
 
 		const int w = imgData->Width;
 		const int h = imgData->Height;
 
-		BOLT_ASSERT(w > 0 && h > 0, BoltErrorCode::InvalidValue, "Icon size must be > 0");
-		BOLT_ASSERT(imgData->Pixels != nullptr, BoltErrorCode::NullReference, "Icon pixels null");
+		BT_ASSERT(w > 0 && h > 0, BoltErrorCode::InvalidValue, "Icon size must be > 0");
+		BT_ASSERT(imgData->Pixels != nullptr, BoltErrorCode::NullReference, "Icon pixels null");
 
 		imgData->FlipVerticalRGBA();
 

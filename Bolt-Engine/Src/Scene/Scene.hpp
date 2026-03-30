@@ -134,7 +134,7 @@ namespace Bolt {
 					return *ptr;
 				}
 			}
-			BOLT_LOG_ERROR(BoltErrorCode::Undefined,"System not found");
+			BT_LOG_ERROR(BoltErrorCode::Undefined,"System not found");
 		}
 
 		template<typename T>

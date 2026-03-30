@@ -43,7 +43,7 @@ namespace Bolt {
 			return true;
 
 		m_GizmoShader = std::make_unique<Shader>("Assets/Shader/gizmo.vert.glsl", "Assets/Shader/gizmo.frag.glsl");
-		BOLT_ASSERT(m_GizmoShader && m_GizmoShader->IsValid(), BoltErrorCode::Undefined, "Failed to load gizmo shader");
+		BT_ASSERT(m_GizmoShader && m_GizmoShader->IsValid(), BoltErrorCode::Undefined, "Failed to load gizmo shader");
 
 		GLuint program = m_GizmoShader->GetHandle();
 		m_uMVP = glGetUniformLocation(program, "uMVP");

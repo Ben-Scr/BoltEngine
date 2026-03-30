@@ -30,7 +30,7 @@ namespace Bolt {
 
 		template<typename F>
 		void OnCollisionEnter(F&& callback) {
-			BOLT_ASSERT(CanRegisterContacts(), BoltErrorCode::InvalidArgument,
+			BT_ASSERT(CanRegisterContacts(), BoltErrorCode::InvalidArgument,
 				"Failed to register OnCollisionEnter event: contact events are not enabled for this shape. "
 				"Make sure to call collider.SetRegisterContacts(true); before registering event callbacks."
 			);
@@ -40,7 +40,7 @@ namespace Bolt {
 		}
 		template<typename F>
 		void OnCollisionExit(F&& callback) {
-			BOLT_ASSERT(CanRegisterContacts(), BoltErrorCode::InvalidArgument,
+			BT_ASSERT(CanRegisterContacts(), BoltErrorCode::InvalidArgument,
 				"Failed to register OnCollisionExit event: contact events are not enabled for this shape. "
 				"Make sure to call collider.SetRegisterContacts(true); before registering event callbacks."
 			);
@@ -49,7 +49,7 @@ namespace Bolt {
 		}
 		template<typename F>
 		void OnCollisionHit(F&& callback) {
-			BOLT_ASSERT(CanRegisterContacts(), BoltErrorCode::InvalidArgument,
+			BT_ASSERT(CanRegisterContacts(), BoltErrorCode::InvalidArgument,
 				"Failed to register OnCollisionHit event: contact events are not enabled for this shape. "
 				"Make sure to call collider.SetRegisterContacts(true); before registering event callbacks."
 			);

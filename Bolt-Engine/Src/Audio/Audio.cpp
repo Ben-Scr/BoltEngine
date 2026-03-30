@@ -36,7 +36,7 @@ namespace Bolt {
 	}
 
 	bool Audio::LoadFromFile(const std::string& filepath) {
-		BOLT_ASSERT(!filepath.empty(), BoltErrorCode::LoadFailed, "Audio: Cannot load - filepath is empty");
+		BT_ASSERT(!filepath.empty(), BoltErrorCode::LoadFailed, "Audio: Cannot load - filepath is empty");
 
 		Cleanup();
 
@@ -44,7 +44,7 @@ namespace Bolt {
 		ma_decoder_config config = ma_decoder_config_init_default();
 		ma_result result = ma_decoder_init_file(filepath.c_str(), &config, &m_Decoder);
 
-		BOLT_ASSERT(result == MA_SUCCESS, BoltErrorCode::LoadFailed, "Audio: Failed to load audio file: " + filepath);
+		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::LoadFailed, "Audio: Failed to load audio file: " + filepath);
 
 		m_Filepath = filepath;
 		m_IsLoaded = true;

@@ -117,13 +117,13 @@ namespace Bolt {
 
 	SceneManager& SceneManager::Get() {
 		auto* app = Application::GetInstance();
-		BOLT_ASSERT(app && app->GetSceneManager(), BoltErrorCode::NotInitialized, "SceneManager is not available before the Application instance exists");
+		BT_ASSERT(app && app->GetSceneManager(), BoltErrorCode::NotInitialized, "SceneManager is not available before the Application instance exists");
 		return *app->GetSceneManager();
 	}
 
 	void SceneManager::Initialize() {
-		BOLT_ASSERT(!m_IsInitialized, BoltErrorCode::AlreadyInitialized, "SceneManager already is initialized");
-		BOLT_ASSERT(!m_SceneDefinitions.empty(), BoltErrorCode::InvalidArgument, "No scenes were registered before SceneManager initialization");
+		BT_ASSERT(!m_IsInitialized, BoltErrorCode::AlreadyInitialized, "SceneManager already is initialized");
+		BT_ASSERT(!m_SceneDefinitions.empty(), BoltErrorCode::InvalidArgument, "No scenes were registered before SceneManager initialization");
 
 		m_IsInitialized = true;
 		RegisterCoreComponents();
@@ -149,7 +149,7 @@ namespace Bolt {
 
 	SceneDefinition& SceneManager::RegisterScene(const std::string& name) {
 		auto [it, inserted] = m_SceneDefinitions.emplace(name, std::make_unique<SceneDefinition>(name));
-		BOLT_ASSERT(inserted, BoltErrorCode::InvalidArgument, "Scene definition with name '" + name + "' already exists.");
+		BT_ASSERT(inserted, BoltErrorCode::InvalidArgument, "Scene definition with name '" + name + "' already exists.");
 
 		SceneDefinition& definition = *it->second;
 		definition.AddSystem<ParticleUpdateSystem>();
@@ -165,10 +165,10 @@ namespace Bolt {
 	}
 
 	std::shared_ptr<Scene> SceneManager::LoadSceneInternal(const std::string& name, bool additive) {
-		BOLT_ASSERT(m_IsInitialized, BoltErrorCode::NotInitialized, "SceneManager isn't initialized");
+		BT_ASSERT(m_IsInitialized, BoltErrorCode::NotInitialized, "SceneManager isn't initialized");
 		SceneDefinition& definition = GetSceneDefinitionOrThrow(name);
 		if (!additive) {
-			BOLT_ASSERT(!IsSceneLoaded(name), BoltErrorCode::InvalidArgument, "Scene '" + name + "' is already loaded. Use LoadSceneAdditive() for multiple instances.");
+			BT_ASSERT(!IsSceneLoaded(name), BoltErrorCode::InvalidArgument, "Scene '" + name + "' is already loaded. Use LoadSceneAdditive() for multiple instances.");
 			UnloadAllScenes(false);
 		}
 
@@ -187,7 +187,7 @@ namespace Bolt {
 		if (!additive) {
 			m_ActiveScene = newScene.get();
 		}
-		BOLT_ASSERT(m_ActiveScene, BoltErrorCode::NullReference, "Active Scene is null");
+		BT_ASSERT(m_ActiveScene, BoltErrorCode::NullReference, "Active Scene is null");
 		return newScene;
 	}
 
@@ -207,7 +207,7 @@ namespace Bolt {
 
 	void SceneManager::UnloadScene(const std::string& name) {
 		auto it = FindLoadedSceneIterator(name);
-		BOLT_ASSERT(it != m_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene '" + name + "' is not loaded.");
+		BT_ASSERT(it != m_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene '" + name + "' is not loaded.");
 
 		Scene& scene = *(*it);
 		if (scene.m_Persistent) {
@@ -258,23 +258,23 @@ namespace Bolt {
 
 	std::weak_ptr<Scene> SceneManager::GetLoadedScene(const std::string& name) {
 		auto it = FindLoadedSceneIterator(name);
-		BOLT_ASSERT(it != m_LoadedScenes.end(), BoltErrorCode::NullReference, "Scene '" + name + "' is not loaded.");
+		BT_ASSERT(it != m_LoadedScenes.end(), BoltErrorCode::NullReference, "Scene '" + name + "' is not loaded.");
 		return std::weak_ptr(*it);
 	}
 
 	Scene* SceneManager::GetActiveScene() {
-		BOLT_ASSERT(m_ActiveScene, BoltErrorCode::NullReference, "There is no active scene");
+		BT_ASSERT(m_ActiveScene, BoltErrorCode::NullReference, "There is no active scene");
 		return m_ActiveScene;
 	}
 
 	const Scene* SceneManager::GetActiveScene() const {
-		BOLT_ASSERT(m_ActiveScene, BoltErrorCode::NullReference, "There is no active scene");
+		BT_ASSERT(m_ActiveScene, BoltErrorCode::NullReference, "There is no active scene");
 		return m_ActiveScene;
 	}
 
 	void SceneManager::SetActiveScene(const std::string& name) {
 		auto it = FindLoadedSceneIterator(name);
-		BOLT_ASSERT(it != m_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene '" + name + "' is not loaded. Load it first before setting as active.");
+		BT_ASSERT(it != m_LoadedScenes.end(), BoltErrorCode::InvalidArgument, "Scene '" + name + "' is not loaded. Load it first before setting as active.");
 		m_ActiveScene = it->get();
 	}
 
@@ -339,13 +339,13 @@ namespace Bolt {
 
 	SceneDefinition& SceneManager::GetSceneDefinitionOrThrow(const std::string& name) {
 		auto it = m_SceneDefinitions.find(name);
-		BOLT_ASSERT(it != m_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition '" + name + "' not found. Call SceneManager::RegisterScene() first.");
+		BT_ASSERT(it != m_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition '" + name + "' not found. Call SceneManager::RegisterScene() first.");
 		return *it->second;
 	}
 
 	const SceneDefinition& SceneManager::GetSceneDefinitionOrThrow(const std::string& name) const {
 		auto it = m_SceneDefinitions.find(name);
-		BOLT_ASSERT(it != m_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition '" + name + "' not found. Call SceneManager::RegisterScene() first.");
+		BT_ASSERT(it != m_SceneDefinitions.end(), BoltErrorCode::InvalidArgument, "Scene definition '" + name + "' not found. Call SceneManager::RegisterScene() first.");
 		return *it->second;
 	}
 

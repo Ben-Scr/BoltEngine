@@ -19,7 +19,7 @@ namespace Bolt {
 	{
 		if (m_ForceSingleInstance) {
 			static SingleInstance instance(s_Name);
-			BOLT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
+			BT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 		}
 
 		Logger::Message("Initializing Application");

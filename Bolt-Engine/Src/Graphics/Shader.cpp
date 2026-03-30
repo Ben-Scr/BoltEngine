@@ -23,7 +23,7 @@ namespace Bolt {
     GLuint Shader::LoadAndCompile(GLenum type, const std::string& path) {
         std::string src;
 
-        BOLT_ASSERT(ReadFileToString(path, src), BoltErrorCode::LoadFailed, "Failed to read shader file: " + path);
+        BT_ASSERT(ReadFileToString(path, src), BoltErrorCode::LoadFailed, "Failed to read shader file: " + path);
 
         GLuint shader = glCreateShader(type);
         if (shader == 0) {

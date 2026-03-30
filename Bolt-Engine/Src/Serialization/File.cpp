@@ -9,7 +9,7 @@ namespace Bolt {
 	void File::WriteAllText(const std::string& path, const std::string& text) {
 		std::ofstream file(path);
 
-		BOLT_ASSERT(file.is_open(), BoltErrorCode::Undefined, "File couldn't be opened");
+		BT_ASSERT(file.is_open(), BoltErrorCode::Undefined, "File couldn't be opened");
 
 		file.write(text.c_str(), text.size());
 		file.close();
@@ -18,7 +18,7 @@ namespace Bolt {
 	std::string File::ReadAllText(const std::string& path) {
 		std::ifstream file(path, std::ios::ate);
 
-		BOLT_ASSERT(file.is_open(), BoltErrorCode::Undefined, "File couldn't be opened");
+		BT_ASSERT(file.is_open(), BoltErrorCode::Undefined, "File couldn't be opened");
 
 		std::streamsize size = file.tellg();
 		file.seekg(0, std::ios::beg);
@@ -33,17 +33,17 @@ namespace Bolt {
 	std::vector<std::uint8_t> File::ReadAllBytes(const std::string& path) {
 		std::ifstream file(path, std::ios::binary | std::ios::ate);
 
-		BOLT_ASSERT(file.is_open(), BoltErrorCode::Undefined, "File couldn't be opened");
+		BT_ASSERT(file.is_open(), BoltErrorCode::Undefined, "File couldn't be opened");
 
 		std::streamsize size = file.tellg();
 
-		BOLT_ASSERT(size >= 0, BoltErrorCode::Undefined, "tellg() failed");
+		BT_ASSERT(size >= 0, BoltErrorCode::Undefined, "tellg() failed");
 
 		file.seekg(0, std::ios::beg);
 
 		std::vector<std::uint8_t> buffer(static_cast<std::size_t>(size));
 
-		BOLT_ASSERT(file.read(reinterpret_cast<char*>(buffer.data()), size), BoltErrorCode::Undefined, "File reading failed");
+		BT_ASSERT(file.read(reinterpret_cast<char*>(buffer.data()), size), BoltErrorCode::Undefined, "File reading failed");
 
 		file.close();
 		return buffer;

@@ -15,396 +15,396 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\Audio\Audio.cpp">
+    <ClCompile Include="src\Audio\Audio.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Audio\AudioManager.cpp">
+    <ClCompile Include="src\Audio\AudioManager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Audio\AudioSourceComponent.cpp">
+    <ClCompile Include="src\Components\Audio\AudioSourceComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Physics\BoxCollider2DComponent.cpp">
+    <ClCompile Include="src\Components\Physics\BoxCollider2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Physics\Collider2D.cpp">
+    <ClCompile Include="src\Components\Physics\Collider2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Graphics\ParticleSystem2DComponent.cpp">
+    <ClCompile Include="src\Components\Graphics\ParticleSystem2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Physics\Rigidbody2DComponent.cpp">
+    <ClCompile Include="src\Components\Physics\Rigidbody2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\General\Transform2DComponent.cpp">
+    <ClCompile Include="src\Components\General\Transform2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Core\Application.cpp">
+    <ClCompile Include="src\Core\Application.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Core\Input.cpp">
+    <ClCompile Include="src\Core\Input.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Core\Time.cpp">
+    <ClCompile Include="src\Core\Time.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Core\Window.cpp">
+    <ClCompile Include="src\Core\Window.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Debugging\Logger.cpp">
+    <ClCompile Include="src\Debugging\Logger.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\External\Glad\glad.c">
+    <ClCompile Include="src\External\Glad\glad.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Components\Graphics\Camera2DComponent.cpp">
+    <ClCompile Include="src\Components\Graphics\Camera2DComponent.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\GizmoRenderer.cpp">
+    <ClCompile Include="src\Graphics\GizmoRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\Gizmos.cpp">
+    <ClCompile Include="src\Graphics\Gizmos.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\OpenGL.cpp">
+    <ClCompile Include="src\Graphics\OpenGL.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\QuadMesh.cpp">
+    <ClCompile Include="src\Graphics\QuadMesh.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\Renderer2D.cpp">
+    <ClCompile Include="src\Graphics\Renderer2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\Shader.cpp">
+    <ClCompile Include="src\Graphics\Shader.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\SpriteShaderProgram.cpp">
+    <ClCompile Include="src\Graphics\SpriteShaderProgram.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\Texture2D.cpp">
+    <ClCompile Include="src\Graphics\Texture2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Graphics\TextureManager.cpp">
+    <ClCompile Include="src\Graphics\TextureManager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Math\Random.cpp">
+    <ClCompile Include="src\Math\Random.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\pch.cpp">
+    <ClCompile Include="src\pch.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Physics\Box2DWorld.cpp">
+    <ClCompile Include="src\Physics\Box2DWorld.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Physics\Physics2D.cpp">
+    <ClCompile Include="src\Physics\Physics2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Physics\PhysicsSystem2D.cpp">
+    <ClCompile Include="src\Physics\PhysicsSystem2D.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Physics\PhysicsUtility.cpp">
+    <ClCompile Include="src\Physics\PhysicsUtility.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Scene\Entity.cpp">
+    <ClCompile Include="src\Scene\Entity.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Scene\Scene.cpp">
+    <ClCompile Include="src\Scene\Scene.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Scene\SceneDefinition.cpp">
+    <ClCompile Include="src\Scene\SceneDefinition.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Scene\SceneManager.cpp">
+    <ClCompile Include="src\Scene\SceneManager.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Systems\ParticleUpdateSystem.cpp">
+    <ClCompile Include="src\Systems\ParticleUpdateSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Gui\ImGuiRenderer.cpp">
+    <ClCompile Include="src\Gui\ImGuiRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Gui\GuiRenderer.cpp">
+    <ClCompile Include="src\Gui\GuiRenderer.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Scene\EntityHelper.cpp">
+    <ClCompile Include="src\Scene\EntityHelper.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Core\Memory.cpp">
+    <ClCompile Include="src\Core\Memory.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Systems\ImGuiDebugSystem.cpp">
+    <ClCompile Include="src\Systems\ImGuiDebugSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Scene\BuiltInComponentRegistration.cpp">
+    <ClCompile Include="src\Scene\BuiltInComponentRegistration.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Serialization\File.cpp">
+    <ClCompile Include="src\Serialization\File.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Serialization\Path.cpp">
+    <ClCompile Include="src\Serialization\Path.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Serialization\Directory.cpp">
+    <ClCompile Include="src\Serialization\Directory.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Debugging\Exceptions.cpp">
+    <ClCompile Include="src\Debugging\Exceptions.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\Audio\Audio.hpp">
+    <ClInclude Include="src\Audio\Audio.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Audio\AudioHandle.hpp">
+    <ClInclude Include="src\Audio\AudioHandle.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Audio\AudioManager.hpp">
+    <ClInclude Include="src\Audio\AudioManager.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Audio\AudioSourceComponent.hpp">
+    <ClInclude Include="src\Components\Audio\AudioSourceComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Bolt.hpp">
+    <ClInclude Include="src\Bolt.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Collections\AABB.hpp">
+    <ClInclude Include="src\Collections\AABB.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Collections\Ids.hpp">
+    <ClInclude Include="src\Collections\Ids.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Collections\Color.hpp">
+    <ClInclude Include="src\Collections\Color.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Collections\Mat2.hpp">
+    <ClInclude Include="src\Collections\Mat2.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Collections\Quaternion.hpp">
+    <ClInclude Include="src\Collections\Quaternion.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Collections\Vec2.hpp">
+    <ClInclude Include="src\Collections\Vec2.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Collections\Vec4.hpp">
+    <ClInclude Include="src\Collections\Vec4.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Collections\Viewport.hpp">
+    <ClInclude Include="src\Collections\Viewport.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Physics\BoxCollider2DComponent.hpp">
+    <ClInclude Include="src\Components\Physics\BoxCollider2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Physics\Collider2D.hpp">
+    <ClInclude Include="src\Components\Physics\Collider2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\ComponentUtils.hpp">
+    <ClInclude Include="src\Components\ComponentUtils.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Graphics\ParticleSystem2DComponent.hpp">
+    <ClInclude Include="src\Components\Graphics\ParticleSystem2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Physics\Rigidbody2DComponent.hpp">
+    <ClInclude Include="src\Components\Physics\Rigidbody2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Graphics\SpriteRendererComponent.hpp">
+    <ClInclude Include="src\Components\Graphics\SpriteRendererComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Tags.hpp">
+    <ClInclude Include="src\Components\Tags.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\General\Transform2DComponent.hpp">
+    <ClInclude Include="src\Components\General\Transform2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\Application.hpp">
+    <ClInclude Include="src\Core\Application.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\Input.hpp">
+    <ClInclude Include="src\Core\Input.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\KeyCodes.hpp">
+    <ClInclude Include="src\Core\KeyCodes.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\SingleInstance.hpp">
+    <ClInclude Include="src\Core\SingleInstance.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\Time.hpp">
+    <ClInclude Include="src\Core\Time.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\Window.hpp">
+    <ClInclude Include="src\Core\Window.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Debugging\Exceptions.hpp">
+    <ClInclude Include="src\Debugging\Exceptions.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Debugging\Logger.hpp">
+    <ClInclude Include="src\Debugging\Logger.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Graphics\Camera2DComponent.hpp">
+    <ClInclude Include="src\Components\Graphics\Camera2DComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\GizmoRenderer.hpp">
+    <ClInclude Include="src\Graphics\GizmoRenderer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\Gizmos.hpp">
+    <ClInclude Include="src\Graphics\Gizmos.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\OpenGL.hpp">
+    <ClInclude Include="src\Graphics\OpenGL.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\QuadMesh.hpp">
+    <ClInclude Include="src\Graphics\QuadMesh.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\Renderer2D.hpp">
+    <ClInclude Include="src\Graphics\Renderer2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\Shader.hpp">
+    <ClInclude Include="src\Graphics\Shader.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\SpriteShaderProgram.hpp">
+    <ClInclude Include="src\Graphics\SpriteShaderProgram.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\Texture2D.hpp">
+    <ClInclude Include="src\Graphics\Texture2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\TextureHandle.hpp">
+    <ClInclude Include="src\Graphics\TextureHandle.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\TextureManager.hpp">
+    <ClInclude Include="src\Graphics\TextureManager.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Math\Common.hpp">
+    <ClInclude Include="src\Math\Common.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Math\Math.hpp">
+    <ClInclude Include="src\Math\Math.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Math\Trigonometry.hpp">
+    <ClInclude Include="src\Math\Trigonometry.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Math\VectorMath.hpp">
+    <ClInclude Include="src\Math\VectorMath.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\pch.hpp">
+    <ClInclude Include="src\pch.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Physics\Box2DWorld.hpp">
+    <ClInclude Include="src\Physics\Box2DWorld.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Physics\Collision2D.hpp">
+    <ClInclude Include="src\Physics\Collision2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Physics\CollisionDispatcher.hpp">
+    <ClInclude Include="src\Physics\CollisionDispatcher.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Physics\Physics2D.hpp">
+    <ClInclude Include="src\Physics\Physics2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Physics\PhysicsSystem2D.hpp">
+    <ClInclude Include="src\Physics\PhysicsSystem2D.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Physics\PhysicsTypes.hpp">
+    <ClInclude Include="src\Physics\PhysicsTypes.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Physics\PhysicsUtility.hpp">
+    <ClInclude Include="src\Physics\PhysicsUtility.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\Entity.hpp">
+    <ClInclude Include="src\Scene\Entity.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\EntityHandle.hpp">
+    <ClInclude Include="src\Scene\EntityHandle.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\ISystem.hpp">
+    <ClInclude Include="src\Scene\ISystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\Scene.hpp">
+    <ClInclude Include="src\Scene\Scene.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\SceneDefinition.hpp">
+    <ClInclude Include="src\Scene\SceneDefinition.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\SceneManager.hpp">
+    <ClInclude Include="src\Scene\SceneManager.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Math\Random.hpp">
+    <ClInclude Include="src\Math\Random.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Systems\ParticleUpdateSystem.hpp">
+    <ClInclude Include="src\Systems\ParticleUpdateSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Utils\CommandBuffer.hpp">
+    <ClInclude Include="src\Utils\CommandBuffer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Utils\Event.hpp">
+    <ClInclude Include="src\Utils\Event.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Serialization\Cereal.hpp">
+    <ClInclude Include="src\Serialization\Cereal.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Utils\StringHelper.hpp">
+    <ClInclude Include="src\Utils\StringHelper.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Utils\Timer.hpp">
+    <ClInclude Include="src\Utils\Timer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Gui\ImGuiRenderer.hpp">
+    <ClInclude Include="src\Gui\ImGuiRenderer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="Src\Gui\ImGui.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Graphics\ImageComponent.hpp">
+    <ClInclude Include="src\Components\Graphics\ImageComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\General\RectTransformComponent.hpp">
+    <ClInclude Include="src\Components\General\RectTransformComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Gui\GuiRenderer.hpp">
+    <ClInclude Include="src\Gui\GuiRenderer.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\Instance44.hpp">
+    <ClInclude Include="src\Graphics\Instance44.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\EntityHelper.hpp">
+    <ClInclude Include="src\Scene\EntityHelper.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\Memory.hpp">
+    <ClInclude Include="src\Core\Memory.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Systems\ImGuiDebugSystem.hpp">
+    <ClInclude Include="src\Systems\ImGuiDebugSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\General\NameComponent.hpp">
+    <ClInclude Include="src\Components\General\NameComponent.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\ComponentRegistry.hpp">
+    <ClInclude Include="src\Scene\ComponentRegistry.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components\Components.hpp">
+    <ClInclude Include="src\Components\Components.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\Export.hpp">
+    <ClInclude Include="src\Core\Export.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\EntryPoint.hpp">
+    <ClInclude Include="src\EntryPoint.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Graphics\ShaderManager.hpp">
+    <ClInclude Include="src\Graphics\ShaderManager.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Core\EngineContext.hpp">
+    <ClInclude Include="src\Core\EngineContext.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Scene\BuiltInComponentRegistration.hpp">
+    <ClInclude Include="src\Scene\BuiltInComponentRegistration.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Serialization\File.hpp">
+    <ClInclude Include="src\Serialization\File.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Serialization\Path.hpp">
+    <ClInclude Include="src\Serialization\Path.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Serialization\Directory.hpp">
+    <ClInclude Include="src\Serialization\Directory.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

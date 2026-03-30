@@ -15,7 +15,7 @@ namespace Bolt {
 		m_QuadMesh.Initialize();
 		m_SpriteShader.Initialize();
 
-		BOLT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Sprite shader is invalid.");
+		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Sprite shader is invalid.");
 		m_IsInitialized = true;
 	}
 
@@ -43,12 +43,12 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScene(const Scene& scene) {
-		BOLT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
+		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
 		m_SpriteShader.Bind();
 
 		// Camera 2D Region
 		Camera2DComponent* camera2D = Camera2DComponent::Main();
-		BOLT_ASSERT(camera2D, BoltErrorCode::NullReference, "There is no main camera");
+		BT_ASSERT(camera2D, BoltErrorCode::NullReference, "There is no main camera");
 
 		camera2D->UpdateViewport();
 		AABB viewportAABB = camera2D->GetViewportAABB();
