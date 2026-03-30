@@ -19,6 +19,7 @@ public:
 		config.EnableGuiRenderer = false;
 		config.EnablePhysics2D = false;
 		config.SetWindowIcon = false;
+
 		return config;
 	}
 
