@@ -1,14 +1,15 @@
 #pragma once
+
 #include <exception>
+#include <ostream>
 #include <source_location>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
-#include <ostream>
+
 #include "Logger.hpp"
 #include "Utils/StringHelper.hpp"
-
 
 namespace Bolt {
 	enum class BoltErrorCode {
@@ -31,23 +32,45 @@ namespace Bolt {
 		Detailed
 	};
 
-	inline ErrorVerbosity g_ErrorVerbosity = ErrorVerbosity::Detailed;
+	enum class ContractViolationKind {
+		Assert,
+		Verify,
+		CoreAssert,
+		CoreVerify
+	};
+
+	struct ContractViolation {
+		ContractViolationKind Kind;
+		const char* Expression;
+		std::string Message;
+		std::source_location SourceLocation;
+	};
 
 	inline const char* ErrorCodeToString(const BoltErrorCode c) {
 		switch (c) {
-		case BoltErrorCode::InvalidArgument:   return "InvalidArgument";
-		case BoltErrorCode::NotInitialized:    return "NotInitialized";
-		case BoltErrorCode::AlreadyInitialized:return "AlreadyInitialized";
-		case BoltErrorCode::FileNotFound:      return "FileNotFound";
-		case BoltErrorCode::InvalidHandle:     return "InvalidHandle";
-		case BoltErrorCode::OutOfRange:        return "OutOfRange";
-		case BoltErrorCode::OutOfBounds:       return "OutOfBounds";
-		case BoltErrorCode::Overflow:          return "Overflow";
-		case BoltErrorCode::NullReference:     return "NullReference";
-		case BoltErrorCode::LoadFailed:        return "LoadFailed";
-		case BoltErrorCode::InvalidValue:      return "InvalidValue";
-		case BoltErrorCode::Undefined:         return "Undefined";
-		default:                               return "Undefined";
+		case BoltErrorCode::InvalidArgument: return "InvalidArgument";
+		case BoltErrorCode::NotInitialized: return "NotInitialized";
+		case BoltErrorCode::AlreadyInitialized: return "AlreadyInitialized";
+		case BoltErrorCode::FileNotFound: return "FileNotFound";
+		case BoltErrorCode::InvalidHandle: return "InvalidHandle";
+		case BoltErrorCode::OutOfRange: return "OutOfRange";
+		case BoltErrorCode::OutOfBounds: return "OutOfBounds";
+		case BoltErrorCode::Overflow: return "Overflow";
+		case BoltErrorCode::NullReference: return "NullReference";
+		case BoltErrorCode::LoadFailed: return "LoadFailed";
+		case BoltErrorCode::InvalidValue: return "InvalidValue";
+		case BoltErrorCode::Undefined: return "Undefined";
+		default: return "Undefined";
+		}
+	}
+
+	inline const char* ContractViolationKindToString(const ContractViolationKind kind) {
+		switch (kind) {
+		case ContractViolationKind::Assert: return "ASSERT";
+		case ContractViolationKind::Verify: return "VERIFY";
+		case ContractViolationKind::CoreAssert: return "CORE_ASSERT";
+		case ContractViolationKind::CoreVerify: return "CORE_VERIFY";
+		default: return "CONTRACT_VIOLATION";
 		}
 	}
 
@@ -55,19 +78,11 @@ namespace Bolt {
 		return os << ErrorCodeToString(c);
 	}
 
-	inline std::string FormatError(
-		BoltErrorCode code,
-		const std::string& msg,
-		const std::source_location& loc
-	) {
-		if (g_ErrorVerbosity == ErrorVerbosity::Normal) {
-			return std::string("BoltError[") + StringHelper::ToString(code) + "]: " + msg;
-		}
+	ErrorVerbosity GetErrorVerbosity();
+	void SetErrorVerbosity(ErrorVerbosity verbosity);
 
-		return std::string("BoltError[") + StringHelper::ToString(code) + "]: " + msg +
-			" @ " + loc.file_name() + ":" + std::to_string(loc.line()) +
-			" (" + loc.function_name() + ")";
-	}
+	std::string FormatError(BoltErrorCode code, std::string_view msg, const std::source_location& loc);
+	std::string FormatContractViolation(const ContractViolation& violation);
 
 	class BoltError : public std::runtime_error {
 	public:
@@ -75,15 +90,12 @@ namespace Bolt {
 			BoltErrorCode code,
 			std::string message,
 			std::source_location loc = std::source_location::current(),
-			std::exception_ptr cause = nullptr
-		)
+			std::exception_ptr cause = nullptr)
 			: std::runtime_error(FormatError(code, message, loc)),
 			m_ErrorCode(code),
 			m_Message(std::move(message)),
 			m_SourceLocation(loc),
-			m_Cause(cause)
-		{
-		}
+			m_Cause(cause) {}
 
 		BoltErrorCode ErrorCode() const { return m_ErrorCode; }
 		const std::string& Message() const { return m_Message; }
@@ -100,79 +112,69 @@ namespace Bolt {
 	[[noreturn]] inline void BoltRethrow(
 		BoltErrorCode code,
 		std::string message,
-		std::source_location loc = std::source_location::current()
-	) {
+		std::source_location loc = std::source_location::current()) {
 		throw BoltError(code, std::move(message), loc, std::current_exception());
 	}
 
-	inline void AppendCauseChain(std::string& out, std::exception_ptr ep, int depth = 0) {
-		if (!ep) return;
-		try {
-			std::rethrow_exception(ep);
-		}
-		catch (const std::exception& e) {
-			out += "\n  caused by: ";
-			out += e.what();
-			if (auto be = dynamic_cast<const BoltError*>(&e)) {
-				AppendCauseChain(out, be->Cause(), depth + 1);
-			}
-		}
-		catch (...) {
-			out += "\n  caused by: <non-std exception>";
-		}
+	void AppendCauseChain(std::string& out, std::exception_ptr ep, int depth = 0);
+	std::string FormatForLog(const BoltError& e);
+
+	[[noreturn]] void ThrowError(BoltErrorCode errorCode, std::string_view msg, std::source_location loc = std::source_location::current());
+	[[noreturn]] void ReportContractViolation(ContractViolationKind kind, const char* expression, std::string_view msg, std::source_location loc = std::source_location::current());
+
+	template<typename TMessage>
+	inline std::string_view ContractMessage(TMessage&& msg) {
+		return std::forward<TMessage>(msg);
 	}
 
-	inline std::string FormatForLog(const BoltError& e) {
-		std::string out = e.what();
-		if (g_ErrorVerbosity == ErrorVerbosity::Detailed) {
-			AppendCauseChain(out, e.Cause());
-		}
-		return out;
+	template<typename TCode, typename TMessage>
+	inline std::string_view ContractMessage(TCode&&, TMessage&& msg) {
+		return std::forward<TMessage>(msg);
 	}
-
-	[[noreturn]] void ThrowError(BoltErrorCode errorCode, const std::string& msg, std::source_location loc = std::source_location::current());
-	[[noreturn]] void ReportContractViolation(const char* category, const char* expression, std::string_view msg, std::source_location loc = std::source_location::current());
 
 #define BOLT_THROW(code, msg) \
 	::Bolt::ThrowError((code), (msg), std::source_location::current())
 
-#define BOLT_ASSERT_IMPL(category, cond, msg) \
-	do { if (!(cond)) ::Bolt::ReportContractViolation((category), #cond, (msg), std::source_location::current()); } while (0)
+#define BOLT_CONTRACT_FAIL(kind, cond, ...) \
+	do { \
+		if (!(cond)) { \
+			::Bolt::ReportContractViolation((kind), #cond, ::Bolt::ContractMessage(__VA_ARGS__), std::source_location::current()); \
+		} \
+	} while (0)
 
 #if defined(BOLT_DEBUG)
-#define BOLT_ASSERT(cond, code, msg) BOLT_ASSERT_IMPL("ASSERT", (cond), (msg))
-#define CORE_ASSERT(cond, code, msg) BOLT_ASSERT_IMPL("CORE_ASSERT", (cond), (msg))
-#define BOLT_VERIFY(cond, code, msg) BOLT_ASSERT_IMPL("VERIFY", (cond), (msg))
-#define CORE_VERIFY(cond, code, msg) BOLT_ASSERT_IMPL("CORE_VERIFY", (cond), (msg))
+#define BOLT_ASSERT(cond, ...) BOLT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Assert, (cond), __VA_ARGS__)
+#define CORE_ASSERT(cond, ...) BOLT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreAssert, (cond), __VA_ARGS__)
 #else
-#define BOLT_ASSERT(cond, code, msg) ((void)0)
-#define CORE_ASSERT(cond, code, msg) ((void)0)
-#define BOLT_VERIFY(cond, code, msg) ((void)(cond))
-#define CORE_VERIFY(cond, code, msg) ((void)(cond))
+#define BOLT_ASSERT(cond, ...) ((void)0)
+#define CORE_ASSERT(cond, ...) ((void)0)
 #endif
+
+#define BOLT_VERIFY(cond, ...) BOLT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Verify, (cond), __VA_ARGS__)
+#define CORE_VERIFY(cond, ...) BOLT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreVerify, (cond), __VA_ARGS__)
 
 #define BOLT_LOG_ERROR(code, msg) \
 	do { \
-			::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
-			Logger::Error(FormatForLog(_e)); \
+		::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
+		Logger::Error(::Bolt::FormatForLog(_e)); \
 	} while (0)
 
 #define BOLT_LOG_ERROR_IF(cond, code, msg) \
 	do { \
 		if ((cond)) { \
 			::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
-			Logger::Error(FormatForLog(_e)); \
+			Logger::Error(::Bolt::FormatForLog(_e)); \
 		} \
 	} while (0)
 }
 
-#define BOLT_TRY_CATCH_LOG(stmt)                     \
-	do {                                       \
-		try {                                  \
-			stmt;                              \
-		} catch (const std::exception& ex) {   \
-			Logger::Error(ex.what());        \
-		} catch (...) {                        \
+#define BOLT_TRY_CATCH_LOG(stmt) \
+	do { \
+		try { \
+			stmt; \
+		} catch (const std::exception& ex) { \
+			Logger::Error(ex.what()); \
+		} catch (...) { \
 			Logger::Error("Unknown exception"); \
-		}                                      \
+		} \
 	} while (0)
