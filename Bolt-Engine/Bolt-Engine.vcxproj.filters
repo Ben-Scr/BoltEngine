@@ -147,6 +147,9 @@
     <ClCompile Include="Src\Serialization\Directory.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Debugging\Exceptions.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Audio\Audio.hpp">

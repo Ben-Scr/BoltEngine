@@ -176,6 +176,7 @@
     <ClCompile Include="Src\Core\Memory.cpp" />
     <ClCompile Include="Src\Core\Time.cpp" />
     <ClCompile Include="Src\Core\Window.cpp" />
+    <ClCompile Include="Src\Debugging\Exceptions.cpp" />
     <ClCompile Include="Src\Debugging\Logger.cpp" />
     <ClCompile Include="Src\External\Glad\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

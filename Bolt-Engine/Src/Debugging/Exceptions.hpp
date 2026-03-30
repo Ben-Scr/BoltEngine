@@ -8,6 +8,7 @@
 #include <ostream>
 #include "Utils/StringHelper.hpp"
 
+
 namespace Bolt {
 	enum class BoltErrorCode {
 		InvalidArgument,
@@ -128,9 +129,11 @@ namespace Bolt {
 		return out;
 	}
 
+	void ThrowError(BoltErrorCode errorCode, const std::string& msg);
+
 
 #define BOLT_THROW(code, msg) \
-    throw ::Bolt::BoltError((code), (msg), std::source_location::current())
+  ThrowError(code, msg)
 
 #if defined(BOLT_DEBUG)
 #define BOLT_ASSERT(cond, code, msg) \
