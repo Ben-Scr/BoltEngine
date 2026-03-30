@@ -18,6 +18,21 @@ namespace Bolt {
 		}
 	}
 
+	BodyType Rigidbody2DComponent::GetBodyType() {
+		switch (b2Body_GetType(m_BodyId)) {
+		case b2_staticBody:
+			return BodyType::Static;
+			break;
+		case b2_kinematicBody:
+			return BodyType::Kinematic;
+			break;
+		case b2_dynamicBody:
+			return BodyType::Dynamic;
+		default:
+			return BodyType::Static; // ERROR
+		}
+	}
+
 	bool Rigidbody2DComponent::IsAwake() const {
 		return b2Body_IsAwake(m_BodyId);
 	}

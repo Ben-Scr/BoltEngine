@@ -5,19 +5,16 @@
 #include "Scene/EntityHelper.hpp"
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
-#include <Systems/ImGuiDebugSystem.hpp>
-#include <Math/Random.hpp>
-#include <GLFW/glfw3.h>
-
-#include <imgui_impl_glfw.h>
+#include <Systems/ImGuiEditorSystem.hpp>
+#include <Core/Version.hpp>
 
 using namespace Bolt;
 
-class BoltEditorApplication : public Application {
+class EditorApplication : public Application {
 public:
 	ApplicationConfig GetConfiguration() const override {
 		ApplicationConfig config;
-		config.WindowProps = WindowProps(1600, 900, "Bolt Editor", true, true, false);
+		config.WindowProps = WindowProps(1600, 900, "Bolt Editor " + std::string(BT_VERSION), true, true, true);
 		config.EnableAudio = false;
 		config.EnableGizmoRenderer = false;
 		config.EnableGuiRenderer = false;
@@ -27,8 +24,8 @@ public:
 	}
 
 	void ConfigureScenes() override {
-		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("EditorScene");
-		editorScene.AddSystem<ImGuiDebugSystem>();
+		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("SampleScene");
+		editorScene.AddSystem<ImGuiEditorSystem>();
 		editorScene.SetAsStartupScene();
 	}
 
@@ -36,12 +33,15 @@ public:
 		EntityHelper::CreateCamera2DEntity();
 	}
 
-	void Update() override {}
+	void Update() override {
+		if (GetInput().GetKeyDown(KeyCode::E))
+			Logger::Message("Hello World! " + StringHelper::ToString(Random::NextInt(0, 100)));
+	}
 	void FixedUpdate() override {}
 	void OnPaused() override {}
 	void OnQuit() override {}
 };
 
 Bolt::Application* Bolt::CreateApplication() {
-	return new BoltEditorApplication();
+	return new EditorApplication();
 }

@@ -219,10 +219,11 @@
     <ClCompile Include="src\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Serialization\Directory.cpp" />
     <ClCompile Include="src\Serialization\Path.cpp" />
-    <ClCompile Include="src\Systems\ImGuiDebugSystem.cpp">
+    <ClCompile Include="src\Systems\ImGuiEditorSystem.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Systems\ImGuiDebugSystem.cpp" />
     <ClCompile Include="src\Systems\ParticleUpdateSystem.cpp" />
     <ClCompile Include="src\Serialization\File.cpp" />
   </ItemGroup>
@@ -306,6 +307,7 @@
     <ClInclude Include="src\Math\Random.hpp" />
     <ClInclude Include="src\Serialization\Directory.hpp" />
     <ClInclude Include="src\Systems\ImGuiDebugSystem.hpp" />
+    <ClInclude Include="src\Systems\ImGuiEditorSystem.hpp" />
     <ClInclude Include="src\Systems\ParticleUpdateSystem.hpp" />
     <ClInclude Include="src\Utils\CommandBuffer.hpp">
       <SubType>

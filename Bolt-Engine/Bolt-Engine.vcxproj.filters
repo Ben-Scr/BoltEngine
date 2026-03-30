@@ -132,7 +132,7 @@
     <ClCompile Include="src\Core\Memory.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="src\Systems\ImGuiDebugSystem.cpp">
+    <ClCompile Include="src\Systems\ImGuiEditorSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="src\Scene\BuiltInComponentRegistration.cpp">
@@ -148,6 +148,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="src\Debugging\Exceptions.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Systems\ImGuiDebugSystem.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -371,7 +374,7 @@
     <ClInclude Include="src\Core\Memory.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="src\Systems\ImGuiDebugSystem.hpp">
+    <ClInclude Include="src\Systems\ImGuiEditorSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\Components\General\NameComponent.hpp">
@@ -408,6 +411,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\Assert.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Systems\ImGuiDebugSystem.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
