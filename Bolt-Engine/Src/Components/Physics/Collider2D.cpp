@@ -1,5 +1,8 @@
 #include "pch.hpp"
-#include "Components/Physics/Collider2D.hpp"
+#include <Components/Physics/Collider2D.hpp>
+#include <Components/General/Transform2DComponent.hpp>
+
+#include <Math/Trigonometry.hpp>
 
 
 namespace Bolt {

@@ -148,6 +148,9 @@
     <ProjectReference Include="..\Bolt-Engine\Bolt-Engine.vcxproj">
       <Project>{436c9d57-d50b-4ab2-8dc5-6e4a13e72feb}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\ImGui\ImGui.vcxproj">
+      <Project>{6638f333-a2ae-46df-b369-5a64c6bbd30c}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -15,12 +15,12 @@ namespace Bolt {
 
 	Window::Window(int width, int height, const std::string& title)
 	{
-		CreateWindow(WindowProps{ width , height, title });
+		Create(WindowProps{ width , height, title });
 	}
 
 	Window::Window(const WindowProps& props)
 	{
-		CreateWindow(props);
+		Create(props);
 	}
 
 	void Window::RefreshCallback(GLFWwindow* window) {
@@ -57,7 +57,7 @@ namespace Bolt {
 		}
 	}
 
-	void Window::CreateWindow(const WindowProps& props) {
+	void Window::Create(const WindowProps& props) {
 		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "The Window isn't initialized");
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

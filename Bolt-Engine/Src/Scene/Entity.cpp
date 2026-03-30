@@ -3,6 +3,8 @@
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
 #include "Components/General/NameComponent.hpp"
+#include "Components/General/Transform2DComponent.hpp"
+#include "Components/Tags.hpp"
 
 
 

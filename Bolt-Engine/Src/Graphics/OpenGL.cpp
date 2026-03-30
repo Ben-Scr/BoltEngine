@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "OpenGL.hpp"
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 namespace Bolt {
 	bool OpenGL::s_IsInitialized = false;

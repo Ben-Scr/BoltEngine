@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Export.hpp"
 #include "Rigidbody2DComponent.hpp"
-#include "Debugging/Logger.hpp"
+#include <Core/Assert.hpp>
 #include "Physics/PhysicsSystem2D.hpp"
 #include "Physics/Box2DWorld.hpp"
 #include "Scene/EntityHandle.hpp"

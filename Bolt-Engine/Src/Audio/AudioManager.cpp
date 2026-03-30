@@ -2,6 +2,7 @@
 
 #include "AudioManager.hpp"
 #include "Audio.hpp"
+#include  <Math/Common.hpp>
 
 #include "Serialization/Path.hpp"
 

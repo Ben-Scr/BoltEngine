@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Logger.hpp"
+#include <iostream>
 
 namespace Bolt {
 	Event<const std::string&, LogLevel> Logger::OnLog;

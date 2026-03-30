@@ -109,7 +109,7 @@ namespace Bolt {
 		static Viewport* GetMainViewport() { return s_MainViewport.get(); }
 
 	private:
-		void CreateWindow(const WindowProps& props);
+		void Create(const WindowProps& props);
 		void UpdateViewport();
 		void SwapBuffers() const { glfwSwapBuffers(m_GLFWwindow); }
 

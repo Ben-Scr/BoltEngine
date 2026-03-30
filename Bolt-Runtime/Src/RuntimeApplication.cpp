@@ -5,8 +5,6 @@
 #include "Systems/ImGuiDebugSystem.hpp"
 #include <Scene/EntityHelper.hpp>
 
-#include <Systems/EditorUISystem.hpp>
-
 using namespace Bolt;
 
 

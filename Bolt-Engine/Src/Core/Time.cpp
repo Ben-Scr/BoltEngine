@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Time.hpp"
+#include <Math/Common.hpp>
 
 namespace Bolt {
 	void Time::SetTargetFramerate(float framerate) {

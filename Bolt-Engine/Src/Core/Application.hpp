@@ -12,7 +12,6 @@
 #include "Input.hpp"
 #include "Time.hpp"
 #include "Window.hpp"
-#include "EngineContext.hpp"
 #include "Export.hpp"
 
 #include <chrono>
@@ -80,7 +79,6 @@ namespace Bolt {
 
 		SceneManager* GetSceneManager() { return m_SceneManager.get(); }
 		const SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
-		const EngineContext& GetEngineContext() const { return m_EngineContext; }
 
 		static void Quit();
 		static void Pause(bool paused) { if (s_Instance) s_Instance->m_IsPaused = paused; }
@@ -99,7 +97,6 @@ namespace Bolt {
 		Input m_Input;
 		Time m_Time;
 		ApplicationConfig m_Configuration;
-		EngineContext m_EngineContext{};
 
 		static std::string s_Name;
 

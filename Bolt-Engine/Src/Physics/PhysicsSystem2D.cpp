@@ -1,7 +1,12 @@
 #include "pch.hpp"
+
+#include <Components/Physics/Rigidbody2DComponent.hpp>
+#include <Components/General/Transform2DComponent.hpp>
+#include <Components/Tags.hpp>
+
 #include "Physics/PhysicsSystem2D.hpp"
-#include "Components/Physics/Rigidbody2DComponent.hpp"
 #include "Physics/Box2DWorld.hpp"
+
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
 

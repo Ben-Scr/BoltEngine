@@ -4,6 +4,7 @@
 
 #include <miniaudio/miniaudio.h>
 #include <queue>
+#include <glm/vec3.hpp>
 
 namespace Bolt {
 	class AudioSourceComponent;

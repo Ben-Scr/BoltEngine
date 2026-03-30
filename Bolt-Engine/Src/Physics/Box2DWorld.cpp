@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Box2DWorld.hpp"
 #include "Scene/Scene.hpp"
+#include <Components/General/Transform2DComponent.hpp>
 
 namespace Bolt {
 	Box2DWorld::Box2DWorld() {

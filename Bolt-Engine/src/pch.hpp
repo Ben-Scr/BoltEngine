@@ -1,6 +1,11 @@
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
 
+#ifdef BT_PLATFORM_WINDOWS
+#define NOMINMAX
+#include <Windows.h>
+#endif
+
 #include <array>
 #include <cstdarg>
 #include <cstddef>
@@ -22,3 +27,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include <Core/Version.hpp>
+#include <Core/Assert.hpp>
+#include <Debugging/Logger.hpp>

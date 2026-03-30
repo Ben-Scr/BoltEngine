@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Components/Audio/AudioSourceComponent.hpp"
 #include "Audio/AudioManager.hpp"
+#include <Math/Math.hpp>
 
 
 namespace Bolt {

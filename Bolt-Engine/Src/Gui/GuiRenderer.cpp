@@ -8,6 +8,7 @@
 #include "Components/Graphics/ImageComponent.hpp"
 #include "Components/General/RectTransformComponent.hpp"
 #include "Components/Graphics/Camera2DComponent.hpp"
+#include <Components/Tags.hpp>
 
 #include "Graphics/Shader.hpp"
 #include "Graphics/Instance44.hpp"

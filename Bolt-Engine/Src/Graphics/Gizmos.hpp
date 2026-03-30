@@ -1,6 +1,7 @@
 #pragma once
 #include "Collections/AABB.hpp"
 #include "Collections/Color.hpp"
+#include <Math/Math.hpp>
 #include <vector>
 
 namespace Bolt {

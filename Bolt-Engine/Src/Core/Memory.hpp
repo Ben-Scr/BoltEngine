@@ -115,19 +115,19 @@ void __CRTDECL operator delete[](void* memory);
 void __CRTDECL operator delete[](void* memory, const char* desc);
 void __CRTDECL operator delete[](void* memory, const char* file, int line);
 
-#define hnew new(__FILE__, __LINE__)
-#define hdelete delete
+#define bnew new(__FILE__, __LINE__)
+#define bdelete delete
 
 #else
 #warning "Memory tracking not available on non-Windows platform"
-#define hnew new
-#define hdelete delete
+#define bnew new
+#define bdelete delete
 
 #endif
 
 #else
 
-#define hnew new
-#define hdelete delete
+#define bnew new
+#define bdelete delete
 
 #endif

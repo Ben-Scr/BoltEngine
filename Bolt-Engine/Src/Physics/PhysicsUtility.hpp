@@ -1,4 +1,5 @@
 #pragma once
+#include <Scene/EntityHandle.hpp>
 
 namespace Bolt {
 	class Collider2D;

@@ -2,6 +2,7 @@
 #include "Physics/PhysicsUtility.hpp"
 #include "Components/Physics/Rigidbody2DComponent.hpp"
 #include "Components/Physics/Collider2D.hpp"
+#include <box2d/box2d.h>
 
 namespace Bolt {
 	EntityHandle PhysicsUtility::GetEntityHandleFromCollider(const Collider2D& collider) {

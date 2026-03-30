@@ -5,6 +5,7 @@
 #include "Graphics/OpenGL.hpp"
 #include "Core/SingleInstance.hpp"
 #include "Audio/AudioManager.hpp"
+#include <Utils/Timer.hpp>
 
 #include "Input.hpp"
 #include <GLFW/glfw3.h>
@@ -99,7 +100,6 @@ namespace Bolt {
 		Timer timer = Timer();
 		Window::Initialize();
 		m_Window = std::make_unique<Window>(m_Configuration.WindowProps);
-		m_EngineContext.Window = m_Window.get();
 		m_Window->SetVsync(m_Configuration.Vsync);
 		m_Window->SetWindowResizeable(m_Configuration.WindowProps.Resizeable);
 		Logger::Message("Window", "Initialization took " + StringHelper::ToString(timer));
@@ -111,14 +111,12 @@ namespace Bolt {
 		timer.Reset();
 		m_Renderer2D = std::make_unique<Renderer2D>();
 		m_Renderer2D->Initialize();
-		m_EngineContext.Renderer2D = m_Renderer2D.get();
 		Logger::Message("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.EnableGizmoRenderer) {
 			timer.Reset();
 			m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
 			m_GizmoRenderer2D->Initialize();
-			m_EngineContext.GizmoRenderer2D = m_GizmoRenderer2D.get();
 			Logger::Message("GizmoRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
@@ -126,7 +124,6 @@ namespace Bolt {
 			timer.Reset();
 			m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
 			m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
-			m_EngineContext.ImGuiRenderer = m_ImGuiRenderer.get();
 			Logger::Message("ImGuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
@@ -134,7 +131,6 @@ namespace Bolt {
 			timer.Reset();
 			m_GuiRenderer = std::make_unique<GuiRenderer>();
 			m_GuiRenderer->Initialize();
-			m_EngineContext.GuiRenderer = m_GuiRenderer.get();
 			Logger::Message("GuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
@@ -142,7 +138,6 @@ namespace Bolt {
 			timer.Reset();
 			m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
 			m_PhysicsSystem2D->Initialize();
-			m_EngineContext.Physics2D = m_PhysicsSystem2D.get();
 			Logger::Message("PhysicsSystem", "Initialization took " + StringHelper::ToString(timer));
 		}
 
@@ -161,7 +156,6 @@ namespace Bolt {
 		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
 		ConfigureScenes();
 		m_SceneManager->Initialize();
-		m_EngineContext.SceneManager = m_SceneManager.get();
 		Logger::Message("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.SetWindowIcon) {
@@ -297,7 +291,6 @@ namespace Bolt {
 
 		if (m_Window) m_Window->Destroy();
 		Window::Shutdown();
-		m_EngineContext = {};
 
 		m_ShouldQuit = false;
 	}

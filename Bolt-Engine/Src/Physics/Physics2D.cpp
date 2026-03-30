@@ -4,6 +4,9 @@
 #include "Physics/PhysicsSystem2D.hpp"
 #include "Physics/Box2DWorld.hpp"
 
+#include <Collections/Mat2.hpp>
+#include <Math/Common.hpp>
+
 #include <box2d/box2d.h>
 #include <box2d/types.h>
 #include <box2d/collision.h>

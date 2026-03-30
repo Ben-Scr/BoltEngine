@@ -4,6 +4,7 @@
 #include "Graphics/TextureHandle.hpp"
 #include "Collections/Color.hpp"
 #include <variant>
+#include <span>
 
 namespace Bolt {
 	struct Particle {

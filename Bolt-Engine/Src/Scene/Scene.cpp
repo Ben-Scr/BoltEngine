@@ -9,6 +9,7 @@
 #include "Components/Graphics/ParticleSystem2DComponent.hpp"
 #include "Components/Graphics/SpriteRendererComponent.hpp"
 #include "Components/General/NameComponent.hpp"
+#include <Components/Tags.hpp>
 
 #include "Physics/Box2DWorld.hpp"
 

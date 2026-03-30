@@ -6,6 +6,7 @@
 #include "Components/Graphics/ParticleSystem2DComponent.hpp";
 #include "Components/Graphics/Camera2DComponent.hpp"
 #include "Components/Tags.hpp"
+#include <Utils/Timer.hpp>
 
 #include "Scene/Scene.hpp"
 #include "Graphics/TextureManager.hpp"

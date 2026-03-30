@@ -254,8 +254,8 @@
     <ClInclude Include="src\Components\Tags.hpp" />
     <ClInclude Include="src\Components\General\Transform2DComponent.hpp" />
     <ClInclude Include="src\Core\Application.hpp" />
+    <ClInclude Include="src\Core\Assert.hpp" />
     <ClInclude Include="src\Core\Export.hpp" />
-    <ClInclude Include="src\Core\EngineContext.hpp" />
     <ClInclude Include="src\Core\Version.hpp" />
     <ClInclude Include="src\EntryPoint.hpp" />
     <ClInclude Include="src\Core\Memory.hpp" />
