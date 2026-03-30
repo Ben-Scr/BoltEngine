@@ -73,8 +73,6 @@ namespace Bolt {
 		Time& GetTime() { return m_Time; }
 		const Time& GetTime() const { return m_Time; }
 
-		static std::string GetVersion() { return "1.0"; }
-
 		static Application* GetInstance() { return s_Instance; }
 
 		SceneManager* GetSceneManager() { return m_SceneManager.get(); }

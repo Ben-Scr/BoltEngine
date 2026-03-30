@@ -5,6 +5,8 @@
 #include "Systems/ImGuiDebugSystem.hpp"
 #include <Scene/EntityHelper.hpp>
 
+#include <Core/Version.hpp>
+
 using namespace Bolt;
 
 
@@ -12,7 +14,7 @@ class RuntimeApplication : public Bolt::Application {
 public:
 	ApplicationConfig GetConfiguration() const override {
 		ApplicationConfig config;
-		config.WindowProps = WindowProps(800, 800, "Bolt Runtime", true, true, false);
+		config.WindowProps = WindowProps(800, 800, BT_VERSION_LONG, true, true, false);
 		config.EnableAudio = false;
 		return config;
 	}

@@ -11,6 +11,7 @@
 #include "Core/Time.hpp"
 #include "Graphics/Gizmos.hpp"
 #include "Scene/Scene.hpp"
+#include <Core/Version.hpp>
 
 namespace Bolt {
 	void ImGuiDebugSystem::OnGui(Scene& scene) {
@@ -129,11 +130,7 @@ namespace Bolt {
 
 		ImGui::Begin("Debug Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-#if defined(BT_RELEASE)
-		ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Bolt Engine %s (Release)", Application::GetVersion().c_str());
-#else
-		ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "Bolt Engine %s (Debug)", Application::GetVersion().c_str());
-#endif
+		ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), BT_VERSION_LONG);
 		ImGui::Separator();
 
 		if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen))
