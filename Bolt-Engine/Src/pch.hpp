@@ -1,12 +1,16 @@
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
 
-// std includes
-#include <iostream>
+#ifdef BT_PLATFORM_WINDOWS
+#define NOMINMAX
+#include <Windows.h>
+#endif
+
 #include <array>
-#include <cstddef>
-#include <cstdlib>
 #include <cstdarg>
+#include <cstddef>
+#include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -18,38 +22,12 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <thread>
 
-// Collections
-#include "Collections/AABB.hpp"
-#include "Collections/Vec2.hpp"
-#include "Collections/Mat2.hpp"
-#include "Collections/Color.hpp"
-
-// Scene
-#include "Scene/EntityHandle.hpp"
-
-// Math
-#include "Math/Random.hpp"
-#include "Math/Common.hpp"
-
-// Core
-#include "Core/Input.hpp"
-#include "Core/Memory.hpp"
-
-// Debugging
-#include "Debugging/Logger.hpp"
-#include "Debugging/Exceptions.hpp"
-
-// Components
-#include "Components/Tags.hpp"
-
-//Utils
-#include "Utils/Event.hpp"
-#include "Utils/Timer.hpp"
-#include "Serialization/File.hpp"
-#include "Utils/StringHelper.hpp"
+#include <Core/Version.hpp>
+#include <Core/Assert.hpp>
+#include <Debugging/Logger.hpp>
