@@ -21,7 +21,7 @@ public:
 		config.EnableAudio = false;
 		config.EnableGizmoRenderer = false;
 		config.EnableGuiRenderer = false;
-		config.EnablePhysics2D = false;
+		config.EnablePhysics2D = true;
 		config.SetWindowIcon = false;
 		return config;
 	}

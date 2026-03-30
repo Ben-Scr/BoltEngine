@@ -1,6 +1,6 @@
 #pragma once
 #include "Scene/EntityHandle.hpp"
-#include "Debugging/Exceptions.hpp"
+#include <Core/Assert.hpp>
 
 #include <string>
 

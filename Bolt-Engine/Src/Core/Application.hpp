@@ -55,6 +55,9 @@ namespace Bolt {
 		virtual void OnPaused() = 0;
 		virtual void OnQuit() = 0;
 
+		static void SetIsPlaying(bool enabled) { if (s_Instance) s_Instance->m_IsPlaying = enabled; }
+		static bool GetIsPlaying() { if (s_Instance) return s_Instance->m_IsPlaying; return false; }
+
 		static void SetName(const std::string& s) { s_Name = s; }
 		static void SetTargetFramerate(float framerate) { if (s_Instance) s_Instance->m_TargetFramerate = framerate; }
 		static void SetForceSingleInstance(bool value) { if (s_Instance) s_Instance->m_ForceSingleInstance = value; }
@@ -103,6 +106,7 @@ namespace Bolt {
 		bool m_ShouldQuit = false;
 		bool m_CanReload = false;
 		bool m_IsPaused = false;
+		bool m_IsPlaying = true;
 
 		float m_TargetFramerate = 144.0f;
 		float m_MaxPossibleFPS = 0.0f;

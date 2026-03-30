@@ -1,202 +1,331 @@
 #include "ImGuiDebugSystem.hpp"
+
 #include <imgui.h>
 
-#include "Components/Components.hpp"
+#include <cstdio>
 
+#include "Components/Components.hpp"
 #include "Core/Application.hpp"
-#include "Scene/EntityHelper.hpp"
 #include "Core/Window.hpp"
-#include "Core/Memory.hpp"
 #include "Graphics/OpenGL.hpp"
-#include "Core/Time.hpp"
-#include "Graphics/Gizmos.hpp"
+#include "Graphics/Renderer2D.hpp"
 #include "Scene/Scene.hpp"
-#include <Core/Version.hpp>
+#include "Scene/SceneManager.hpp"
 
 namespace Bolt {
-	void ImGuiDebugSystem::OnGui(Scene& scene) {
-		auto* window = Application::GetInstance()->GetWindow();
-		auto* renderer2D = Application::GetInstance()->GetRenderer2D();
+	void ImGuiDebugSystem::Awake(Scene& scene) {
+		Application::SetIsPlaying(false);
 
-		ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_MenuBar);
-
-		if (ImGui::BeginMenuBar()) {
-			if (ImGui::BeginMenu("Application")) {
-				if (ImGui::MenuItem("Reload App")) { Application::Reload(); }
-				if (ImGui::MenuItem("Quit")) { Application::Quit(); }
-				ImGui::EndMenu();
-			}
-			ImGui::EndMenuBar();
+		(void)scene;
+		if (m_LogSubscriptionId.value != 0) {
+			Logger::OnLog.Remove(m_LogSubscriptionId);
 		}
 
-		if (ImGui::CollapsingHeader("Display & Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
-			bool isFullscreen = window->IsFullScreen();
-			if (ImGui::Checkbox("Fullscreen", &isFullscreen)) {
-				window->SetFullScreen(isFullscreen);
+		m_LogEntries.clear();
+		m_LogSubscriptionId = Logger::OnLog.Add([this](const std::string& message, LogLevel level) {
+			m_LogEntries.push_back({ message, level });
+			if (m_LogEntries.size() > 2000) {
+				m_LogEntries.erase(m_LogEntries.begin(), m_LogEntries.begin() + 500);
 			}
+			});
+	}
 
-			bool isDecorated = window->IsDecorated();
-			if (ImGui::Checkbox("Decorated", &isDecorated)) {
-				window->SetDecoration(isDecorated);
+	void ImGuiDebugSystem::OnDestroy(Scene& scene) {
+		(void)scene;
+		if (m_LogSubscriptionId.value != 0) {
+			Logger::OnLog.Remove(m_LogSubscriptionId);
+			m_LogSubscriptionId = EventId{};
+		}
+
+		DestroyViewportFramebuffer();
+	}
+
+	void ImGuiDebugSystem::EnsureViewportFramebuffer(int width, int height) {
+		if (width <= 0 || height <= 0) {
+			return;
+		}
+
+		const bool sizeChanged = m_EditorViewport.GetWidth() != width || m_EditorViewport.GetHeight() != height;
+		if (m_ViewportFramebufferId != 0 && !sizeChanged) {
+			return;
+		}
+
+		DestroyViewportFramebuffer();
+		m_EditorViewport.SetSize(width, height);
+
+		glGenFramebuffers(1, &m_ViewportFramebufferId);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_ViewportFramebufferId);
+
+		glGenTextures(1, &m_ViewportColorTextureId);
+		glBindTexture(GL_TEXTURE_2D, m_ViewportColorTextureId);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ViewportColorTextureId, 0);
+
+		glGenRenderbuffers(1, &m_ViewportDepthRenderBufferId);
+		glBindRenderbuffer(GL_RENDERBUFFER, m_ViewportDepthRenderBufferId);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_ViewportDepthRenderBufferId);
+
+		BT_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, BoltErrorCode::InvalidHandle,
+			"Editor viewport framebuffer is incomplete");
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	void ImGuiDebugSystem::DestroyViewportFramebuffer() {
+		if (m_ViewportDepthRenderBufferId != 0) {
+			glDeleteRenderbuffers(1, &m_ViewportDepthRenderBufferId);
+			m_ViewportDepthRenderBufferId = 0;
+		}
+		if (m_ViewportColorTextureId != 0) {
+			glDeleteTextures(1, &m_ViewportColorTextureId);
+			m_ViewportColorTextureId = 0;
+		}
+		if (m_ViewportFramebufferId != 0) {
+			glDeleteFramebuffers(1, &m_ViewportFramebufferId);
+			m_ViewportFramebufferId = 0;
+		}
+	}
+
+	void ImGuiDebugSystem::RenderDockspaceRoot() {
+		const ImGuiViewport* viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(viewport->Pos);
+		ImGui::SetNextWindowSize(viewport->Size);
+		ImGui::SetNextWindowViewport(viewport->ID);
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar;
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+
+		ImGui::Begin("EditorDockspace", nullptr, flags);
+		ImGui::PopStyleVar(3);
+
+		ImGuiID dockspaceId = ImGui::GetID("BoltEditorDockspace");
+		ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+	}
+
+	void ImGuiDebugSystem::RenderMainMenu(Scene& scene) {
+		if (!ImGui::BeginMenuBar()) {
+			return;
+		}
+
+		if (ImGui::BeginMenu("File")) {
+			if (ImGui::MenuItem("Reload Scene")) {
+				SceneManager::Get().ReloadScene(scene.GetName());
 			}
-
-			bool isResizeable = window->IsResizeable();
-			if (ImGui::Checkbox("Resizeable", &isResizeable)) {
-				window->SetResizeable(isResizeable);
+			if (ImGui::MenuItem("Quit")) {
+				Application::Quit();
 			}
+			ImGui::EndMenu();
+		}
 
-			bool isVsync = window->IsVsync();
-			if (ImGui::Checkbox("Vsync", &isVsync)) {
-				window->SetVsync(isVsync);
+		if (ImGui::BeginMenu("Application")) {
+			if (ImGui::MenuItem("Reload App")) {
+				Application::Reload();
 			}
+			ImGui::EndMenu();
+		}
 
-			if (!isVsync) {
-				float targetFrameRate = Application::GetTargetFramerate();
-				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
-				if (ImGui::SliderFloat("Target FPS", &targetFrameRate, 30.f, 244.f, "%.0f FPS")) {
-					Application::SetTargetFramerate(targetFrameRate);
-				}
+		ImGui::EndMenuBar();
+	}
+
+	void ImGuiDebugSystem::RenderToolbar() {
+		ImGui::Begin("Toolbar");
+		if (Application::GetIsPlaying()) {
+			if (ImGui::Button("Play")) {
+				Application::SetIsPlaying(true);
 			}
+		}
+		else {
+			if (ImGui::Button("Stop")) {
+				Application::SetIsPlaying(false);
+			}
+		}
+		ImGui::SameLine();
+		ImGui::TextUnformatted(Application::GetIsPlaying() ? "Runtime" : "Editor Paused");
+		ImGui::End();
+	}
 
-			ImGui::Separator();
+	void ImGuiDebugSystem::RenderEntitiesPanel(Scene& scene) {
+		ImGui::Begin("Entities");
 
-			std::array<float, 4> bgCol = OpenGL::GetClearColor().ToArray();
-			if (ImGui::ColorEdit4("Clear Color", bgCol.data(), ImGuiColorEditFlags_NoInputs)) {
-				OpenGL::SetClearColor(Color::FromArray(bgCol));
+		auto view = scene.GetRegistry().view<entt::entity>();
+		for (const EntityHandle entityHandle : view) {
+			Entity entity = scene.GetEntity(entityHandle);
+			const bool selected = m_SelectedEntity == entityHandle;
+			if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
+				m_SelectedEntity = entityHandle;
 			}
 		}
 
-		if (ImGui::CollapsingHeader("Time & Simulation")) {
-			auto& time = Application::GetInstance()->GetTime();
-			float timeScale = time.GetTimeScale();
-			if (ImGui::SliderFloat("Timescale", &timeScale, 0.f, 10.f, "%.2fx")) {
-				time.SetTimeScale(timeScale);
-			}
-
-			float fixedFPS = 1.f / time.GetUnscaledFixedDeltaTime();
-			if (ImGui::SliderFloat("Fixed Update (Hz)", &fixedFPS, 10.f, 244.f, "%.0f Hz")) {
-				time.SetFixedDeltaTime(1.f / fixedFPS);
-			}
-
-			bool runInBG = Application::GetRunInBackground();
-			if (ImGui::Checkbox("Run in Background", &runInBG)) {
-				Application::SetRunInBackground(runInBG);
-			}
+		if (ImGui::Button("Create Entity")) {
+			Entity created = scene.CreateEntity("Entity");
+			created.AddComponent<SpriteRendererComponent>();
+			m_SelectedEntity = created.GetHandle();
+		}
+		if (ImGui::Button("Create Physics Entity")) {
+			Entity created = scene.CreateEntity("Entity");
+			created.AddComponent<SpriteRendererComponent>();
+			created.AddComponent<Rigidbody2DComponent>();
+			created.AddComponent<BoxCollider2DComponent>();
+			m_SelectedEntity = created.GetHandle();
 		}
 
-		if (ImGui::CollapsingHeader("Gizmos & Debug Draw")) {
-			bool renderer2DEnabled = renderer2D->IsEnabled();
-			if (ImGui::Checkbox("Enable Renderer2D", &renderer2DEnabled)) {
-				renderer2D->SetEnabled(renderer2DEnabled);
-			}
+		ImGui::End();
+	}
 
-			ImGui::Separator();
+	void ImGuiDebugSystem::RenderInspectorPanel(Scene& scene) {
+		ImGui::Begin("Inspector");
 
-			bool enabledGizmo = Gizmo::IsEnabled();
-			if (ImGui::Checkbox("Show Gizmos", &enabledGizmo)) {
-				Gizmo::SetEnabled(enabledGizmo);
-			}
-
-			if (enabledGizmo) {
-				ImGui::Indent();
-
-				static bool aabb = true; ImGui::Checkbox("AABB Boxes", &aabb);
-				ImGui::SameLine();
-				static bool collider = true; ImGui::Checkbox("Colliders", &collider);
-
-				float lineWidth = Gizmo::GetLineWidth();
-				if (ImGui::SliderFloat("Line Width", &lineWidth, 1.f, 5.f)) {
-					Gizmo::SetLineWidth(lineWidth);
-				}
-
-				std::array<float, 4> gizmoCol = Gizmo::GetColor().ToArray();
-				if (ImGui::ColorEdit4("Gizmo Tint", gizmoCol.data(), ImGuiColorEditFlags_NoInputs)) {
-					Gizmo::SetColor(Color::FromArray(gizmoCol));
-				}
-
-				ImGui::Unindent();
-			}
-		}
-
-		ImGui::Spacing();
-		ImGui::Separator();
-		if (ImGui::Button("Reload Scene", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-			SceneManager::Get().ReloadScene(scene.GetName());
+		if (m_SelectedEntity == entt::null || !scene.IsValid(m_SelectedEntity)) {
+			m_SelectedEntity = entt::null;
+			ImGui::TextDisabled("No entity selected");
 			ImGui::End();
 			return;
 		}
 
-		ImGui::End();
-
-		ImGui::Begin("Debug Info", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-
-		ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), BT_VERSION_LONG);
+		Entity entity = scene.GetEntity(m_SelectedEntity);
+		std::string entityName = entity.GetName();
+		ImGui::Text("Entity: %s", entityName.c_str());
 		ImGui::Separator();
 
-		if (ImGui::CollapsingHeader("Performance", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			auto& time = Application::GetInstance()->GetTime();
-			float fpsValue = 1.f / time.GetDeltaTimeUnscaled();
-			ImVec4 fpsColor = fpsValue < 30.0f ? ImVec4(1.0f, 0.3f, 0.3f, 1.0f) : ImVec4(0.3f, 1.0f, 0.3f, 1.0f);
-
-			ImGui::Text("FPS: "); ImGui::SameLine();
-			ImGui::TextColored(fpsColor, "%.2f", fpsValue);
-
-			ImGui::Text("Frame Count: %d", time.GetFrameCount());
-			ImGui::Text("Time Scale:  %.2f", time.GetTimeScale());
-		}
-
-		if (ImGui::CollapsingHeader("Memory"))
-		{
-			auto stats = Memory::GetAllocationStats();
-			size_t activeMem = stats.TotalAllocated - stats.TotalFreed;
-
-			if (ImGui::BeginTable("MemoryTable", 2))
-			{
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0); ImGui::Text("Total Allocated:");
-				ImGui::TableSetColumnIndex(1); ImGui::TextUnformatted(StringHelper::ToIEC(stats.TotalAllocated).c_str());
-
-				ImGui::TableNextRow();
-				ImGui::TableSetColumnIndex(0); ImGui::Text("Active Usage:");
-				ImGui::TableSetColumnIndex(1); ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f), "%s", StringHelper::ToIEC(activeMem).c_str());
-
-				ImGui::EndTable();
+		if (entity.HasComponent<NameComponent>()) {
+			auto& name = entity.GetComponent<NameComponent>();
+			char buffer[256]{};
+			std::snprintf(buffer, sizeof(buffer), "%s", name.Name.c_str());
+			if (ImGui::InputText("Name", buffer, sizeof(buffer))) {
+				name.Name = buffer;
 			}
 		}
 
-		if (ImGui::CollapsingHeader("Scene Manager"))
-		{
-			auto& sceneManager = SceneManager::Get();
-
-			ImGui::Text("%s", ("Active Scene: " + sceneManager.GetActiveScene()->GetName()).c_str());
-
-
-			ImGui::Text("Registered Scenes");
-
-			for(const auto& registeredScene : sceneManager.GetRegisteredSceneNames())
-				ImGui::BulletText("%s", registeredScene.c_str());
-
-			ImGui::Text("Loaded Scenes");
-
-			sceneManager.ForeachLoadedScene([](const Scene& scene) {
-				ImGui::BulletText("%s", scene.GetName().c_str());
-				});
+		if (entity.HasComponent<Transform2DComponent>()) {
+			auto& transform = entity.GetComponent<Transform2DComponent>();
+			ImGui::SeparatorText("Transform2D");
+			ImGui::DragFloat2("Position", &transform.Position.x, 0.05f);
+			ImGui::DragFloat2("Scale", &transform.Scale.x, 0.05f, 0.001f);
+			ImGui::DragFloat("Rotation", &transform.Rotation, 0.01f);
 		}
 
-		if (ImGui::CollapsingHeader("Renderer"))
-		{
-			ImGui::BulletText("Instances: %d", renderer2D->GetRenderedInstancesCount());
-			ImGui::BulletText("Loop Duration: %.3f ms", renderer2D->GetRRenderLoopDuration());
-
-			ImGui::Spacing();
-			ImGui::TextDisabled("Window & Viewport:");
-			ImGui::Indent();
-			ImGui::Text("Size: %d x %d", window->GetWidth(), window->GetHeight());
-			ImGui::Text("VP:   %s", StringHelper::ToString(*window->GetMainViewport()).c_str());
-			ImGui::Unindent();
+		if (entity.HasComponent<SpriteRendererComponent>()) {
+			auto& sprite = entity.GetComponent<SpriteRendererComponent>();
+			ImGui::SeparatorText("Sprite Renderer");
+			ImGui::ColorEdit4("Color", &sprite.Color.r, ImGuiColorEditFlags_NoInputs);
+			ImGui::DragScalar("Sorting Order", ImGuiDataType_S16, &sprite.SortingOrder, 1.0f);
+			ImGui::DragScalar("Sorting Layer", ImGuiDataType_U8, &sprite.SortingLayer, 1.0f);
 		}
 
+		if (entity.HasComponent<Camera2DComponent>()) {
+			auto& camera = entity.GetComponent<Camera2DComponent>();
+			ImGui::SeparatorText("Camera2D");
+			float zoom = camera.GetZoom();
+			if (ImGui::DragFloat("Zoom", &zoom, 0.01f, 0.01f, 100.0f)) {
+				camera.SetZoom(zoom);
+			}
+			float ortho = camera.GetOrthographicSize();
+			if (ImGui::DragFloat("Orthographic Size", &ortho, 0.05f, 0.05f, 1000.0f)) {
+				camera.SetOrthographicSize(ortho);
+			}
+		}
+
+		if (ImGui::Button("Delete Entity")) {
+			scene.DestroyEntity(m_SelectedEntity);
+			m_SelectedEntity = entt::null;
+		}
+
+		ImGui::End();
+	}
+
+	void ImGuiDebugSystem::RenderViewportPanel(Scene& scene) {
+		(void)scene;
+		ImGui::Begin("Viewport");
+
+		const ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		const int framebufferWidth = static_cast<int>(viewportSize.x);
+		const int framebufferHeight = static_cast<int>(viewportSize.y);
+
+		if (framebufferWidth > 0 && framebufferHeight > 0) {
+			EnsureViewportFramebuffer(framebufferWidth, framebufferHeight);
+
+			if (m_ViewportFramebufferId != 0) {
+				auto* app = Application::GetInstance();
+				auto* renderer = app->GetRenderer2D();
+				auto* window = app->GetWindow();
+
+				const int windowWidth = window->GetWidth();
+				const int windowHeight = window->GetHeight();
+
+				glBindFramebuffer(GL_FRAMEBUFFER, m_ViewportFramebufferId);
+				glViewport(0, 0, framebufferWidth, framebufferHeight);
+
+				Window::GetMainViewport()->SetSize(framebufferWidth, framebufferHeight);
+				renderer->BeginFrame();
+
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glViewport(0, 0, windowWidth, windowHeight);
+				Window::GetMainViewport()->SetSize(windowWidth, windowHeight);
+
+				ImGui::Image(
+					static_cast<ImTextureID>(static_cast<intptr_t>(m_ViewportColorTextureId)),
+					viewportSize,
+					ImVec2(0.0f, 1.0f),
+					ImVec2(1.0f, 0.0f));
+			}
+		}
+		else {
+			ImGui::TextDisabled("Viewport has no drawable area");
+		}
+
+		m_IsViewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+		m_IsViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+		ImGui::TextDisabled("Input capture: %s", (m_IsViewportFocused || m_IsViewportHovered) ? "Viewport" : "Editor");
+
+		ImGui::End();
+	}
+
+	void ImGuiDebugSystem::RenderLogPanel() {
+		ImGui::Begin("Log");
+
+		if (ImGui::Button("Clear")) {
+			m_LogEntries.clear();
+		}
+		ImGui::Separator();
+
+		ImGui::BeginChild("LogScroll");
+		for (const LogEntry& entry : m_LogEntries) {
+			ImVec4 color = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
+			if (entry.Level == LogLevel::Warning) {
+				color = ImVec4(1.0f, 0.8f, 0.2f, 1.0f);
+			}
+			else if (entry.Level == LogLevel::Error) {
+				color = ImVec4(1.0f, 0.35f, 0.35f, 1.0f);
+			}
+			ImGui::PushStyleColor(ImGuiCol_Text, color);
+			ImGui::TextUnformatted(entry.Message.c_str());
+			ImGui::PopStyleColor();
+		}
+
+		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
+			ImGui::SetScrollHereY(1.0f);
+		}
+
+		ImGui::EndChild();
+		ImGui::End();
+	}
+
+	void ImGuiDebugSystem::OnGui(Scene& scene) {
+		RenderDockspaceRoot();
+		RenderMainMenu(scene);
+		RenderToolbar();
+		RenderEntitiesPanel(scene);
+		RenderInspectorPanel(scene);
+		RenderViewportPanel(scene);
+		RenderLogPanel();
 		ImGui::End();
 	}
 }

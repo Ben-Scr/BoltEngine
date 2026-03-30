@@ -175,9 +175,10 @@ namespace Bolt {
 		CoreInput();
 
 		if (!m_IsPaused) {
-			if (m_Configuration.EnableAudio) AudioManager::Update();
+			if (m_IsPlaying && m_Configuration.EnableAudio) AudioManager::Update();
 			Update();
-			if (m_SceneManager) m_SceneManager->UpdateScenes();
+
+			if (m_IsPlaying && m_SceneManager) m_SceneManager->UpdateScenes();
 
 			if (m_Renderer2D)
 				BOLT_TRY_CATCH_LOG(m_Renderer2D->BeginFrame());
@@ -204,6 +205,9 @@ namespace Bolt {
 
 	void Application::BeginFixedFrame() {
 		FixedUpdate();
+
+		if (!m_IsPlaying) return;
+
 		if (m_SceneManager) m_SceneManager->FixedUpdateScenes();
 		if (m_PhysicsSystem2D) m_PhysicsSystem2D->FixedUpdate(m_Time.GetFixedDeltaTime());
 	}
