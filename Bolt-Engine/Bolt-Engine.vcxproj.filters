@@ -407,6 +407,9 @@
     <ClInclude Include="src\Serialization\Directory.hpp">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="src\Core\Version.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Core\hello.rml" />

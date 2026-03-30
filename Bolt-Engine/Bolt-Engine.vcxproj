@@ -256,6 +256,7 @@
     <ClInclude Include="src\Core\Application.hpp" />
     <ClInclude Include="src\Core\Export.hpp" />
     <ClInclude Include="src\Core\EngineContext.hpp" />
+    <ClInclude Include="src\Core\Version.hpp" />
     <ClInclude Include="src\EntryPoint.hpp" />
     <ClInclude Include="src\Core\Memory.hpp" />
     <ClInclude Include="src\Core\Input.hpp" />
