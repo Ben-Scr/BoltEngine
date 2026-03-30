@@ -27,6 +27,7 @@ public:
 		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("EditorScene");
 		editorScene.AddSystem<ImGuiDebugSystem>();
 		editorScene.SetAsStartupScene();
+		//BOLT_ASSERT("")
 	}
 
 	void Start() override {

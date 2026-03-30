@@ -3,9 +3,10 @@
 #include <source_location>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
-#include "Logger.hpp"
 #include <ostream>
+#include "Logger.hpp"
 #include "Utils/StringHelper.hpp"
 
 
@@ -129,42 +130,49 @@ namespace Bolt {
 		return out;
 	}
 
-	void ThrowError(BoltErrorCode errorCode, const std::string& msg);
-
+	[[noreturn]] void ThrowError(BoltErrorCode errorCode, const std::string& msg, std::source_location loc = std::source_location::current());
+	[[noreturn]] void ReportContractViolation(const char* category, const char* expression, std::string_view msg, std::source_location loc = std::source_location::current());
 
 #define BOLT_THROW(code, msg) \
-  ThrowError(code, msg)
+	::Bolt::ThrowError((code), (msg), std::source_location::current())
+
+#define BOLT_ASSERT_IMPL(category, cond, msg) \
+	do { if (!(cond)) ::Bolt::ReportContractViolation((category), #cond, (msg), std::source_location::current()); } while (0)
 
 #if defined(BOLT_DEBUG)
-#define BOLT_ASSERT(cond, code, msg) \
-      do { if (!(cond)) BOLT_THROW((code), (msg)); } while (0)
+#define BOLT_ASSERT(cond, code, msg) BOLT_ASSERT_IMPL("ASSERT", (cond), (msg))
+#define CORE_ASSERT(cond, code, msg) BOLT_ASSERT_IMPL("CORE_ASSERT", (cond), (msg))
+#define BOLT_VERIFY(cond, code, msg) BOLT_ASSERT_IMPL("VERIFY", (cond), (msg))
+#define CORE_VERIFY(cond, code, msg) BOLT_ASSERT_IMPL("CORE_VERIFY", (cond), (msg))
 #else
-#define BOLT_ASSERT(cond, code, msg) do { if (!(cond)) BOLT_THROW((code), (msg)); } while (0)
+#define BOLT_ASSERT(cond, code, msg) ((void)0)
+#define CORE_ASSERT(cond, code, msg) ((void)0)
+#define BOLT_VERIFY(cond, code, msg) ((void)(cond))
+#define CORE_VERIFY(cond, code, msg) ((void)(cond))
 #endif
 
-
 #define BOLT_LOG_ERROR(code, msg) \
-    do { \
-            ::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
-            Logger::Error(FormatForLog(_e)); \
-    } while (0)
+	do { \
+			::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
+			Logger::Error(FormatForLog(_e)); \
+	} while (0)
 
 #define BOLT_LOG_ERROR_IF(cond, code, msg) \
-    do { \
-        if ((cond)) { \
-            ::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
-            Logger::Error(FormatForLog(_e)); \
-        } \
-    } while (0)
+	do { \
+		if ((cond)) { \
+			::Bolt::BoltError _e((code), (msg), std::source_location::current()); \
+			Logger::Error(FormatForLog(_e)); \
+		} \
+	} while (0)
 }
 
 #define BOLT_TRY_CATCH_LOG(stmt)                     \
-    do {                                       \
-        try {                                  \
-            stmt;                              \
-        } catch (const std::exception& ex) {   \
-            Logger::Error(ex.what());        \
-        } catch (...) {                        \
-            Logger::Error("Unknown exception"); \
-        }                                      \
-    } while (0)
+	do {                                       \
+		try {                                  \
+			stmt;                              \
+		} catch (const std::exception& ex) {   \
+			Logger::Error(ex.what());        \
+		} catch (...) {                        \
+			Logger::Error("Unknown exception"); \
+		}                                      \
+	} while (0)

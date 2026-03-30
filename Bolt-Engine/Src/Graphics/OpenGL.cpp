@@ -7,7 +7,7 @@ namespace Bolt {
 
 	bool OpenGL::Initialize(const GLInitProperties2D& glInitProps) {
 		if (s_IsInitialized) return false;
-
+		 
 		BOLT_ASSERT(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress), BoltErrorCode::Undefined, "Failed to initialize OpenGL");
 		SetClearColor(glInitProps.ClearColor);
 
