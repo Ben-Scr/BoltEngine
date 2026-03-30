@@ -6,7 +6,7 @@
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
 #include <Systems/ImGuiDebugSystem.hpp>
-
+#include <Math/Random.hpp>
 
 using namespace Bolt;
 
@@ -31,6 +31,8 @@ public:
 
 	void Start() override {
 		EntityHelper::CreateCamera2DEntity();
+		std::uint8_t byte = Random::NextByte(36, 25);
+		Logger::Message(std::to_string(byte));
 	}
 
 	void Update() override {}

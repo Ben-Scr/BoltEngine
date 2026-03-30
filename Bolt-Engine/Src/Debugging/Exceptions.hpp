@@ -142,16 +142,35 @@ namespace Bolt {
 		} \
 	} while (0)
 
-#if defined(BT_DEBUG)
-#define BT_ASSERT(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Assert, (cond), __VA_ARGS__)
-#define BT_CORE_ASSERT(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreAssert, (cond), __VA_ARGS__)
+
+#ifdef BT_PLATFORM_WINDOWS
+  #define BT_DEBUG_BREAK __debugbreak()
 #else
-#define BT_ASSERT(cond, ...) (cond)
-#define BT_CORE_ASSERT(cond, ...) (cond)
+  #define BT_DEBUG_BREAK
 #endif
 
-#define BT_VERIFY(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Verify, (cond), __VA_ARGS__)
-#define BT_CORE_VERIFY(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreVerify, (cond), __VA_ARGS__)
+#ifdef BT_DEBUG
+  #define BT_ENABLE_ASSERTS
+#endif
+
+#define BT_ENABLE_VERIFY
+
+#ifdef BT_ENABLE_ASSERTS
+  #define BT_ASSERT(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Assert, (cond), __VA_ARGS__)
+  #define BT_CORE_ASSERT(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreAssert, (cond), __VA_ARGS__)
+#else
+  #define BT_ASSERT(cond, ...) (cond)
+  #define BT_CORE_ASSERT(cond, ...) (cond)
+#endif
+
+#ifdef BT_ENABLE_VERIFY
+  #define BT_VERIFY(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::Verify, (cond), __VA_ARGS__)
+  #define BT_CORE_VERIFY(cond, ...) BT_CONTRACT_FAIL(::Bolt::ContractViolationKind::CoreVerify, (cond), __VA_ARGS__)
+#else
+ #define BT_VERIFY(cond, ...) (cond)
+ #define BT_CORE_VERIFY(cond, ...) (cond)
+#endif
+
 
 #define BT_LOG_ERROR(code, msg) \
 	do { \

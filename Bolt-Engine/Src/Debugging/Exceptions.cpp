@@ -8,9 +8,7 @@
 #endif
 
 namespace Bolt {
-	namespace {
-		ErrorVerbosity g_ErrorVerbosity = ErrorVerbosity::Detailed;
-	}
+	ErrorVerbosity g_ErrorVerbosity = ErrorVerbosity::Detailed;
 
 	ErrorVerbosity GetErrorVerbosity() {
 		return g_ErrorVerbosity;
@@ -21,11 +19,12 @@ namespace Bolt {
 	}
 
 	std::string FormatError(const BoltErrorCode code, const std::string_view msg, const std::source_location& loc) {
-		if (GetErrorVerbosity() == ErrorVerbosity::Normal) {
-			return std::string("BoltError[") + StringHelper::ToString(code) + "]: " + std::string(msg);
-		}
+		std::string frontPart = std::string("BoltError[") + StringHelper::ToString(code) + "]: " + std::string(msg);
 
-		return std::string("BoltError[") + StringHelper::ToString(code) + "]: " + std::string(msg) +
+		if (GetErrorVerbosity() == ErrorVerbosity::Normal)
+			return frontPart;
+
+		return frontPart +
 			" @ " + loc.file_name() + ":" + std::to_string(loc.line()) +
 			" (" + loc.function_name() + ")";
 	}
@@ -81,12 +80,12 @@ namespace Bolt {
 
 		Logger::Error(formatted);
 
-#if defined(_WIN32)
+#ifdef _WIN32
 		MessageBoxA(nullptr, formatted.c_str(), "Bolt Contract Violation", MB_OK | MB_ICONERROR);
 #endif
 
-#if defined(BOLT_DEBUG) && defined(_MSC_VER)
-		__debugbreak();
+#ifdef BT_DEBUG && _MSC_VER
+		BT_DEBUG_BREAK;
 #endif
 		std::terminate();
 	}
