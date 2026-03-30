@@ -29,7 +29,7 @@ namespace Bolt {
 		// Info: Gets called when system is destroyed
 		virtual void OnDestroy(Scene& scene) {}
 
-		// Info: Gets called when gui can renders (every frame)
+		// Info: Gets called on imgui frame start (every frame)
 		virtual void OnGui(Scene& scene) {}
 
 		bool IsEnabled() const { return m_Enabled; }
