@@ -49,7 +49,11 @@ namespace Bolt {
 
 		// Camera 2D Region
 		Camera2DComponent* camera2D = Camera2DComponent::Main();
-		BT_ASSERT(camera2D, BoltErrorCode::NullReference, "There is no main camera");
+
+		if (!camera2D) {
+			BT_WARN_TAG("Renderer2D", "No main camera found in the scene. Nothing will be rendered.");
+			return;
+		}
 
 		camera2D->UpdateViewport();
 		AABB viewportAABB = camera2D->GetViewportAABB();
