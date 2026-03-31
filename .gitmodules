@@ -1,36 +1,33 @@
-[submodule "ImGui"]
-	path = ImGui
+[submodule "External/imgui"]
+	path = External/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "Spdlog"]
-	path = Spdlog
+[submodule "External/spdlog"]
+	path = External/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "External/Include/GLFW"]
-	path = External/Include/GLFW
+[submodule "External/glfw"]
+	path = External/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "External/Include/box2d"]
-	path = External/Include/box2d
+[submodule "External/box2d"]
+	path = External/box2d
 	url = https://github.com/erincatto/box2d.git
-[submodule "External/Include/glm"]
-	path = External/Include/glm
+[submodule "External/glm"]
+	path = External/glm
 	url = https://github.com/g-truc/glm.git
-[submodule "External/Include/entt"]
-	path = External/Include/entt
+[submodule "External/entt"]
+	path = External/entt
 	url = https://github.com/skypjack/entt.git
-[submodule "External/Include/stb"]
-	path = External/Include/stb
+[submodule "External/stb"]
+	path = External/stb
 	url = https://github.com/nothings/stb.git
-[submodule "External/Include/magic_enum"]
-	path = External/Include/magic_enum
+[submodule "External/magic_enum"]
+	path = External/magic_enum
 	url = https://github.com/Neargye/magic_enum.git
-[submodule "External/Include/miniaudio"]
-	path = External/Include/miniaudio
+[submodule "External/miniaudio"]
+	path = External/miniaudio
 	url = https://github.com/mackron/miniaudio.git
-[submodule "External/Include/cereal"]
-	path = External/Include/cereal
+[submodule "External/cereal"]
+	path = External/cereal
 	url = https://github.com/USCiLab/cereal.git
-[submodule "External/Include/glad"]
-	path = External/Include/glad
+[submodule "External/glad"]
+	path = External/glad
 	url = https://github.com/Dav1dde/glad.git
-[submodule "External/ImGui"]
-	path = External/ImGui
-	url = https://github.com/ocornut/imgui
