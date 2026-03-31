@@ -165,6 +165,9 @@
     <ProjectReference Include="..\ImGui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\Spdlog\Spdlog.vcxproj">
+      <Project>{00553589-84b1-499b-aa03-1ad8bf6ac618}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

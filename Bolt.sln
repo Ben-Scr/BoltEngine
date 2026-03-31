@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
+# Visual Studio Version 18
+VisualStudioVersion = 18.4.11620.152 stable
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bolt-Editor", "Bolt-Editor\Bolt-Editor.vcxproj", "{0A567770-760B-F065-FFFF-E93C6BB4E669}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bolt-Engine", "Bolt-Engine\Bolt-Engine.vcxproj", "{59032B71-C5B8-A366-4EAD-9D3DBA619A6A}"
@@ -8,6 +10,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bolt-Runtime", "Bolt-Runtime\Bolt-Runtime.vcxproj", "{87401990-73A3-A834-1C29-E1EA086B74B7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImGui", "ImGui\ImGui.vcxproj", "{C0FF640D-2C14-8DBE-F595-301E616989EF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Spdlog", "Spdlog\Spdlog.vcxproj", "{00553589-84B1-499B-AA03-1AD8BF6AC618}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,8 +44,17 @@ Global
 		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Dist|x64.Build.0 = Dist|x64
 		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x64.ActiveCfg = Release|x64
 		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x64.Build.0 = Release|x64
+		{00553589-84B1-499B-AA03-1AD8BF6AC618}.Debug|x64.ActiveCfg = Debug|x64
+		{00553589-84B1-499B-AA03-1AD8BF6AC618}.Debug|x64.Build.0 = Debug|x64
+		{00553589-84B1-499B-AA03-1AD8BF6AC618}.Dist|x64.ActiveCfg = Release|x64
+		{00553589-84B1-499B-AA03-1AD8BF6AC618}.Dist|x64.Build.0 = Release|x64
+		{00553589-84B1-499B-AA03-1AD8BF6AC618}.Release|x64.ActiveCfg = Release|x64
+		{00553589-84B1-499B-AA03-1AD8BF6AC618}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1A6D4D92-D675-4226-8E0D-D8213ABC1E09}
 	EndGlobalSection
 EndGlobal

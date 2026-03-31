@@ -34,10 +34,6 @@ public:
 	void Update() override {
 		auto* app = Application::GetInstance();
 		auto input = app->GetInput();
-
-		if (input.GetKeyDown(KeyCode::A)) {
-			Logger::Message("A");
-		}
 	}
 	void FixedUpdate() override {
 

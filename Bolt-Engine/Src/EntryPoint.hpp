@@ -2,22 +2,34 @@
 #include "Core/Application.hpp"
 #include <iostream>
 
-#ifdef BT_PLATFORM_WINDOWS
+
+extern Bolt::Application* CreateApplication();
+bool g_ApplicationRunning = true;
+
 namespace Bolt {
-	Application* CreateApplication();
+
+	int Main(int argc, char** argv) {
+		Application* app = Bolt::CreateApplication();
+		BT_CORE_ASSERT(app, "Client app is null!");
+
+		app->Run();
+		delete app;
+		return 0;
+	}
 }
 
-int main(int argc, char** argv) {
-	Bolt::Application* app = Bolt::CreateApplication();
-	try {
-		app->Run();
-	}
-	catch(const std::exception& ex){
-		std::cout << ex.what();
-	}
-	catch (...) {
-		std::cout << "Unknown Exception";
-	}
-	delete app;
+#if BT_DIST && BT_PLATFORM_WINDOWS
+
+int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
+{
+	return Bolt::Main(__argc, __argv);
 }
-#endif // BT_PLATFORM_WINDOWS
+
+#else
+
+int main(int argc, char** argv)
+{
+	return Bolt::Main(argc, argv);
+}
+
+#endif

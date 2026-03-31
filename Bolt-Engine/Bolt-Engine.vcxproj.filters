@@ -312,6 +312,13 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Src\pch.hpp" />
+    <ClInclude Include="src\Core\TypeRegistry.hpp" />
+    <ClInclude Include="src\Core\MetaHelpers.hpp" />
+    <ClInclude Include="src\Components\General\IDComponent.hpp" />
+    <ClInclude Include="src\Core\UUID.hpp" />
+    <ClInclude Include="src\Core\Base.hpp" />
+    <ClInclude Include="src\Core\Log.hpp" />
+    <ClInclude Include="src\Core\LogCustomFormatters.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Audio\Audio.cpp">
@@ -450,5 +457,7 @@
       <Filter>Systems</Filter>
     </ClCompile>
     <ClCompile Include="Src\pch.cpp" />
+    <ClCompile Include="src\Core\Base.cpp" />
+    <ClCompile Include="src\Core\UUID.cpp" />
   </ItemGroup>
 </Project>

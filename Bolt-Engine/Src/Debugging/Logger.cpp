@@ -29,7 +29,6 @@ namespace Bolt {
 	void Logger::Log(const std::string& topic, const std::string& message, LogLevel logLevel, const std::source_location& loc) {
 		(void)loc;
 		std::string s = "[" + LogLevelToString(logLevel) + "][" + topic + "] " + message + '\n';
-		std::cout << s;
 		OnLog.Invoke(s, logLevel);
 	}
 	void Logger::Log(const std::string& message, LogLevel logLevel, const std::source_location& loc) {

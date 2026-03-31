@@ -87,6 +87,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -102,7 +103,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;..\ImGui\include;..\External\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\Spdlog\include;..\ImGui\include;..\External\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -113,6 +114,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,6 +143,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -168,6 +171,7 @@
     <ClInclude Include="Src\Components\Audio\AudioSourceComponent.hpp" />
     <ClInclude Include="Src\Components\ComponentUtils.hpp" />
     <ClInclude Include="Src\Components\Components.hpp" />
+    <ClInclude Include="src\Components\General\IDComponent.hpp" />
     <ClInclude Include="Src\Components\General\NameComponent.hpp" />
     <ClInclude Include="Src\Components\General\RectTransformComponent.hpp" />
     <ClInclude Include="Src\Components\General\Transform2DComponent.hpp" />
@@ -181,12 +185,18 @@
     <ClInclude Include="Src\Components\Tags.hpp" />
     <ClInclude Include="Src\Core\Application.hpp" />
     <ClInclude Include="Src\Core\Assert.hpp" />
+    <ClInclude Include="src\Core\Base.hpp" />
     <ClInclude Include="Src\Core\Export.hpp" />
+    <ClInclude Include="src\Core\LogCustomFormatters.hpp" />
     <ClInclude Include="Src\Core\Input.hpp" />
     <ClInclude Include="Src\Core\KeyCodes.hpp" />
+    <ClInclude Include="src\Core\Log.hpp" />
     <ClInclude Include="Src\Core\Memory.hpp" />
+    <ClInclude Include="src\Core\MetaHelpers.hpp" />
     <ClInclude Include="Src\Core\SingleInstance.hpp" />
     <ClInclude Include="Src\Core\Time.hpp" />
+    <ClInclude Include="src\Core\TypeRegistry.hpp" />
+    <ClInclude Include="src\Core\UUID.hpp" />
     <ClInclude Include="Src\Core\Version.hpp" />
     <ClInclude Include="Src\Core\Window.hpp" />
     <ClInclude Include="Src\Debugging\Exceptions.hpp" />
@@ -251,9 +261,11 @@
     <ClCompile Include="Src\Components\Physics\Collider2D.cpp" />
     <ClCompile Include="Src\Components\Physics\Rigidbody2DComponent.cpp" />
     <ClCompile Include="Src\Core\Application.cpp" />
+    <ClCompile Include="src\Core\Base.cpp" />
     <ClCompile Include="Src\Core\Input.cpp" />
     <ClCompile Include="Src\Core\Memory.cpp" />
     <ClCompile Include="Src\Core\Time.cpp" />
+    <ClCompile Include="src\Core\UUID.cpp" />
     <ClCompile Include="Src\Core\Window.cpp" />
     <ClCompile Include="Src\Debugging\Exceptions.cpp" />
     <ClCompile Include="Src\Debugging\Logger.cpp" />
@@ -293,6 +305,11 @@
     <ClCompile Include="Src\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Spdlog\Spdlog.vcxproj">
+      <Project>{00553589-84b1-499b-aa03-1ad8bf6ac618}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
