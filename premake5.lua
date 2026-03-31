@@ -12,14 +12,23 @@ workspace "Bolt"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-IncludeDir = {}
-IncludeDir["External"] = "External/Include"
-IncludeDir["ImGui"] = "ImGui/include"
-IncludeDir["BoltEngine"] = "Bolt-Engine/Src"
+include "Dependencies.lua"
 
-LibDir = {}
-LibDir["External"] = "External/Lib"
+local function UseDependencySet(dep)
+    if dep.IncludeDirs then
+        includedirs(dep.IncludeDirs)
+    end
 
+    if dep.LibDirs then
+        libdirs(dep.LibDirs)
+    end
+
+    if dep.Links then
+        links(dep.Links)
+    end
+end
+
+group "Dependencies"
 project "ImGui"
     location "ImGui"
     kind "StaticLib"
@@ -37,11 +46,7 @@ project "ImGui"
         "%{prj.name}/include/**.h"
     }
 
-    includedirs
-    {
-        "%{IncludeDir.ImGui}",
-        "%{IncludeDir.External}"
-    }
+    UseDependencySet(Dependency.ImGui)
 
     filter "system:windows"
         systemversion "latest"
@@ -63,6 +68,7 @@ project "ImGui"
         symbols "Off"
         defines { "NDEBUG" }
 
+group "Core"
 project "Bolt-Engine"
     location "Bolt-Engine"
     kind "StaticLib"
@@ -85,25 +91,7 @@ project "Bolt-Engine"
         "%{prj.name}/Src/**.cpp"
     }
 
-    includedirs
-    {
-        "%{IncludeDir.BoltEngine}",
-        "Spdlog/include",
-        "%{IncludeDir.ImGui}",
-        "%{IncludeDir.External}"
-    }
-
-    links
-    {
-        "glfw3.lib",
-        "box2d.lib",
-        "opengl32.lib"
-    }
-
-    libdirs
-    {
-        "%{LibDir.External}"
-    }
+    UseDependencySet(Dependency.EngineCore)
 
     defines
     {
@@ -137,6 +125,7 @@ project "Bolt-Engine"
         symbols "Off"
         defines { "BT_RELEASE", "NDEBUG" }
 
+group "Runtime"
 project "Bolt-Editor"
     location "Bolt-Editor"
     kind "ConsoleApp"
@@ -155,28 +144,7 @@ project "Bolt-Editor"
         "%{prj.name}/src/**.hpp"
     }
 
-    includedirs
-    {
-        "%{IncludeDir.BoltEngine}",
-        "Spdlog/include",
-        "%{IncludeDir.ImGui}",
-        "%{IncludeDir.External}"
-    }
-
-    libdirs
-    {
-        "%{LibDir.External}"
-    }
-
-    links
-    {
-        "Bolt-Engine",
-        "ImGui",
-        "glfw3.lib",
-        "opengl32.lib",
-        "box2d.lib",
-        "BoltPhys.lib"
-    }
+    UseDependencySet(Dependency.EditorRuntimeCommon)
 
     defines
     {
@@ -221,29 +189,12 @@ project "Bolt-Runtime"
         "%{prj.name}/Src/**.hpp"
     }
 
-    includedirs
-    {
-        "%{IncludeDir.BoltEngine}",
-        "Spdlog/include",
-        "%{IncludeDir.ImGui}",
-        "%{IncludeDir.External}"
-    }
-
-    libdirs
-    {
-        "%{LibDir.External}"
-    }
+    UseDependencySet(Dependency.EditorRuntimeCommon)
 
     links
     {
-        "Bolt-Engine",
-        "ImGui",
-        "glfw3.lib",
-        "opengl32.lib",
-        "box2d.lib",
-        "BoltPhys.lib",
-        "freetype.lib",
-        "gdi32.lib"
+        "%{Library.FreeType}",
+        "%{Library.GDI32}"
     }
 
     defines
@@ -275,3 +226,5 @@ project "Bolt-Runtime"
         optimize "Full"
         symbols "Off"
         defines { "BT_RELEASE", "NDEBUG" }
+
+group ""
