@@ -4,8 +4,8 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 # Custom
-build/
-bin-int/
+/build/
+/bin-int/
 
 # User-specific files
 *.rsuser
