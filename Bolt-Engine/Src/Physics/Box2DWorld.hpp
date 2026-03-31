@@ -17,6 +17,12 @@ namespace Bolt {
         Box2DWorld();
         ~Box2DWorld();
 
+        Box2DWorld(const Box2DWorld&) = delete;
+        Box2DWorld& operator=(const Box2DWorld&) = delete;
+
+        Box2DWorld(Box2DWorld&&) noexcept = default;
+        Box2DWorld& operator=(Box2DWorld&&) noexcept = default;
+
         void Step(float dt);
 
 

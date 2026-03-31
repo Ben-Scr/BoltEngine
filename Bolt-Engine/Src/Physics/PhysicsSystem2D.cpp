@@ -17,7 +17,7 @@ namespace Bolt {
 
 	void PhysicsSystem2D::Initialize() {
 		s_MainWorld.Destroy();
-		s_MainWorld = {};
+		s_MainWorld = Box2DWorld();
 	}
 
 	void PhysicsSystem2D::FixedUpdate(float dt) {

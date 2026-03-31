@@ -12,16 +12,12 @@ namespace Bolt {
 		def.gravity = b2Vec2{ 0, -9.8f };
 		m_WorldId = b2CreateWorld(&def);
 	}
-	Box2DWorld::~Box2DWorld() {
-		if (b2World_IsValid(m_WorldId)) {
-			b2DestroyWorld(m_WorldId);
-			m_WorldId = b2_nullWorldId;
-		}
-		m_Dispatcher.Clear();
-	}
+	Box2DWorld::~Box2DWorld() { }
+
 	void Box2DWorld::Step(float dt) {
 		b2World_Step(m_WorldId, dt, 5);
 	}
+
 	void Box2DWorld::Destroy() {
 		if (b2World_IsValid(m_WorldId)) {
 			b2DestroyWorld(m_WorldId);
