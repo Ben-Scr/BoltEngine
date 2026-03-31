@@ -62,8 +62,8 @@ namespace Bolt {
 		} \
 	} while (0)
 #else
-#define BT_ASSERT(cond, ...) ((void)sizeof(cond))
-#define BT_CORE_ASSERT(cond, ...) ((void)sizeof(cond))
+#define BT_ASSERT(cond, ...) (cond)
+#define BT_CORE_ASSERT(cond, ...) (cond)
 #endif
 
 #ifdef BT_ENABLE_VERIFY

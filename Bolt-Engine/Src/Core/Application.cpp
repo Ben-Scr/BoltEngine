@@ -102,11 +102,10 @@ namespace Bolt {
 		Window::Initialize();
 		m_Window = std::make_unique<Window>(m_Configuration.WindowSpecification);
 		m_Window->SetVsync(m_Configuration.Vsync);
-		m_Window->SetWindowResizeable(m_Configuration.WindowSpecification.Resizeable);
 		BT_INFO("Window", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
-		OpenGL::Initialize(GLInitProperties2D(Color::Background(), GLCullingMode::GLBack));
+		OpenGL::Initialize(GLInitSpecifications(Color::Background(), GLCullingMode::GLBack));
 		BT_INFO("OpenGL", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();

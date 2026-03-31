@@ -3,6 +3,7 @@
 #include "Application.hpp"
 #include "Graphics/Texture2D.hpp"
 #include "Graphics/OpenGL.hpp"
+#include <Utils/StringHelper.hpp>
 
 #include <glad/glad.h>
 

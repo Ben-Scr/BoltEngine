@@ -19,11 +19,11 @@ namespace Bolt {
 		GLFrontAndBack = 0x0408
 	};
 
-	struct GLInitProperties2D {
+	struct GLInitSpecifications {
 		Color ClearColor;
 		GLCullingMode CullingMode;
 
-		GLInitProperties2D(const Color& clearColor, GLCullingMode cullMode)
+		GLInitSpecifications(const Color& clearColor, GLCullingMode cullMode)
 			: ClearColor{ clearColor }, CullingMode{ cullMode } {
 		}
 	};
@@ -34,7 +34,7 @@ namespace Bolt {
 	public:
 		OpenGL() = delete;
 
-		static bool Initialize(const GLInitProperties2D& glInitProps);
+		static bool Initialize(const GLInitSpecifications& glInitSpecs);
 		static bool IsInitialized() { return s_IsInitialized; }
 		static void BlendFunc(GLenum sFactor, GLenum dFactor);
 		static void Enable(GLenum glEnum);

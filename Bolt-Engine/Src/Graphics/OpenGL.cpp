@@ -6,15 +6,15 @@
 namespace Bolt {
 	bool OpenGL::s_IsInitialized = false;
 
-	bool OpenGL::Initialize(const GLInitProperties2D& glInitProps) {
+	bool OpenGL::Initialize(const GLInitSpecifications& glInitSpecs) {
 		if (s_IsInitialized) return false;
 		 
 		BT_ASSERT(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress), BoltErrorCode::Undefined, "Failed to initialize OpenGL");
-		SetClearColor(glInitProps.ClearColor);
+		SetClearColor(glInitSpecs.ClearColor);
 
 		Enable(GL_BLEND);
 		BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		CullFace(glInitProps.CullingMode);
+		CullFace(glInitSpecs.CullingMode);
 
 		s_IsInitialized = true;
 		return true;

@@ -33,6 +33,8 @@ public:
 
 	void Start() override {
 		EntityHelper::CreateCamera2DEntity();
+
+		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("SampleScene");
 	}
 
 	void Update() override {
