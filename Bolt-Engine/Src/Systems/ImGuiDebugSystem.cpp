@@ -46,7 +46,7 @@ namespace Bolt {
 
             bool isDecorated = window->IsDecorated();
             if (ImGui::Checkbox("Decorated", &isDecorated)) {
-                window->SetDecoration(isDecorated);
+                window->SetDecorated(isDecorated);
             }
 
             bool isResizeable = window->IsResizeable();
