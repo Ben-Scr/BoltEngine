@@ -2,11 +2,21 @@
 Windows (only) Compatible 2D Game-Engine written in C++
 
 ## Preview
+
+### Game
+
 <p align="center">
-<img src="Documentation/Preview/Preview_2.png" width="45%" alt="Preview 1">
-<img src="Documentation/Preview/Preview_3.png" width="45%" alt="Preview 2">
+  <img src="Docs/Preview/Preview_2.png" width="48%" alt="Gameplay – combat system">
+  <img src="Docs/Preview/Preview_3.png" width="48%" alt="Gameplay – exploration">
 </p>
 
+---
+
+### Editor
+
+<p align="center">
+  <img src="Docs/Preview/Preview-Editor.png" width="60%" alt="Level editor interface">
+</p>
 
 ## External Libraries / API's
 - [Bolt-Physics2D](https://github.com/Ben-Scr/Bolt-Physics2D) - Lightweight 2D Physics Library
