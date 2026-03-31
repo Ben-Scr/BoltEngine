@@ -33,20 +33,28 @@ Windows (only) Compatible 2D Game-Engine written in C++
 - Game Development
 
 ## How to Build
-### CMake (recommended)
-1. Install **CMake 3.22+** and a C++23-compatible compiler.
-2. Configure the project:
-   ```bash
-   cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+### Premake + Visual Studio 2022 (primary)
+1. Ensure Python 3 is installed and available on `PATH`.
+2. Ensure Premake is available at:
+   `vendor/bin/premake5.exe`
+3. Run setup from Windows:
+   ```bat
+   scripts\Setup.bat
    ```
-3. Build all targets (engine + runtime):
-   ```bash
-   cmake --build build --config Debug
-   ```
-4. Run the sandbox executable from:
-   `build/Bolt-Runtime/Debug/BoltRuntime.exe`
+   This setup flow will:
+   - update submodules (`git submodule update --init --recursive`)
+   - attempt `git lfs pull`
+   - generate Visual Studio 2022 files using Premake
+4. Open the generated `Bolt.sln` in Visual Studio 2022.
+5. Select `Debug|x64` (or `Release|x64` / `Dist|x64`) and build.
 
-Optional: disable runtime target when you only want the engine library:
-```bash
-cmake -S . -B build -DBOLT_BUILD_RUNTIME=OFF
-```
+Projects generated in the workspace:
+- `Bolt-Engine`
+- `Bolt-Editor`
+- `Bolt-Runtime`
+- `ImGui`
+
+Runtime assets are copied to the runtime output directory after build.
+
+### CMake (legacy / transition)
+The existing CMake files are still present during the migration period, but Premake is now the preferred workflow.
