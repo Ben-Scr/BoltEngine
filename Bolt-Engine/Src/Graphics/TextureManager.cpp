@@ -188,21 +188,6 @@ namespace Bolt {
 		return handles;
 	}
 
-	std::vector<TextureHandle> TextureManager::GetLoadedHandles() {
-		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "TextureManager isn't initialized");
-
-		std::vector<TextureHandle> handles;
-		handles.reserve(s_Textures.size());
-
-		for (size_t i = 0; i < s_Textures.size(); i++) {
-			if (s_Textures[i].IsValid) {
-				handles.emplace_back(static_cast<uint16_t>(i), s_Textures[i].Generation);
-			}
-		}
-
-		return handles;
-	}
-
 	Texture2D* TextureManager::GetTexture(TextureHandle blockTexture) {
 		if (!s_IsInitialized) {
 			BT_CORE_ERROR("[{}] TextureManager isn't initialized", ErrorCodeToString(BoltErrorCode::NotInitialized));
