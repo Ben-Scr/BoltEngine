@@ -11,21 +11,21 @@
 namespace Bolt {
 	class Texture2D;
 
-	struct WindowProps {
+	struct WindowSpecification {
 		int Width{ 800 }, Height{ 800 };
 		std::string Title{ "GLFW Window" };
 		bool Resizeable{ true };
 		bool Decorated{ true };
 		bool Fullscreen{ false };
-		Color BackgroundColor;
+		Color Clearcolor;
 
-		WindowProps() = default;
+		WindowSpecification() = default;
 
-		WindowProps(int width, int height, const std::string& title)
+		WindowSpecification(int width, int height, const std::string& title)
 			: Width{ width }, Height{ height }, Title{ title }
 		{
 		}
-		WindowProps(int width, int height, const std::string& title, bool resizeable, bool decorated, bool fullscreen)
+		WindowSpecification(int width, int height, const std::string& title, bool resizeable, bool decorated, bool fullscreen)
 			: Width{ width }, Height{ height }, Title{ title }, Resizeable{ resizeable }, Decorated{ decorated }, Fullscreen{ fullscreen }
 		{
 		}
@@ -36,7 +36,7 @@ namespace Bolt {
 
 	public:
 		Window(int width, int height, const std::string& title);
-		Window(const WindowProps& props);
+		Window(const WindowSpecification& props);
 
 		// Info: Initializes the GLFW library
 		static void Initialize();
@@ -44,7 +44,6 @@ namespace Bolt {
 		static void Shutdown();
 
 		static void SetVsync(bool enabled) { glfwSwapInterval(enabled); s_IsVsync = enabled; };
-
 
 		void Destroy();
 
@@ -64,7 +63,7 @@ namespace Bolt {
 
 		// Info: If enabled equals true the window will become fullscreen else windowed
 		void SetFullScreen(bool enabled);
-		void SetDecoration(bool enabled);
+		void SetDecorated(bool enabled);
 		void SetVisible(bool enabled);
 		void SetResizeable(bool enabled);
 		void SetTitle(const std::string& title) { glfwSetWindowTitle(m_GLFWwindow, title.c_str()); }
@@ -109,7 +108,7 @@ namespace Bolt {
 		static Viewport* GetMainViewport() { return s_MainViewport.get(); }
 
 	private:
-		void Create(const WindowProps& props);
+		void Create(const WindowSpecification& props);
 		void UpdateViewport();
 		void SwapBuffers() const { glfwSwapBuffers(m_GLFWwindow); }
 

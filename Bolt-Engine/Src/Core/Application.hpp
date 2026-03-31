@@ -18,7 +18,7 @@
 
 namespace Bolt {
 	struct ApplicationConfig {
-		WindowProps WindowProps{ 800, 800, "Bolt Runtime", true, true, false };
+		WindowSpecification WindowSpecification{ 800, 800, "Bolt Runtime", true, true, false };
 		bool EnableImGui = true;
 		bool EnableGuiRenderer = true;
 		bool EnableGizmoRenderer = true;

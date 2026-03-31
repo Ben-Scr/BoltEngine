@@ -99,9 +99,9 @@ namespace Bolt {
 
 		Timer timer = Timer();
 		Window::Initialize();
-		m_Window = std::make_unique<Window>(m_Configuration.WindowProps);
+		m_Window = std::make_unique<Window>(m_Configuration.WindowSpecification);
 		m_Window->SetVsync(m_Configuration.Vsync);
-		m_Window->SetWindowResizeable(m_Configuration.WindowProps.Resizeable);
+		m_Window->SetWindowResizeable(m_Configuration.WindowSpecification.Resizeable);
 		Logger::Message("Window", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();

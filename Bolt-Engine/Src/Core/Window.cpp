@@ -15,10 +15,10 @@ namespace Bolt {
 
 	Window::Window(int width, int height, const std::string& title)
 	{
-		Create(WindowProps{ width , height, title });
+		Create(WindowSpecification{ width , height, title });
 	}
 
-	Window::Window(const WindowProps& props)
+	Window::Window(const WindowSpecification& props)
 	{
 		Create(props);
 	}
@@ -57,7 +57,7 @@ namespace Bolt {
 		}
 	}
 
-	void Window::Create(const WindowProps& props) {
+	void Window::Create(const WindowSpecification& props) {
 		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "The Window isn't initialized");
 
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -65,9 +65,8 @@ namespace Bolt {
 		glfwWindowHint(GLFW_SAMPLES, 8);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		glfwWindowHint(GLFW_DECORATED, props.Decorated);
-		glfwWindowHint(GLFW_RESIZABLE, props.Resizeable);
-
+		SetDecorated(props.Decorated);
+		SetResizeable(props.Resizeable);
 
 		s_MainViewport = std::make_unique<Viewport>(
 			props.Fullscreen ? k_Videomode->width : props.Width,
@@ -233,7 +232,7 @@ namespace Bolt {
 		}
 	}
 
-	void Window::SetDecoration(bool enabled) {
+	void Window::SetDecorated(bool enabled) {
 		glfwSetWindowAttrib(m_GLFWwindow, GLFW_DECORATED, enabled ? GLFW_TRUE : GLFW_FALSE);
 	}
 	void Window::SetVisible(bool enabled) {
