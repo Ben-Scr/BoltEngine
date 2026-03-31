@@ -83,7 +83,9 @@ namespace Bolt {
 		{
 			return m_BodyId;
 		}
+		return b2_nullBodyId;
 	}
+
 	bool Rigidbody2DComponent::IsValid() const {
 		if (!b2Body_IsValid(m_BodyId)) {
 			return false;

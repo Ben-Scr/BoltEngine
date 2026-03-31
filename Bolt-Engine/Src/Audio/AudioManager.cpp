@@ -290,14 +290,15 @@ namespace Bolt {
 			return;
 		}
 
+		const uint32_t instanceId = CreateSoundInstance(audioHandle);
+		BT_ASSERT(instanceId != 0, BoltErrorCode::Undefined, "Failed to create one-shot sound instance");
 
-		ma_sound sound;
-		ma_result result = ma_sound_init_from_file(&s_Engine, audio->GetFilepath().c_str(), 0, nullptr, nullptr, &sound);
+		SoundInstance* instance = GetSoundInstance(instanceId);
+		BT_ASSERT(instance, BoltErrorCode::NullReference, "Failed to retrieve one-shot sound instance");
 
-		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::NullReference, "Failed to create one-shot sound. Error: " + result);
-
-		ma_sound_set_volume(&sound, volume * s_masterVolume);
-		ma_sound_start(&sound);
+		ma_sound_set_volume(&instance->Sound, volume * s_masterVolume);
+		ma_result result = ma_sound_start(&instance->Sound);
+		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::NullReference, "Failed to start one-shot sound. Error: " + result);
 	}
 
 	bool AudioManager::IsAudioLoaded(const AudioHandle& audioHandle) {

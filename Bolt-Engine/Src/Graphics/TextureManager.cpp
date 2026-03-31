@@ -96,7 +96,7 @@ namespace Bolt {
 
 		int index = static_cast<int>(type);
 
-		BT_ASSERT(index >= 0 || index < static_cast<int>(s_DefaultTextures.size()), BoltErrorCode::OutOfRange, "Invalid DefaultTexture! Index out of range");
+		BT_ASSERT(index >= 0 && index < static_cast<int>(s_DefaultTextures.size()), BoltErrorCode::OutOfRange, "Invalid DefaultTexture! Index out of range");
 
 		return TextureHandle(static_cast<uint16_t>(index), s_Textures[index].Generation);
 	}

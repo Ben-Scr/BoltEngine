@@ -109,7 +109,7 @@ namespace Bolt {
 		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
 
 
-		BT_ASSERT(w > 0 && h > 0,BoltErrorCode::OutOfBounds,"Texture width or height isn't valid!");
+		BT_ASSERT(w > 0 && h > 0, BoltErrorCode::OutOfBounds, "Texture width or height isn't valid!");
 
 		std::vector<unsigned char> pixels((size_t)w * (size_t)h * 4);
 
@@ -119,7 +119,7 @@ namespace Bolt {
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		return std::make_unique<ImageData>(ImageData(w, h, pixels.data()));
+		return std::make_unique<ImageData>(ImageData(w, h, std::move(pixels)));
 	}
 
 	void Texture2D::ApplySamplerParams() const {

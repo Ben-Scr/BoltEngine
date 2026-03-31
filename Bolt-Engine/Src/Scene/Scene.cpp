@@ -108,7 +108,7 @@ namespace Bolt {
 		bool isEnabled = !registry.all_of<DisabledTag>(entity);
 		BoxCollider2DComponent& boxCollider = GetComponent<BoxCollider2DComponent>(entity);
 
-		// Info: Check if the collider already has the Rigidbody2D component
+		// Note: Check if the collider already has the Rigidbody2D component
 		// Get the body and assign it to the boxCollider
 		// Else Create a new Static body
 		if (HasComponent<Rigidbody2DComponent>(entity)) {

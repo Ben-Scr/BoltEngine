@@ -13,16 +13,21 @@ namespace Bolt {
 		m_WorldId = b2CreateWorld(&def);
 	}
 	Box2DWorld::~Box2DWorld() {
-		return;
 		if (b2World_IsValid(m_WorldId)) {
 			b2DestroyWorld(m_WorldId);
+			m_WorldId = b2_nullWorldId;
 		}
+		m_Dispatcher.Clear();
 	}
 	void Box2DWorld::Step(float dt) {
 		b2World_Step(m_WorldId, dt, 5);
 	}
 	void Box2DWorld::Destroy() {
-		b2DestroyWorld(m_WorldId);
+		if (b2World_IsValid(m_WorldId)) {
+			b2DestroyWorld(m_WorldId);
+			m_WorldId = b2_nullWorldId;
+		}
+		m_Dispatcher.Clear();
 	}
 
 	b2BodyId Box2DWorld::CreateBody(EntityHandle nativeEntity, Scene& scene, BodyType bodyType) {

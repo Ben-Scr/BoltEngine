@@ -37,9 +37,19 @@ namespace Bolt {
 	}
 
 
+	void Collider2D::DestroyShape(bool updateBodyMass) {
+		if (b2Shape_IsValid(m_ShapeId)) {
+			PhysicsSystem2D::GetMainPhysicsWorld().GetDispatcher().UnregisterShape(m_ShapeId);
+			b2DestroyShape(m_ShapeId, updateBodyMass);
+			m_ShapeId = b2_nullShapeId;
+		}
+	}
+
 	void Collider2D::Destroy() {
-		if (IsValid()) {
+		DestroyShape(true);
+		if (b2Body_IsValid(m_BodyId)) {
 			b2DestroyBody(m_BodyId);
+			m_BodyId = b2_nullBodyId;
 		}
 	}
 
