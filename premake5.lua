@@ -1,6 +1,7 @@
 workspace "Bolt"
     architecture "x64"
     startproject "Bolt-Editor"
+    toolset "v145"
 
     configurations
     {
@@ -64,7 +65,7 @@ project "ImGui"
 
 project "Bolt-Engine"
     location "Bolt-Engine"
-    kind "SharedLib"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++23"
     cdialect "C17"
@@ -106,7 +107,6 @@ project "Bolt-Engine"
     defines
     {
         "BT_PLATFORM_WINDOWS",
-        "BT_BUILD_DLL",
         "BT_TRACK_MEMORY"
     }
 
@@ -181,11 +181,6 @@ project "Bolt-Editor"
         "BT_PLATFORM_WINDOWS"
     }
 
-    postbuildcommands
-    {
-        "{COPYFILE} ../bin/" .. outputdir .. "/Bolt-Engine/Bolt-Engine.dll ../bin/" .. outputdir .. "/Bolt-Editor/Bolt-Engine.dll"
-    }
-
     filter "system:windows"
         systemversion "latest"
 
@@ -255,7 +250,6 @@ project "Bolt-Runtime"
 
     postbuildcommands
     {
-        "{COPYFILE} ../bin/" .. outputdir .. "/Bolt-Engine/Bolt-Engine.dll ../bin/" .. outputdir .. "/Bolt-Runtime/Bolt-Engine.dll",
         "{COPYDIR} %{prj.location}/Assets ../bin/" .. outputdir .. "/Bolt-Runtime/Assets"
     }
 
