@@ -65,8 +65,6 @@ namespace Bolt {
 		glfwWindowHint(GLFW_SAMPLES, 8);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		SetDecorated(props.Decorated);
-		SetResizeable(props.Resizeable);
 
 		s_MainViewport = std::make_unique<Viewport>(
 			props.Fullscreen ? k_Videomode->width : props.Width,
@@ -76,12 +74,13 @@ namespace Bolt {
 		m_GLFWwindow = glfwCreateWindow(s_MainViewport->GetWidth(), s_MainViewport->GetHeight(), props.Title.c_str(), nullptr, nullptr);
 		BT_ASSERT(m_GLFWwindow, BoltErrorCode::Undefined, "Failed to create window!");
 
-		if (props.Fullscreen) {
+		SetDecorated(props.Decorated);
+		SetResizeable(props.Resizeable);
+
+		if (props.Fullscreen)
 			SetFullScreen(true);
-		}
-		else {
+		else
 			CenterWindow();
-		}
 
 		glfwMakeContextCurrent(m_GLFWwindow);
 		glfwSetWindowUserPointer(m_GLFWwindow, this);
@@ -283,7 +282,7 @@ namespace Bolt {
 
 		m_Cursor = newCursor;
 	}
-	void Window::SetWindowIcon(const Texture2D* tex2D) {		
+	void Window::SetWindowIcon(const Texture2D* tex2D) {
 		BT_ASSERT(tex2D, BoltErrorCode::NullReference, "Texture is null");
 		std::unique_ptr<ImageData> imgData(tex2D->GetImageData());
 		BT_ASSERT(imgData, BoltErrorCode::NullReference, "Image data is null");

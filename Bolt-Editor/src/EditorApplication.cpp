@@ -15,7 +15,7 @@ class EditorApplication : public Application {
 public:
 	ApplicationConfig GetConfiguration() const override {
 		ApplicationConfig config;
-		config.WindowSpecification = WindowSpecification(10,10, "Bolt Editor " + std::string(BT_VERSION), true, true, true);
+		config.WindowSpecification = WindowSpecification(0,0, "Bolt Editor " + std::string(BT_VERSION), true, true, true);
 		config.EnableAudio = false;
 		config.EnableGizmoRenderer = false;
 		config.EnableGuiRenderer = false;
