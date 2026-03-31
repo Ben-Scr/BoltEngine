@@ -36,7 +36,7 @@ def main():
         print("[Bolt Setup] Place premake5.exe at vendor/bin/premake5.exe and run setup again.")
         return 1
 
-    run_step([str(premake_path), "vs2026"], repo_root, "Generating Visual Studio 2026 solution via Premake")
+    run_step([str(premake_path), "vs2022"], repo_root, "Generating Visual Studio 2022 solution via Premake")
 
     print("[Bolt Setup] Setup complete.")
     return 0

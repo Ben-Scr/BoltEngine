@@ -26,19 +26,19 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -54,25 +54,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
     <OutDir>..\bin\Debug-windows-x86_64\Bolt-Engine\</OutDir>
     <IntDir>..\bin-int\Debug-windows-x86_64\Bolt-Engine\</IntDir>
     <TargetName>Bolt-Engine</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\Release-windows-x86_64\Bolt-Engine\</OutDir>
     <IntDir>..\bin-int\Release-windows-x86_64\Bolt-Engine\</IntDir>
     <TargetName>Bolt-Engine</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
-    <LinkIncremental>false</LinkIncremental>
     <OutDir>..\bin\Dist-windows-x86_64\Bolt-Engine\</OutDir>
     <IntDir>..\bin-int\Dist-windows-x86_64\Bolt-Engine\</IntDir>
     <TargetName>Bolt-Engine</TargetName>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -80,22 +77,22 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-		<AdditionalIncludeDirectories>Src;..\Spdlog\include;..\ImGui\include;..\External\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
       <AdditionalDependencies>glfw3.lib;box2d.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\External\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ImportLibrary>..\bin\Debug-windows-x86_64\Bolt-Engine\Bolt-Engine.lib</ImportLibrary>
-    </Link>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -103,7 +100,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;..\Spdlog\include;..\ImGui\include;..\External\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -114,17 +111,17 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
       <AdditionalDependencies>glfw3.lib;box2d.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\External\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ImportLibrary>..\bin\Release-windows-x86_64\Bolt-Engine\Bolt-Engine.lib</ImportLibrary>
-    </Link>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <ClCompile>
@@ -132,7 +129,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-		<AdditionalIncludeDirectories>Src;..\Spdlog\include;..\ImGui\include;..\External\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -143,17 +140,17 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
       <AdditionalDependencies>glfw3.lib;box2d.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>..\External\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <ImportLibrary>..\bin\Dist-windows-x86_64\Bolt-Engine\Bolt-Engine.lib</ImportLibrary>
-    </Link>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Src\Audio\Audio.hpp" />
@@ -171,7 +168,7 @@
     <ClInclude Include="Src\Components\Audio\AudioSourceComponent.hpp" />
     <ClInclude Include="Src\Components\ComponentUtils.hpp" />
     <ClInclude Include="Src\Components\Components.hpp" />
-    <ClInclude Include="src\Components\General\IDComponent.hpp" />
+    <ClInclude Include="Src\Components\General\IDComponent.hpp" />
     <ClInclude Include="Src\Components\General\NameComponent.hpp" />
     <ClInclude Include="Src\Components\General\RectTransformComponent.hpp" />
     <ClInclude Include="Src\Components\General\Transform2DComponent.hpp" />
@@ -185,21 +182,21 @@
     <ClInclude Include="Src\Components\Tags.hpp" />
     <ClInclude Include="Src\Core\Application.hpp" />
     <ClInclude Include="Src\Core\Assert.hpp" />
-    <ClInclude Include="src\Core\Base.hpp" />
+    <ClInclude Include="Src\Core\Base.hpp" />
+    <ClInclude Include="Src\Core\Exceptions.hpp" />
     <ClInclude Include="Src\Core\Export.hpp" />
-    <ClInclude Include="src\Core\LogCustomFormatters.hpp" />
     <ClInclude Include="Src\Core\Input.hpp" />
     <ClInclude Include="Src\Core\KeyCodes.hpp" />
-    <ClInclude Include="src\Core\Log.hpp" />
+    <ClInclude Include="Src\Core\Log.hpp" />
+    <ClInclude Include="Src\Core\LogCustomFormatters.hpp" />
     <ClInclude Include="Src\Core\Memory.hpp" />
-    <ClInclude Include="src\Core\MetaHelpers.hpp" />
+    <ClInclude Include="Src\Core\MetaHelpers.hpp" />
     <ClInclude Include="Src\Core\SingleInstance.hpp" />
     <ClInclude Include="Src\Core\Time.hpp" />
-    <ClInclude Include="src\Core\TypeRegistry.hpp" />
-    <ClInclude Include="src\Core\UUID.hpp" />
+    <ClInclude Include="Src\Core\TypeRegistry.hpp" />
+    <ClInclude Include="Src\Core\UUID.hpp" />
     <ClInclude Include="Src\Core\Version.hpp" />
     <ClInclude Include="Src\Core\Window.hpp" />
-    <ClInclude Include="src\Core\Exceptions.hpp" />
     <ClInclude Include="Src\Debugging\Logger.hpp" />
     <ClInclude Include="Src\EntryPoint.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
@@ -261,15 +258,15 @@
     <ClCompile Include="Src\Components\Physics\Collider2D.cpp" />
     <ClCompile Include="Src\Components\Physics\Rigidbody2DComponent.cpp" />
     <ClCompile Include="Src\Core\Application.cpp" />
-    <ClCompile Include="src\Core\Assert.cpp" />
-    <ClCompile Include="src\Core\Base.cpp" />
+    <ClCompile Include="Src\Core\Assert.cpp" />
+    <ClCompile Include="Src\Core\Base.cpp" />
+    <ClCompile Include="Src\Core\Exceptions.cpp" />
     <ClCompile Include="Src\Core\Input.cpp" />
-    <ClCompile Include="src\Core\Log.cpp" />
+    <ClCompile Include="Src\Core\Log.cpp" />
     <ClCompile Include="Src\Core\Memory.cpp" />
     <ClCompile Include="Src\Core\Time.cpp" />
-    <ClCompile Include="src\Core\UUID.cpp" />
+    <ClCompile Include="Src\Core\UUID.cpp" />
     <ClCompile Include="Src\Core\Window.cpp" />
-    <ClCompile Include="src\Core\Exceptions.cpp" />
     <ClCompile Include="Src\Debugging\Logger.cpp" />
     <ClCompile Include="Src\External\Glad\glad.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -307,11 +304,6 @@
     <ClCompile Include="Src\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Spdlog\Spdlog.vcxproj">
-      <Project>{00553589-84b1-499b-aa03-1ad8bf6ac618}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

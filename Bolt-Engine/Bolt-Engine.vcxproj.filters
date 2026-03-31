@@ -103,6 +103,9 @@
     <ClInclude Include="Src\Components\Components.hpp">
       <Filter>Components</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Components\General\IDComponent.hpp">
+      <Filter>Components\General</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Components\General\NameComponent.hpp">
       <Filter>Components\General</Filter>
     </ClInclude>
@@ -142,6 +145,12 @@
     <ClInclude Include="Src\Core\Assert.hpp">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Core\Base.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Exceptions.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Core\Export.hpp">
       <Filter>Core</Filter>
     </ClInclude>
@@ -151,7 +160,16 @@
     <ClInclude Include="Src\Core\KeyCodes.hpp">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Core\Log.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\LogCustomFormatters.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Core\Memory.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\MetaHelpers.hpp">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Src\Core\SingleInstance.hpp">
@@ -160,14 +178,17 @@
     <ClInclude Include="Src\Core\Time.hpp">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Core\TypeRegistry.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\UUID.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Core\Version.hpp">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Src\Core\Window.hpp">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\Exceptions.hpp">
-      <Filter>Debugging</Filter>
     </ClInclude>
     <ClInclude Include="Src\Debugging\Logger.hpp">
       <Filter>Debugging</Filter>
@@ -312,13 +333,6 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Src\pch.hpp" />
-    <ClInclude Include="src\Core\TypeRegistry.hpp" />
-    <ClInclude Include="src\Core\MetaHelpers.hpp" />
-    <ClInclude Include="src\Components\General\IDComponent.hpp" />
-    <ClInclude Include="src\Core\UUID.hpp" />
-    <ClInclude Include="src\Core\Base.hpp" />
-    <ClInclude Include="src\Core\Log.hpp" />
-    <ClInclude Include="src\Core\LogCustomFormatters.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Audio\Audio.cpp">
@@ -351,7 +365,19 @@
     <ClCompile Include="Src\Core\Application.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Core\Assert.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Core\Base.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Core\Exceptions.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="Src\Core\Input.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Core\Log.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Src\Core\Memory.cpp">
@@ -360,11 +386,11 @@
     <ClCompile Include="Src\Core\Time.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Core\Window.cpp">
+    <ClCompile Include="Src\Core\UUID.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\Core\Exceptions.cpp">
-      <Filter>Debugging</Filter>
+    <ClCompile Include="Src\Core\Window.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Src\Debugging\Logger.cpp">
       <Filter>Debugging</Filter>
@@ -457,9 +483,5 @@
       <Filter>Systems</Filter>
     </ClCompile>
     <ClCompile Include="Src\pch.cpp" />
-    <ClCompile Include="src\Core\Base.cpp" />
-    <ClCompile Include="src\Core\UUID.cpp" />
-    <ClCompile Include="src\Core\Assert.cpp" />
-    <ClCompile Include="src\Core\Log.cpp" />
   </ItemGroup>
 </Project>

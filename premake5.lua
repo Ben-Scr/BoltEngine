@@ -30,7 +30,7 @@ end
 
 group "Dependencies"
 project "ImGui"
-    location "ImGui"
+    location "External/imgui"
     kind "StaticLib"
     language "C++"
     cppdialect "C++23"
@@ -41,9 +41,9 @@ project "ImGui"
 
     files
     {
-        "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.cpp",
-        "%{prj.name}/include/**.h"
+        "External/imgui/src/**.h",
+        "External/imgui/src/**.cpp",
+        "External/imgui/include/**.h"
     }
 
     UseDependencySet(Dependency.ImGui)
