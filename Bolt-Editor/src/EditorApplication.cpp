@@ -6,6 +6,7 @@
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
 #include <Systems/ImGuiEditorSystem.hpp>
+#include <Systems/ImGuiDebugSystem.hpp>
 #include <Core/Version.hpp>
 
 using namespace Bolt;
@@ -26,6 +27,7 @@ public:
 	void ConfigureScenes() override {
 		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("SampleScene");
 		editorScene.AddSystem<ImGuiEditorSystem>();
+		editorScene.AddSystem<ImGuiDebugSystem>();
 		editorScene.SetAsStartupScene();
 	}
 
@@ -37,6 +39,7 @@ public:
 		if (GetInput().GetKeyDown(KeyCode::E))
 			Logger::Message("Hello World! " + StringHelper::ToString(Random::NextInt(0, 100)));
 	}
+
 	void FixedUpdate() override {}
 	void OnPaused() override {}
 	void OnQuit() override {}
