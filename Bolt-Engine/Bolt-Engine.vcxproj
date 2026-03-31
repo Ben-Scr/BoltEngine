@@ -199,7 +199,7 @@
     <ClInclude Include="src\Core\UUID.hpp" />
     <ClInclude Include="Src\Core\Version.hpp" />
     <ClInclude Include="Src\Core\Window.hpp" />
-    <ClInclude Include="Src\Debugging\Exceptions.hpp" />
+    <ClInclude Include="src\Core\Exceptions.hpp" />
     <ClInclude Include="Src\Debugging\Logger.hpp" />
     <ClInclude Include="Src\EntryPoint.hpp" />
     <ClInclude Include="Src\Graphics\GizmoRenderer.hpp" />
@@ -261,13 +261,15 @@
     <ClCompile Include="Src\Components\Physics\Collider2D.cpp" />
     <ClCompile Include="Src\Components\Physics\Rigidbody2DComponent.cpp" />
     <ClCompile Include="Src\Core\Application.cpp" />
+    <ClCompile Include="src\Core\Assert.cpp" />
     <ClCompile Include="src\Core\Base.cpp" />
     <ClCompile Include="Src\Core\Input.cpp" />
+    <ClCompile Include="src\Core\Log.cpp" />
     <ClCompile Include="Src\Core\Memory.cpp" />
     <ClCompile Include="Src\Core\Time.cpp" />
     <ClCompile Include="src\Core\UUID.cpp" />
     <ClCompile Include="Src\Core\Window.cpp" />
-    <ClCompile Include="Src\Debugging\Exceptions.cpp" />
+    <ClCompile Include="src\Core\Exceptions.cpp" />
     <ClCompile Include="Src\Debugging\Logger.cpp" />
     <ClCompile Include="Src\External\Glad\glad.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>

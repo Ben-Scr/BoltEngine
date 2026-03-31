@@ -32,5 +32,4 @@
 #include <Core/Assert.hpp>
 #include <Core/Base.hpp>
 #include <Core/Log.hpp>
-
-#include <Debugging/Logger.hpp>
+#include <Core/Exceptions.hpp>

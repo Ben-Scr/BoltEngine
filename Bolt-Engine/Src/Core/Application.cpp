@@ -6,6 +6,7 @@
 #include "Core/SingleInstance.hpp"
 #include "Audio/AudioManager.hpp"
 #include <Utils/Timer.hpp>
+#include <Utils/StringHelper.hpp>
 
 #include "Input.hpp"
 #include <GLFW/glfw3.h>
@@ -23,10 +24,10 @@ namespace Bolt {
 			BT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 		}
 
-		Logger::Message("Initializing Application");
+		BT_INFO("Initializing Application");
 		Timer timer = Timer();
 		Initialize();
-		Logger::Message("Application Initialization took " + StringHelper::ToString(timer));
+		BT_INFO("Application Initialization took " + StringHelper::ToString(timer));
 		Start();
 		m_LastFrameTime = Clock::now();
 
@@ -69,7 +70,7 @@ namespace Bolt {
 					}
 				}
 				catch (const std::exception& e) {
-					Logger::Error(e.what());
+					BT_ERROR_TAG("FixedUpdate", e.what());
 					m_ShouldQuit = true;
 					break;
 				}
@@ -102,53 +103,53 @@ namespace Bolt {
 		m_Window = std::make_unique<Window>(m_Configuration.WindowSpecification);
 		m_Window->SetVsync(m_Configuration.Vsync);
 		m_Window->SetWindowResizeable(m_Configuration.WindowSpecification.Resizeable);
-		Logger::Message("Window", "Initialization took " + StringHelper::ToString(timer));
+		BT_INFO("Window", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		OpenGL::Initialize(GLInitProperties2D(Color::Background(), GLCullingMode::GLBack));
-		Logger::Message("OpenGL", "Initialization took " + StringHelper::ToString(timer));
+		BT_INFO("OpenGL", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
 		m_Renderer2D = std::make_unique<Renderer2D>();
 		m_Renderer2D->Initialize();
-		Logger::Message("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
+		BT_INFO("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.EnableGizmoRenderer) {
 			timer.Reset();
 			m_GizmoRenderer2D = std::make_unique<GizmoRenderer2D>();
 			m_GizmoRenderer2D->Initialize();
-			Logger::Message("GizmoRenderer", "Initialization took " + StringHelper::ToString(timer));
+			BT_INFO("GizmoRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
 		if (m_Configuration.EnableImGui) {
 			timer.Reset();
 			m_ImGuiRenderer = std::make_unique<ImGuiRenderer>();
 			m_ImGuiRenderer->Initialize(m_Window->GetGLFWWindow());
-			Logger::Message("ImGuiRenderer", "Initialization took " + StringHelper::ToString(timer));
+			BT_INFO("ImGuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
 		if (m_Configuration.EnableGuiRenderer) {
 			timer.Reset();
 			m_GuiRenderer = std::make_unique<GuiRenderer>();
 			m_GuiRenderer->Initialize();
-			Logger::Message("GuiRenderer", "Initialization took " + StringHelper::ToString(timer));
+			BT_INFO("GuiRenderer", "Initialization took " + StringHelper::ToString(timer));
 		}
 
 		if (m_Configuration.EnablePhysics2D) {
 			timer.Reset();
 			m_PhysicsSystem2D = std::make_unique<PhysicsSystem2D>();
 			m_PhysicsSystem2D->Initialize();
-			Logger::Message("PhysicsSystem", "Initialization took " + StringHelper::ToString(timer));
+			BT_INFO("PhysicsSystem", "Initialization took " + StringHelper::ToString(timer));
 		}
 
 		timer.Reset();
 		TextureManager::Initialize();
-		Logger::Message("TextureManager", "Initialization took " + StringHelper::ToString(timer));
+		BT_INFO("TextureManager", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.EnableAudio) {
 			timer.Reset();
 			AudioManager::Initialize();
-			Logger::Message("AudioManager", "Initialization took " + StringHelper::ToString(timer));
+			BT_INFO("AudioManager", "Initialization took " + StringHelper::ToString(timer));
 		}
 
 		timer.Reset();
@@ -156,7 +157,7 @@ namespace Bolt {
 		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
 		ConfigureScenes();
 		m_SceneManager->Initialize();
-		Logger::Message("SceneManager", "Initialization took " + StringHelper::ToString(timer));
+		BT_INFO("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.SetWindowIcon) {
 			try {
@@ -165,7 +166,7 @@ namespace Bolt {
 				m_Window->SetWindowIcon(texture);
 			}
 			catch (const std::runtime_error& e) {
-				Logger::Error(e.what());
+				BT_ERROR_TAG("Window", e.what());
 			}
 		}
 	}

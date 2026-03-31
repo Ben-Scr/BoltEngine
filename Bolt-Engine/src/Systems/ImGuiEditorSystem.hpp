@@ -7,6 +7,7 @@
 #include "Collections/Ids.hpp"
 #include "Collections/Viewport.hpp"
 #include "Debugging/Logger.hpp"
+#include "Core/Log.hpp"
 
 #include <string>
 #include <vector>
@@ -20,7 +21,7 @@ namespace Bolt {
 	private:
 		struct LogEntry {
 			std::string Message;
-			LogLevel Level;
+			Log::Level Level;
 		};
 
 		void EnsureViewportFramebuffer(int width, int height);

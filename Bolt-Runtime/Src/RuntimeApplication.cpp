@@ -28,7 +28,7 @@ public:
 	~RuntimeApplication() override = default;
 
 	void Start() override {
-		Logger::Message("Start");
+		BT_INFO("Start");
 		EntityHelper::CreateCamera2DEntity();
 	}
 	void Update() override {
@@ -42,7 +42,7 @@ public:
 
 	}
 	void OnQuit() override {
-		Logger::Message("Quit");
+		BT_INFO("Quit");
 	}
 };
 

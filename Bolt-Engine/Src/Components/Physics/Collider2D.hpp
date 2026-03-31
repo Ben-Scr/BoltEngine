@@ -5,7 +5,7 @@
 #include "Physics/PhysicsSystem2D.hpp"
 #include "Physics/Box2DWorld.hpp"
 #include "Scene/EntityHandle.hpp"
-#include "Debugging/Exceptions.hpp"
+#include "Core/Exceptions.hpp"
 #include <box2d/box2d.h>
 
 

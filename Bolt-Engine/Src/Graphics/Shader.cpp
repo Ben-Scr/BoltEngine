@@ -27,7 +27,7 @@ namespace Bolt {
 
         GLuint shader = glCreateShader(type);
         if (shader == 0) {
-            Logger::Error("Shader", "Failed to create shader object for file: " + path);
+           BT_ERROR_TAG("Shader", "Failed to create shader object for file: " + path);
             return 0;
         }
         const char* csrc = src.c_str();
@@ -45,7 +45,7 @@ namespace Bolt {
 
             const char* typeStr = (type == GL_VERTEX_SHADER) ? "vertex" :
                 (type == GL_FRAGMENT_SHADER) ? "fragment" : "unknown";
-            Logger::Error("Shader", std::string("Compile failed (") + typeStr + "): " + path + "\n" + log.data());
+            BT_ERROR_TAG("Shader", std::string("Compile failed (") + typeStr + "): " + path + "\n" + log.data());
 
             glDeleteShader(shader);
             return 0;
@@ -63,7 +63,7 @@ namespace Bolt {
 
         m_Program = glCreateProgram();
         if (m_Program == 0) {
-            Logger::Error("Shader", "Failed to create shader program for files: " + vsPath + " + " + fsPath);
+            BT_ERROR_TAG("Shader", "Failed to create shader program for files: " + vsPath + " + " + fsPath);
             glDeleteShader(vs);
             glDeleteShader(fs);
             return;
@@ -83,7 +83,7 @@ namespace Bolt {
             std::vector<GLchar> log(std::max(1, logLen));
             glGetProgramInfoLog(m_Program, logLen, nullptr, log.data());
 
-            Logger::Error("Shader", std::string("Program link failed : ") + vsPath + " + " + fsPath + "\n" + log.data());
+            BT_ERROR_TAG("Shader", std::string("Program link failed : ") + vsPath + " + " + fsPath + "\n" + log.data());
 
             glDeleteProgram(m_Program);
             m_Program = 0;

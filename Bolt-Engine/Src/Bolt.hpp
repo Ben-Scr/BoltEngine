@@ -25,7 +25,9 @@ Bolt specific includes
 #include "Core/Time.hpp"
 
 // Debug
-#include "Debugging/Logger.hpp"
+#include "Core/Log.hpp"
+#include "Core/Assert.hpp"
+#include "Core/Exceptions.hpp"
 
 // Graphics
 #include "Graphics/Texture2D.hpp"
@@ -46,7 +48,6 @@ Bolt specific includes
 #include "Audio/Audio.hpp"
 #include "Audio/AudioManager.hpp"
 #include "Audio/AudioHandle.hpp"
-
 
 // Scene
 #include "Scene/Scene.hpp"

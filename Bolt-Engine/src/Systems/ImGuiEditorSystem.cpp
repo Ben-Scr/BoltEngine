@@ -13,18 +13,19 @@
 #include "Scene/SceneManager.hpp"
 #include <Scene/EntityHelper.hpp>
 
+
 namespace Bolt {
 	void ImGuiEditorSystem::Awake(Scene& scene) {
 		Application::SetIsPlaying(false);
 
 		(void)scene;
 		if (m_LogSubscriptionId.value != 0) {
-			Logger::OnLog.Remove(m_LogSubscriptionId);
+			Log::OnLog.Remove(m_LogSubscriptionId);
 		}
 
 		m_LogEntries.clear();
-		m_LogSubscriptionId = Logger::OnLog.Add([this](const std::string& message, LogLevel level) {
-			m_LogEntries.push_back({ message, level });
+		m_LogSubscriptionId = Log::OnLog.Add([this](const Log::Entry& entry) {
+			m_LogEntries.push_back({ entry.Message, entry.Level });
 			if (m_LogEntries.size() > 2000) {
 				m_LogEntries.erase(m_LogEntries.begin(), m_LogEntries.begin() + 500);
 			}
@@ -34,7 +35,7 @@ namespace Bolt {
 	void ImGuiEditorSystem::OnDestroy(Scene& scene) {
 		(void)scene;
 		if (m_LogSubscriptionId.value != 0) {
-			Logger::OnLog.Remove(m_LogSubscriptionId);
+			Log::OnLog.Remove(m_LogSubscriptionId);
 			m_LogSubscriptionId = EventId{};
 		}
 
@@ -342,10 +343,10 @@ namespace Bolt {
 		ImGui::BeginChild("LogScroll");
 		for (const LogEntry& entry : m_LogEntries) {
 			ImVec4 color = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
-			if (entry.Level == LogLevel::Warning) {
+			if (entry.Level == Log::Level::Warn) {
 				color = ImVec4(1.0f, 0.8f, 0.2f, 1.0f);
 			}
-			else if (entry.Level == LogLevel::Error) {
+			else if (entry.Level == Log::Level::Error) {
 				color = ImVec4(1.0f, 0.35f, 0.35f, 1.0f);
 			}
 			ImGui::PushStyleColor(ImGuiCol_Text, color);

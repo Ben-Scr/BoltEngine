@@ -37,7 +37,7 @@ public:
 
 	void Update() override {
 		if (GetInput().GetKeyDown(KeyCode::E))
-			Logger::Message("Hello World! " + StringHelper::ToString(Random::NextInt(0, 100)));
+			BT_INFO("Hello World! " + StringHelper::ToString(Random::NextInt(0, 100)));
 	}
 
 	void FixedUpdate() override {}

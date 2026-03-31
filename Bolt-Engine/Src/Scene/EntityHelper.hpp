@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Debugging/Exceptions.hpp"
 #include "Scene/EntityHandle.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/SceneManager.hpp"

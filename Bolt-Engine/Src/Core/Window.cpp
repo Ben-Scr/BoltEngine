@@ -47,13 +47,13 @@ namespace Bolt {
 	void Window::FocusCallback(GLFWwindow* window, int focused) {
 		if ((bool)focused) {
 			Application::Pause(false);
-			Logger::Message("Focused " + std::to_string(focused));
+			BT_INFO("Focused " + std::to_string(focused));
 		}
 		else {
 			if (!Application::GetRunInBackground())
 				Application::Pause(true);
 
-			Logger::Message("Unfocused " + std::to_string(focused));
+			BT_INFO("Unfocused " + std::to_string(focused));
 		}
 	}
 
@@ -253,13 +253,13 @@ namespace Bolt {
 	}
 	void Window::SetCursorImage(const Texture2D* tex2D) {
 		if (!tex2D) {
-			Logger::Warning("Window", "Cannot set cursor image from null texture");
+			BT_WARN_TAG("Window", "Cannot set cursor image from null texture");
 			return;
 		}
 
 		std::unique_ptr<ImageData> imgData = tex2D->GetImageData();
 		if (!imgData || !imgData->Pixels) {
-			Logger::Warning("Window", "Cannot set cursor image from invalid texture data");
+			BT_WARN_TAG("Window", "Cannot set cursor image from invalid texture data");
 			return;
 		}
 
@@ -282,6 +282,7 @@ namespace Bolt {
 
 		m_Cursor = newCursor;
 	}
+
 	void Window::SetWindowIcon(const Texture2D* tex2D) {
 		BT_ASSERT(tex2D, BoltErrorCode::NullReference, "Texture is null");
 		std::unique_ptr<ImageData> imgData(tex2D->GetImageData());

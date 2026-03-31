@@ -1,4 +1,6 @@
 #pragma once
+#include <Core/Log.hpp>
+
 #include <chrono>
 #include <string>
 #include <iostream>
@@ -86,7 +88,7 @@ namespace Bolt {
 			float time = m_Timer.ElapsedMilliseconds();
 			std::ostringstream oss;
 			oss << m_Description << " - " << time << "ms";
-			Logger::Message(m_Name, oss.str());
+			BT_INFO_TAG(m_Name, oss.str());
 		}
 	private:
 		std::string m_Name;

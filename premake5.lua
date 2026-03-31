@@ -88,6 +88,7 @@ project "Bolt-Engine"
     includedirs
     {
         "%{IncludeDir.BoltEngine}",
+        "Spdlog/include",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.External}"
     }
@@ -157,6 +158,7 @@ project "Bolt-Editor"
     includedirs
     {
         "%{IncludeDir.BoltEngine}",
+        "Spdlog/include",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.External}"
     }
@@ -222,6 +224,7 @@ project "Bolt-Runtime"
     includedirs
     {
         "%{IncludeDir.BoltEngine}",
+        "Spdlog/include",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.External}"
     }

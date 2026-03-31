@@ -213,7 +213,7 @@ namespace Bolt {
 						func(s);
 					}
 					catch (std::runtime_error e) {
-						Logger::Error(e.what());
+						BT_ERROR(e.what());
 					}
 				}
 			}
