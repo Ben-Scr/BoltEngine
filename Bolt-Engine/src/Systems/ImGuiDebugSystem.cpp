@@ -11,6 +11,7 @@
 #include "Graphics/Gizmos.hpp"
 #include "Graphics/OpenGL.hpp"
 #include "Scene/EntityHelper.hpp"
+#include <Utils/StringHelper.hpp>
 
 #include <Core/Version.hpp>
 
