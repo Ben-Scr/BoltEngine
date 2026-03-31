@@ -37,7 +37,16 @@ namespace Bolt {
 		void RegisterHit(b2ShapeId id, ContactHitCallback cb) {
 			m_hit[id].push_back(std::move(cb));
 		}
-
+		void UnregisterShape(b2ShapeId id) {
+			m_begin.erase(id);
+			m_end.erase(id);
+			m_hit.erase(id);
+		}
+		void Clear() {
+			m_begin.clear();
+			m_end.clear();
+			m_hit.clear();
+		}
 
 		void Process(b2WorldId world) {
 			b2ContactEvents ev = b2World_GetContactEvents(world);

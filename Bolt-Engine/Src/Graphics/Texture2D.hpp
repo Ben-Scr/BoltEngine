@@ -12,10 +12,15 @@ namespace Bolt {
 		ImageData(int width, int height, unsigned char* pixels)
 			: Width(width), Height(height), Pixels(pixels) {
 		}
+		ImageData(int width, int height, std::vector<unsigned char>&& pixels)
+			: Width(width), Height(height), OwnedPixels(std::move(pixels)) {
+			Pixels = OwnedPixels.data();
+		}
 
 		int Width;
 		int Height;
 		unsigned char* Pixels;
+		std::vector<unsigned char> OwnedPixels;
 
 		void FlipVerticalRGBA(int bytesPerPixel = 4)
 		{

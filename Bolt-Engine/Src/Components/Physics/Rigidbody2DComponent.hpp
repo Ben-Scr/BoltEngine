@@ -48,7 +48,7 @@ namespace Bolt {
 
 		void Destroy();
 	private:
-		b2BodyId m_BodyId;
+		b2BodyId m_BodyId{ b2_nullBodyId };
 
 
 		friend class BoxCollider2DComponent;

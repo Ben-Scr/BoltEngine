@@ -63,8 +63,9 @@ namespace Bolt {
 		float GetRotationRadiant();
 
 		void Destroy();
+		void DestroyShape(bool updateBodyMass = true);
 
-		b2BodyId m_BodyId;
+		b2BodyId m_BodyId{ b2_nullBodyId };
 		b2ShapeId m_ShapeId{ b2_nullShapeId };
 
 		EntityHandle m_EntityHandle;

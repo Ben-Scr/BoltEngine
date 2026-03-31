@@ -125,7 +125,12 @@ namespace Bolt {
 
 	void Scene::OnBoxCollider2DComponentDestroy(entt::registry& registry, EntityHandle entity) {
 		auto& boxCollider2D = GetComponent<BoxCollider2DComponent>(entity);
-		boxCollider2D.Destroy();
+		if (HasAnyComponent<Rigidbody2DComponent>(entity)) {
+			boxCollider2D.DestroyShape(false);
+		}
+		else {
+			boxCollider2D.Destroy();
+		}
 	}
 
 	void Scene::OnCamera2DComponentConstruct(entt::registry& registry, EntityHandle entity)
