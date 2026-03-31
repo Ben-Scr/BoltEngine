@@ -26,9 +26,22 @@ namespace Bolt {
 
 		BT_INFO("Initializing Application");
 		Timer timer = Timer();
-		Initialize();
+		try {
+			Initialize();
+		}
+		catch (const std::exception& e) {
+			BT_ERROR_TAG("Application", std::string("Initialization failed: ") + e.what());
+			return;
+		}
 		BT_INFO("Application Initialization took " + StringHelper::ToString(timer));
-		Start();
+		try {
+			Start();
+		}
+		catch (const std::exception& e) {
+			BT_ERROR_TAG("Application", std::string("Start failed: ") + e.what());
+			Shutdown();
+			return;
+		}
 		m_LastFrameTime = Clock::now();
 
 		while (m_Window && !m_Window->ShouldClose() && !m_ShouldQuit) {
@@ -147,8 +160,13 @@ namespace Bolt {
 
 		if (m_Configuration.EnableAudio) {
 			timer.Reset();
-			AudioManager::Initialize();
-			BT_INFO("AudioManager", "Initialization took " + StringHelper::ToString(timer));
+			if (AudioManager::Initialize()) {
+				BT_INFO("AudioManager", "Initialization took " + StringHelper::ToString(timer));
+			}
+			else {
+				BT_ERROR_TAG("AudioManager", "Initialization failed. Continuing without audio.");
+				m_Configuration.EnableAudio = false;
+			}
 		}
 
 		timer.Reset();
@@ -159,13 +177,13 @@ namespace Bolt {
 		BT_INFO("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.SetWindowIcon) {
-			try {
-				auto handle = TextureManager::LoadTexture("icon.png");
-				auto texture = TextureManager::GetTexture(handle);
+			auto handle = TextureManager::LoadTexture("icon.png");
+			auto texture = TextureManager::GetTexture(handle);
+			if (texture) {
 				m_Window->SetWindowIcon(texture);
 			}
-			catch (const std::runtime_error& e) {
-				BT_ERROR_TAG("Window", e.what());
+			else {
+				BT_WARN_TAG("Window", "Window icon texture could not be loaded. Continuing without icon.");
 			}
 		}
 	}

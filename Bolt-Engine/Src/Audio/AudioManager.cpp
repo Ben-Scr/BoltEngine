@@ -30,10 +30,16 @@ namespace Bolt {
 
 
 	bool AudioManager::Initialize() {
-		BT_ASSERT(!s_IsInitialized, BoltErrorCode::AlreadyInitialized, "AudioManager already initialized");
+		if (s_IsInitialized) {
+			BT_CORE_WARN("AudioManager already initialized");
+			return true;
+		}
 
 		ma_result result = ma_engine_init(nullptr, &s_Engine);
-		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "Failed to initialize miniaudio engine. Error: " + result);
+		if (result != MA_SUCCESS) {
+			BT_CORE_ERROR("[{}] Failed to initialize miniaudio engine. Error: {}", ErrorCodeToString(BoltErrorCode::LoadFailed), static_cast<int>(result));
+			return false;
+		}
 
 		s_soundInstances.reserve(256);
 		s_freeInstanceIndices.reserve(256);
@@ -45,7 +51,10 @@ namespace Bolt {
 	}
 
 	void AudioManager::Shutdown() {
-		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager isn't initialized");
+		if (!s_IsInitialized) {
+			BT_CORE_WARN("AudioManager isn't initialized");
+			return;
+		}
 
 		for (auto& instance : s_soundInstances) {
 			if (instance.IsValid) {
@@ -167,10 +176,16 @@ namespace Bolt {
 	AudioHandle AudioManager::LoadAudio(const std::string_view& path) {
 		const std::string fullpath = Path::Combine(s_RootPath, path);
 
-		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager not initialized");
+		if (!s_IsInitialized) {
+			BT_CORE_ERROR("[{}] AudioManager not initialized", ErrorCodeToString(BoltErrorCode::NotInitialized));
+			return AudioHandle();
+		}
 
 		auto audio = std::make_unique<Audio>();
-		BT_ASSERT(audio->LoadFromFile(fullpath), BoltErrorCode::LoadFailed, "AudioManager: Failed to load audio from file: " + fullpath);
+		if (!audio->LoadFromFile(fullpath)) {
+			BT_CORE_ERROR("[{}] AudioManager: Failed to load audio from file: {}", ErrorCodeToString(BoltErrorCode::LoadFailed), fullpath);
+			return AudioHandle();
+		}
 
 		AudioHandle::HandleType blockTexture = GenerateHandle();
 		s_audioMap[blockTexture] = std::move(audio);
@@ -212,16 +227,24 @@ namespace Bolt {
 	}
 
 	void AudioManager::PlayAudioSource(AudioSourceComponent& source) {
-		BT_ASSERT(s_IsInitialized, BoltErrorCode::NotInitialized, "AudioManager not initialized");
-		BT_ASSERT(source.GetAudioHandle().IsValid(), BoltErrorCode::InvalidHandle, "Invalid Audiohandle");
+		if (!s_IsInitialized) {
+			BT_CORE_WARN("AudioManager not initialized");
+			return;
+		}
+		if (!source.GetAudioHandle().IsValid()) {
+			BT_CORE_WARN("[{}] Invalid AudioHandle", ErrorCodeToString(BoltErrorCode::InvalidHandle));
+			return;
+		}
 
 		if (source.GetInstanceId() != 0) {
 			StopAudioSource(source);
 		}
 
 		uint32_t instanceId = CreateSoundInstance(source.GetAudioHandle());
-
-		BT_ASSERT(instanceId != 0, BoltErrorCode::Undefined, "Failed to create sound instance");
+		if (instanceId == 0) {
+			BT_CORE_ERROR("[{}] Failed to create sound instance", ErrorCodeToString(BoltErrorCode::LoadFailed));
+			return;
+		}
 
 		source.SetInstanceId(instanceId);
 		SoundInstance* instance = GetSoundInstance(instanceId);
@@ -234,10 +257,15 @@ namespace Bolt {
 
 
 			ma_result result = ma_sound_start(&instance->Sound);
-			BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "Failed to start sound playback.Error: " + result);
+			if (result != MA_SUCCESS) {
+				BT_CORE_ERROR("[{}] Failed to start sound playback. Error: {}", ErrorCodeToString(BoltErrorCode::LoadFailed), static_cast<int>(result));
+				source.SetInstanceId(0);
+				DestroySoundInstance(instanceId);
+			}
 		}
 		else {
-			BT_THROW(BoltErrorCode::NullReference, "Failed to retrieve sound instance after creation");
+			BT_CORE_ERROR("[{}] Failed to retrieve sound instance after creation", ErrorCodeToString(BoltErrorCode::NullReference));
+			source.SetInstanceId(0);
 		}
 	}
 
@@ -291,14 +319,23 @@ namespace Bolt {
 		}
 
 		const uint32_t instanceId = CreateSoundInstance(audioHandle);
-		BT_ASSERT(instanceId != 0, BoltErrorCode::Undefined, "Failed to create one-shot sound instance");
+		if (instanceId == 0) {
+			BT_CORE_WARN("[{}] Failed to create one-shot sound instance", ErrorCodeToString(BoltErrorCode::LoadFailed));
+			return;
+		}
 
 		SoundInstance* instance = GetSoundInstance(instanceId);
-		BT_ASSERT(instance, BoltErrorCode::NullReference, "Failed to retrieve one-shot sound instance");
+		if (!instance) {
+			BT_CORE_WARN("[{}] Failed to retrieve one-shot sound instance", ErrorCodeToString(BoltErrorCode::NullReference));
+			return;
+		}
 
 		ma_sound_set_volume(&instance->Sound, volume * s_masterVolume);
 		ma_result result = ma_sound_start(&instance->Sound);
-		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::NullReference, "Failed to start one-shot sound. Error: " + result);
+		if (result != MA_SUCCESS) {
+			BT_CORE_WARN("[{}] Failed to start one-shot sound. Error: {}", ErrorCodeToString(BoltErrorCode::LoadFailed), static_cast<int>(result));
+			DestroySoundInstance(instanceId);
+		}
 	}
 
 	bool AudioManager::IsAudioLoaded(const AudioHandle& audioHandle) {
@@ -347,8 +384,16 @@ namespace Bolt {
 
 		ma_result result = ma_sound_init_from_file(&s_Engine, audio->GetFilepath().c_str(),
 			0, nullptr, nullptr, &instance.Sound);
-
-		BT_ASSERT(result == MA_SUCCESS, BoltErrorCode::Undefined, "AudioManager: Failed to create sound instance. Error: " + result);
+		if (result != MA_SUCCESS) {
+			BT_CORE_WARN("[{}] AudioManager: Failed to create sound instance. Error: {}", ErrorCodeToString(BoltErrorCode::LoadFailed), static_cast<int>(result));
+			if (instanceId == s_soundInstances.size() - 1) {
+				s_soundInstances.pop_back();
+			}
+			else {
+				s_freeInstanceIndices.push_back(instanceId);
+			}
+			return 0;
+		}
 
 		instance.AudioHandle = audioHandle;
 		instance.IsValid = true;
@@ -379,14 +424,19 @@ namespace Bolt {
 	}
 
 	AudioManager::SoundInstance* AudioManager::GetSoundInstance(uint32_t instanceId) {
-		BT_ASSERT(instanceId != 0, BoltErrorCode::InvalidArgument, "Invalid instance id");
+		if (instanceId == 0) {
+			return nullptr;
+		}
 
 		uint32_t index = instanceId - 1;
-		BT_ASSERT(index < s_soundInstances.size(), BoltErrorCode::OutOfRange, "Instance-Index out of range");
+		if (index >= s_soundInstances.size()) {
+			return nullptr;
+		}
 
 		SoundInstance& instance = s_soundInstances[index];
-
-		BT_ASSERT(instance.IsValid, BoltErrorCode::InvalidHandle, "Invalid Audioinstance");
+		if (!instance.IsValid) {
+			return nullptr;
+		}
 
 		return  &instance;
 	}

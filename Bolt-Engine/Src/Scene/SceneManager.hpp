@@ -47,7 +47,7 @@ namespace Bolt {
 		Scene* GetActiveScene();
 		const Scene* GetActiveScene() const;
 
-		void SetActiveScene(const std::string& name);
+		bool SetActiveScene(const std::string& name);
 
 		bool HasSceneDefinition(const std::string& name) const;
 		bool IsSceneLoaded(const std::string& name) const;
@@ -80,8 +80,8 @@ namespace Bolt {
 		void FixedUpdateScenes();
 		void InitializeStartupScenes();
 		std::shared_ptr<Scene> LoadSceneInternal(const std::string& name, bool additive);
-		SceneDefinition& GetSceneDefinitionOrThrow(const std::string& name);
-		const SceneDefinition& GetSceneDefinitionOrThrow(const std::string& name) const;
+		SceneDefinition* GetSceneDefinition(const std::string& name);
+		const SceneDefinition* GetSceneDefinition(const std::string& name) const;
 		LoadedSceneList::iterator FindLoadedSceneIterator(const std::string& name);
 		LoadedSceneList::const_iterator FindLoadedSceneIterator(const std::string& name) const;
 		void ReleaseScene(LoadedSceneList::iterator it);

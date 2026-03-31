@@ -1,6 +1,9 @@
 #pragma once
-#include "Core/Assert.hpp"
+#include "Core/Log.hpp"
+#include <array>
+#include <cstdint>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -16,8 +19,10 @@ namespace Bolt {
 		template<size_t Size>
 		static void WriteAllLines(const std::string& path, const std::array<std::string, Size> lines) {
 			std::ofstream file(path);
-
-			BT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
+			if (!file.is_open()) {
+				BT_CORE_ERROR("File couldn't be opened for writing: {}", path);
+				return;
+			}
 
 			for (const std::string& line : lines) {
 				file.write(line.c_str(), line.size());
@@ -30,8 +35,10 @@ namespace Bolt {
 		template<size_t Size>
 		static void WriteAllBytes(const std::string& path, const std::array<std::uint8_t, Size> bytes) {
 			std::ofstream file(path, std::ios::binary);
-
-			BT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
+			if (!file.is_open()) {
+				BT_CORE_ERROR("File couldn't be opened for writing: {}", path);
+				return;
+			}
 
 			file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
 			file.close();
@@ -40,8 +47,10 @@ namespace Bolt {
 		template<typename T>
 		static void WriteObject(const std::string& path, const T& obj) {
 			std::ofstream file(path, std::ios::out | std::ios::binary);
-
-			BT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
+			if (!file.is_open()) {
+				BT_CORE_ERROR("File couldn't be opened for writing: {}", path);
+				return;
+			}
 
 			file.write(reinterpret_cast<const char*>(&obj), sizeof(T));
 		}
@@ -49,8 +58,10 @@ namespace Bolt {
 		template<typename T>
 		static T ReadObject(const std::string& path) {
 			std::ifstream file(path, std::ios::binary);
-
-			BT_ASSERT(file.is_open(), BoltErrorCode::Undefined(), "File couldn't be opened");
+			if (!file.is_open()) {
+				BT_CORE_ERROR("File couldn't be opened for reading: {}", path);
+				return T{};
+			}
 
 			T obj{};
 			file.read(reinterpret_cast<char*>(&obj), sizeof(T));

@@ -6,20 +6,21 @@
 #include "Scene/Scene.hpp"
 #include "Components/ComponentUtils.hpp"
 #include "Core/Export.hpp"
+#include "Debugging/Logger.hpp"
 
 namespace Bolt {
-	class BOLT_API EntityHelper {
-	public:
+    class BOLT_API EntityHelper {
+    public:
         // Info: Creates an entity with the entered Components
         template<typename... Components>
         static Entity CreateWith() {
-            Scene& activeScene = *SceneManager::Get().GetActiveScene();
+            Scene* activeScene = SceneManager::Get().GetActiveScene();
+            if (!activeScene || !activeScene->IsLoaded()) {
+                Logger::Error("EntityHelper", "Cannot create entity because there is no active scene loaded");
+                return Entity::Null;
+            }
 
-            BT_ASSERT(activeScene.IsLoaded(), 
-                BoltErrorCode::Undefined,
-                "There is no active Scene Loaded");
-
-            Entity entity(activeScene.CreateEntityHandle(), activeScene.GetRegistry());
+            Entity entity(activeScene->CreateEntityHandle(), activeScene->GetRegistry());
 
             (entity.AddComponent<Components>(), ...);
 
@@ -28,15 +29,15 @@ namespace Bolt {
 
         template<typename... Components>
         static EntityHandle CreateHandleWith() {
-            Scene& activeScene = *SceneManager::Get().GetActiveScene();
+            Scene* activeScene = SceneManager::Get().GetActiveScene();
+            if (!activeScene || !activeScene->IsLoaded()) {
+                Logger::Error("EntityHelper", "Cannot create entity handle because there is no active scene loaded");
+                return entt::null;
+            }
 
-            BT_ASSERT(activeScene.IsLoaded(),
-                BoltErrorCode::Undefined,
-                "There is no active Scene Loaded");
+            EntityHandle entity = activeScene->CreateEntityHandle();
 
-            EntityHandle entity = activeScene.CreateEntityHandle();
-
-            (activeScene.AddComponent<Components>(entity), ...);
+            (activeScene->AddComponent<Components>(entity), ...);
             return entity;
         }
 
@@ -52,6 +53,6 @@ namespace Bolt {
         static Entity CreateSpriteEntity();
         // Info: Basically calls CreateWith<RectTransform, Image>();
         static Entity CreateImageEntity();
-	};
+    };
 
 }

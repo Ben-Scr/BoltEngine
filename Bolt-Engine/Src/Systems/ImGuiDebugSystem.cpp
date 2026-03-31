@@ -189,10 +189,11 @@ namespace Bolt {
                                 if (ImGui::CollapsingHeader("Scene Manager")) {
                                     auto& sceneManager = SceneManager::Get();
 
-                                    ImGui::Text(
-                                        "%s",
-                                        ("Active Scene: " + sceneManager.GetActiveScene()->GetName()).c_str()
-                                    );
+                                    Scene* activeScene = sceneManager.GetActiveScene();
+                                    const std::string activeSceneLabel = activeScene
+                                        ? ("Active Scene: " + activeScene->GetName())
+                                        : "Active Scene: <none>";
+                                    ImGui::Text("%s", activeSceneLabel.c_str());
                                     ImGui::Text("Registered Scenes");
 
                                     for (const auto& registeredScene : sceneManager.GetRegisteredSceneNames()) {

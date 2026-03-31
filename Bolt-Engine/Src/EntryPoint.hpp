@@ -9,12 +9,22 @@ bool g_ApplicationRunning = true;
 namespace Bolt {
 
 	int Main(int argc, char** argv) {
-		Application* app = Bolt::CreateApplication();
-		BT_CORE_ASSERT(app, "Client app is null!");
+		try {
+			Application* app = Bolt::CreateApplication();
+			BT_CORE_ASSERT(app, "Client app is null!");
 
-		app->Run();
-		delete app;
-		return 0;
+			app->Run();
+			delete app;
+			return 0;
+		}
+		catch (const std::exception& ex) {
+			BT_CORE_ERROR("Unhandled exception at app boundary: {}", ex.what());
+			return -1;
+		}
+		catch (...) {
+			BT_CORE_ERROR("Unhandled non-std exception at app boundary");
+			return -1;
+		}
 	}
 }
 
