@@ -12,6 +12,12 @@ workspace "Bolt"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+newoption
+{
+    trigger = "with-imgui-demo",
+    description = "Include imgui_demo.cpp in the ImGui static library project."
+}
+
 include "Dependencies.lua"
 
 local function UseDependencySet(dep)
@@ -39,14 +45,57 @@ project "ImGui"
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-   files
+files
     {
-        "External/imgui/*.h",
-        "External/imgui/*.cpp",
-        "External/imgui/backends/*.h",
-        "External/imgui/backends/*.cpp",
-        "External/imgui/misc/cpp/*.h",
-        "External/imgui/misc/cpp/*.cpp"
+        -- Core
+        "External/imgui/imconfig.h",
+        "External/imgui/imgui.h",
+        "External/imgui/imgui_internal.h",
+        "External/imgui/imstb_rectpack.h",
+        "External/imgui/imstb_textedit.h",
+        "External/imgui/imstb_truetype.h",
+        "External/imgui/imgui.cpp",
+        "External/imgui/imgui_draw.cpp",
+        "External/imgui/imgui_tables.cpp",
+        "External/imgui/imgui_widgets.cpp",
+
+        -- Backend (Bolt uses GLFW + OpenGL3)
+        "External/imgui/backends/imgui_impl_glfw.h",
+        "External/imgui/backends/imgui_impl_glfw.cpp",
+        "External/imgui/backends/imgui_impl_opengl3.h",
+        "External/imgui/backends/imgui_impl_opengl3.cpp",
+        "External/imgui/backends/imgui_impl_opengl3_loader.h"
+    }
+
+    -- Optional demo source. Enable with --with-imgui-demo
+    if _OPTIONS["with-imgui-demo"] then
+        files { "External/imgui/imgui_demo.cpp" }
+    end
+
+    vpaths
+    {
+        ["Core/*"] =
+        {
+            "External/imgui/imconfig.h",
+            "External/imgui/imgui.h",
+            "External/imgui/imgui_internal.h",
+            "External/imgui/imstb_rectpack.h",
+            "External/imgui/imstb_textedit.h",
+            "External/imgui/imstb_truetype.h",
+            "External/imgui/imgui.cpp",
+            "External/imgui/imgui_draw.cpp",
+            "External/imgui/imgui_tables.cpp",
+            "External/imgui/imgui_widgets.cpp"
+        },
+        ["Backends/*"] =
+        {
+            "External/imgui/backends/imgui_impl_glfw.h",
+            "External/imgui/backends/imgui_impl_glfw.cpp",
+            "External/imgui/backends/imgui_impl_opengl3.h",
+            "External/imgui/backends/imgui_impl_opengl3.cpp",
+            "External/imgui/backends/imgui_impl_opengl3_loader.h"
+        },
+        ["Optional/*"] = { "External/imgui/imgui_demo.cpp" }
     }
 
     UseDependencySet(Dependency.ImGui)

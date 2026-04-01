@@ -27,7 +27,7 @@ Library["GDI32"] = "gdi32.lib"
 Dependency = {}
 Dependency["ImGui"] =
 {
-    IncludeDirs = { "%{IncludeDir.ImGui}", "External/imgui/include", "%{IncludeDir.GLFW}", "%{IncludeDir.Glad}" },
+    IncludeDirs = { "%{IncludeDir.ImGui}", "%{IncludeDir.ImGui}/backends", "%{IncludeDir.GLFW}", "%{IncludeDir.Glad}" },
     BuildProject = true
 }
 
@@ -96,7 +96,7 @@ Dependency["EditorRuntimeCommon"] =
         "%{IncludeDir.MiniAudio}",
         "%{IncludeDir.Cereal}"
     },
-    
+
     Links =
     {
         "Bolt-Engine",

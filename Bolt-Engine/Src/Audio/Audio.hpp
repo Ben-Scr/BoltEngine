@@ -1,5 +1,5 @@
 #pragma once
-#include <miniaudio/miniaudio.h>
+#include <miniaudio.h>
 
 namespace Bolt {
 
