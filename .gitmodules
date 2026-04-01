@@ -22,3 +22,7 @@
 [submodule "External/miniaudio"]
 	path = External/miniaudio
 	url = https://github.com/mackron/miniaudio.git
+[submodule "External/imgui"]
+	path = External/imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = docking
