@@ -26,3 +26,6 @@
 	path = External/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "External/Bolt-Physics"]
+	path = External/Bolt-Physics
+	url = https://github.com/Ben-Scr/Bolt-Physics.git
