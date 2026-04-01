@@ -28,6 +28,14 @@ local function UseDependencySet(dep)
     end
 end
 
+local function IncludePremakeIfExists(path)
+    if os.isfile(path) then
+        include(path)
+        return true
+    end
+    return false
+end
+
 group "Dependencies"
 project "ImGui"
     location "External/imgui"
@@ -39,11 +47,14 @@ project "ImGui"
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-    files
+   files
     {
-        "External/imgui/src/**.h",
-        "External/imgui/src/**.cpp",
-        "External/imgui/include/**.h"
+        "External/imgui/*.h",
+        "External/imgui/*.cpp",
+        "External/imgui/backends/*.h",
+        "External/imgui/backends/*.cpp",
+        "External/imgui/misc/cpp/*.h",
+        "External/imgui/misc/cpp/*.cpp"
     }
 
     UseDependencySet(Dependency.ImGui)
@@ -67,6 +78,10 @@ project "ImGui"
         optimize "Full"
         symbols "Off"
         defines { "NDEBUG" }
+
+IncludePremakeIfExists("External/glfw/premake5.lua")
+IncludePremakeIfExists("External/box2d/premake5.lua")
+IncludePremakeIfExists("External/freetype/premake5.lua")
 
 group "Core"
 project "Bolt-Engine"

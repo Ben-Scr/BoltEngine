@@ -1,6 +1,6 @@
 IncludeDir = {}
 IncludeDir["ExternalRoot"] = "External"
-IncludeDir["ImGui"] = "External/imgui/include"
+IncludeDir["ImGui"] = "External/imgui"
 IncludeDir["Spdlog"] = "External/spdlog/include"
 IncludeDir["GLFW"] = "External/glfw/include"
 IncludeDir["Box2D"] = "External/box2d/include"
@@ -27,7 +27,7 @@ Library["GDI32"] = "gdi32.lib"
 Dependency = {}
 Dependency["ImGui"] =
 {
-    IncludeDirs = { "%{IncludeDir.ImGui}", "%{IncludeDir.GLFW}", "%{IncludeDir.Glad}" },
+    IncludeDirs = { "%{IncludeDir.ImGui}", "External/imgui/include", "%{IncludeDir.GLFW}", "%{IncludeDir.Glad}" },
     BuildProject = true
 }
 

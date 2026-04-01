@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Bolt-Engine\Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Bolt-Engine\Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -102,7 +102,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Bolt-Engine\Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Bolt-Engine\Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -131,7 +131,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Bolt-Engine\Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Bolt-Engine\Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>

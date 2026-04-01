@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -100,7 +100,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -129,7 +129,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui\include;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
