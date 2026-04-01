@@ -11,21 +11,31 @@ project "GLFW"
     {
         path.join(ROOT_DIR, "External/glfw/include/GLFW/glfw3.h"),
         path.join(ROOT_DIR, "External/glfw/include/GLFW/glfw3native.h"),
-        path.join(ROOT_DIR, "External/glfw/src/**.h"),
-        path.join(ROOT_DIR, "External/glfw/src/**.c")
-    }
 
-    removefiles
-    {
-        path.join(ROOT_DIR, "External/glfw/src/cocoa_*.m"),
-        path.join(ROOT_DIR, "External/glfw/src/cocoa_*.h"),
-        path.join(ROOT_DIR, "External/glfw/src/nsgl_context.*"),
-        path.join(ROOT_DIR, "External/glfw/src/posix_*.*"),
-        path.join(ROOT_DIR, "External/glfw/src/wl_*.*"),
-        path.join(ROOT_DIR, "External/glfw/src/x11_*.*"),
-        path.join(ROOT_DIR, "External/glfw/src/glx_context.*"),
-        path.join(ROOT_DIR, "External/glfw/src/linux_*.*"),
-        path.join(ROOT_DIR, "External/glfw/src/osmesa_context.*")
+        path.join(ROOT_DIR, "External/glfw/src/internal.h"),
+        path.join(ROOT_DIR, "External/glfw/src/platform.h"),
+        path.join(ROOT_DIR, "External/glfw/src/mappings.h"),
+        path.join(ROOT_DIR, "External/glfw/src/win32_platform.h"),
+        path.join(ROOT_DIR, "External/glfw/src/win32_joystick.h"),
+        path.join(ROOT_DIR, "External/glfw/src/wgl_context.h"),
+        path.join(ROOT_DIR, "External/glfw/src/egl_context.h"),
+        path.join(ROOT_DIR, "External/glfw/src/osmesa_context.h"),
+
+        path.join(ROOT_DIR, "External/glfw/src/context.c"),
+        path.join(ROOT_DIR, "External/glfw/src/init.c"),
+        path.join(ROOT_DIR, "External/glfw/src/input.c"),
+        path.join(ROOT_DIR, "External/glfw/src/monitor.c"),
+        path.join(ROOT_DIR, "External/glfw/src/vulkan.c"),
+        path.join(ROOT_DIR, "External/glfw/src/window.c"),
+        path.join(ROOT_DIR, "External/glfw/src/win32_init.c"),
+        path.join(ROOT_DIR, "External/glfw/src/win32_joystick.c"),
+        path.join(ROOT_DIR, "External/glfw/src/win32_monitor.c"),
+        path.join(ROOT_DIR, "External/glfw/src/win32_time.c"),
+        path.join(ROOT_DIR, "External/glfw/src/win32_thread.c"),
+        path.join(ROOT_DIR, "External/glfw/src/win32_window.c"),
+        path.join(ROOT_DIR, "External/glfw/src/wgl_context.c"),
+        path.join(ROOT_DIR, "External/glfw/src/egl_context.c"),
+        path.join(ROOT_DIR, "External/glfw/src/osmesa_context.c")
     }
 
     includedirs
