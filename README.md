@@ -40,7 +40,7 @@ Windows (only) Compatible 2D Game-Engine written in C++
    This setup flow will:
    - update submodules (`git submodule update --init --recursive`)
    - attempt `git lfs pull`
-   - generate Visual Studio 2022 files using Premake
+   - generate Visual Studio 2026 files using Premake
 4. Open the generated `Bolt.sln` in Visual Studio 2022.
 5. Select `Debug|x64` (or `Release|x64` / `Dist|x64`) and build.
 
