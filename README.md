@@ -29,7 +29,7 @@ Windows (only) Compatible 2D Game-Engine written in C++
 - [Miniaudio](https://github.com/mackron/miniaudio) - Multiplatform Audio Library
 
 ## How to Build
-### Premake + Visual Studio 2022 (primary)
+### Premake + Visual Studio 2026 (primary)
 1. Ensure Python 3 is installed and available on `PATH`.
 2. Ensure Premake is available at:
    `vendor/bin/premake5.exe`
