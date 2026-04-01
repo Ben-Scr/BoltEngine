@@ -28,10 +28,6 @@ Windows (only) Compatible 2D Game-Engine written in C++
 - [ENTT](https://github.com/skypjack/entt) - ECS Library
 - [Miniaudio](https://github.com/mackron/miniaudio) - Multiplatform Audio Library
 
-## Usage
-- Basic 2D Rendering
-- Game Development
-
 ## How to Build
 ### Premake + Visual Studio 2022 (primary)
 1. Ensure Python 3 is installed and available on `PATH`.
