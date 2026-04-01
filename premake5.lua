@@ -11,7 +11,7 @@ workspace "Bolt"
     }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-ROOT_DIR = _MAIN_SCRIPT_DIR
+ROOT_DIR = os.realpath(_MAIN_SCRIPT_DIR)
 
 newoption
 {
