@@ -26,6 +26,7 @@ project "GLFW"
         glfwFile("src/osmesa_context.h"),
 
         glfwFile("src/context.c"),
+        glfwFile("src/platform.c"),
         glfwFile("src/init.c"),
         glfwFile("src/input.c"),
         glfwFile("src/monitor.c"),
