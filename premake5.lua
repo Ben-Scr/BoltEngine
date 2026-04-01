@@ -30,6 +30,10 @@ local function UseDependencySet(dep)
         libdirs(dep.LibDirs)
     end
 
+    if dep.DependsOn then
+        dependson(dep.DependsOn)
+    end
+
     if dep.Links then
         links(dep.Links)
     end
@@ -259,7 +263,6 @@ project "Bolt-Runtime"
 
     links
     {
-        "%{Library.FreeType}",
         "%{Library.GDI32}"
     }
 

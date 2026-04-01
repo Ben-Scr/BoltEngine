@@ -70,6 +70,14 @@ Dependency["EngineCore"] =
         "%{IncludeDir.BoltPhysics}"
     },
 
+     DependsOn =
+    {
+        "Glad",
+        "GLFW",
+        "Box2D",
+        "Bolt-Physics"
+    },
+
     Links =
     {
         "Glad",
@@ -97,6 +105,16 @@ Dependency["EditorRuntimeCommon"] =
         "%{IncludeDir.MiniAudio}",
         "%{IncludeDir.Cereal}",
         "%{IncludeDir.BoltPhysics}"
+    },
+
+    DependsOn =
+    {
+        "Bolt-Engine",
+        "ImGui",
+        "Glad",
+        "GLFW",
+        "Box2D",
+        "Bolt-Physics"
     },
 
     Links =
