@@ -25,7 +25,6 @@ project "GLFW"
         path.join(ROOT_DIR, "External/glfw/src/x11_*.*"),
         path.join(ROOT_DIR, "External/glfw/src/glx_context.*"),
         path.join(ROOT_DIR, "External/glfw/src/linux_*.*"),
-        path.join(ROOT_DIR, "External/glfw/src/null_*.*"),
         path.join(ROOT_DIR, "External/glfw/src/osmesa_context.*")
     }
 

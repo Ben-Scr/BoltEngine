@@ -1,6 +1,7 @@
 local BOLT_PHYSICS_DIR = path.getabsolute(path.join(_SCRIPT_DIR, "../../External/Bolt-Physics"))
 local BOLT_PHYSICS_INCLUDE_DIR = path.join(BOLT_PHYSICS_DIR, "include")
 local BOLT_PHYSICS_SOURCE_DIR = path.join(BOLT_PHYSICS_DIR, "src")
+local BOLT_PHYSICS_GLM_INCLUDE_DIR = path.getabsolute(path.join(ROOT_DIR, IncludeDir["GLM"]))
 
 project "Bolt-Physics"
     location (BOLT_PHYSICS_DIR)
@@ -23,9 +24,10 @@ project "Bolt-Physics"
         path.join(BOLT_PHYSICS_SOURCE_DIR, "**.cpp")
     }
 
-    includedirs
+ includedirs
     {
-        BOLT_PHYSICS_INCLUDE_DIR
+        BOLT_PHYSICS_INCLUDE_DIR,
+        BOLT_PHYSICS_GLM_INCLUDE_DIR
     }
 
     filter "system:windows"
