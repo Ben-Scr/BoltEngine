@@ -1,5 +1,5 @@
 project "Glad"
-    location "External/glad"
+    location (path.join(ROOT_DIR, "External/glad"))
     kind "StaticLib"
     language "C"
     cdialect "C17"
@@ -10,13 +10,13 @@ project "Glad"
 
     files
     {
-        "External/glad/include/**.h",
-        "External/glad/src/**.c"
+        path.join(ROOT_DIR, "External/glad/include/**.h"),
+        path.join(ROOT_DIR, "External/glad/src/**.c")
     }
 
     includedirs
     {
-        "External/glad/include"
+        path.join(ROOT_DIR, "External/glad/include")
     }
 
     filter "system:windows"

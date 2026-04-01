@@ -1,5 +1,5 @@
 project "Box2D"
-    location "External/box2d"
+    location (path.join(ROOT_DIR, "External/box2d"))
     kind "StaticLib"
     language "C++"
     cppdialect "C++23"
@@ -11,16 +11,16 @@ project "Box2D"
 
     files
     {
-        "External/box2d/include/**.h",
-        "External/box2d/src/**.h",
-        "External/box2d/src/**.c",
-        "External/box2d/src/**.cpp"
+        path.join(ROOT_DIR, "External/box2d/include/**.h"),
+        path.join(ROOT_DIR, "External/box2d/src/**.h"),
+        path.join(ROOT_DIR, "External/box2d/src/**.c"),
+        path.join(ROOT_DIR, "External/box2d/src/**.cpp")
     }
 
     includedirs
     {
-        "External/box2d/include",
-        "External/box2d/src"
+        path.join(ROOT_DIR, "External/box2d/include"),
+        path.join(ROOT_DIR, "External/box2d/src")
     }
 
     filter "system:windows"

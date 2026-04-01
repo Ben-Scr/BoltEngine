@@ -165,16 +165,16 @@
     <ProjectReference Include="..\External\imgui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\premake\dependencies\External\glad\Glad.vcxproj">
+    <ProjectReference Include="..\External\glad\Glad.vcxproj">
       <Project>{BDD6857C-A90D-870D-52FA-6C103E10030F}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\premake\dependencies\External\glfw\GLFW.vcxproj">
+    <ProjectReference Include="..\External\glfw\GLFW.vcxproj">
       <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\premake\dependencies\External\box2d\Box2D.vcxproj">
+    <ProjectReference Include="..\External\box2d\Box2D.vcxproj">
       <Project>{A434E80C-1049-10BE-D9CA-B31D459E0CEF}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\premake\dependencies\External\Bolt-Physics\Bolt-Physics.vcxproj">
+    <ProjectReference Include="..\External\Bolt-Physics\Bolt-Physics.vcxproj">
       <Project>{C63698D8-B299-277D-5B1F-60334761F3FF}</Project>
     </ProjectReference>
   </ItemGroup>

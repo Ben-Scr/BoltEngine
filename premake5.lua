@@ -11,6 +11,7 @@ workspace "Bolt"
     }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+ROOT_DIR = _MAIN_SCRIPT_DIR
 
 newoption
 {
@@ -119,6 +120,8 @@ files
         optimize "Full"
         symbols "Off"
         defines { "NDEBUG" }
+
+    filter {}
 
 include "premake/dependencies/glfw.lua"
 include "premake/dependencies/box2d.lua"

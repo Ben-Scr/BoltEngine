@@ -1,5 +1,5 @@
 project "GLFW"
-    location "External/glfw"
+    location (path.join(ROOT_DIR, "External/glfw"))
     kind "StaticLib"
     language "C"
     staticruntime "off"
@@ -9,30 +9,30 @@ project "GLFW"
 
     files
     {
-        "External/glfw/include/GLFW/glfw3.h",
-        "External/glfw/include/GLFW/glfw3native.h",
-        "External/glfw/src/**.h",
-        "External/glfw/src/**.c"
+        path.join(ROOT_DIR, "External/glfw/include/GLFW/glfw3.h"),
+        path.join(ROOT_DIR, "External/glfw/include/GLFW/glfw3native.h"),
+        path.join(ROOT_DIR, "External/glfw/src/**.h"),
+        path.join(ROOT_DIR, "External/glfw/src/**.c")
     }
 
     removefiles
     {
-        "External/glfw/src/cocoa_*.m",
-        "External/glfw/src/cocoa_*.h",
-        "External/glfw/src/nsgl_context.*",
-        "External/glfw/src/posix_*.*",
-        "External/glfw/src/wl_*.*",
-        "External/glfw/src/x11_*.*",
-        "External/glfw/src/glx_context.*",
-        "External/glfw/src/linux_*.*",
-        "External/glfw/src/null_*.*",
-        "External/glfw/src/osmesa_context.*"
+        path.join(ROOT_DIR, "External/glfw/src/cocoa_*.m"),
+        path.join(ROOT_DIR, "External/glfw/src/cocoa_*.h"),
+        path.join(ROOT_DIR, "External/glfw/src/nsgl_context.*"),
+        path.join(ROOT_DIR, "External/glfw/src/posix_*.*"),
+        path.join(ROOT_DIR, "External/glfw/src/wl_*.*"),
+        path.join(ROOT_DIR, "External/glfw/src/x11_*.*"),
+        path.join(ROOT_DIR, "External/glfw/src/glx_context.*"),
+        path.join(ROOT_DIR, "External/glfw/src/linux_*.*"),
+        path.join(ROOT_DIR, "External/glfw/src/null_*.*"),
+        path.join(ROOT_DIR, "External/glfw/src/osmesa_context.*")
     }
 
     includedirs
     {
-        "External/glfw/include",
-        "External/glfw/src"
+        path.join(ROOT_DIR, "External/glfw/include"),
+        path.join(ROOT_DIR, "External/glfw/src")
     }
 
     defines

@@ -1,5 +1,5 @@
 project "Bolt-Physics"
-    location "External/Bolt-Physics"
+    location (path.join(ROOT_DIR, "External/Bolt-Physics"))
     kind "StaticLib"
     language "C++"
     cppdialect "C++23"
@@ -11,18 +11,18 @@ project "Bolt-Physics"
 
     files
     {
-        "External/Bolt-Physics/include/**.h",
-        "External/Bolt-Physics/include/**.hpp",
-        "External/Bolt-Physics/src/**.h",
-        "External/Bolt-Physics/src/**.hpp",
-        "External/Bolt-Physics/src/**.c",
-        "External/Bolt-Physics/src/**.cpp"
+        path.join(ROOT_DIR, "External/Bolt-Physics/include/**.h"),
+        path.join(ROOT_DIR, "External/Bolt-Physics/include/**.hpp"),
+        path.join(ROOT_DIR, "External/Bolt-Physics/src/**.h"),
+        path.join(ROOT_DIR, "External/Bolt-Physics/src/**.hpp"),
+        path.join(ROOT_DIR, "External/Bolt-Physics/src/**.c"),
+        path.join(ROOT_DIR, "External/Bolt-Physics/src/**.cpp")
     }
 
     includedirs
     {
-        "External/Bolt-Physics/include",
-        "External/Bolt-Physics/src"
+        path.join(ROOT_DIR, "External/Bolt-Physics/include"),
+        path.join(ROOT_DIR, "External/Bolt-Physics/src")
     }
 
     filter "system:windows"
