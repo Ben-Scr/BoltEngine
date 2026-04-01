@@ -35,7 +35,7 @@ public:
 		EntityHelper::CreateCamera2DEntity();
 
 		// Test Scenario Case: The engine should be able to handle this without crashing.
-		//SceneDefinition& editorScene = GetSceneManager()->RegisterScene("SampleScene");
+		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("SampleScene");
 	}
 
 	void Update() override {
