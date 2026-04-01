@@ -133,6 +133,8 @@ project "Bolt-Engine"
     cdialect "C17"
     staticruntime "off"
 
+    buildoptions { "/utf-8" }
+
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
@@ -190,6 +192,8 @@ project "Bolt-Editor"
     cdialect "C17"
     staticruntime "off"
 
+    buildoptions { "/utf-8" }
+
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
@@ -234,6 +238,8 @@ project "Bolt-Runtime"
     cppdialect "C++23"
     cdialect "C17"
     staticruntime "off"
+
+    buildoptions { "/utf-8" }
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")

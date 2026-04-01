@@ -28,12 +28,6 @@
     <Filter Include="Debugging">
       <UniqueIdentifier>{51835CA9-BDED-1020-062C-C2C572D5EE74}</UniqueIdentifier>
     </Filter>
-    <Filter Include="External">
-      <UniqueIdentifier>{089DB854-F469-1360-1D83-010809AF48EE}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="External\Glad">
-      <UniqueIdentifier>{EF48C757-5B09-438E-2444-8C0B90C3876A}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Graphics">
       <UniqueIdentifier>{1653CE33-0220-293F-2B39-17E717655ECD}</UniqueIdentifier>
     </Filter>
@@ -394,9 +388,6 @@
     </ClCompile>
     <ClCompile Include="Src\Debugging\Logger.cpp">
       <Filter>Debugging</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\External\Glad\glad.c">
-      <Filter>External\Glad</Filter>
     </ClCompile>
     <ClCompile Include="Src\Graphics\GizmoRenderer.cpp">
       <Filter>Graphics</Filter>

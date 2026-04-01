@@ -9,7 +9,7 @@
 #include "Components/Audio/AudioSourceComponent.hpp"
 
 #define MINIAUDIO_IMPLEMENTATION
-#include <miniaudio/miniaudio.h>
+#include <miniaudio.h>
 
 namespace Bolt {
 	ma_engine AudioManager::s_Engine{};
