@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
-#include <glad/glad.h> 
+#include <glad>
 
 namespace Bolt {
     class Shader {

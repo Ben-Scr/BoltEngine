@@ -73,6 +73,7 @@ Dependency["EngineCore"] =
 
     Links =
     {
+        "Glad",
         "GLFW",
         "Box2D",
         "%{Library.OpenGL}"
@@ -101,6 +102,7 @@ Dependency["EditorRuntimeCommon"] =
     {
         "Bolt-Engine",
         "ImGui",
+        "Glad",
         "GLFW",
         "%{Library.OpenGL}",
         "Box2D",
