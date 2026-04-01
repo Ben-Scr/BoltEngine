@@ -3,6 +3,7 @@ IncludeDir["ExternalRoot"] = "External"
 IncludeDir["ImGui"] = "External/imgui"
 IncludeDir["Spdlog"] = "External/spdlog/include"
 IncludeDir["GLFW"] = "External/glfw/include"
+IncludeDir["BoltPhys"] = "External/Bolt-Physics/include"
 IncludeDir["Box2D"] = "External/box2d/include"
 IncludeDir["GLM"] = "External/glm"
 IncludeDir["EnTT"] = "External/entt/src"
@@ -15,6 +16,7 @@ IncludeDir["BoltEngine"] = "Bolt-Engine/Src"
 
 LibDir = {}
 LibDir["External"] = "External/Lib"
+LibDir["BoltPhys"] = "External/Bolt-Physics/lib"
 
 Library = {}
 Library["GLFW"] = "glfw3.lib"
@@ -68,7 +70,13 @@ Dependency["EngineCore"] =
         "%{IncludeDir.STB}",
         "%{IncludeDir.MagicEnum}",
         "%{IncludeDir.MiniAudio}",
-        "%{IncludeDir.Cereal}"
+        "%{IncludeDir.Cereal}",
+        "%{IncludeDir.BoltPhys}"
+    },
+
+    LibDirs =
+    {
+        "%{LibDir.BoltPhys}"
     },
 
     Links =
