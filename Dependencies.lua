@@ -70,11 +70,11 @@ Dependency["EngineCore"] =
         "%{IncludeDir.MiniAudio}",
         "%{IncludeDir.Cereal}"
     },
-    LibDirs = { "%{LibDir.External}" },
+
     Links =
     {
-        "%{Library.GLFW}",
-        "%{Library.Box2D}",
+        "GLFW",
+        "Box2D",
         "%{Library.OpenGL}"
     }
 }
@@ -96,14 +96,14 @@ Dependency["EditorRuntimeCommon"] =
         "%{IncludeDir.MiniAudio}",
         "%{IncludeDir.Cereal}"
     },
-    LibDirs = { "%{LibDir.External}" },
+    
     Links =
     {
         "Bolt-Engine",
         "ImGui",
-        "%{Library.GLFW}",
+        "GLFW",
         "%{Library.OpenGL}",
-        "%{Library.Box2D}",
+        "Box2D",
         "%{Library.BoltPhys}"
     }
 }

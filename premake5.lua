@@ -28,14 +28,6 @@ local function UseDependencySet(dep)
     end
 end
 
-local function IncludePremakeIfExists(path)
-    if os.isfile(path) then
-        include(path)
-        return true
-    end
-    return false
-end
-
 group "Dependencies"
 project "ImGui"
     location "External/imgui"
@@ -79,9 +71,8 @@ project "ImGui"
         symbols "Off"
         defines { "NDEBUG" }
 
-IncludePremakeIfExists("External/glfw/premake5.lua")
-IncludePremakeIfExists("External/box2d/premake5.lua")
-IncludePremakeIfExists("External/freetype/premake5.lua")
+include "premake/dependencies/glfw.lua"
+include "premake/dependencies/box2d.lua"
 
 group "Core"
 project "Bolt-Engine"
