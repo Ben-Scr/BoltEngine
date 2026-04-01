@@ -123,6 +123,7 @@ files
 include "premake/dependencies/glfw.lua"
 include "premake/dependencies/box2d.lua"
 include "premake/dependencies/glad.lua"
+include "premake/dependencies/bolt_physics.lua"
 
 group "Core"
 project "Bolt-Engine"

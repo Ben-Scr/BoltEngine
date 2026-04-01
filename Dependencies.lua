@@ -3,7 +3,7 @@ IncludeDir["ExternalRoot"] = "External"
 IncludeDir["ImGui"] = "External/imgui"
 IncludeDir["Spdlog"] = "External/spdlog/include"
 IncludeDir["GLFW"] = "External/glfw/include"
-IncludeDir["BoltPhys"] = "External/Bolt-Physics/include"
+IncludeDir["Bolt-Physics"] = "External/Bolt-Physics/include"
 IncludeDir["Box2D"] = "External/box2d/include"
 IncludeDir["GLM"] = "External/glm"
 IncludeDir["EnTT"] = "External/entt/src"
@@ -14,14 +14,9 @@ IncludeDir["Cereal"] = "External/cereal/include"
 IncludeDir["Glad"] = "External/glad/include"
 IncludeDir["BoltEngine"] = "Bolt-Engine/Src"
 
-LibDir = {}
-LibDir["External"] = "External/Lib"
-LibDir["BoltPhys"] = "External/Bolt-Physics/lib"
-
 Library = {}
 Library["GLFW"] = "glfw3.lib"
 Library["Box2D"] = "box2d.lib"
-Library["BoltPhys"] = "BoltPhys.lib"
 Library["FreeType"] = "freetype.lib"
 Library["OpenGL"] = "opengl32.lib"
 Library["GDI32"] = "gdi32.lib"
@@ -71,12 +66,7 @@ Dependency["EngineCore"] =
         "%{IncludeDir.MagicEnum}",
         "%{IncludeDir.MiniAudio}",
         "%{IncludeDir.Cereal}",
-        "%{IncludeDir.BoltPhys}"
-    },
-
-    LibDirs =
-    {
-        "%{LibDir.BoltPhys}"
+        "%{IncludeDir.BoltPhysics}"
     },
 
     Links =
@@ -84,6 +74,7 @@ Dependency["EngineCore"] =
         "Glad",
         "GLFW",
         "Box2D",
+        "Bolt-Physics",
         "%{Library.OpenGL}"
     }
 }
@@ -114,6 +105,6 @@ Dependency["EditorRuntimeCommon"] =
         "GLFW",
         "%{Library.OpenGL}",
         "Box2D",
-        "%{Library.BoltPhys}"
+        "Bolt-Physics"
     }
 }

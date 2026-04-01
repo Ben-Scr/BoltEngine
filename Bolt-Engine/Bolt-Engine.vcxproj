@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;..\External\Bolt-Physics\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -92,7 +92,6 @@
     </Link>
     <Lib>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\External\Bolt-Physics\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -101,7 +100,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;..\External\Bolt-Physics\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -122,7 +121,6 @@
     </Link>
     <Lib>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\External\Bolt-Physics\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -131,7 +129,7 @@
       <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>BT_PLATFORM_WINDOWS;BT_TRACK_MEMORY;BT_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;..\External\Bolt-Physics\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Src;..\External\spdlog\include;..\External\imgui;..\External\glfw\include;..\External\glad\include;..\External\box2d\include;..\External\glm;..\External\entt\src;..\External\stb;..\External\magic_enum\include;..\External\miniaudio;..\External\cereal\include;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>None</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -152,7 +150,6 @@
     </Link>
     <Lib>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\External\Bolt-Physics\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -314,6 +311,9 @@
     </ProjectReference>
     <ProjectReference Include="..\premake\dependencies\External\box2d\Box2D.vcxproj">
       <Project>{A434E80C-1049-10BE-D9CA-B31D459E0CEF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\premake\dependencies\External\Bolt-Physics\Bolt-Physics.vcxproj">
+      <Project>{C63698D8-B299-277D-5B1F-60334761F3FF}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
