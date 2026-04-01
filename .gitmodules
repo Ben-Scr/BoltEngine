@@ -25,6 +25,3 @@
 [submodule "External/miniaudio"]
 	path = External/miniaudio
 	url = https://github.com/mackron/miniaudio.git
-[submodule "External/glad"]
-	path = External/glad
-	url = https://github.com/Dav1dde/glad.git
