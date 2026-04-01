@@ -46,7 +46,8 @@ Dependency["ExternalIncludes"] =
         "%{IncludeDir.MagicEnum}",
         "%{IncludeDir.MiniAudio}",
         "%{IncludeDir.Cereal}",
-        "%{IncludeDir.Glad}"
+        "%{IncludeDir.Glad}",
+        "%{IncludeDir.BoltPhysics}"
     }
 }
 
@@ -81,7 +82,7 @@ Dependency["EngineCore"] =
 
 Dependency["EditorRuntimeCommon"] =
 {
-    IncludeDirs =
+     IncludeDirs =
     {
         "%{IncludeDir.BoltEngine}",
         "%{IncludeDir.Spdlog}",
@@ -94,7 +95,8 @@ Dependency["EditorRuntimeCommon"] =
         "%{IncludeDir.STB}",
         "%{IncludeDir.MagicEnum}",
         "%{IncludeDir.MiniAudio}",
-        "%{IncludeDir.Cereal}"
+        "%{IncludeDir.Cereal}",
+        "%{IncludeDir.BoltPhysics}"
     },
 
     Links =

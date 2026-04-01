@@ -1,5 +1,9 @@
+local BOLT_PHYSICS_DIR = path.getabsolute(path.join(_SCRIPT_DIR, "../../External/Bolt-Physics"))
+local BOLT_PHYSICS_INCLUDE_DIR = path.join(BOLT_PHYSICS_DIR, "include")
+local BOLT_PHYSICS_SOURCE_DIR = path.join(BOLT_PHYSICS_DIR, "src")
+
 project "Bolt-Physics"
-    location (path.join(ROOT_DIR, "External/Bolt-Physics"))
+    location (BOLT_PHYSICS_DIR)
     kind "StaticLib"
     language "C++"
     cppdialect "C++23"
@@ -11,18 +15,17 @@ project "Bolt-Physics"
 
     files
     {
-        path.join(ROOT_DIR, "External/Bolt-Physics/include/**.h"),
-        path.join(ROOT_DIR, "External/Bolt-Physics/include/**.hpp"),
-        path.join(ROOT_DIR, "External/Bolt-Physics/src/**.h"),
-        path.join(ROOT_DIR, "External/Bolt-Physics/src/**.hpp"),
-        path.join(ROOT_DIR, "External/Bolt-Physics/src/**.c"),
-        path.join(ROOT_DIR, "External/Bolt-Physics/src/**.cpp")
+        path.join(BOLT_PHYSICS_INCLUDE_DIR, "**.h"),
+        path.join(BOLT_PHYSICS_INCLUDE_DIR, "**.hpp"),
+        path.join(BOLT_PHYSICS_SOURCE_DIR, "**.h"),
+        path.join(BOLT_PHYSICS_SOURCE_DIR, "**.hpp"),
+        path.join(BOLT_PHYSICS_SOURCE_DIR, "**.c"),
+        path.join(BOLT_PHYSICS_SOURCE_DIR, "**.cpp")
     }
 
     includedirs
     {
-        path.join(ROOT_DIR, "External/Bolt-Physics/include"),
-        path.join(ROOT_DIR, "External/Bolt-Physics/src")
+        BOLT_PHYSICS_INCLUDE_DIR
     }
 
     filter "system:windows"
