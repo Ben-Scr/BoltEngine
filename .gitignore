@@ -9,6 +9,9 @@ bin-int/
 !vendor/bin/
 !vendor/bin/**
 *.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
 
 # User-specific files
 *.rsuser
