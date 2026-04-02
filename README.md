@@ -1,5 +1,5 @@
 # Bolt
-Windows (only) Compatible 2D Game-Engine written in C++
+Cross-platform 2D game-engine written in C++ (Windows + Linux development support).
 
 ## Preview
 
@@ -18,39 +18,64 @@ Windows (only) Compatible 2D Game-Engine written in C++
   <img src="Docs/Preview/Preview-Editor.png" width="60%" alt="Level editor interface">
 </p>
 
-## External Libraries / API's
+## External Libraries / APIs
 - [Bolt-Physics2D](https://github.com/Ben-Scr/Bolt-Physics2D) - Lightweight 2D Physics Library
 - [OpenGL](https://www.opengl.org/) - Rendering API
 - [STB](https://github.com/nothings/stb) - Graphics Image Library
 - [GLM](https://github.com/g-truc/glm) - Graphics Math Library
-- [GLFW](https://github.com/glfw/glfw) - Window Library
+- [GLFW](https://github.com/glfw/glfw) - Windowing/input library
 - [Box2D](https://github.com/erincatto/box2d) - 2D Physics Library
 - [ENTT](https://github.com/skypjack/entt) - ECS Library
 - [Miniaudio](https://github.com/mackron/miniaudio) - Multiplatform Audio Library
 
-## How to Build
-### Premake + Visual Studio 2026 (primary)
-1. Ensure Python 3 is installed and available on `PATH`.
-2. Ensure Premake is available at:
-   `vendor/bin/premake5.exe`
-3. Run setup from Windows:
-   ```bat
-   scripts\Setup.bat
-   ```
-   This setup flow will:
-   - update submodules (`git submodule update --init --recursive`)
-   - attempt `git lfs pull`
-   - generate Visual Studio 2026 files using Premake
-4. Open the generated `Bolt.sln` in Visual Studio 2022.
-5. Select `Debug|x64` (or `Release|x64` / `Dist|x64`) and build.
+## Build Requirements
+- Git + submodule support
+- Python 3
+- Premake 5 (`premake5` in `PATH` or under `vendor/bin`)
+- C++23-capable compiler
 
-Projects generated in the workspace:
-- `Bolt-Engine`
-- `Bolt-Editor`
-- `Bolt-Runtime`
-- `ImGui`
+### Linux packages (Ubuntu/Debian)
+```bash
+sudo apt update
+sudo apt install -y build-essential clang python3 premake5 git-lfs \
+  libx11-dev libxrandr-dev libxi-dev libxxf86vm-dev libxcursor-dev \
+  libxinerama-dev libxext-dev libxrender-dev mesa-common-dev libgl1-mesa-dev
+```
 
-Runtime assets are copied to the runtime output directory after build.
+## Setup + Generate Build Files
+### Windows (Visual Studio)
+```bat
+scripts\Setup.bat
+```
+This updates submodules/LFS and generates `vs2022` project files.
 
-### CMake (legacy / transition)
-The existing CMake files are still present during the migration period, but Premake is now the preferred workflow.
+### Linux (GNU Make)
+```bash
+./scripts/Setup.sh
+```
+This updates submodules/LFS and generates `gmake2` makefiles.
+
+You can also run Premake manually:
+```bash
+premake5 gmake2   # Linux
+premake5 vs2022   # Windows
+```
+
+## Build
+### Linux
+```bash
+make config=debug -j$(nproc) Bolt-Engine
+make config=debug -j$(nproc) Bolt-Runtime
+# Optional if you want the editor
+make config=debug -j$(nproc) Bolt-Editor
+```
+
+### Windows
+Open `Bolt.sln` in Visual Studio 2022 and build `Debug|x64` (or `Release|x64` / `Dist|x64`).
+
+## Notes
+- Runtime assets are copied to the runtime output directory after build (`{targetdir}/Assets`).
+- Linux builds use GLFW's X11 backend via vendored GLFW sources.
+
+## Known Limitations
+- Headless CI or WSL setups without an X11/OpenGL environment can compile but may not run editor/runtime windows.

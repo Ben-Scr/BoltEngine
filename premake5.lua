@@ -1,7 +1,6 @@
 workspace "Bolt"
     architecture "x64"
     startproject "Bolt-Editor"
-    toolset "v145"
 
     configurations
     {
@@ -9,6 +8,11 @@ workspace "Bolt"
         "Release",
         "Dist"
     }
+
+    filter "system:windows"
+        toolset "v145"
+
+    filter {}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 ROOT_DIR = os.realpath(_MAIN_SCRIPT_DIR)
@@ -72,7 +76,6 @@ files
         "External/imgui/backends/imgui_impl_opengl3_loader.h"
     }
 
-    -- Optional demo source. Enable with --with-imgui-demo
     if _OPTIONS["with-imgui-demo"] then
         files { "External/imgui/imgui_demo.cpp" }
     end
@@ -141,23 +144,35 @@ project "Bolt-Engine"
     cdialect "C17"
     staticruntime "off"
 
-    buildoptions { "/utf-8" }
-
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
     pchheader "pch.hpp"
     pchsource "Bolt-Engine/Src/pch.cpp"
 
-    files
+   files
     {
         "%{prj.name}/Src/**.h",
         "%{prj.name}/Src/**.hpp",
         "%{prj.name}/Src/**.c",
-        "%{prj.name}/Src/**.cpp"
+        "%{prj.name}/Src/**.cpp",
+        "%{prj.name}/src/Core/**.h",
+        "%{prj.name}/src/Core/**.hpp",
+        "%{prj.name}/src/Core/**.cpp",
+        "%{prj.name}/src/Systems/ImGuiEditorSystem.hpp",
+        "%{prj.name}/src/Systems/ImGuiEditorSystem.cpp"
     }
 
     UseDependencySet(Dependency.EngineCore)
+
+    filter "system:windows"
+        buildoptions { "/utf-8" }
+        systemversion "latest"
+        defines { "BT_PLATFORM_WINDOWS", "BT_TRACK_MEMORY" }
+
+    filter "system:linux"
+        pic "On"
+        defines { "BT_PLATFORM_LINUX", "BT_TRACK_MEMORY" }
 
     defines
     {
@@ -200,7 +215,6 @@ project "Bolt-Editor"
     cdialect "C17"
     staticruntime "off"
 
-    buildoptions { "/utf-8" }
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -214,13 +228,13 @@ project "Bolt-Editor"
 
     UseDependencySet(Dependency.EditorRuntimeCommon)
 
-    defines
-    {
-        "BT_PLATFORM_WINDOWS"
-    }
-
     filter "system:windows"
+        buildoptions { "/utf-8" }
         systemversion "latest"
+        defines { "BT_PLATFORM_WINDOWS" }
+
+    filter "system:linux"
+        defines { "BT_PLATFORM_LINUX" }
 
     filter "configurations:Debug"
         runtime "Debug"
@@ -247,8 +261,6 @@ project "Bolt-Runtime"
     cdialect "C17"
     staticruntime "off"
 
-    buildoptions { "/utf-8" }
-
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
@@ -261,23 +273,19 @@ project "Bolt-Runtime"
 
     UseDependencySet(Dependency.EditorRuntimeCommon)
 
-    links
-    {
-        "%{Library.GDI32}"
-    }
-
-    defines
-    {
-        "BT_PLATFORM_WINDOWS"
-    }
-
     postbuildcommands
     {
-        "{COPYDIR} %{prj.location}/Assets ../bin/" .. outputdir .. "/Bolt-Runtime/Assets"
+        "{COPYDIR} %{prj.location}/Assets %{cfg.targetdir}/Assets"
     }
 
     filter "system:windows"
+        buildoptions { "/utf-8" }
         systemversion "latest"
+        links { "%{Library.GDI32}" }
+        defines { "BT_PLATFORM_WINDOWS" }
+
+    filter "system:linux"
+        defines { "BT_PLATFORM_LINUX" }
 
     filter "configurations:Debug"
         runtime "Debug"

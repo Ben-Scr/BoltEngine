@@ -58,7 +58,7 @@ namespace Bolt {
 					std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
 
 				while (Clock::now() < nextFrameTime) {
-					_mm_pause();
+					std::this_thread::yield();
 				}
 			}
 

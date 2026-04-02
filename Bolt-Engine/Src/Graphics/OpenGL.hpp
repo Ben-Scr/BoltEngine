@@ -1,7 +1,7 @@
 #pragma once
-#include "Collections\Vec2.hpp"
-#include "Collections\Color.hpp"
-#include "Collections\Viewport.hpp"
+#include "Collections/Vec2.hpp"
+#include "Collections/Color.hpp"
+#include "Collections/Viewport.hpp"
 #include "Core/Export.hpp"
 #include <glad/glad.h>
 

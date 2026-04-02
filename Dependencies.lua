@@ -13,12 +13,13 @@ IncludeDir["MiniAudio"] = "External/miniaudio"
 IncludeDir["Cereal"] = "External/cereal/include"
 IncludeDir["Glad"] = "External/glad/include"
 IncludeDir["BoltEngine"] = "Bolt-Engine/Src"
+IncludeDir["BoltEngineLegacy"] = "Bolt-Engine/src"
 
 Library = {}
 Library["GLFW"] = "glfw3.lib"
 Library["Box2D"] = "box2d.lib"
 Library["FreeType"] = "freetype.lib"
-Library["OpenGL"] = "opengl32.lib"
+Library["OpenGL"] = "%{cfg.system == 'windows' and 'opengl32.lib' or 'GL'}"
 Library["GDI32"] = "gdi32.lib"
 
 Dependency = {}
@@ -56,6 +57,7 @@ Dependency["EngineCore"] =
     IncludeDirs =
     {
         "%{IncludeDir.BoltEngine}",
+        "%{IncludeDir.BoltEngineLegacy}",
         "%{IncludeDir.Spdlog}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.GLFW}",
@@ -70,7 +72,7 @@ Dependency["EngineCore"] =
         "%{IncludeDir.BoltPhysics}"
     },
 
-     DependsOn =
+    DependsOn =
     {
         "Glad",
         "GLFW",
@@ -90,9 +92,10 @@ Dependency["EngineCore"] =
 
 Dependency["EditorRuntimeCommon"] =
 {
-     IncludeDirs =
+    IncludeDirs =
     {
         "%{IncludeDir.BoltEngine}",
+        "%{IncludeDir.BoltEngineLegacy}",
         "%{IncludeDir.Spdlog}",
         "%{IncludeDir.ImGui}",
         "%{IncludeDir.GLFW}",

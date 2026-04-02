@@ -39,6 +39,9 @@ public:
 	}
 
 	void Update() override {
+		if (GetInput().GetKey(KeyCode::I))
+			BT_INFO(std::to_string(1.0f / GetTime().GetDeltaTime()) + " FPS");
+
 		if (GetInput().GetKeyDown(KeyCode::E))
 			BT_INFO("Hello World! " + StringHelper::ToString(Random::NextInt(0, 100)));
 	}

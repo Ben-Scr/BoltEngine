@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import os
+import platform
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -11,6 +13,20 @@ def run_step(cmd, cwd, label, allow_failure=False):
     if result.returncode != 0 and not allow_failure:
         raise RuntimeError(f"Step failed ({label}) with exit code {result.returncode}.")
     return result.returncode == 0
+
+
+def resolve_premake_executable(repo_root: Path) -> str | None:
+    candidates = []
+    if platform.system() == "Windows":
+        candidates.append(repo_root / "vendor" / "bin" / "premake5.exe")
+    else:
+        candidates.append(repo_root / "vendor" / "bin" / "premake5")
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return str(candidate)
+
+    return shutil.which("premake5")
 
 
 def main():
@@ -29,14 +45,14 @@ def main():
     if not lfs_ok:
         print("[Bolt Setup] Warning: git lfs pull failed or Git LFS is unavailable. Continuing...")
 
-    premake_path = repo_root / "vendor" / "bin" / "premake5.exe"
-    if not premake_path.is_file():
+    premake_path = resolve_premake_executable(repo_root)
+    if not premake_path:
         print("[Bolt Setup] ERROR: Premake executable was not found.")
-        print(f"[Bolt Setup] Expected path: {premake_path}")
-        print("[Bolt Setup] Place premake5.exe at vendor/bin/premake5.exe and run setup again.")
+        print("[Bolt Setup] Either place premake5(.exe) in vendor/bin or install premake5 in PATH.")
         return 1
 
-    run_step([str(premake_path), "vs2022"], repo_root, "Generating Visual Studio 2022 solution via Premake")
+    action = "vs2022" if platform.system() == "Windows" else "gmake2"
+    run_step([premake_path, action], repo_root, f"Generating {action} files via Premake")
 
     print("[Bolt Setup] Setup complete.")
     return 0

@@ -14,7 +14,7 @@ namespace Bolt {
 
 }
 
-#if !defined(BT_PLATFORM_WINDOWS)
+#if !defined(BT_PLATFORM_WINDOWS) && !defined(BT_PLATFORM_LINUX)
 #error Unknown platform.
 #endif
 
