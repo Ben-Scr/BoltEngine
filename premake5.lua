@@ -25,13 +25,31 @@ newoption
 
 include "Dependencies.lua"
 
+local function NormalizeRootPath(pathValue)
+    if os.path.isabsolute(pathValue) then
+        return pathValue
+    end
+
+    return path.join(ROOT_DIR, pathValue)
+end
+
+local function NormalizeRootPaths(paths)
+    local normalized = {}
+
+    for _, pathValue in ipairs(paths) do
+        table.insert(normalized, NormalizeRootPath(pathValue))
+    end
+
+    return normalized
+end
+
 local function UseDependencySet(dep)
     if dep.IncludeDirs then
-        includedirs(dep.IncludeDirs)
+        includedirs(NormalizeRootPaths(dep.IncludeDirs))
     end
 
     if dep.LibDirs then
-        libdirs(dep.LibDirs)
+        libdirs(NormalizeRootPaths(dep.LibDirs))
     end
 
     if dep.DependsOn then
@@ -135,173 +153,8 @@ include "premake/dependencies/box2d.lua"
 include "premake/dependencies/glad.lua"
 include "premake/dependencies/bolt_physics.lua"
 
-group "Core"
-project "Bolt-Engine"
-    location "Bolt-Engine"
-    kind "StaticLib"
-    language "C++"
-    cppdialect "C++23"
-    cdialect "C17"
-    staticruntime "off"
-
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-    pchheader "pch.hpp"
-    pchsource "Bolt-Engine/Src/pch.cpp"
-
-   files
-    {
-        "%{prj.name}/Src/**.h",
-        "%{prj.name}/Src/**.hpp",
-        "%{prj.name}/Src/**.c",
-        "%{prj.name}/Src/**.cpp",
-        "%{prj.name}/src/Core/**.h",
-        "%{prj.name}/src/Core/**.hpp",
-        "%{prj.name}/src/Core/**.cpp",
-        "%{prj.name}/src/Systems/ImGuiEditorSystem.hpp",
-        "%{prj.name}/src/Systems/ImGuiEditorSystem.cpp"
-    }
-
-    UseDependencySet(Dependency.EngineCore)
-
-    filter "system:windows"
-        buildoptions { "/utf-8" }
-        systemversion "latest"
-        defines { "BT_PLATFORM_WINDOWS", "BT_TRACK_MEMORY" }
-
-    filter "system:linux"
-        pic "On"
-        defines { "BT_PLATFORM_LINUX", "BT_TRACK_MEMORY" }
-
-    defines
-    {
-        "BT_PLATFORM_WINDOWS",
-        "BT_TRACK_MEMORY"
-    }
-
-    filter "files:**/glad.c"
-        flags { "NoPCH" }
-
-    filter "files:**/ImGuiEditorSystem.cpp"
-        flags { "NoPCH" }
-
-    filter "system:windows"
-        systemversion "latest"
-
-    filter "configurations:Debug"
-        runtime "Debug"
-        symbols "On"
-        defines { "BT_DEBUG", "_DEBUG" }
-
-    filter "configurations:Release"
-        runtime "Release"
-        optimize "On"
-        symbols "On"
-        defines { "BT_RELEASE", "NDEBUG" }
-
-    filter "configurations:Dist"
-        runtime "Release"
-        optimize "Full"
-        symbols "Off"
-        defines { "BT_RELEASE", "NDEBUG" }
-
-group "Runtime"
-project "Bolt-Editor"
-    location "Bolt-Editor"
-    kind "ConsoleApp"
-    language "C++"
-    cppdialect "C++23"
-    cdialect "C17"
-    staticruntime "off"
-
-
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-    files
-    {
-        "%{prj.name}/src/**.cpp",
-        "%{prj.name}/src/**.h",
-        "%{prj.name}/src/**.hpp"
-    }
-
-    UseDependencySet(Dependency.EditorRuntimeCommon)
-
-    filter "system:windows"
-        buildoptions { "/utf-8" }
-        systemversion "latest"
-        defines { "BT_PLATFORM_WINDOWS" }
-
-    filter "system:linux"
-        defines { "BT_PLATFORM_LINUX" }
-
-    filter "configurations:Debug"
-        runtime "Debug"
-        symbols "On"
-        defines { "BT_DEBUG", "_DEBUG" }
-
-    filter "configurations:Release"
-        runtime "Release"
-        optimize "On"
-        symbols "On"
-        defines { "BT_RELEASE", "NDEBUG" }
-
-    filter "configurations:Dist"
-        runtime "Release"
-        optimize "Full"
-        symbols "Off"
-        defines { "BT_RELEASE", "NDEBUG" }
-
-project "Bolt-Runtime"
-    location "Bolt-Runtime"
-    kind "ConsoleApp"
-    language "C++"
-    cppdialect "C++23"
-    cdialect "C17"
-    staticruntime "off"
-
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-    files
-    {
-        "%{prj.name}/Src/**.cpp",
-        "%{prj.name}/Src/**.h",
-        "%{prj.name}/Src/**.hpp"
-    }
-
-    UseDependencySet(Dependency.EditorRuntimeCommon)
-
-    postbuildcommands
-    {
-        "{COPYDIR} %{prj.location}/Assets %{cfg.targetdir}/Assets"
-    }
-
-    filter "system:windows"
-        buildoptions { "/utf-8" }
-        systemversion "latest"
-        links { "%{Library.GDI32}" }
-        defines { "BT_PLATFORM_WINDOWS" }
-
-    filter "system:linux"
-        defines { "BT_PLATFORM_LINUX" }
-
-    filter "configurations:Debug"
-        runtime "Debug"
-        symbols "On"
-        defines { "BT_DEBUG", "_DEBUG" }
-
-    filter "configurations:Release"
-        runtime "Release"
-        optimize "On"
-        symbols "On"
-        defines { "BT_RELEASE", "NDEBUG" }
-
-    filter "configurations:Dist"
-        runtime "Release"
-        optimize "Full"
-        symbols "Off"
-        defines { "BT_RELEASE", "NDEBUG" }
+include "Bolt-Engine"
+include "Bolt-Editor"
+include "Bolt-Runtime"
 
 group ""
