@@ -20,6 +20,8 @@
 //
 #if defined(BT_PLATFORM_WINDOWS)
 #define BT_BUILD_PLATFORM_NAME "Windows x64"
+#elif defined(BT_PLATFORM_LINUX)
+#define BT_BUILD_PLATFORM_NAME "Linux x64"
 #else
 #error Unsupported Platform!
 #endif
