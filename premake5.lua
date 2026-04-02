@@ -10,7 +10,7 @@ workspace "Bolt"
     }
 
     filter "system:windows"
-        toolset "v145"
+        toolset "v143"
 
     filter {}
 
