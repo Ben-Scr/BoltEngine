@@ -26,7 +26,7 @@ newoption
 include "Dependencies.lua"
 
 local function NormalizeRootPath(pathValue)
-    if os.path.isabsolute(pathValue) then
+    if path.isabsolute(pathValue) then
         return pathValue
     end
 
@@ -43,7 +43,7 @@ local function NormalizeRootPaths(paths)
     return normalized
 end
 
-local function UseDependencySet(dep)
+function UseDependencySet(dep)
     if dep.IncludeDirs then
         includedirs(NormalizeRootPaths(dep.IncludeDirs))
     end
