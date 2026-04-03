@@ -11,19 +11,14 @@ project "Bolt-Engine"
     objdir ("../bin-int/" .. outputdir .. "/%{prj.name}")
 
     pchheader "pch.hpp"
-    pchsource "Src/pch.cpp"
+    pchsource "src/pch.cpp"
 
     files
     {
-        "Src/**.h",
-        "Src/**.hpp",
-        "Src/**.c",
-        "Src/**.cpp",
-        "src/Core/**.h",
-        "src/Core/**.hpp",
-        "src/Core/**.cpp",
-        "src/Systems/ImGuiEditorSystem.hpp",
-        "src/Systems/ImGuiEditorSystem.cpp"
+        "src/**.h",
+        "src/**.hpp",
+        "src/**.c",
+        "src/**.cpp"
     }
 
     UseDependencySet(Dependency.EngineCore)
