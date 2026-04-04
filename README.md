@@ -32,35 +32,33 @@ Bolt is a lightweight C++20 2D game engine focused on performance.
 - Git + submodule support
 - Python 3
 
-### Linux packages (Ubuntu/Debian)
-```bash
-sudo apt update
-sudo apt install -y build-essential clang python3 premake5 git-lfs \
-  libx11-dev libxrandr-dev libxi-dev libxxf86vm-dev libxcursor-dev \
-  libxinerama-dev libxext-dev libxrender-dev mesa-common-dev libgl1-mesa-dev
-```
-
 ## How to Generate Build Files
-### Windows (Visual Studio)
+<details>
+<summary><strong>Windows (Visual Studio)</strong></summary>
 ```bat
-scripts\Setup.bat
+scripts\\Setup.bat
 ```
 This updates the submodules and generates `vs2022` project files.
+</details>
 
-### Linux (GNU Make)
+<details>
+<summary><strong>Linux (GNU Make)</strong></summary>
 ```bash
 ./scripts/Setup.sh
 ```
 This updates the submodules and generates `gmake2` makefiles.
+</details>
 
 ## Build
-### Linux
+<details>
+<summary><strong>Linux</strong></summary>
+
 ```bash
 make config=debug -j$(nproc) Bolt-Engine
 make config=debug -j$(nproc) Bolt-Runtime
-# Optional if you want the editor
 make config=debug -j$(nproc) Bolt-Editor
 ```
+</details>
 
 ## Notes
 - Runtime assets are copied to the runtime output directory after build (`{targetdir}/Assets`).
