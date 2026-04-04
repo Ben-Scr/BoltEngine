@@ -14,6 +14,7 @@
 #include "Scene/SceneManager.hpp"
 #include <Scene/EntityHelper.hpp>
 
+#include "Graphics/TextureManager.hpp"
 
 namespace Bolt {
 	void ImGuiEditorSystem::Awake(Scene& scene) {
@@ -158,25 +159,86 @@ namespace Bolt {
 	void ImGuiEditorSystem::RenderEntitiesPanel(Scene& scene) {
 		ImGui::Begin("Entities");
 
-		if (ImGui::Button("Create Entity")) {
-			Entity created = scene.CreateEntity("Entity " + std::to_string(EntityHelper::EntitiesCount()));
-			created.AddComponent<SpriteRendererComponent>();
-			m_SelectedEntity = created.GetHandle();
-		}
-		if (ImGui::Button("Create Physics Entity")) {
-			Entity created = scene.CreateEntity("Entity " + std::to_string(EntityHelper::EntitiesCount()));
-			created.AddComponent<SpriteRendererComponent>();
-			created.AddComponent<Rigidbody2DComponent>();
-			created.AddComponent<BoxCollider2DComponent>();
-			m_SelectedEntity = created.GetHandle();
+		if (ImGui::BeginPopupContextWindow("EntityCreateContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			if (ImGui::MenuItem("Create Square"))
+			{
+				Entity created = scene.CreateEntity("Square " + std::to_string(EntityHelper::EntitiesCount()));
+				created.AddComponent<SpriteRendererComponent>();
+				m_SelectedEntity = created.GetHandle();
+			}
+			if (ImGui::MenuItem("Create Circle"))
+			{
+				Entity created = scene.CreateEntity("Circle " + std::to_string(EntityHelper::EntitiesCount()));
+				auto& sprite = created.AddComponent<SpriteRendererComponent>();
+				sprite.TextureHandle = TextureManager::GetDefaultTexture(DefaultTexture::Circle);
+				m_SelectedEntity = created.GetHandle();
+			}
+			if (ImGui::MenuItem("Create Physics Entity"))
+			{
+				Entity created = scene.CreateEntity("Physics " + std::to_string(EntityHelper::EntitiesCount()));
+				created.AddComponent<SpriteRendererComponent>();
+				created.AddComponent<Rigidbody2DComponent>();
+				created.AddComponent<BoxCollider2DComponent>();
+				m_SelectedEntity = created.GetHandle();
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::BeginMenu("Audio"))
+			{
+				if (ImGui::MenuItem("Create Audio Source"))
+				{
+					Entity created = scene.CreateEntity("AudioSource " + std::to_string(EntityHelper::EntitiesCount()));
+					created.AddComponent<AudioSourceComponent>();
+					m_SelectedEntity = created.GetHandle();
+				}
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndPopup();
 		}
 
 		auto view = scene.GetRegistry().view<entt::entity>();
 		for (const EntityHandle entityHandle : view) {
 			Entity entity = scene.GetEntity(entityHandle);
 			const bool selected = m_SelectedEntity == entityHandle;
+
 			if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
 				m_SelectedEntity = entityHandle;
+			}
+
+			if (ImGui::BeginPopupContextItem())
+			{
+				m_SelectedEntity = entityHandle;
+
+				if (ImGui::MenuItem("Delete Entity"))
+				{
+					scene.DestroyEntity(entity);
+					if (m_SelectedEntity == entityHandle)
+						m_SelectedEntity = entt::null;
+				}
+
+				if (ImGui::MenuItem("Copy Entity"))
+				{
+					Entity copy = scene.CreateEntity(entity.GetName() + " (Copy)");
+
+					if (entity.HasComponent<SpriteRendererComponent>())
+						copy.AddComponent<SpriteRendererComponent>(entity.GetComponent<SpriteRendererComponent>());
+					if (entity.HasComponent<Rigidbody2DComponent>())
+						copy.AddComponent<Rigidbody2DComponent>(entity.GetComponent<Rigidbody2DComponent>());
+					if (entity.HasComponent<BoxCollider2DComponent>())
+						copy.AddComponent<BoxCollider2DComponent>(entity.GetComponent<BoxCollider2DComponent>());
+
+					m_SelectedEntity = copy.GetHandle();
+				}
+
+				if (ImGui::MenuItem("Rename"))
+				{
+
+				}
+
+				ImGui::EndPopup();
 			}
 		}
 
