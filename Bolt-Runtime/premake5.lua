@@ -2,7 +2,7 @@ project "Bolt-Runtime"
     location "."
     kind "ConsoleApp"
     language "C++"
-    cppdialect "C++23"
+    cppdialect "C++20"
     cdialect "C17"
     staticruntime "off"
 

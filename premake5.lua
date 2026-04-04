@@ -66,7 +66,7 @@ project "ImGui"
     location "External/imgui"
     kind "StaticLib"
     language "C++"
-    cppdialect "C++23"
+    cppdialect "C++20"
     staticruntime "off"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
