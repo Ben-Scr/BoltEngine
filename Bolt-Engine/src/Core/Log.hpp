@@ -34,7 +34,7 @@ namespace Bolt {
 			Level Level = Level::Info;
 		};
 
-		static void Init();
+		static void Initialize();
 		static void Shutdown();
 		static bool IsInitialized();
 

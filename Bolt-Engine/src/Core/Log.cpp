@@ -9,7 +9,7 @@ namespace Bolt {
 
 	Event<const Log::Entry&> Log::OnLog;
 
-	void Log::Init() {
+	void Log::Initialize() {
 		if (s_Initialized) {
 			return;
 		}
@@ -109,7 +109,7 @@ namespace Bolt {
 
 	bool Log::EnsureInitialized() {
 		if (!s_Initialized) {
-			Init();
+			Initialize();
 		}
 		return s_Initialized;
 	}
