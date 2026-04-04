@@ -20,7 +20,7 @@ public:
 		config.EnableGizmoRenderer = false;
 		config.EnableGuiRenderer = false;
 		config.EnablePhysics2D = true;
-		config.SetWindowIcon = false;
+		config.SetWindowIcon = true;
 		return config;
 	}
 
