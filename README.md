@@ -10,8 +10,6 @@ Bolt is a lightweight C++20 2D game engine focused on performance.
   <img src="Docs/Preview/Preview_3.png" width="48%" alt="Gameplay">
 </p>
 
----
-
 ### Editor
 
 <p align="center">
