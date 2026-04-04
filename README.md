@@ -33,6 +33,7 @@ Bolt is a lightweight C++20 2D game engine focused on performance.
 ## How to Generate Build Files
 <details>
 <summary><strong>Windows (Visual Studio)</strong></summary>
+  
 ```bat
 scripts\\Setup.bat
 ```
@@ -41,6 +42,7 @@ This updates the submodules and generates `vs2022` project files.
 
 <details>
 <summary><strong>Linux (GNU Make)</strong></summary>
+  
 ```bash
 ./scripts/Setup.sh
 ```
