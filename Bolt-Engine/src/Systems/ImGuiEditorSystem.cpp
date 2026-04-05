@@ -17,6 +17,8 @@
 #include "Graphics/TextureManager.hpp"
 #include "Utils/StringHelper.hpp"
 
+#include <magic_enum/magic_enum.hpp>
+
 namespace Bolt {
 	void ImGuiEditorSystem::Awake(Scene& scene) {
 		Application::SetIsPlaying(false);
@@ -309,6 +311,71 @@ namespace Bolt {
 		ImGui::End();
 	}
 
+	template<typename TEnum, typename Setter>
+	bool DrawEnumCombo(const char* label, TEnum currentValue, Setter&& setter)
+	{
+		static_assert(std::is_enum_v<TEnum>, "DrawEnumCombo requires an enum type.");
+
+		auto preview = magic_enum::enum_name(currentValue);
+		if (preview.empty()) {
+			preview = "Unknown";
+		}
+
+		bool changed = false;
+
+		if (ImGui::BeginCombo(label, preview.data())) {
+			for (TEnum value : magic_enum::enum_values<TEnum>()) {
+				const bool isSelected = (currentValue == value);
+
+				auto name = magic_enum::enum_name(value);
+				if (name.empty()) {
+					continue;
+				}
+
+				if (ImGui::Selectable(name.data(), isSelected)) {
+					setter(value);
+					currentValue = value;
+					changed = true;
+				}
+
+				if (isSelected) {
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+
+			ImGui::EndCombo();
+		}
+
+		return changed;
+	}
+
+	template<typename TVec2>
+	void DrawVec2ReadOnly(const char* id, const TVec2& vec2)
+	{
+		ImGui::PushID(id);
+
+		float values[2] = { static_cast<float>(vec2.x), static_cast<float>(vec2.y) };
+
+		ImGui::BeginGroup();
+
+		ImGui::PushItemWidth(90.0f);
+
+		ImGui::BeginDisabled();
+		ImGui::InputFloat("##X", &values[0], 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+		ImGui::SameLine();
+		ImGui::InputFloat("##Y", &values[1], 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
+		ImGui::EndDisabled();
+
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		ImGui::TextUnformatted(id);
+
+		ImGui::EndGroup();
+
+		ImGui::PopID();
+	}
+
 	void ImGuiEditorSystem::RenderInspectorPanel(Scene& scene) {
 		ImGui::Begin("Inspector");
 
@@ -362,25 +429,9 @@ namespace Bolt {
 			if (ImGui::SliderFloat("Gravity Scale##RigidBody2D", &gravityScale, 0.0f, 1.0f));
 			rb2D.SetGravityScale(gravityScale);
 
-			const char* items[] = { "Static", "Kinematic", "Dynamic" };
-			int currentItem = static_cast<int>(rb2D.GetBodyType());
-
-			if (ImGui::BeginCombo("Body Type", items[currentItem])) {
-				for (int i = 0; i < IM_ARRAYSIZE(items); i++) {
-					bool isSelected = (currentItem == i);
-
-					if (ImGui::Selectable(items[i], isSelected)) {
-						currentItem = i;
-						rb2D.SetBodyType(static_cast<BodyType>(currentItem));
-					}
-
-					if (isSelected) {
-						ImGui::SetItemDefaultFocus();
-					}
-				}
-
-				ImGui::EndCombo();
-			}
+			DrawEnumCombo<BodyType>("Body Type##RigidBody2D", rb2D.GetBodyType(), [&rb2D](BodyType newType) {
+				rb2D.SetBodyType(newType);
+				});
 		}
 
 		if (entity.HasComponent<SpriteRendererComponent>()) {
@@ -464,25 +515,15 @@ namespace Bolt {
 
 					ImGui::Text("%f x %f", texture->GetWidth(), texture->GetHeight());
 
-					const char* items[] = { "Point", "Bilinear", "Anisotropic" };
-					int currentItem = static_cast<int>(texture->GetFilter());
-
-					if (ImGui::BeginCombo("Filter", items[currentItem])) {
-						for (int i = 0; i < IM_ARRAYSIZE(items); i++) {
-							bool isSelected = (currentItem == i);
-
-							if (ImGui::Selectable(items[i], isSelected)) {
-								currentItem = i;
-								texture->SetFilter(static_cast<Filter>(currentItem));
-							}
-
-							if (isSelected) {
-								ImGui::SetItemDefaultFocus();
-							}
-						}
-
-						ImGui::EndCombo();
-					}
+					DrawEnumCombo<Filter>("Filter##Texture2D", texture->GetFilter(), [&texture](Filter newFilter) {
+						texture->SetFilter(newFilter);
+						});
+					DrawEnumCombo<Wrap>("Wrap U##Texture2D", texture->GetWrapU(), [&texture](Wrap wrapU) {
+						texture->SetWrapU(wrapU);
+						});
+					DrawEnumCombo<Wrap>("Wrap V##Texture2D", texture->GetWrapV(), [&texture](Wrap wrapV) {
+						texture->SetWrapV(wrapV);
+						});
 				}
 			}
 		}
@@ -498,6 +539,14 @@ namespace Bolt {
 			if (ImGui::DragFloat("Orthographic Size", &ortho, 0.05f, 0.05f, 1000.0f)) {
 				camera.SetOrthographicSize(ortho);
 			}
+
+			DrawVec2ReadOnly("Viewport Size", camera.GetViewport()->GetSize());
+			DrawVec2ReadOnly("World Viewport Size", camera.WorldViewPort());
+		}
+
+		if(entity.HasComponent<ParticleSystem2DComponent>()) {
+			auto& ps = entity.GetComponent<ParticleSystem2DComponent>();
+
 		}
 
 		ImGui::End();

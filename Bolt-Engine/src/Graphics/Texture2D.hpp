@@ -3,6 +3,7 @@
 #include "Core/Export.hpp"
 #include <cstdint>
 #include <string>
+#include <magic_enum/magic_enum.hpp>
 
 namespace Bolt {
 	enum class BOLT_API Filter { Point, Bilinear, Trilinear, Anisotropic };
@@ -266,3 +267,9 @@ namespace Bolt {
 	};
 
 } // namespace Bolt
+
+template <>
+struct magic_enum::customize::enum_range<Bolt::Wrap> {
+	static constexpr int min = 0x2901;
+	static constexpr int max = 0x8370;
+};
