@@ -51,12 +51,6 @@ namespace Bolt {
 			((oss << std::forward<Args>(args)), ...);
 			return oss.str();
 		}
-		template <typename... Args>
-		static std::string ToCharString(Args&&... args) {
-			std::ostringstream oss;
-			((oss << std::forward<Args>(args)), ...);
-			return oss.str();
-		}
 
 		static std::string ToLower(const std::string& str) {
 			std::string result = str;

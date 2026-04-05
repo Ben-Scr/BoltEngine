@@ -7,6 +7,7 @@
 #include "Scene/SceneManager.hpp"
 #include <Systems/ImGuiEditorSystem.hpp>
 #include <Systems/ImGuiDebugSystem.hpp>
+#include <Systems/GizmosDebugSystem.hpp>
 #include <Core/Version.hpp>
 
 using namespace Bolt;
@@ -17,10 +18,11 @@ public:
 		ApplicationConfig config;
 		config.WindowSpecification = WindowSpecification(0,0, "Bolt Editor " + std::string(BT_VERSION), true, true, true);
 		config.EnableAudio = false;
-		config.EnableGizmoRenderer = false;
+		config.EnableGizmoRenderer = true;
 		config.EnableGuiRenderer = false;
 		config.EnablePhysics2D = true;
 		config.SetWindowIcon = true;
+		SetRunInBackground(true);
 		return config;
 	}
 
@@ -28,6 +30,7 @@ public:
 		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("SampleScene");
 		editorScene.AddSystem<ImGuiEditorSystem>();
 		editorScene.AddSystem<ImGuiDebugSystem>();
+		editorScene.AddSystem<GizmosDebugSystem>();
 		editorScene.SetAsStartupScene();
 	}
 

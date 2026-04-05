@@ -15,6 +15,7 @@
 #include <Scene/EntityHelper.hpp>
 
 #include "Graphics/TextureManager.hpp"
+#include "Utils/StringHelper.hpp"
 
 namespace Bolt {
 	void ImGuiEditorSystem::Awake(Scene& scene) {
@@ -161,39 +162,102 @@ namespace Bolt {
 
 		if (ImGui::BeginPopupContextWindow("EntityCreateContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 		{
-			if (ImGui::MenuItem("Create Square"))
+			if (ImGui::MenuItem("Create Entity"))
 			{
-				Entity created = scene.CreateEntity("Square " + std::to_string(EntityHelper::EntitiesCount()));
-				created.AddComponent<SpriteRendererComponent>();
-				m_SelectedEntity = created.GetHandle();
-			}
-			if (ImGui::MenuItem("Create Circle"))
-			{
-				Entity created = scene.CreateEntity("Circle " + std::to_string(EntityHelper::EntitiesCount()));
-				auto& sprite = created.AddComponent<SpriteRendererComponent>();
-				sprite.TextureHandle = TextureManager::GetDefaultTexture(DefaultTexture::Circle);
-				m_SelectedEntity = created.GetHandle();
-			}
-			if (ImGui::MenuItem("Create Physics Entity"))
-			{
-				Entity created = scene.CreateEntity("Physics " + std::to_string(EntityHelper::EntitiesCount()));
-				created.AddComponent<SpriteRendererComponent>();
-				created.AddComponent<Rigidbody2DComponent>();
-				created.AddComponent<BoxCollider2DComponent>();
+				Entity created = scene.CreateEntity("Entity " + std::to_string(EntityHelper::EntitiesCount()));
 				m_SelectedEntity = created.GetHandle();
 			}
 
-			ImGui::Separator();
-
-			if (ImGui::BeginMenu("Audio"))
+			if (ImGui::BeginMenu("2D Entity"))
 			{
-				if (ImGui::MenuItem("Create Audio Source"))
+				if (ImGui::BeginMenu("Sprite"))
 				{
-					Entity created = scene.CreateEntity("AudioSource " + std::to_string(EntityHelper::EntitiesCount()));
-					created.AddComponent<AudioSourceComponent>();
-					m_SelectedEntity = created.GetHandle();
+					if (ImGui::MenuItem("Square"))
+					{
+						Entity created = scene.CreateEntity("Square " + std::to_string(EntityHelper::EntitiesCount()));
+						created.AddComponent<SpriteRendererComponent>();
+						m_SelectedEntity = created.GetHandle();
+					}
+					if (ImGui::MenuItem("Circle"))
+					{
+						Entity created = scene.CreateEntity("Circle " + std::to_string(EntityHelper::EntitiesCount()));
+						auto& sprite = created.AddComponent<SpriteRendererComponent>();
+						sprite.TextureHandle = TextureManager::GetDefaultTexture(DefaultTexture::Circle);
+						m_SelectedEntity = created.GetHandle();
+					}
+					if (ImGui::MenuItem("9Sliced"))
+					{
+						Entity created = scene.CreateEntity("9Sliced " + std::to_string(EntityHelper::EntitiesCount()));
+						auto& sprite = created.AddComponent<SpriteRendererComponent>();
+						sprite.TextureHandle = TextureManager::GetDefaultTexture(DefaultTexture::_9Sliced);
+						m_SelectedEntity = created.GetHandle();
+					}
+					if (ImGui::MenuItem("Pixel"))
+					{
+						Entity created = scene.CreateEntity("Pixel " + std::to_string(EntityHelper::EntitiesCount()));
+						auto& sprite = created.AddComponent<SpriteRendererComponent>();
+						sprite.TextureHandle = TextureManager::GetDefaultTexture(DefaultTexture::Pixel);
+						m_SelectedEntity = created.GetHandle();
+					}
+					if (ImGui::MenuItem("Logo"))
+					{
+						Entity created = scene.CreateEntity("Logo " + std::to_string(EntityHelper::EntitiesCount()));
+						auto& sprite = created.AddComponent<SpriteRendererComponent>();
+						sprite.TextureHandle = TextureManager::LoadTexture("Game/logo.png");
+						m_SelectedEntity = created.GetHandle();
+					}
+
+					ImGui::EndMenu();
 				}
+
+				if (ImGui::BeginMenu("Physics")) {
+					if(ImGui::MenuItem("Dynamic Body"))
+					{
+						Entity created = scene.CreateEntity("Dynamic Body " + std::to_string(EntityHelper::EntitiesCount()));
+						created.AddComponent<SpriteRendererComponent>();
+						created.AddComponent<Rigidbody2DComponent>();
+						created.AddComponent<BoxCollider2DComponent>();
+						m_SelectedEntity = created.GetHandle();
+					}
+					if (ImGui::MenuItem("Kinematic Body"))
+					{
+						Entity created = scene.CreateEntity("Kinematic Body " + std::to_string(EntityHelper::EntitiesCount()));
+						created.AddComponent<SpriteRendererComponent>();
+						created.AddComponent<Rigidbody2DComponent>().SetBodyType(BodyType::Kinematic);
+						created.AddComponent<BoxCollider2DComponent>();
+						m_SelectedEntity = created.GetHandle();
+					}
+					if (ImGui::MenuItem("Static Body"))
+					{
+						Entity created = scene.CreateEntity("Static Body " + std::to_string(EntityHelper::EntitiesCount()));
+						created.AddComponent<SpriteRendererComponent>();
+						created.AddComponent<Rigidbody2DComponent>().SetBodyType(BodyType::Static);
+						created.AddComponent<BoxCollider2DComponent>();
+						m_SelectedEntity = created.GetHandle();
+					}
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Effects"))
+				{
+					if (ImGui::MenuItem("Particle System"))
+					{
+						Entity created = scene.CreateEntity("Particle System " + std::to_string(EntityHelper::EntitiesCount()));
+						created.AddComponent<ParticleSystem2DComponent>();
+						m_SelectedEntity = created.GetHandle();
+					}
+					ImGui::EndMenu();
+				}
+
 				ImGui::EndMenu();
+			}
+	
+			if (ImGui::MenuItem("Camera"))
+			{
+				Entity created = scene.CreateEntity("Camera " + std::to_string(EntityHelper::EntitiesCount()));
+				created.AddComponent<Camera2DComponent>();
+				m_SelectedEntity = created.GetHandle();
 			}
 
 			ImGui::EndPopup();
@@ -271,10 +335,10 @@ namespace Bolt {
 
 		if (entity.HasComponent<Transform2DComponent>()) {
 			auto& transform = entity.GetComponent<Transform2DComponent>();
-			ImGui::SeparatorText("Transform2D");
-			ImGui::DragFloat2("Position", &transform.Position.x, 0.05f);
-			ImGui::DragFloat2("Scale", &transform.Scale.x, 0.05f, 0.001f);
-			ImGui::DragFloat("Rotation", &transform.Rotation, 0.01f);
+			ImGui::SeparatorText("Transform2D##Transform2D");
+			ImGui::DragFloat2("Position##Transform2D", &transform.Position.x, 0.05f);
+			ImGui::DragFloat2("Scale##Transform2D", &transform.Scale.x, 0.05f, 0.001f);
+			ImGui::DragFloat("Rotation##Transform2D", &transform.Rotation, 0.01f);
 		}
 
 		if (entity.HasComponent<Rigidbody2DComponent>()) {
@@ -295,7 +359,7 @@ namespace Bolt {
 			if (ImGui::DragFloat("Rotation##RigidBody2D", &rotation, 0.01f))
 				rb2D.SetRotation(rotation);
 
-			if (ImGui::SliderFloat("Gravity Scale", &gravityScale, 0.0f, 1.0f));
+			if (ImGui::SliderFloat("Gravity Scale##RigidBody2D", &gravityScale, 0.0f, 1.0f));
 			rb2D.SetGravityScale(gravityScale);
 
 			const char* items[] = { "Static", "Kinematic", "Dynamic" };
@@ -325,6 +389,102 @@ namespace Bolt {
 			ImGui::ColorEdit4("Color", &sprite.Color.r, ImGuiColorEditFlags_NoInputs);
 			ImGui::DragScalar("Sorting Order", ImGuiDataType_S16, &sprite.SortingOrder, 1.0f);
 			ImGui::DragScalar("Sorting Layer", ImGuiDataType_U8, &sprite.SortingLayer, 1.0f);
+
+			if (sprite.TextureHandle.IsValid()) {
+				if (Texture2D* texture = TextureManager::GetTexture(sprite.TextureHandle)) {
+					const float previewSize = 96.0f;
+					const ImVec2 previewMin = ImGui::GetCursorScreenPos();
+					const ImVec2 previewMax = ImVec2(previewMin.x + previewSize, previewMin.y + previewSize);
+
+					ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+					drawList->AddRectFilled(
+						previewMin,
+						previewMax,
+						IM_COL32(35, 35, 35, 255),
+						6.0f
+					);
+
+					const float checkerSize = 8.0f;
+					for (float y = previewMin.y; y < previewMax.y; y += checkerSize) {
+						for (float x = previewMin.x; x < previewMax.x; x += checkerSize) {
+							const int ix = static_cast<int>((x - previewMin.x) / checkerSize);
+							const int iy = static_cast<int>((y - previewMin.y) / checkerSize);
+							const bool even = ((ix + iy) % 2) == 0;
+
+							drawList->AddRectFilled(
+								ImVec2(x, y),
+								ImVec2(
+									(x + checkerSize < previewMax.x) ? x + checkerSize : previewMax.x,
+									(y + checkerSize < previewMax.y) ? y + checkerSize : previewMax.y
+								),
+								even ? IM_COL32(70, 70, 70, 255) : IM_COL32(100, 100, 100, 255)
+							);
+						}
+					}
+
+					const float texWidth = static_cast<float>(texture->GetWidth());
+					const float texHeight = static_cast<float>(texture->GetHeight());
+
+					float drawWidth = previewSize;
+					float drawHeight = previewSize;
+
+					if (texWidth > 0.0f && texHeight > 0.0f) {
+						const float aspect = texWidth / texHeight;
+
+						if (aspect > 1.0f) {
+							drawHeight = previewSize / aspect;
+						}
+						else {
+							drawWidth = previewSize * aspect;
+						}
+					}
+
+					const ImVec2 imageMin = ImVec2(
+						previewMin.x + (previewSize - drawWidth) * 0.5f,
+						previewMin.y + (previewSize - drawHeight) * 0.5f
+					);
+
+					const ImVec2 imageMax = ImVec2(
+						imageMin.x + drawWidth,
+						imageMin.y + drawHeight
+					);
+
+					GLuint rendererId = texture->GetHandle();
+
+					drawList->AddImage(
+						(ImTextureID)(intptr_t)rendererId,
+						imageMin,
+						imageMax,
+						ImVec2(0.0f, 1.0f),
+						ImVec2(1.0f, 0.0f)
+					);
+
+					ImGui::Dummy(ImVec2(previewSize, previewSize));
+
+					ImGui::Text("%f x %f", texture->GetWidth(), texture->GetHeight());
+
+					const char* items[] = { "Point", "Bilinear", "Anisotropic" };
+					int currentItem = static_cast<int>(texture->GetFilter());
+
+					if (ImGui::BeginCombo("Filter", items[currentItem])) {
+						for (int i = 0; i < IM_ARRAYSIZE(items); i++) {
+							bool isSelected = (currentItem == i);
+
+							if (ImGui::Selectable(items[i], isSelected)) {
+								currentItem = i;
+								texture->SetFilter(static_cast<Filter>(currentItem));
+							}
+
+							if (isSelected) {
+								ImGui::SetItemDefaultFocus();
+							}
+						}
+
+						ImGui::EndCombo();
+					}
+				}
+			}
 		}
 
 		if (entity.HasComponent<Camera2DComponent>()) {
@@ -338,11 +498,6 @@ namespace Bolt {
 			if (ImGui::DragFloat("Orthographic Size", &ortho, 0.05f, 0.05f, 1000.0f)) {
 				camera.SetOrthographicSize(ortho);
 			}
-		}
-
-		if (ImGui::Button("Delete Entity")) {
-			scene.DestroyEntity(m_SelectedEntity);
-			m_SelectedEntity = entt::null;
 		}
 
 		ImGui::End();

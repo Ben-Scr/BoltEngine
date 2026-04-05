@@ -1,0 +1,22 @@
+#include "pch.hpp"
+#include "GizmosDebugSystem.hpp"
+#include "Graphics/Gizmos.hpp"
+#include "Scene/Scene.hpp"
+
+#include "Components/Physics/BoxCollider2DComponent.hpp"
+
+namespace Bolt {
+	void GizmosDebugSystem::Update(Scene& scene) {
+		Gizmo::SetColor(Color::Green());
+
+		for (auto [ent, boxCollider] : scene.GetRegistry().view<BoxCollider2DComponent>().each()) {
+			Gizmo::DrawSquare(boxCollider.GetBodyPosition(), boxCollider.GetScale(), boxCollider.GetRotationDegrees());
+		}
+
+		Gizmo::SetColor(Color::Gray());
+
+		for (auto [ent, tr] : scene.GetRegistry().view<Transform2DComponent>().each()) {
+			Gizmo::DrawSquare(tr.Position, tr.Scale, tr.GetRotationDegrees());
+		}
+	}
+}

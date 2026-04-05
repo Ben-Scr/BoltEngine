@@ -101,6 +101,21 @@ namespace Bolt {
 		if (IsValid()) ApplySamplerParams();
 	}
 
+	void Texture2D::SetFilter(Filter filter) {
+		m_Filter = filter;
+		if (IsValid()) ApplySamplerParams();
+	}
+
+	void Texture2D::SetWrapU(Wrap u) {
+		m_WrapU = u;
+		if (IsValid()) ApplySamplerParams();
+	}
+
+	void Texture2D::SetWrapV(Wrap v) {
+		m_WrapV = v;
+		if (IsValid()) ApplySamplerParams();
+	}
+
 	std::unique_ptr<ImageData> Texture2D::GetImageData() const {
 		BT_ASSERT(IsValid(), BoltErrorCode::InvalidHandle, "Texture isn't valid!");
 

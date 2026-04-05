@@ -235,9 +235,14 @@ namespace Bolt {
 
 		void Submit(uint8_t unit) const;
 
-
+		void SetFilter(Filter filter);
+		void SetWrapU(Wrap u);
+		void SetWrapV(Wrap v);
 		void SetSampler(Filter filter, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
 
+		Filter GetFilter() const { return m_Filter; }
+		Wrap GetWrapU() const { return m_WrapU; }
+		Wrap GetWrapV() const { return m_WrapV; }
 
 		bool IsValid() const { return m_Tex != 0; }
 
