@@ -134,7 +134,10 @@ namespace Bolt {
 					return *ptr;
 				}
 			}
-			BT_LOG_ERROR(BoltErrorCode::Undefined,"System not found");
+			// F-02: Log then terminate. Falling off a non-void function is UB; callers
+			// must not continue after a missing-system lookup failure.
+			BT_LOG_ERROR(BoltErrorCode::Undefined, "System not found");
+			std::terminate();
 		}
 
 		template<typename T>
@@ -212,7 +215,8 @@ namespace Bolt {
 					try {
 						func(s);
 					}
-					catch (std::runtime_error e) {
+					catch (const std::exception& e) {
+						// F-17: Catch by const ref to avoid slicing derived exception types.
 						BT_ERROR(e.what());
 					}
 				}

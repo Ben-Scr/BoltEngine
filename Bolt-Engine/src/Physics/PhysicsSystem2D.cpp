@@ -13,18 +13,17 @@
 
 namespace Bolt {
 	bool PhysicsSystem2D::s_IsEnabled = true;
-	Box2DWorld PhysicsSystem2D::s_MainWorld;
+	std::optional<Box2DWorld> PhysicsSystem2D::s_MainWorld; // F-14: starts empty, constructed in Initialize()
 
 	void PhysicsSystem2D::Initialize() {
-		s_MainWorld.Destroy();
-		s_MainWorld = Box2DWorld();
+		s_MainWorld.emplace(); // F-14: construct in-place; previous world (if any) is destroyed first
 	}
 
 	void PhysicsSystem2D::FixedUpdate(float dt) {
 		if (!s_IsEnabled) return;
         
-		s_MainWorld.Step(dt);
-		s_MainWorld.GetDispatcher().Process(s_MainWorld.GetWorldID());
+		s_MainWorld->Step(dt);
+		s_MainWorld->GetDispatcher().Process(s_MainWorld->GetWorldID());
 
 		for (auto& weakScene : SceneManager::Get().GetLoadedScenes())
 		{
@@ -38,6 +37,6 @@ namespace Bolt {
 	}
 
 	void PhysicsSystem2D::Shutdown() {
-		s_MainWorld.Destroy();
+		s_MainWorld.reset(); // F-14: destroys Box2DWorld cleanly; optional is empty after this
 	}
 }

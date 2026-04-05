@@ -65,6 +65,8 @@ namespace Bolt {
 
 		int w = 0, h = 0, n = 0;
 		unsigned char* pixels = stbi_load(path, &w, &h, &n, 0);
+		// F-12: Restore default flip state immediately after load so other callers are not affected.
+		stbi_set_flip_vertically_on_load(false);
 		BT_ASSERT(pixels, BoltErrorCode::LoadFailed, "Failed to load path: " + std::string(path));
 
 		GLint internalFmt = GL_RGBA8;
