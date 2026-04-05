@@ -29,6 +29,9 @@ namespace Bolt {
 			return;
 		}
 
+		// F-11: Anchor texture root to the executable directory, not the process CWD.
+		s_RootPath = Path::Combine(Path::ExecutableDir(), "Assets", "Textures");
+
 		s_Textures.clear();
 		while (!s_FreeIndices.empty()) {
 			s_FreeIndices.pop();
@@ -86,7 +89,7 @@ namespace Bolt {
 
 			entry.Generation++;
 			entry.IsValid = true;
-			entry.Name = path;
+			entry.Name = fullpath; // F-19: store fullpath so FindTextureByPath can match on re-lookup
 		}
 		else {
 			index = static_cast<uint16_t>(s_Textures.size());
@@ -228,6 +231,9 @@ namespace Bolt {
 
 			if (!entry.Texture.IsValid()) {
 				BT_CORE_ERROR("[{}] Failed to load default texture at path: {}", ErrorCodeToString(BoltErrorCode::LoadFailed), texPath);
+				// F-06: Always push an entry so the index stays aligned with the DefaultTexture enum.
+				// A missing file leaves the slot with IsValid=false; callers get nullptr from GetTexture().
+				s_Textures.push_back(std::move(entry));
 				continue;
 			}
 

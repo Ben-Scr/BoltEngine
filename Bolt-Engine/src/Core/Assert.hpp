@@ -47,7 +47,7 @@ namespace Bolt {
 
 #define BT_ENABLE_VERIFY
 
-#ifdef BT_ENABLE_ASSERTS
+// F-13: BT_ASSERT is always active (same as BT_VERIFY) so safety-critical checks fire in all builds.
 #define BT_ASSERT(cond, ...) \
 	do { \
 		if (!(cond)) { \
@@ -61,10 +61,6 @@ namespace Bolt {
 			::Bolt::ReportAssertionFailure("CORE_ASSERT", #cond, ::Bolt::BuildAssertMessage(__VA_ARGS__), std::source_location::current()); \
 		} \
 	} while (0)
-#else
-#define BT_ASSERT(cond, ...) (cond)
-#define BT_CORE_ASSERT(cond, ...) (cond)
-#endif
 
 #ifdef BT_ENABLE_VERIFY
 #define BT_VERIFY(cond, ...) \

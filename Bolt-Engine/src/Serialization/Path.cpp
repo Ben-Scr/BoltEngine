@@ -6,6 +6,8 @@
 #include <shlobj.h>
 #else
 #include <cstdlib>
+#include <unistd.h>
+#include <limits.h>
 #endif
 
 namespace Bolt {
@@ -58,6 +60,23 @@ namespace Bolt {
         default:
             BT_THROW(BoltErrorCode::InvalidArgument, "Unknown SpecialFolder");
         }
+#endif
+    }
+
+    // F-11: Return the directory that contains the running executable.
+    std::string Path::ExecutableDir()
+    {
+#ifdef BT_PLATFORM_WINDOWS
+        wchar_t buf[MAX_PATH]{};
+        GetModuleFileNameW(nullptr, buf, MAX_PATH);
+        return std::filesystem::path(buf).parent_path().string();
+#else
+        char buf[PATH_MAX]{};
+        ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+        if (len <= 0)
+            BT_THROW(BoltErrorCode::Undefined, "Failed to resolve executable path");
+        buf[len] = '\0';
+        return std::filesystem::path(buf).parent_path().string();
 #endif
     }
 }

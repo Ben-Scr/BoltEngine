@@ -3,6 +3,7 @@
 #include "Shader.hpp"
 #include "Components/Graphics/Camera2DComponent.hpp"
 #include "Gizmos.hpp"
+#include "Serialization/Path.hpp"
 
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -42,7 +43,12 @@ namespace Bolt {
 		if (m_IsInitialized)
 			return true;
 
-		m_GizmoShader = std::make_unique<Shader>("Assets/Shader/gizmo.vert.glsl", "Assets/Shader/gizmo.frag.glsl");
+		// F-11: Use the executable directory so assets load correctly regardless of CWD.
+	const std::string base = Path::ExecutableDir();
+	m_GizmoShader = std::make_unique<Shader>(
+		Path::Combine(base, "Assets/Shader/gizmo.vert.glsl").c_str(),
+		Path::Combine(base, "Assets/Shader/gizmo.frag.glsl").c_str()
+	);
 		BT_ASSERT(m_GizmoShader && m_GizmoShader->IsValid(), BoltErrorCode::Undefined, "Failed to load gizmo shader");
 
 		GLuint program = m_GizmoShader->GetHandle();
