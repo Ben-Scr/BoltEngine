@@ -51,7 +51,7 @@ namespace Bolt {
 
 		template<typename TComponent>
 		bool TryGetComponent(TComponent*& out) {
-			out = ComponentUtils::TryGetComponent<TComponent>(m_Registry, m_EntityHandle);
+			out = ComponentUtils::TryGetComponent<TComponent>(*m_Registry, m_EntityHandle);
 			return out != nullptr;
 		}
 
