@@ -139,8 +139,6 @@ namespace Bolt {
 	}
 	void Window::MinimizeWindow() {
 		glfwIconifyWindow(m_GLFWwindow);
-		// F-15: Do not update the viewport on minimize. GLFW reports 0x0 for iconified windows,
-		// which causes division by zero in camera projection and ScreenToWorld calculations.
 	}
 	void Window::RestoreWindow() {
 		glfwRestoreWindow(m_GLFWwindow);

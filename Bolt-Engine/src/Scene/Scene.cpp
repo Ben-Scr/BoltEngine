@@ -71,8 +71,6 @@ namespace Bolt {
 		m_Registry.on_destroy<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentDestroy>(this);
 		m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
 		m_Registry.on_destroy<Camera2DComponent>().connect<&Scene::OnCamera2DComponentDestruct>(this);
-		// F-05: Connect the ParticleSystem2D destructor so the raw emitter-transform pointer
-		// is cleared before it can dangle.
 		m_Registry.on_destroy<ParticleSystem2DComponent>().connect<&Scene::OnParticleSystem2DComponentDestruct>(this);
 	}
 
@@ -81,8 +79,6 @@ namespace Bolt {
 		bool isEnabled = !registry.all_of<DisabledTag>(entity);
 		Rigidbody2DComponent& rb2D = registry.get<Rigidbody2DComponent>(entity);
 
-		// Info: Check if there is any 2d Collider attached to the entity
-		// Get the body of the Collider and set it to Dynamic
 		if (HasAnyComponent<BoxCollider2DComponent>(entity)) {
 			rb2D.m_BodyId = GetComponent<BoxCollider2DComponent>(entity).m_BodyId;
 			rb2D.SetBodyType(BodyType::Dynamic);
@@ -148,10 +144,9 @@ namespace Bolt {
 		Camera2DComponent& camera2D = GetComponent<Camera2DComponent>(entity);
 		camera2D.Destroy();
 
-		// F-16: If this was the main camera, promote another enabled camera.
 		if (!Camera2DComponent::Main()) {
 			auto view = registry.view<Camera2DComponent>(entt::exclude<DisabledTag>);
-			for (auto [ent] : view.each()) {
+			for (auto [ent, camera] : view.each()) {
 				if (ent != entity) {
 					Camera2DComponent::s_Main = &registry.get<Camera2DComponent>(ent);
 					break;
@@ -166,7 +161,6 @@ namespace Bolt {
 	}
 
 	void Scene::OnParticleSystem2DComponentDestruct(entt::registry& registry, EntityHandle entity) {
-		// F-05: Clear the raw pointer before the component is destroyed to prevent dangling.
 		auto& ps = registry.get<ParticleSystem2DComponent>(entity);
 		ps.m_EmitterTransform = nullptr;
 	}

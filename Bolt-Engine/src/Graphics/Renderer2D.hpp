@@ -40,10 +40,8 @@ namespace Bolt {
 		bool m_IsInitialized = false;
 		bool m_IsEnabled = true;
 
-		// Reused across frames to avoid per-frame heap allocation. (F-18)
 		std::vector<Instance44> m_Instances;
 
-		// Optional custom render target registered by the editor viewport. (F-08)
 		unsigned int m_OutputFboId = 0;
 		int m_OutputWidth = 0;
 		int m_OutputHeight = 0;

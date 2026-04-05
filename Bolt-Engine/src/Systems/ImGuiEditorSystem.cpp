@@ -299,7 +299,6 @@ namespace Bolt {
 			rb2D.SetGravityScale(gravityScale);
 
 			const char* items[] = { "Static", "Kinematic", "Dynamic" };
-			// F-07: Must not be static — static persists across entity switches, showing wrong body type.
 			int currentItem = static_cast<int>(rb2D.GetBodyType());
 
 			if (ImGui::BeginCombo("Body Type", items[currentItem])) {
@@ -364,9 +363,7 @@ namespace Bolt {
 				auto* app = Application::GetInstance();
 				auto* renderer = app->GetRenderer2D();
 
-				// F-08: Register the FBO as a render target. Renderer2D::BeginFrame() fires after
-				// OnGui() completes and will consume this target, rendering the scene into the FBO.
-				// The FBO texture is then valid when ImGui submits the draw-list below.
+
 				renderer->SetOutputTarget(m_ViewportFramebufferId, framebufferWidth, framebufferHeight);
 
 				ImGui::Image(
@@ -382,8 +379,6 @@ namespace Bolt {
 
 		m_IsViewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
 		m_IsViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
-		ImGui::TextDisabled("Input capture: %s", (m_IsViewportFocused || m_IsViewportHovered) ? "Viewport" : "Editor");
-
 		ImGui::End();
 	}
 

@@ -99,7 +99,6 @@ namespace Bolt {
 		for (const auto& [ent, particleSystem] : ptsView.each()) {
 			glActiveTexture(GL_TEXTURE0);
 
-			// F-01: GetTexture() can return nullptr for an invalid/default handle.
 			Texture2D* texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
 			if (texture && texture->IsValid())
 				texture->Submit(0);
@@ -150,7 +149,6 @@ namespace Bolt {
 
 			glActiveTexture(GL_TEXTURE0);
 
-			// F-01: GetTexture() can return nullptr for an invalid/default handle.
 			Texture2D* texture = TextureManager::GetTexture(instance.TextureHandle);
 			if (texture && texture->IsValid())
 				texture->Submit(0);

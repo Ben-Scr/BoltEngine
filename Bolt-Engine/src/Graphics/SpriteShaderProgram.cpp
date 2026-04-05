@@ -6,7 +6,6 @@
 
 namespace Bolt {
 	void SpriteShaderProgram::Initialize() {
-		// F-11: Use the executable directory so assets load correctly regardless of CWD.
 		const std::string base = Path::ExecutableDir();
 		m_Shader.emplace(
 			Path::Combine(base, "Assets/Shader/2D/sprite.vert.glsl").c_str(),

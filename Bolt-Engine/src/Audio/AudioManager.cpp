@@ -8,8 +8,6 @@
 
 #include "Components/Audio/AudioSourceComponent.hpp"
 
-// F-20: MINIAUDIO_IMPLEMENTATION must be defined in exactly one translation unit (ODR).
-// Keep it here and do not define it anywhere else in the project.
 #define MINIAUDIO_IMPLEMENTATION
 #include <miniaudio.h>
 
@@ -37,7 +35,6 @@ namespace Bolt {
 			return true;
 		}
 
-		// F-11: Anchor audio root to the executable directory, not the process CWD.
 		s_RootPath = Path::Combine(Path::ExecutableDir(), "Assets", "Audio");
 
 		ma_result result = ma_engine_init(nullptr, &s_Engine);

@@ -24,8 +24,6 @@ namespace Bolt {
 			BT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 		}
 
-		// F-04: Use an explicit loop instead of recursion so that each reload does not
-		// consume an additional stack frame.
 		for (;;) {
 			BT_INFO_TAG("Application", "Initializing...");
 			Timer timer = Timer();
@@ -200,9 +198,6 @@ namespace Bolt {
 
 			if (m_IsPlaying && m_SceneManager) m_SceneManager->UpdateScenes();
 
-			// F-08: ImGui begins before the renderer so editor systems can configure a render
-			// target (e.g. register an FBO via Renderer2D::SetOutputTarget) during OnGuiScenes.
-			// The renderer then fires after OnGuiScenes and honours the registered target.
 			if (m_ImGuiRenderer) {
 				BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
 				if (m_SceneManager) m_SceneManager->OnGuiScenes();
@@ -259,8 +254,6 @@ namespace Bolt {
 	}
 
 	void Application::RenderOnceForRefresh() {
-		// F-08: Match the new ordering from BeginFrame — ImGui/OnGui before the renderer —
-		// so editor systems can register their FBO target before the renderer fires.
 		if (m_ImGuiRenderer) {
 			BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
 			if (m_SceneManager) BOLT_TRY_CATCH_LOG(m_SceneManager->OnGuiScenes());
@@ -310,9 +303,6 @@ namespace Bolt {
 	void Application::Shutdown() {
 		OnQuit();
 
-		// F-03: SceneManager must shut down before PhysicsSystem2D. Destroying scenes triggers
-		// on_destroy callbacks (OnRigidBody2DComponentDestroy, OnBoxCollider2DComponentDestroy)
-		// which call b2DestroyBody/b2DestroyShape. Those calls require a live Box2D world.
 		if (m_SceneManager) m_SceneManager->Shutdown();
 		TextureManager::Shutdown();
 

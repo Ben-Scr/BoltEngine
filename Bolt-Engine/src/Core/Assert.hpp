@@ -47,7 +47,6 @@ namespace Bolt {
 
 #define BT_ENABLE_VERIFY
 
-// F-13: BT_ASSERT is always active (same as BT_VERIFY) so safety-critical checks fire in all builds.
 #define BT_ASSERT(cond, ...) \
 	do { \
 		if (!(cond)) { \
