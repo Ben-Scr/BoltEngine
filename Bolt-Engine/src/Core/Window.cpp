@@ -3,6 +3,9 @@
 #include "Application.hpp"
 #include "Graphics/Texture2D.hpp"
 #include "Graphics/OpenGL.hpp"
+#include "Events/WindowEvents.hpp"
+#include "Events/KeyEvents.hpp"
+#include "Events/MouseEvents.hpp"
 #include <Utils/StringHelper.hpp>
 
 #include <glad/glad.h>
@@ -46,15 +49,23 @@ namespace Bolt {
 	}
 
 	void Window::FocusCallback(GLFWwindow* window, int focused) {
+		Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+
 		if ((bool)focused) {
 			Application::Pause(false);
-			BT_INFO("Focused " + std::to_string(focused));
+			if (win && win->m_EventCallback) {
+				WindowFocusEvent e;
+				win->m_EventCallback(e);
+			}
 		}
 		else {
 			if (!Application::GetRunInBackground())
 				Application::Pause(true);
 
-			BT_INFO("Unfocused " + std::to_string(focused));
+			if (win && win->m_EventCallback) {
+				WindowLostFocusEvent e;
+				win->m_EventCallback(e);
+			}
 		}
 	}
 
@@ -145,7 +156,6 @@ namespace Bolt {
 	}
 
 	void Window::SetKeyCallback(GLFWwindow* window, int key, int, int action, int mods) {
-		(void)window;
 		(void)mods;
 		if (key == GLFW_KEY_UNKNOWN) {
 			return;
@@ -154,49 +164,84 @@ namespace Bolt {
 		Application* app = Application::GetInstance();
 		if (!app) return;
 
+		Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+
 		switch (action) {
 		case GLFW_PRESS:
 			app->m_Input.OnKeyDown(key);
+			if (win && win->m_EventCallback) {
+				KeyPressedEvent e(key, false);
+				win->m_EventCallback(e);
+			}
 			break;
 		case GLFW_RELEASE:
 			app->m_Input.OnKeyUp(key);
+			if (win && win->m_EventCallback) {
+				KeyReleasedEvent e(key);
+				win->m_EventCallback(e);
+			}
 			break;
 		case GLFW_REPEAT:
 			app->m_Input.OnKeyDown(key);
+			if (win && win->m_EventCallback) {
+				KeyPressedEvent e(key, true);
+				win->m_EventCallback(e);
+			}
 			break;
 		default:
 			break;
 		}
 	}
 
-	void Window::SetMouseButtonCallback(GLFWwindow*, int button, int action, int mods) {
+	void Window::SetMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 		(void)mods;
 		Application* app = Application::GetInstance();
 		if (!app) return;
 
+		Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+
 		switch (action) {
 		case GLFW_PRESS:
 			app->m_Input.OnMouseDown(button);
+			if (win && win->m_EventCallback) {
+				MouseButtonPressedEvent e(button);
+				win->m_EventCallback(e);
+			}
 			break;
 		case GLFW_RELEASE:
 			app->m_Input.OnMouseUp(button);
+			if (win && win->m_EventCallback) {
+				MouseButtonReleasedEvent e(button);
+				win->m_EventCallback(e);
+			}
 			break;
 		default:
 			break;
 		}
 	}
+
 	void Window::SetCursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
-		(void)window;
 		Application* app = Application::GetInstance();
 		if (!app) return;
 		app->m_Input.OnMouseMove(xPos, yPos);
+
+		Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (win && win->m_EventCallback) {
+			MouseMovedEvent e(static_cast<float>(xPos), static_cast<float>(yPos));
+			win->m_EventCallback(e);
+		}
 	}
+
 	void Window::SetScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-		(void)window;
-		(void)xoffset;
 		Application* app = Application::GetInstance();
 		if (!app) return;
 		app->m_Input.OnScroll(static_cast<float>(yoffset));
+
+		Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (win && win->m_EventCallback) {
+			MouseScrolledEvent e(static_cast<float>(xoffset), static_cast<float>(yoffset));
+			win->m_EventCallback(e);
+		}
 	}
 
 	void Window::SetFullScreen(bool enabled) {
@@ -301,13 +346,17 @@ namespace Bolt {
 	}
 
 	void Window::SetWindowResizedCallback(GLFWwindow* window, int width, int height) {
-		Window* _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+		Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (!win) return;
 
-		if (!_window) return;
+		win->s_MainViewport->SetWidth(width);
+		win->s_MainViewport->SetHeight(height);
+		win->UpdateViewport();
 
-		_window->s_MainViewport->SetWidth(width);
-		_window->s_MainViewport->SetHeight(height);
-		_window->UpdateViewport();
+		if (win->m_EventCallback) {
+			WindowResizeEvent e(width, height);
+			win->m_EventCallback(e);
+		}
 	}
 
 	Vec2 Window::GetCursorPosition() const {

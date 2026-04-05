@@ -12,12 +12,12 @@
 #include "Graphics/Renderer2D.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
+#include "Scene/ComponentRegistry.hpp"
 #include <Scene/EntityHelper.hpp>
 
 #include "Graphics/TextureManager.hpp"
-#include "Utils/StringHelper.hpp"
-
-#include <magic_enum/magic_enum.hpp>
+#include "Gui/ImGuiUtils.hpp"
+#include "Serialization/Path.hpp"
 
 namespace Bolt {
 	void ImGuiEditorSystem::Awake(Scene& scene) {
@@ -45,6 +45,7 @@ namespace Bolt {
 		}
 
 		DestroyViewportFramebuffer();
+		m_AssetBrowser.Shutdown();
 	}
 
 	void ImGuiEditorSystem::EnsureViewportFramebuffer(int width, int height) {
@@ -254,7 +255,7 @@ namespace Bolt {
 
 				ImGui::EndMenu();
 			}
-	
+
 			if (ImGui::MenuItem("Camera"))
 			{
 				Entity created = scene.CreateEntity("Camera " + std::to_string(EntityHelper::EntitiesCount()));
@@ -289,12 +290,13 @@ namespace Bolt {
 				{
 					Entity copy = scene.CreateEntity(entity.GetName() + " (Copy)");
 
-					if (entity.HasComponent<SpriteRendererComponent>())
-						copy.AddComponent<SpriteRendererComponent>(entity.GetComponent<SpriteRendererComponent>());
-					if (entity.HasComponent<Rigidbody2DComponent>())
-						copy.AddComponent<Rigidbody2DComponent>(entity.GetComponent<Rigidbody2DComponent>());
-					if (entity.HasComponent<BoxCollider2DComponent>())
-						copy.AddComponent<BoxCollider2DComponent>(entity.GetComponent<BoxCollider2DComponent>());
+					const auto& registry = SceneManager::Get().GetComponentRegistry();
+					registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
+						if (info.category != ComponentCategory::Component) return;
+						if (!info.has(entity)) return;
+						if (info.has(copy)) return; // already present (e.g. NameComponent, Transform2D)
+						info.add(copy);
+					});
 
 					m_SelectedEntity = copy.GetHandle();
 				}
@@ -309,71 +311,6 @@ namespace Bolt {
 		}
 
 		ImGui::End();
-	}
-
-	template<typename TEnum, typename Setter>
-	bool DrawEnumCombo(const char* label, TEnum currentValue, Setter&& setter)
-	{
-		static_assert(std::is_enum_v<TEnum>, "DrawEnumCombo requires an enum type.");
-
-		auto preview = magic_enum::enum_name(currentValue);
-		if (preview.empty()) {
-			preview = "Unknown";
-		}
-
-		bool changed = false;
-
-		if (ImGui::BeginCombo(label, preview.data())) {
-			for (TEnum value : magic_enum::enum_values<TEnum>()) {
-				const bool isSelected = (currentValue == value);
-
-				auto name = magic_enum::enum_name(value);
-				if (name.empty()) {
-					continue;
-				}
-
-				if (ImGui::Selectable(name.data(), isSelected)) {
-					setter(value);
-					currentValue = value;
-					changed = true;
-				}
-
-				if (isSelected) {
-					ImGui::SetItemDefaultFocus();
-				}
-			}
-
-			ImGui::EndCombo();
-		}
-
-		return changed;
-	}
-
-	template<typename TVec2>
-	void DrawVec2ReadOnly(const char* id, const TVec2& vec2)
-	{
-		ImGui::PushID(id);
-
-		float values[2] = { static_cast<float>(vec2.x), static_cast<float>(vec2.y) };
-
-		ImGui::BeginGroup();
-
-		ImGui::PushItemWidth(90.0f);
-
-		ImGui::BeginDisabled();
-		ImGui::InputFloat("##X", &values[0], 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
-		ImGui::SameLine();
-		ImGui::InputFloat("##Y", &values[1], 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
-		ImGui::EndDisabled();
-
-		ImGui::PopItemWidth();
-
-		ImGui::SameLine();
-		ImGui::TextUnformatted(id);
-
-		ImGui::EndGroup();
-
-		ImGui::PopID();
 	}
 
 	void ImGuiEditorSystem::RenderInspectorPanel(Scene& scene) {
@@ -391,162 +328,56 @@ namespace Bolt {
 		ImGui::Text("Entity: %s", entityName.c_str());
 		ImGui::Separator();
 
-		if (entity.HasComponent<NameComponent>()) {
-			auto& name = entity.GetComponent<NameComponent>();
-			char buffer[256]{};
-			std::snprintf(buffer, sizeof(buffer), "%s", name.Name.c_str());
-			if (ImGui::InputText("Name", buffer, sizeof(buffer))) {
-				name.Name = buffer;
+		const auto& registry = SceneManager::Get().GetComponentRegistry();
+
+		// Draw all components present on this entity via the registry
+		std::type_index pendingRemoval = typeid(void);
+
+		registry.ForEachComponentInfo([&](const std::type_index& typeId, const ComponentInfo& info) {
+			if (info.category != ComponentCategory::Component) return;
+			if (!info.has(entity)) return;
+
+			bool removeRequested = false;
+			ImGuiUtils::BeginComponentSection(info.displayName.c_str(), removeRequested);
+
+			if (removeRequested) {
+				pendingRemoval = typeId;
 			}
-		}
 
-		if (entity.HasComponent<Transform2DComponent>()) {
-			auto& transform = entity.GetComponent<Transform2DComponent>();
-			ImGui::SeparatorText("Transform2D##Transform2D");
-			ImGui::DragFloat2("Position##Transform2D", &transform.Position.x, 0.05f);
-			ImGui::DragFloat2("Scale##Transform2D", &transform.Scale.x, 0.05f, 0.001f);
-			ImGui::DragFloat("Rotation##Transform2D", &transform.Rotation, 0.01f);
-		}
+			if (info.drawInspector) {
+				info.drawInspector(entity);
+			}
+		});
 
-		if (entity.HasComponent<Rigidbody2DComponent>()) {
-			auto& rb2D = entity.GetComponent<Rigidbody2DComponent>();
-			ImGui::SeparatorText("Rigidbody2D");
-
-			Vec2 position = rb2D.GetPosition();
-			Vec2 velocity = rb2D.GetVelocity();
-			float gravityScale = rb2D.GetGravityScale();
-			float rotation = rb2D.GetRotation();
-
-			if (ImGui::DragFloat2("Position##RigidBody2D", &position.x, 0.05f))
-				rb2D.SetPosition(position);
-
-			if (ImGui::DragFloat2("Velocity##RigidBody2D", &velocity.x, 0.05f))
-				rb2D.SetVelocity(velocity);
-
-			if (ImGui::DragFloat("Rotation##RigidBody2D", &rotation, 0.01f))
-				rb2D.SetRotation(rotation);
-
-			if (ImGui::SliderFloat("Gravity Scale##RigidBody2D", &gravityScale, 0.0f, 1.0f));
-			rb2D.SetGravityScale(gravityScale);
-
-			DrawEnumCombo<BodyType>("Body Type##RigidBody2D", rb2D.GetBodyType(), [&rb2D](BodyType newType) {
-				rb2D.SetBodyType(newType);
-				});
-		}
-
-		if (entity.HasComponent<SpriteRendererComponent>()) {
-			auto& sprite = entity.GetComponent<SpriteRendererComponent>();
-			ImGui::SeparatorText("Sprite Renderer");
-			ImGui::ColorEdit4("Color", &sprite.Color.r, ImGuiColorEditFlags_NoInputs);
-			ImGui::DragScalar("Sorting Order", ImGuiDataType_S16, &sprite.SortingOrder, 1.0f);
-			ImGui::DragScalar("Sorting Layer", ImGuiDataType_U8, &sprite.SortingLayer, 1.0f);
-
-			if (sprite.TextureHandle.IsValid()) {
-				if (Texture2D* texture = TextureManager::GetTexture(sprite.TextureHandle)) {
-					const float previewSize = 96.0f;
-					const ImVec2 previewMin = ImGui::GetCursorScreenPos();
-					const ImVec2 previewMax = ImVec2(previewMin.x + previewSize, previewMin.y + previewSize);
-
-					ImDrawList* drawList = ImGui::GetWindowDrawList();
-
-					drawList->AddRectFilled(
-						previewMin,
-						previewMax,
-						IM_COL32(35, 35, 35, 255),
-						6.0f
-					);
-
-					const float checkerSize = 8.0f;
-					for (float y = previewMin.y; y < previewMax.y; y += checkerSize) {
-						for (float x = previewMin.x; x < previewMax.x; x += checkerSize) {
-							const int ix = static_cast<int>((x - previewMin.x) / checkerSize);
-							const int iy = static_cast<int>((y - previewMin.y) / checkerSize);
-							const bool even = ((ix + iy) % 2) == 0;
-
-							drawList->AddRectFilled(
-								ImVec2(x, y),
-								ImVec2(
-									(x + checkerSize < previewMax.x) ? x + checkerSize : previewMax.x,
-									(y + checkerSize < previewMax.y) ? y + checkerSize : previewMax.y
-								),
-								even ? IM_COL32(70, 70, 70, 255) : IM_COL32(100, 100, 100, 255)
-							);
-						}
-					}
-
-					const float texWidth = static_cast<float>(texture->GetWidth());
-					const float texHeight = static_cast<float>(texture->GetHeight());
-
-					float drawWidth = previewSize;
-					float drawHeight = previewSize;
-
-					if (texWidth > 0.0f && texHeight > 0.0f) {
-						const float aspect = texWidth / texHeight;
-
-						if (aspect > 1.0f) {
-							drawHeight = previewSize / aspect;
-						}
-						else {
-							drawWidth = previewSize * aspect;
-						}
-					}
-
-					const ImVec2 imageMin = ImVec2(
-						previewMin.x + (previewSize - drawWidth) * 0.5f,
-						previewMin.y + (previewSize - drawHeight) * 0.5f
-					);
-
-					const ImVec2 imageMax = ImVec2(
-						imageMin.x + drawWidth,
-						imageMin.y + drawHeight
-					);
-
-					GLuint rendererId = texture->GetHandle();
-
-					drawList->AddImage(
-						(ImTextureID)(intptr_t)rendererId,
-						imageMin,
-						imageMax,
-						ImVec2(0.0f, 1.0f),
-						ImVec2(1.0f, 0.0f)
-					);
-
-					ImGui::Dummy(ImVec2(previewSize, previewSize));
-
-					ImGui::Text("%f x %f", texture->GetWidth(), texture->GetHeight());
-
-					DrawEnumCombo<Filter>("Filter##Texture2D", texture->GetFilter(), [&texture](Filter newFilter) {
-						texture->SetFilter(newFilter);
-						});
-					DrawEnumCombo<Wrap>("Wrap U##Texture2D", texture->GetWrapU(), [&texture](Wrap wrapU) {
-						texture->SetWrapU(wrapU);
-						});
-					DrawEnumCombo<Wrap>("Wrap V##Texture2D", texture->GetWrapV(), [&texture](Wrap wrapV) {
-						texture->SetWrapV(wrapV);
-						});
+		// Process deferred removal
+		if (pendingRemoval != typeid(void)) {
+			registry.ForEachComponentInfo([&](const std::type_index& typeId, const ComponentInfo& info) {
+				if (typeId == pendingRemoval && info.remove) {
+					info.remove(entity);
 				}
-			}
+			});
 		}
 
-		if (entity.HasComponent<Camera2DComponent>()) {
-			auto& camera = entity.GetComponent<Camera2DComponent>();
-			ImGui::SeparatorText("Camera2D");
-			float zoom = camera.GetZoom();
-			if (ImGui::DragFloat("Zoom", &zoom, 0.01f, 0.01f, 100.0f)) {
-				camera.SetZoom(zoom);
-			}
-			float ortho = camera.GetOrthographicSize();
-			if (ImGui::DragFloat("Orthographic Size", &ortho, 0.05f, 0.05f, 1000.0f)) {
-				camera.SetOrthographicSize(ortho);
-			}
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
 
-			DrawVec2ReadOnly("Viewport Size", camera.GetViewport()->GetSize());
-			DrawVec2ReadOnly("World Viewport Size", camera.WorldViewPort());
+		// "Add Component" button with dropdown
+		float buttonWidth = ImGui::GetContentRegionAvail().x;
+		if (ImGui::Button("Add Component", ImVec2(buttonWidth, 0))) {
+			ImGui::OpenPopup("AddComponentPopup");
 		}
 
-		if(entity.HasComponent<ParticleSystem2DComponent>()) {
-			auto& ps = entity.GetComponent<ParticleSystem2DComponent>();
+		if (ImGui::BeginPopup("AddComponentPopup")) {
+			registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
+				if (info.category != ComponentCategory::Component) return;
+				if (info.has(entity)) return;
 
+				if (ImGui::MenuItem(info.displayName.c_str())) {
+					info.add(entity);
+				}
+			});
+			ImGui::EndPopup();
 		}
 
 		ImGui::End();
@@ -566,7 +397,6 @@ namespace Bolt {
 			if (m_ViewportFramebufferId != 0) {
 				auto* app = Application::GetInstance();
 				auto* renderer = app->GetRenderer2D();
-
 
 				renderer->SetOutputTarget(m_ViewportFramebufferId, framebufferWidth, framebufferHeight);
 
@@ -616,6 +446,24 @@ namespace Bolt {
 		ImGui::End();
 	}
 
+	void ImGuiEditorSystem::RenderProjectPanel() {
+		if (!m_AssetBrowserInitialized) {
+			std::string assetsRoot = Path::Combine(Path::ExecutableDir(), "Assets");
+			if (!Directory::Exists(assetsRoot)) {
+				// Fallback to working directory
+				assetsRoot = Path::Combine(Path::Current(), "Assets");
+			}
+			if (!Directory::Exists(assetsRoot)) {
+				// Last resort: create it
+				Directory::Create(assetsRoot);
+			}
+			m_AssetBrowser.Initialize(assetsRoot);
+			m_AssetBrowserInitialized = true;
+		}
+
+		m_AssetBrowser.Render();
+	}
+
 	void ImGuiEditorSystem::OnGui(Scene& scene) {
 		RenderDockspaceRoot();
 		RenderMainMenu(scene);
@@ -623,6 +471,7 @@ namespace Bolt {
 		RenderEntitiesPanel(scene);
 		RenderInspectorPanel(scene);
 		RenderViewportPanel(scene);
+		RenderProjectPanel();
 		RenderLogPanel();
 		ImGui::End();
 	}

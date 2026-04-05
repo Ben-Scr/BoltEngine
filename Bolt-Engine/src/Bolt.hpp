@@ -55,5 +55,8 @@ Bolt specific includes
 #include "Scene/Entity.hpp"
 #include "Scene/EntityHandle.hpp"
 
+// Events
+#include "Events/Events.hpp"
+
 // Utils
 #include "Utils/StringHelper.hpp"

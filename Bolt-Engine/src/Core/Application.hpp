@@ -7,7 +7,8 @@
 #include "Scene/SceneManager.hpp"
 #include "Gui/ImGuiRenderer.hpp"
 #include "Gui/GuiRenderer.hpp"
-#include  "Utils/Event.hpp"
+#include "Utils/Event.hpp"
+#include "Events/BoltEvent.hpp"
 
 #include "Input.hpp"
 #include "Time.hpp"
@@ -86,6 +87,7 @@ namespace Bolt {
 		static void Reload() { if (s_Instance) { s_Instance->m_ShouldQuit = true; s_Instance->m_CanReload = true; } };
 		static bool IsPaused() { return s_Instance ? s_Instance->m_IsPaused : false; }
 		void RenderOnceForRefresh();
+		void OnEvent(BoltEvent& event);
 
 	private:
 		std::unique_ptr<Window> m_Window;

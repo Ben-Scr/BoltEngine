@@ -5,6 +5,7 @@
 #include "Graphics/OpenGL.hpp"
 #include "Core/SingleInstance.hpp"
 #include "Audio/AudioManager.hpp"
+#include "Events/WindowEvents.hpp"
 #include <Utils/Timer.hpp>
 #include <Utils/StringHelper.hpp>
 
@@ -115,6 +116,7 @@ namespace Bolt {
 		Window::Initialize();
 		m_Window = std::make_unique<Window>(m_Configuration.WindowSpecification);
 		m_Window->SetVsync(m_Configuration.Vsync);
+		m_Window->SetEventCallback([this](BoltEvent& e) { OnEvent(e); });
 		BT_INFO_TAG("Window", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
@@ -124,6 +126,11 @@ namespace Bolt {
 		timer.Reset();
 		m_Renderer2D = std::make_unique<Renderer2D>();
 		m_Renderer2D->Initialize();
+		m_Renderer2D->SetSceneProvider([this](const std::function<void(const Scene&)>& fn) {
+			if (m_SceneManager) {
+				m_SceneManager->ForeachLoadedScene(fn);
+			}
+		});
 		BT_INFO_TAG("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.EnableGizmoRenderer) {
@@ -215,6 +222,22 @@ namespace Bolt {
 		else {
 			OnPaused();
 		}
+	}
+
+	void Application::OnEvent(BoltEvent& event) {
+		EventDispatcher dispatcher(event);
+
+		dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) {
+			m_ShouldQuit = true;
+			return true;
+		});
+
+		dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
+			if (e.GetWidth() == 0 || e.GetHeight() == 0) {
+				m_IsPaused = true;
+			}
+			return false;
+		});
 	}
 
 	void Application::Quit() {

@@ -1,0 +1,448 @@
+#include <pch.hpp>
+#include "Gui/AssetBrowser.hpp"
+#include <imgui.h>
+#include <algorithm>
+#include <filesystem>
+
+namespace Bolt {
+
+	// ──────────────────────────────────────────────
+	//  Lifecycle
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::Initialize(const std::string& rootDirectory) {
+		m_RootDirectory = rootDirectory;
+		m_CurrentDirectory = rootDirectory;
+		m_Thumbnails.Initialize();
+		m_NeedsRefresh = true;
+	}
+
+	void AssetBrowser::Shutdown() {
+		m_Thumbnails.Shutdown();
+	}
+
+	// ──────────────────────────────────────────────
+	//  Navigation
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::NavigateTo(const std::string& directory) {
+		m_CurrentDirectory = directory;
+		m_SelectedPath.clear();
+		CancelRename();
+		m_NeedsRefresh = true;
+	}
+
+	void AssetBrowser::NavigateUp() {
+		std::filesystem::path current(m_CurrentDirectory);
+		std::filesystem::path root(m_RootDirectory);
+
+		if (current != root && current.has_parent_path()) {
+			std::filesystem::path parent = current.parent_path();
+			if (parent.string().size() >= root.string().size()) {
+				NavigateTo(parent.string());
+			}
+		}
+	}
+
+	void AssetBrowser::Refresh() {
+		m_Entries = Directory::GetEntries(m_CurrentDirectory);
+		m_NeedsRefresh = false;
+	}
+
+	// ──────────────────────────────────────────────
+	//  Rename Helpers
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::BeginRename(const std::string& path, const std::string& currentName) {
+		m_IsRenaming = true;
+		m_RenamePath = path;
+		m_RenameFrameCounter = 0;
+		std::snprintf(m_RenameBuffer, sizeof(m_RenameBuffer), "%s", currentName.c_str());
+	}
+
+	void AssetBrowser::CommitRename() {
+		std::string newName(m_RenameBuffer);
+		std::string oldName = std::filesystem::path(m_RenamePath).filename().string();
+
+		if (!newName.empty() && newName != oldName) {
+			RenameEntry(m_RenamePath, newName);
+		}
+		CancelRename();
+	}
+
+	void AssetBrowser::CancelRename() {
+		m_IsRenaming = false;
+		m_RenamePath.clear();
+		m_RenameFrameCounter = 0;
+	}
+
+	bool AssetBrowser::IsRenamingEntry(const std::string& path) const {
+		return m_IsRenaming && m_RenamePath == path;
+	}
+
+	// ──────────────────────────────────────────────
+	//  Main Render
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::Render() {
+		ImGui::Begin("Project");
+
+		if (m_NeedsRefresh) {
+			Refresh();
+		}
+
+		RenderBreadcrumb();
+		ImGui::Separator();
+		RenderGrid();
+
+		ImGui::End();
+	}
+
+	// ──────────────────────────────────────────────
+	//  Breadcrumb Navigation Bar
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::RenderBreadcrumb() {
+		std::filesystem::path root(m_RootDirectory);
+		std::filesystem::path current(m_CurrentDirectory);
+		std::filesystem::path relative = std::filesystem::relative(current, root);
+
+		if (m_CurrentDirectory != m_RootDirectory) {
+			if (ImGui::SmallButton("<")) {
+				NavigateUp();
+				return;
+			}
+			ImGui::SameLine();
+		}
+
+		if (ImGui::SmallButton("Assets")) {
+			NavigateTo(m_RootDirectory);
+			return;
+		}
+
+		if (relative != "." && !relative.empty()) {
+			std::filesystem::path accumulated = root;
+			for (const auto& segment : relative) {
+				accumulated /= segment;
+				ImGui::SameLine();
+				ImGui::TextUnformatted("/");
+				ImGui::SameLine();
+
+				std::string segStr = segment.string();
+				std::string accStr = accumulated.string();
+
+				if (accStr == m_CurrentDirectory) {
+					ImGui::TextUnformatted(segStr.c_str());
+				}
+				else {
+					if (ImGui::SmallButton(segStr.c_str())) {
+						NavigateTo(accStr);
+						return;
+					}
+				}
+			}
+		}
+
+		ImGui::SameLine(ImGui::GetContentRegionAvail().x + ImGui::GetCursorPosX() - 30.0f);
+		if (ImGui::SmallButton("R")) {
+			m_NeedsRefresh = true;
+		}
+		if (ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("Refresh");
+		}
+	}
+
+	// ──────────────────────────────────────────────
+	//  Grid Layout
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::RenderGrid() {
+		ImGui::BeginChild("AssetGrid", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_None);
+
+		const float cellSize = m_TileSize + m_TilePadding;
+		const float panelWidth = ImGui::GetContentRegionAvail().x;
+		int columns = static_cast<int>(panelWidth / cellSize);
+		if (columns < 1) columns = 1;
+
+		// Deselect when clicking empty space in the grid
+		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered()) {
+			m_SelectedPath.clear();
+			CancelRename();
+		}
+
+		for (int i = 0; i < static_cast<int>(m_Entries.size()); i++) {
+			if (i % columns != 0) {
+				ImGui::SameLine();
+			}
+			RenderAssetTile(m_Entries[i], i);
+		}
+
+		if (m_Entries.empty()) {
+			ImGui::TextDisabled("Empty folder");
+		}
+
+		// Context menu for the grid area (right-click on empty space)
+		RenderGridContextMenu();
+
+		ImGui::EndChild();
+	}
+
+	// ──────────────────────────────────────────────
+	//  Individual Asset Tile
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::RenderAssetTile(const DirectoryEntry& entry, int index) {
+		ImGui::PushID(index);
+
+		const bool isSelected = (m_SelectedPath == entry.Path);
+
+		ImGui::BeginGroup();
+
+		// Tile background
+		ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+
+		if (isSelected) {
+			ImVec2 bgMin(cursorPos.x - 2, cursorPos.y - 2);
+			ImVec2 bgMax(cursorPos.x + m_TileSize + 2, cursorPos.y + m_TileSize + ImGui::GetTextLineHeightWithSpacing() + 2);
+			ImGui::GetWindowDrawList()->AddRectFilled(bgMin, bgMax, IM_COL32(60, 100, 160, 180), 4.0f);
+		}
+
+		// Icon / Thumbnail area
+		ImVec2 iconPos = cursorPos;
+		unsigned int thumbnail = 0;
+
+		if (!entry.IsDirectory) {
+			thumbnail = m_Thumbnails.GetThumbnail(entry.Path);
+		}
+
+		if (thumbnail != 0) {
+			// Image thumbnail with correct aspect ratio, centered within tile
+			Texture2D* tex = nullptr;
+			auto it = m_Thumbnails.GetCacheEntry(entry.Path);
+			float texW = m_TileSize, texH = m_TileSize;
+			if (it) {
+				texW = it->GetWidth();
+				texH = it->GetHeight();
+			}
+
+			float drawW = m_TileSize;
+			float drawH = m_TileSize;
+
+			if (texW > 0.0f && texH > 0.0f) {
+				float aspect = texW / texH;
+				if (aspect > 1.0f) {
+					drawH = m_TileSize / aspect;
+				}
+				else {
+					drawW = m_TileSize * aspect;
+				}
+			}
+
+			float offsetX = (m_TileSize - drawW) * 0.5f;
+			float offsetY = (m_TileSize - drawH) * 0.5f;
+
+			ImGui::SetCursorScreenPos(ImVec2(iconPos.x + offsetX, iconPos.y + offsetY));
+			ImGui::Image(
+				static_cast<ImTextureID>(static_cast<intptr_t>(thumbnail)),
+				ImVec2(drawW, drawH),
+				ImVec2(0, 1), ImVec2(1, 0)
+			);
+
+			// Advance cursor past the full tile height
+			ImGui::SetCursorScreenPos(ImVec2(iconPos.x, iconPos.y + m_TileSize));
+		}
+		else {
+			AssetType type = entry.IsDirectory
+				? AssetType::Folder
+				: ThumbnailCache::GetAssetType(std::filesystem::path(entry.Path).extension().string());
+
+			ThumbnailCache::DrawAssetIcon(type, iconPos, m_TileSize);
+			ImGui::Dummy(ImVec2(m_TileSize, m_TileSize));
+		}
+
+		// Label (name) below the icon
+		if (IsRenamingEntry(entry.Path)) {
+			m_RenameFrameCounter++;
+
+			ImGui::PushItemWidth(m_TileSize);
+
+			// Set focus on frame 1 (after the InputText widget exists)
+			if (m_RenameFrameCounter == 1) {
+				ImGui::SetKeyboardFocusHere();
+			}
+
+			bool committed = ImGui::InputText("##rename", m_RenameBuffer, sizeof(m_RenameBuffer),
+				ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+
+			if (committed) {
+				CommitRename();
+			}
+			else if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+				CancelRename();
+			}
+			else if (m_RenameFrameCounter > 2 && !ImGui::IsItemActive()) {
+				// Focus lost after the initial settle period — commit
+				CommitRename();
+			}
+
+			ImGui::PopItemWidth();
+		}
+		else {
+			ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + m_TileSize);
+			ImGui::TextUnformatted(entry.Name.c_str());
+			ImGui::PopTextWrapPos();
+		}
+
+		ImGui::EndGroup();
+
+		// Interaction: click to select, double-click folders to navigate
+		if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+			m_SelectedPath = entry.Path;
+			if (!IsRenamingEntry(entry.Path)) {
+				CancelRename();
+			}
+		}
+
+		if (entry.IsDirectory && ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+			NavigateTo(entry.Path);
+			ImGui::PopID();
+			return;
+		}
+
+		// Right-click context menu per item
+		RenderItemContextMenu(entry);
+
+		// Drag and drop
+		HandleDragSource(entry);
+		if (entry.IsDirectory) {
+			HandleDropTarget(entry);
+		}
+
+		ImGui::PopID();
+
+		ImGui::SameLine(0, 0);
+		ImGui::Dummy(ImVec2(m_TilePadding, 0));
+	}
+
+	// ──────────────────────────────────────────────
+	//  Context Menus
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::RenderGridContextMenu() {
+		if (ImGui::BeginPopupContextWindow("##AssetGridCtx",
+			ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			if (ImGui::MenuItem("Create Folder")) {
+				CreateFolder(m_CurrentDirectory);
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	void AssetBrowser::RenderItemContextMenu(const DirectoryEntry& entry) {
+		if (ImGui::BeginPopupContextItem("##ItemCtx")) {
+			m_SelectedPath = entry.Path;
+
+			if (ImGui::MenuItem("Delete")) {
+				DeleteEntry(entry.Path);
+				ImGui::EndPopup();
+				return;
+			}
+			if (ImGui::MenuItem("Rename")) {
+				BeginRename(entry.Path, entry.Name);
+			}
+			if (ImGui::MenuItem("Copy Path")) {
+				CopyPathToClipboard(entry.Path);
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	// ──────────────────────────────────────────────
+	//  Drag and Drop
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::HandleDragSource(const DirectoryEntry& entry) {
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+			const char* pathStr = entry.Path.c_str();
+			ImGui::SetDragDropPayload("ASSET_BROWSER_ITEM", pathStr, entry.Path.size() + 1);
+			ImGui::Text("Move: %s", entry.Name.c_str());
+			ImGui::EndDragDropSource();
+		}
+	}
+
+	void AssetBrowser::HandleDropTarget(const DirectoryEntry& entry) {
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
+				std::string sourcePath(static_cast<const char*>(payload->Data));
+
+				if (sourcePath != entry.Path) {
+					if (Directory::Move(sourcePath, entry.Path)) {
+						m_Thumbnails.Invalidate(sourcePath);
+						if (m_SelectedPath == sourcePath) {
+							m_SelectedPath.clear();
+						}
+						m_NeedsRefresh = true;
+					}
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+	}
+
+	// ──────────────────────────────────────────────
+	//  Filesystem Actions
+	// ──────────────────────────────────────────────
+
+	void AssetBrowser::DeleteEntry(const std::string& path) {
+		m_Thumbnails.Invalidate(path);
+
+		if (Directory::Delete(path)) {
+			if (m_SelectedPath == path) {
+				m_SelectedPath.clear();
+			}
+			CancelRename();
+			m_NeedsRefresh = true;
+		}
+	}
+
+	void AssetBrowser::RenameEntry(const std::string& path, const std::string& newName) {
+		m_Thumbnails.Invalidate(path);
+
+		if (Directory::Rename(path, newName)) {
+			std::filesystem::path p(path);
+			std::string newPath = (p.parent_path() / newName).string();
+			if (m_SelectedPath == path) {
+				m_SelectedPath = newPath;
+			}
+			m_NeedsRefresh = true;
+		}
+	}
+
+	void AssetBrowser::CopyPathToClipboard(const std::string& path) {
+		ImGui::SetClipboardText(path.c_str());
+	}
+
+	void AssetBrowser::CreateFolder(const std::string& parentDir) {
+		std::string baseName = "New Folder";
+		std::string folderPath = (std::filesystem::path(parentDir) / baseName).string();
+		int counter = 1;
+		while (Directory::Exists(folderPath)) {
+			folderPath = (std::filesystem::path(parentDir) / (baseName + " " + std::to_string(counter))).string();
+			counter++;
+		}
+
+		Directory::Create(folderPath, false);
+		m_NeedsRefresh = true;
+
+		// Refresh immediately so the entry exists for renaming
+		Refresh();
+
+		m_SelectedPath = folderPath;
+		std::string name = std::filesystem::path(folderPath).filename().string();
+		BeginRename(folderPath, name);
+	}
+
+} // namespace Bolt

@@ -15,6 +15,7 @@
 #include "Systems/ParticleUpdateSystem.hpp"
 #include "Core/Application.hpp"
 #include "Components/Components.hpp"
+#include "Events/SceneEvents.hpp"
 
 
 namespace Bolt {
@@ -199,6 +200,12 @@ namespace Bolt {
 			callback(*newScene);
 		}
 
+		{
+			ScenePreStartEvent e(name);
+			Application* app = Application::GetInstance();
+			if (app) app->OnEvent(e);
+		}
+
 		newScene->m_IsLoaded = true;
 		if (!m_ActiveScene) {
 			m_ActiveScene = newScene.get();
@@ -209,6 +216,13 @@ namespace Bolt {
 		if (!additive) {
 			m_ActiveScene = newScene.get();
 		}
+
+		{
+			ScenePostStartEvent e(name);
+			Application* app = Application::GetInstance();
+			if (app) app->OnEvent(e);
+		}
+
 		BT_CORE_ASSERT(m_ActiveScene, "Active Scene is null after loading");
 		return newScene;
 	}
@@ -248,6 +262,14 @@ namespace Bolt {
 
 	void SceneManager::ReleaseScene(LoadedSceneList::iterator it) {
 		Scene& scene = *(*it);
+		const std::string sceneName = scene.GetName();
+
+		{
+			ScenePreStopEvent e(sceneName);
+			Application* app = Application::GetInstance();
+			if (app) app->OnEvent(e);
+		}
+
 		if (scene.m_Definition) {
 			for (const auto& callback : scene.m_Definition->m_UnloadCallbacks) {
 				callback(scene);
@@ -262,6 +284,12 @@ namespace Bolt {
 		}
 		m_LoadedScenes.erase(it);
 		RefreshActiveScene();
+
+		{
+			ScenePostStopEvent e(sceneName);
+			Application* app = Application::GetInstance();
+			if (app) app->OnEvent(e);
+		}
 	}
 
 	void SceneManager::UnloadAllScenes(bool includePersistent) {

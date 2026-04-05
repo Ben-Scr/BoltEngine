@@ -8,6 +8,7 @@
 #include "Collections/Viewport.hpp"
 #include "Debugging/Logger.hpp"
 #include "Core/Log.hpp"
+#include "Gui/AssetBrowser.hpp"
 
 #include <string>
 #include <vector>
@@ -33,6 +34,7 @@ namespace Bolt {
 		void RenderInspectorPanel(Scene& scene);
 		void RenderViewportPanel(Scene& scene);
 		void RenderLogPanel();
+		void RenderProjectPanel();
 
 		EntityHandle m_SelectedEntity = entt::null;
 		EventId m_LogSubscriptionId{};
@@ -45,5 +47,8 @@ namespace Bolt {
 		bool m_IsViewportHovered = false;
 		bool m_IsViewportFocused = false;
 		bool m_IsPlaying = false;
+
+		AssetBrowser m_AssetBrowser;
+		bool m_AssetBrowserInitialized = false;
 	};
 }

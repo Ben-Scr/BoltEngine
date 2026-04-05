@@ -3,10 +3,12 @@
 #include "Collections/Color.hpp"
 #include "Collections/Viewport.hpp"
 #include "Core/Export.hpp"
+#include "Events/BoltEvent.hpp"
 
 #include <GLFW/glfw3.h>
 #include <string>
 #include <memory>
+#include <functional>
 
 namespace Bolt {
 	class Texture2D;
@@ -104,6 +106,8 @@ namespace Bolt {
 		void CenterWindow();
 		void Focus();
 
+		void SetEventCallback(const EventCallbackFn& callback) { m_EventCallback = callback; }
+
 		static Window* GetActiveWindow() { return s_ActiveWindow; }
 		static Viewport* GetMainViewport() { return s_MainViewport.get(); }
 
@@ -137,5 +141,7 @@ namespace Bolt {
 		static std::unique_ptr<Viewport> s_MainViewport;
 		static bool s_IsVsync;
 		static bool s_IsInitialized;
+
+		EventCallbackFn m_EventCallback;
 	};
 }
