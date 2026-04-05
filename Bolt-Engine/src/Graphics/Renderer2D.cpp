@@ -1,10 +1,9 @@
 #include "pch.hpp"
 #include "Renderer2D.hpp"
 
-#include "Core/Window.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Components/Graphics/SpriteRendererComponent.hpp"
-#include "Components/Graphics/ParticleSystem2DComponent.hpp"
+#include "Components/Graphics/ParticleSystem2DComponent.hpp";
 #include "Components/Graphics/Camera2DComponent.hpp"
 #include "Components/Tags.hpp"
 #include <Utils/Timer.hpp>
@@ -12,13 +11,10 @@
 #include "Scene/Scene.hpp"
 #include "Graphics/TextureManager.hpp"
 
-#include <glad/glad.h>
-
 namespace Bolt {
 	void Renderer2D::Initialize() {
 		m_QuadMesh.Initialize();
 		m_SpriteShader.Initialize();
-		m_Instances.reserve(512);
 
 		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Sprite shader is invalid.");
 		m_IsInitialized = true;
@@ -27,37 +23,12 @@ namespace Bolt {
 	void Renderer2D::BeginFrame() {
 		Timer timer = Timer();
 
-		if (m_OutputFboId != 0) {
-			// Render into the editor viewport FBO.
-			// Save the main viewport dimensions before mutating them so they can be restored after.
-			const int savedW = Window::GetMainViewport()->GetWidth();
-			const int savedH = Window::GetMainViewport()->GetHeight();
+		glClear(GL_COLOR_BUFFER_BIT);
 
-			glBindFramebuffer(GL_FRAMEBUFFER, m_OutputFboId);
-			glViewport(0, 0, m_OutputWidth, m_OutputHeight);
-			Window::GetMainViewport()->SetSize(m_OutputWidth, m_OutputHeight);
-
-			glClear(GL_COLOR_BUFFER_BIT);
-			if (m_IsInitialized && m_IsEnabled)
-				RenderScenes();
-			else
-				m_RenderedInstancesCount = 0;
-
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glViewport(0, 0, savedW, savedH);
-			Window::GetMainViewport()->SetSize(savedW, savedH);
-
-			// Consumed — reset so that the next frame renders to the default framebuffer
-			// unless the editor registers a new target via SetOutputTarget().
-			m_OutputFboId = 0;
-		}
-		else {
-			glClear(GL_COLOR_BUFFER_BIT);
-			if (m_IsInitialized && m_IsEnabled)
-				RenderScenes();
-			else
-				m_RenderedInstancesCount = 0;
-		}
+		if (m_IsInitialized && m_IsEnabled)
+			RenderScenes();
+		else
+			m_RenderedInstancesCount = 0;
 
 		m_RenderLoopDuration = timer.ElapsedMilliseconds();
 	}
@@ -76,6 +47,7 @@ namespace Bolt {
 		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
 		m_SpriteShader.Bind();
 
+		// Camera 2D Region
 		Camera2DComponent* camera2D = Camera2DComponent::Main();
 
 		if (!camera2D) {
@@ -89,26 +61,28 @@ namespace Bolt {
 		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
 		m_SpriteShader.SetMVP(vp);
 
-		m_Instances.clear();
+		int renderingSprites = 0;
+
+		std::vector<Instance44> instances;
 
 		auto ptsView = scene.GetRegistry().view<ParticleSystem2DComponent>(entt::exclude<DisabledTag>);
 		auto srView = scene.GetRegistry().view<Transform2DComponent, SpriteRendererComponent>(entt::exclude<DisabledTag>);
 
-		m_Instances.reserve(ptsView.size_hint() + srView.size_hint());
+		instances.reserve(ptsView.size_hint() + srView.size_hint());
 
 		for (const auto& [ent, particleSystem] : ptsView.each()) {
 			glActiveTexture(GL_TEXTURE0);
 
-			// F-01: GetTexture() can return nullptr for an invalid/default handle.
 			Texture2D* texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
-			if (texture && texture->IsValid())
+			if (texture->IsValid())
 				texture->Submit(0);
 
 			for (const auto& particle : particleSystem.GetParticles()) {
 				if (!AABB::Intersects(viewportAABB, AABB::FromTransform(particle.Transform)))
 					continue;
 
-				m_Instances.emplace_back(
+
+				instances.emplace_back(
 					particle.Transform.Position,
 					particle.Transform.Scale,
 					particle.Transform.Rotation,
@@ -124,7 +98,7 @@ namespace Bolt {
 			if (!AABB::Intersects(viewportAABB, AABB::FromTransform(tr)))
 				continue;
 
-			m_Instances.emplace_back(
+			instances.emplace_back(
 				tr.Position,
 				tr.Scale,
 				tr.Rotation,
@@ -135,25 +109,26 @@ namespace Bolt {
 			);
 		}
 
-		std::sort(m_Instances.begin(), m_Instances.end(),
+		std::sort(instances.begin(), instances.end(),
 			[](const Instance44& a, const Instance44& b) {
 				if (a.SortingLayer != b.SortingLayer)
 					return a.SortingLayer < b.SortingLayer;
 				return a.SortingOrder < b.SortingOrder;
 			});
 
-		for (const Instance44& instance : m_Instances) {
+		// Info: Final Rendering
+		for (const Instance44& instance : instances) {
 			m_SpriteShader.SetSpritePosition(instance.Position);
 			m_SpriteShader.SetScale(instance.Scale);
 			m_SpriteShader.SetRotation(instance.Rotation);
 			m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
 
 			glActiveTexture(GL_TEXTURE0);
-
-			// F-01: GetTexture() can return nullptr for an invalid/default handle.
 			Texture2D* texture = TextureManager::GetTexture(instance.TextureHandle);
-			if (texture && texture->IsValid())
+
+			if (texture->IsValid())
 				texture->Submit(0);
+
 
 			m_QuadMesh.Bind();
 			m_SpriteShader.SetVertexColor(instance.Color);
@@ -162,13 +137,11 @@ namespace Bolt {
 		}
 
 		m_SpriteShader.Unbind();
-		m_RenderedInstancesCount = m_Instances.size();
+		m_RenderedInstancesCount = instances.size();
 	}
 
 	void Renderer2D::Shutdown() {
 		m_QuadMesh.Shutdown();
 		m_SpriteShader.Shutdown();
-		m_Instances.clear();
-		m_Instances.shrink_to_fit();
 	}
 }

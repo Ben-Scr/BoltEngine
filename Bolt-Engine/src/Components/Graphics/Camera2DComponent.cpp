@@ -24,8 +24,6 @@ namespace Bolt {
 	}
 
 	void Camera2DComponent::UpdateProj() {
-		// F-15: Guard against degenerate viewport (e.g. minimized window) to avoid division by zero.
-		if (m_Viewport->GetWidth() == 0 || m_Viewport->GetHeight() == 0) return;
 		const float aspect = m_Viewport->GetAspect();
 		const float halfH = m_OrthographicSize * m_Zoom;
 		const float halfW = halfH * aspect;
@@ -61,8 +59,6 @@ namespace Bolt {
 
 	Vec2 Camera2DComponent::ScreenToWorld(Vec2 pos) const
 	{
-		// F-15: Guard against degenerate viewport to avoid division by zero.
-		if (m_Viewport->GetWidth() == 0 || m_Viewport->GetHeight() == 0) return { 0.0f, 0.0f };
 		const float xNdc = (2.0f * pos.x / float(m_Viewport->GetWidth())) - 1.0f;
 		const float yNdc = 1.0f - (2.0f * pos.y / float(m_Viewport->GetHeight()));
 

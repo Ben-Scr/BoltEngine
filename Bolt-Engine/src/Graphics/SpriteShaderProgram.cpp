@@ -1,17 +1,11 @@
 #include "pch.hpp"
 #include "SpriteShaderProgram.hpp"
-#include "Serialization/Path.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Bolt {
 	void SpriteShaderProgram::Initialize() {
-		// F-11: Use the executable directory so assets load correctly regardless of CWD.
-		const std::string base = Path::ExecutableDir();
-		m_Shader.emplace(
-			Path::Combine(base, "Assets/Shader/2D/sprite.vert.glsl").c_str(),
-			Path::Combine(base, "Assets/Shader/2D/sprite.frag.glsl").c_str()
-		);
+		m_Shader.emplace("Assets/Shader/2D/sprite.vert.glsl", "Assets/Shader/2D/sprite.frag.glsl");
 
 		BT_ASSERT(IsValid(), BoltErrorCode::Undefined, "Failed to create sprite shader program");
 

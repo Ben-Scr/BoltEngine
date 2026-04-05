@@ -30,9 +30,5 @@ namespace Bolt {
 		static std::string Current() {
 			return std::filesystem::current_path().string();
 		}
-
-		// F-11: Returns the directory containing the running executable, which is the stable
-		// root for bundled assets regardless of the process working directory.
-		static std::string ExecutableDir();
 	};
 }

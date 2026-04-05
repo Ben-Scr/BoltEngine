@@ -57,7 +57,7 @@ namespace Bolt {
 	}
 
 	void Entity::SetEnabled(bool enabled) {
-		if (enabled) { if (HasComponent<DisabledTag>()) RemoveComponent<DisabledTag>(); }
-		else { if (!HasComponent<DisabledTag>()) AddComponent<DisabledTag>(); }
+		if (enabled) { if (!HasComponent<DisabledTag>()) AddComponent<DisabledTag>(); }
+		else { if (HasComponent<DisabledTag>()) RemoveComponent<DisabledTag>(); }
 	}
 }

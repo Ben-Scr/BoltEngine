@@ -24,89 +24,87 @@ namespace Bolt {
 			BT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 		}
 
-		// F-04: Use an explicit loop instead of recursion so that each reload does not
-		// consume an additional stack frame.
-		for (;;) {
-			BT_INFO_TAG("Application", "Initializing...");
-			Timer timer = Timer();
-			try {
-				Initialize();
-			}
-			catch (const std::exception& e) {
-				BT_ERROR_TAG("Application", std::string("Initialization failed: ") + e.what());
-				return;
-			}
-			BT_INFO_TAG("Application", "Full Initialization took " + StringHelper::ToString(timer));
-
-			try {
-				Start();
-			}
-			catch (const std::exception& e) {
-				BT_ERROR_TAG("Application", std::string("Start failed: ") + e.what());
-				Shutdown();
-				return;
-			}
-			m_LastFrameTime = Clock::now();
-
-			while (m_Window && !m_Window->ShouldClose() && !m_ShouldQuit) {
-				const float targetFps = Max(GetTargetFramerate(), 1.0f);
-				DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / targetFps));
-				auto now = Clock::now();
-
-				// Info: CPU idling for fps cap if vsync is disabled, or for paused frame cap.
-				if (!m_Window->IsVsync() || m_IsPaused)
-				{
-					auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
-
-					if (now + std::chrono::milliseconds(10) < nextFrameTime)
-						std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
-
-					while (Clock::now() < nextFrameTime) {
-						std::this_thread::yield();
-					}
-				}
-
-				auto frameStart = Clock::now();
-				float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
-				m_MaxPossibleFPS = deltaTime > 0.0f ? 1.0f / deltaTime : 0.0f;
-
-				if (deltaTime >= 0.25f) {
-					ResetTimePoints();
-					deltaTime = 0.0f;
-				}
-
-				m_Time.Update(deltaTime);
-
-				m_FixedUpdateAccumulator += m_Time.GetDeltaTime();
-				while (m_FixedUpdateAccumulator >= m_Time.GetUnscaledFixedDeltaTime()) {
-					try {
-						if (!m_IsPaused) {
-							BeginFixedFrame();
-							EndFixedFrame();
-						}
-					}
-					catch (const std::exception& e) {
-						BT_ERROR_TAG("FixedUpdate", e.what());
-						m_ShouldQuit = true;
-						break;
-					}
-
-					m_FixedUpdateAccumulator -= m_Time.GetUnscaledFixedDeltaTime();
-				}
-
-				BeginFrame();
-				EndFrame();
-
-				glfwPollEvents();
-
-				m_LastFrameTime = frameStart;
-				m_Time.AdvanceFrameCount();
-			}
-
+		BT_INFO_TAG("Application", "Initializing...");
+		Timer timer = Timer();
+		try {
+			Initialize();
+		}
+		catch (const std::exception& e) {
+			BT_ERROR_TAG("Application", std::string("Initialization failed: ") + e.what());
+			return;
+		}
+		BT_INFO_TAG("Application", "Full Initialization took " + StringHelper::ToString(timer));
+		try {
+			Start();
+		}
+		catch (const std::exception& e) {
+			BT_ERROR_TAG("Application", std::string("Start failed: ") + e.what());
 			Shutdown();
+			return;
+		}
+		m_LastFrameTime = Clock::now();
 
-			if (!m_CanReload) break;
+		while (m_Window && !m_Window->ShouldClose() && !m_ShouldQuit) {
+			const float targetFps = Max(GetTargetFramerate(), 1.0f);
+			DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / targetFps));
+			auto now = Clock::now();
+
+			// Info: CPU idling for fps cap if vsync is disabled, or for paused frame cap.
+			if (!m_Window->IsVsync() || m_IsPaused)
+			{
+				auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
+
+				if (now + std::chrono::milliseconds(10) < nextFrameTime)
+					std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
+
+				while (Clock::now() < nextFrameTime) {
+					std::this_thread::yield();
+				}
+			}
+
+			auto frameStart = Clock::now();
+			float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
+			m_MaxPossibleFPS = deltaTime > 0.0f ? 1.0f / deltaTime : 0.0f;
+
+			if (deltaTime >= 0.25f) {
+				ResetTimePoints();
+				deltaTime = 0.0f;
+			}
+
+			m_Time.Update(deltaTime);
+
+			m_FixedUpdateAccumulator += m_Time.GetDeltaTime();
+			while (m_FixedUpdateAccumulator >= m_Time.GetUnscaledFixedDeltaTime()) {
+				try {
+					if (!m_IsPaused) {
+
+						BeginFixedFrame();
+						EndFixedFrame();
+					}
+				}
+				catch (const std::exception& e) {
+					BT_ERROR_TAG("FixedUpdate", e.what());
+					m_ShouldQuit = true;
+					break;
+				}
+
+				m_FixedUpdateAccumulator -= m_Time.GetUnscaledFixedDeltaTime();
+			}
+
+			BeginFrame();
+			EndFrame();
+
+			glfwPollEvents();
+
+			m_LastFrameTime = frameStart;
+			m_Time.AdvanceFrameCount();
+		}
+
+		Shutdown();
+
+		if (m_CanReload) {
 			m_CanReload = false;
+			Run();
 		}
 	}
 
@@ -200,16 +198,13 @@ namespace Bolt {
 
 			if (m_IsPlaying && m_SceneManager) m_SceneManager->UpdateScenes();
 
-			// F-08: ImGui begins before the renderer so editor systems can configure a render
-			// target (e.g. register an FBO via Renderer2D::SetOutputTarget) during OnGuiScenes.
-			// The renderer then fires after OnGuiScenes and honours the registered target.
+			if (m_Renderer2D)
+				BOLT_TRY_CATCH_LOG(m_Renderer2D->BeginFrame());
+
 			if (m_ImGuiRenderer) {
 				BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
 				if (m_SceneManager) m_SceneManager->OnGuiScenes();
 			}
-
-			if (m_Renderer2D)
-				BOLT_TRY_CATCH_LOG(m_Renderer2D->BeginFrame());
 
 			if (m_GuiRenderer)
 				BOLT_TRY_CATCH_LOG(m_GuiRenderer->BeginFrame(*m_SceneManager));
@@ -259,19 +254,14 @@ namespace Bolt {
 	}
 
 	void Application::RenderOnceForRefresh() {
-		// F-08: Match the new ordering from BeginFrame — ImGui/OnGui before the renderer —
-		// so editor systems can register their FBO target before the renderer fires.
-		if (m_ImGuiRenderer) {
-			BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
-			if (m_SceneManager) BOLT_TRY_CATCH_LOG(m_SceneManager->OnGuiScenes());
-		}
-
 		if (m_Renderer2D) {
 			BOLT_TRY_CATCH_LOG(m_Renderer2D->BeginFrame());
 			BOLT_TRY_CATCH_LOG(m_Renderer2D->EndFrame());
 		}
 
 		if (m_ImGuiRenderer) {
+			BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
+			if (m_SceneManager) BOLT_TRY_CATCH_LOG(m_SceneManager->OnGuiScenes());
 			BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->EndFrame());
 		}
 
@@ -310,16 +300,13 @@ namespace Bolt {
 	void Application::Shutdown() {
 		OnQuit();
 
-		// F-03: SceneManager must shut down before PhysicsSystem2D. Destroying scenes triggers
-		// on_destroy callbacks (OnRigidBody2DComponentDestroy, OnBoxCollider2DComponentDestroy)
-		// which call b2DestroyBody/b2DestroyShape. Those calls require a live Box2D world.
-		if (m_SceneManager) m_SceneManager->Shutdown();
-		TextureManager::Shutdown();
-
 		if (m_PhysicsSystem2D) m_PhysicsSystem2D->Shutdown();
 		if (m_GizmoRenderer2D) m_GizmoRenderer2D->Shutdown();
 		if (m_Renderer2D) m_Renderer2D->Shutdown();
 		if (m_ImGuiRenderer) m_ImGuiRenderer->Shutdown();
+
+		if (m_SceneManager) m_SceneManager->Shutdown();
+		TextureManager::Shutdown();
 
 		if (AudioManager::IsInitialized())
 			AudioManager::Shutdown();
