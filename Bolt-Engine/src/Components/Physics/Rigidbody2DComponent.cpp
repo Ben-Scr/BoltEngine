@@ -44,7 +44,8 @@ namespace Bolt {
 	}
 
 	void Rigidbody2DComponent::SetAngularVelocity(float velocity) { b2Body_SetAngularVelocity(m_BodyId, -velocity); }
-	float Rigidbody2DComponent::GetAngularVelocity() const { return b2Body_GetAngularVelocity(m_BodyId); }
+	// F-09: Negate to match the sign convention used in SetAngularVelocity (round-trip symmetry).
+	float Rigidbody2DComponent::GetAngularVelocity() const { return -b2Body_GetAngularVelocity(m_BodyId); }
 
 	void Rigidbody2DComponent::SetGravityScale(float gravityScale) { b2Body_SetGravityScale(m_BodyId, gravityScale); }
 	float Rigidbody2DComponent::GetGravityScale() const { return b2Body_GetGravityScale(m_BodyId); }
@@ -63,7 +64,8 @@ namespace Bolt {
 		b2Body_SetAngularDamping(m_BodyId, value);
 	}
 
-	void Rigidbody2DComponent::SetRotation(float degrees) { b2Body_SetTransform(m_BodyId, b2Body_GetPosition(m_BodyId), b2Rot(degrees)); }
+	// F-10: Parameter renamed from 'degrees' to 'radians' — b2Rot() expects radians.
+	void Rigidbody2DComponent::SetRotation(float radians) { b2Body_SetTransform(m_BodyId, b2Body_GetPosition(m_BodyId), b2Rot(radians)); }
 	void Rigidbody2DComponent::SetPosition(const Vec2& position) { b2Body_SetTransform(m_BodyId, b2Vec2(position.x, position.y), b2Body_GetRotation(m_BodyId)); }
 	Vec2 Rigidbody2DComponent::GetPosition() const { b2Vec2 b2Pos = IsValid() ? b2Body_GetPosition(m_BodyId) : b2Vec2_zero; return { b2Pos.x, b2Pos.y }; }
 

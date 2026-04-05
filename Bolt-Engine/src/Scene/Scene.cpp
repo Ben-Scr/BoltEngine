@@ -71,6 +71,9 @@ namespace Bolt {
 		m_Registry.on_destroy<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentDestroy>(this);
 		m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
 		m_Registry.on_destroy<Camera2DComponent>().connect<&Scene::OnCamera2DComponentDestruct>(this);
+		// F-05: Connect the ParticleSystem2D destructor so the raw emitter-transform pointer
+		// is cleared before it can dangle.
+		m_Registry.on_destroy<ParticleSystem2DComponent>().connect<&Scene::OnParticleSystem2DComponentDestruct>(this);
 	}
 
 	void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, EntityHandle entity)
@@ -144,10 +147,27 @@ namespace Bolt {
 	{
 		Camera2DComponent& camera2D = GetComponent<Camera2DComponent>(entity);
 		camera2D.Destroy();
+
+		// F-16: If this was the main camera, promote another enabled camera.
+		if (!Camera2DComponent::Main()) {
+			auto view = registry.view<Camera2DComponent>(entt::exclude<DisabledTag>);
+			for (auto [ent] : view.each()) {
+				if (ent != entity) {
+					Camera2DComponent::s_Main = &registry.get<Camera2DComponent>(ent);
+					break;
+				}
+			}
+		}
 	}
 
 	void Scene::OnParticleSystem2DComponentConstruct(entt::registry& registry, EntityHandle entity) {
 		auto& ps = registry.get<ParticleSystem2DComponent>(entity);
 		ps.m_EmitterTransform = &GetComponent<Transform2DComponent>(entity);
+	}
+
+	void Scene::OnParticleSystem2DComponentDestruct(entt::registry& registry, EntityHandle entity) {
+		// F-05: Clear the raw pointer before the component is destroyed to prevent dangling.
+		auto& ps = registry.get<ParticleSystem2DComponent>(entity);
+		ps.m_EmitterTransform = nullptr;
 	}
 }

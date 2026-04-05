@@ -299,7 +299,8 @@ namespace Bolt {
 			rb2D.SetGravityScale(gravityScale);
 
 			const char* items[] = { "Static", "Kinematic", "Dynamic" };
-			static int currentItem = static_cast<int>(rb2D.GetBodyType());
+			// F-07: Must not be static — static persists across entity switches, showing wrong body type.
+			int currentItem = static_cast<int>(rb2D.GetBodyType());
 
 			if (ImGui::BeginCombo("Body Type", items[currentItem])) {
 				for (int i = 0; i < IM_ARRAYSIZE(items); i++) {
@@ -362,20 +363,11 @@ namespace Bolt {
 			if (m_ViewportFramebufferId != 0) {
 				auto* app = Application::GetInstance();
 				auto* renderer = app->GetRenderer2D();
-				auto* window = app->GetWindow();
 
-				const int windowWidth = window->GetWidth();
-				const int windowHeight = window->GetHeight();
-
-				glBindFramebuffer(GL_FRAMEBUFFER, m_ViewportFramebufferId);
-				glViewport(0, 0, framebufferWidth, framebufferHeight);
-
-				Window::GetMainViewport()->SetSize(framebufferWidth, framebufferHeight);
-				renderer->BeginFrame();
-
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				glViewport(0, 0, windowWidth, windowHeight);
-				Window::GetMainViewport()->SetSize(windowWidth, windowHeight);
+				// F-08: Register the FBO as a render target. Renderer2D::BeginFrame() fires after
+				// OnGui() completes and will consume this target, rendering the scene into the FBO.
+				// The FBO texture is then valid when ImGui submits the draw-list below.
+				renderer->SetOutputTarget(m_ViewportFramebufferId, framebufferWidth, framebufferHeight);
 
 				ImGui::Image(
 					static_cast<ImTextureID>(static_cast<intptr_t>(m_ViewportColorTextureId)),
