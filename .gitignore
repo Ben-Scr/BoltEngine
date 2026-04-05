@@ -12,6 +12,7 @@ bin-int/
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+.claude/
 
 # User-specific files
 *.rsuser
