@@ -85,8 +85,8 @@ namespace Bolt {
 		b2QueryFilter filter = b2DefaultQueryFilter();
 
 		struct Qb {
-			Vec2           ctr;
-			OverlapMode         mode;
+			Vec2 ctr;
+			OverlapMode mode;
 			std::optional<entt::entity> first;
 			std::optional<entt::entity> nearest;
 			float               bestDist2 = std::numeric_limits<float>::max();
