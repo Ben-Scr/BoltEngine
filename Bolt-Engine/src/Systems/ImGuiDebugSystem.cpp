@@ -18,8 +18,12 @@
 namespace Bolt {
 
 	void ImGuiDebugSystem::OnGui(Scene& scene) {
-		auto* window = Application::GetInstance()->GetWindow();
-		auto* renderer2D = Application::GetInstance()->GetRenderer2D();
+		auto* app = Application::GetInstance();
+		if (!app) return;
+
+		auto* window = app->GetWindow();
+		auto* renderer2D = app->GetRenderer2D();
+		if (!window || !renderer2D) return;
 
 		ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_MenuBar);
 

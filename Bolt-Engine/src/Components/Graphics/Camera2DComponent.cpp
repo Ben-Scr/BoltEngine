@@ -16,7 +16,7 @@ namespace Bolt {
 
 	void Camera2DComponent::UpdateViewport() {
 		UpdateProj();
-		UpdateViewportAABB();
+		UpdateView();
 	}
 
 	glm::mat4 Camera2DComponent::GetViewProjectionMatrix() const {

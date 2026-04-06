@@ -216,6 +216,99 @@ namespace Bolt {
 		glUseProgram(0);
 	}
 
+	void GizmoRenderer2D::RenderWithVP(const glm::mat4& vp) {
+		if (!m_IsInitialized || !Gizmo::s_IsEnabled)
+			return;
+
+		for (const auto& square : Gizmo::s_Squares) {
+			uint32_t color = square.Color.ABGR32();
+			uint16_t baseIndex = static_cast<uint16_t>(m_GizmoVertices.size());
+
+			Vec2 corners[4] = {
+				Vec2(-square.HalfExtents.x, -square.HalfExtents.y),
+				Vec2(square.HalfExtents.x, -square.HalfExtents.y),
+				Vec2(square.HalfExtents.x,  square.HalfExtents.y),
+				Vec2(-square.HalfExtents.x,  square.HalfExtents.y)
+			};
+
+			for (int i = 0; i < 4; ++i) {
+				Vec2 rotated = Rotated(corners[i], square.Radiant);
+				Vec2 final = square.Center + rotated;
+				m_GizmoVertices.push_back({ final.x, final.y, 0.0f, color });
+			}
+
+			m_GizmoIndices.push_back(baseIndex + 0);
+			m_GizmoIndices.push_back(baseIndex + 1);
+			m_GizmoIndices.push_back(baseIndex + 1);
+			m_GizmoIndices.push_back(baseIndex + 2);
+			m_GizmoIndices.push_back(baseIndex + 2);
+			m_GizmoIndices.push_back(baseIndex + 3);
+			m_GizmoIndices.push_back(baseIndex + 3);
+			m_GizmoIndices.push_back(baseIndex + 0);
+		}
+
+		for (const auto& line : Gizmo::s_Lines) {
+			uint32_t color = line.Color.ABGR32();
+			uint16_t baseIndex = static_cast<uint16_t>(m_GizmoVertices.size());
+
+			m_GizmoVertices.push_back({ line.Start.x, line.Start.y, 0.0f, color });
+			m_GizmoVertices.push_back({ line.End.x, line.End.y, 0.0f, color });
+
+			m_GizmoIndices.push_back(baseIndex);
+			m_GizmoIndices.push_back(baseIndex + 1);
+		}
+
+		for (const auto& circle : Gizmo::s_Circles) {
+			if (circle.Segments <= 0)
+				continue;
+			uint32_t color = circle.Color.ABGR32();
+			uint16_t baseIndex = static_cast<uint16_t>(m_GizmoVertices.size());
+
+			float angleStep = TwoPi<float>() / static_cast<float>(circle.Segments);
+			for (int i = 0; i < circle.Segments; ++i) {
+				float angle = i * angleStep;
+				float x = circle.Center.x + circle.Radius * Cos(angle);
+				float y = circle.Center.y + circle.Radius * Sin(angle);
+				m_GizmoVertices.push_back({ x, y, 0.0f, color });
+			}
+
+			for (int i = 0; i < circle.Segments; ++i) {
+				m_GizmoIndices.push_back(baseIndex + i);
+				m_GizmoIndices.push_back(baseIndex + static_cast<uint16_t>((i + 1) % circle.Segments));
+			}
+		}
+
+		FlushGizmosWithVP(vp);
+		Gizmo::Clear();
+	}
+
+	void GizmoRenderer2D::FlushGizmosWithVP(const glm::mat4& vp) {
+		if (!m_IsInitialized || m_GizmoVertices.empty() || !m_GizmoShader || !m_GizmoShader->IsValid())
+			return;
+
+		ConvertVertices(m_GizmoVertices, s_UploadBuffer);
+
+		glBindVertexArray(m_VAO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+		glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(s_UploadBuffer.size() * sizeof(UploadVertex)), s_UploadBuffer.data(), GL_DYNAMIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_GizmoIndices.size() * sizeof(uint16_t)), m_GizmoIndices.data(), GL_DYNAMIC_DRAW);
+
+		m_GizmoShader->Submit();
+
+		if (m_uMVP >= 0) {
+			glUniformMatrix4fv(m_uMVP, 1, GL_FALSE, glm::value_ptr(vp));
+		}
+
+		glLineWidth(Gizmo::s_LineWidth);
+		glDrawElements(GL_LINES, static_cast<GLsizei>(m_GizmoIndices.size()), GL_UNSIGNED_SHORT, nullptr);
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+	}
+
 	void GizmoRenderer2D::EndFrame() {
 		Render();
 	}

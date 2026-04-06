@@ -2,9 +2,7 @@
 #include "Gui/ImGuiUtils.hpp"
 #include <imgui.h>
 
-namespace Bolt {
-namespace ImGuiUtils {
-
+namespace Bolt::ImGuiUtils {
 	void DrawTexturePreview(unsigned int rendererId, float texWidth, float texHeight, float previewSize)
 	{
 		const ImVec2 previewMin = ImGui::GetCursorScreenPos();
@@ -65,19 +63,30 @@ namespace ImGuiUtils {
 		removeRequested = false;
 
 		ImGui::PushID(label);
-		ImGui::SeparatorText(label);
 
-		if (ImGui::BeginPopupContextItem("##ComponentContext")) {
+		bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap);
+
+		if (ImGui::BeginPopupContextItem("ComponentContext")) {
 			if (ImGui::MenuItem("Remove Component")) {
 				removeRequested = true;
 			}
 			ImGui::EndPopup();
 		}
 
-		ImGui::PopID();
+		if (open) {
+			ImGui::Indent(8.0f);
+		}
+		else {
+			ImGui::PopID();
+		}
 
-		return true;
+		return open;
 	}
 
-} // namespace ImGuiUtils
-} // namespace Bolt
+	void EndComponentSection()
+	{
+		ImGui::Unindent(8.0f);
+		ImGui::Spacing();
+		ImGui::PopID();
+	}
+}

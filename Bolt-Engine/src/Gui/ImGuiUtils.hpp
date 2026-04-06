@@ -1,24 +1,42 @@
 #pragma once
 #include <imgui.h>
+#include "Collections/Color.hpp"
+#include "Collections/Vec2.hpp"
 #include <magic_enum/magic_enum.hpp>
 #include <type_traits>
 
-namespace Bolt {
-namespace ImGuiUtils {
+namespace Bolt::ImGuiUtils {
+
+	inline Color DrawColorPick4(const char* label, const Color& color)
+	{
+		float values[4] = { color.r, color.g, color.b, color.a };
+		ImGui::ColorEdit4(label, values);
+		return Color(values[0], values[1], values[2], values[3]);
+	}
+	template<typename Draw>
+	void DrawEnabled(bool enabled, Draw&& draw) {
+				if (!enabled) {
+			ImGui::BeginDisabled();
+		}
+
+		draw();
+
+		if (!enabled) {
+			ImGui::EndDisabled();
+		}
+	}
 
 	template<typename TEnum, typename Setter>
 	bool DrawEnumCombo(const char* label, TEnum currentValue, Setter&& setter)
 	{
 		static_assert(std::is_enum_v<TEnum>, "DrawEnumCombo requires an enum type.");
 
-		auto preview = magic_enum::enum_name(currentValue);
-		if (preview.empty()) {
-			preview = "Unknown";
-		}
+		auto previewView = magic_enum::enum_name(currentValue);
+		const char* preview = previewView.empty() ? "Unknown" : previewView.data();
 
 		bool changed = false;
 
-		if (ImGui::BeginCombo(label, preview.data())) {
+		if (ImGui::BeginCombo(label, preview)) {
 			for (TEnum value : magic_enum::enum_values<TEnum>()) {
 				const bool isSelected = (currentValue == value);
 
@@ -68,12 +86,41 @@ namespace ImGuiUtils {
 		ImGui::PopID();
 	}
 
+	template<typename TVec2>
+	bool DrawVec2(const char* id, TVec2& vec2)
+	{
+		ImGui::PushID(id);
+
+		float values[2] = { vec2.x, vec2.y };
+		bool changed = false;
+
+		ImGui::BeginGroup();
+		ImGui::PushItemWidth(90.0f);
+
+		changed |= ImGui::InputFloat("##X", &values[0], 0.0f, 0.0f, "%.3f");
+		ImGui::SameLine();
+		changed |= ImGui::InputFloat("##Y", &values[1], 0.0f, 0.0f, "%.3f");
+
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+		ImGui::TextUnformatted(id);
+
+		ImGui::EndGroup();
+		ImGui::PopID();
+
+		if (changed) {
+			vec2.x = values[0];
+			vec2.y = values[1];
+		}
+
+		return changed;
+	}
+
 	void DrawTexturePreview(unsigned int rendererId, float texWidth, float texHeight, float previewSize = 96.0f);
 
-	// Draws a collapsing component header with right-click "Remove Component" support.
-	// Returns true if the section is open (caller should draw component fields).
-	// Sets `removeRequested` to true if the user clicked "Remove Component".
 	bool BeginComponentSection(const char* label, bool& removeRequested);
 
-} // namespace ImGuiUtils
-} // namespace Bolt
+	void EndComponentSection();
+
+}

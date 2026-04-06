@@ -4,6 +4,8 @@
 #include "Scene/SceneManager.hpp"
 #include "Components/Components.hpp"
 #include "Gui/ComponentInspectors.hpp"
+#include "Scripting/ScriptComponent.hpp"
+#include "Scripting/ScriptComponentInspector.hpp"
 
 namespace Bolt {
 	namespace {
@@ -32,6 +34,8 @@ namespace Bolt {
 		RegisterComponent<Rigidbody2DComponent>(sceneManager, "Rigidbody 2D", DrawRigidbody2DInspector);
 
 		RegisterComponent<AudioSourceComponent>(sceneManager, "Audio Source", DrawAudioSourceInspector);
+
+		//RegisterComponent<ScriptComponent>(sceneManager, "Scripts", DrawScriptComponentInspector);
 
 		RegisterComponent<IdTag>(sceneManager, "Id", nullptr, ComponentCategory::Tag);
 		RegisterComponent<StaticTag>(sceneManager, "Static", nullptr, ComponentCategory::Tag);

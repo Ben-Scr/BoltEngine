@@ -3,13 +3,9 @@
 #include <imgui.h>
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
 
 namespace Bolt {
-
-	// ──────────────────────────────────────────────
-	//  Lifecycle
-	// ──────────────────────────────────────────────
-
 	void AssetBrowser::Initialize(const std::string& rootDirectory) {
 		m_RootDirectory = rootDirectory;
 		m_CurrentDirectory = rootDirectory;
@@ -20,10 +16,6 @@ namespace Bolt {
 	void AssetBrowser::Shutdown() {
 		m_Thumbnails.Shutdown();
 	}
-
-	// ──────────────────────────────────────────────
-	//  Navigation
-	// ──────────────────────────────────────────────
 
 	void AssetBrowser::NavigateTo(const std::string& directory) {
 		m_CurrentDirectory = directory;
@@ -48,10 +40,6 @@ namespace Bolt {
 		m_Entries = Directory::GetEntries(m_CurrentDirectory);
 		m_NeedsRefresh = false;
 	}
-
-	// ──────────────────────────────────────────────
-	//  Rename Helpers
-	// ──────────────────────────────────────────────
 
 	void AssetBrowser::BeginRename(const std::string& path, const std::string& currentName) {
 		m_IsRenaming = true;
@@ -80,10 +68,6 @@ namespace Bolt {
 		return m_IsRenaming && m_RenamePath == path;
 	}
 
-	// ──────────────────────────────────────────────
-	//  Main Render
-	// ──────────────────────────────────────────────
-
 	void AssetBrowser::Render() {
 		ImGui::Begin("Project");
 
@@ -97,10 +81,6 @@ namespace Bolt {
 
 		ImGui::End();
 	}
-
-	// ──────────────────────────────────────────────
-	//  Breadcrumb Navigation Bar
-	// ──────────────────────────────────────────────
 
 	void AssetBrowser::RenderBreadcrumb() {
 		std::filesystem::path root(m_RootDirectory);
@@ -152,10 +132,6 @@ namespace Bolt {
 		}
 	}
 
-	// ──────────────────────────────────────────────
-	//  Grid Layout
-	// ──────────────────────────────────────────────
-
 	void AssetBrowser::RenderGrid() {
 		ImGui::BeginChild("AssetGrid", ImVec2(0, 0), ImGuiChildFlags_None, ImGuiWindowFlags_None);
 
@@ -164,7 +140,8 @@ namespace Bolt {
 		int columns = static_cast<int>(panelWidth / cellSize);
 		if (columns < 1) columns = 1;
 
-		// Deselect when clicking empty space in the grid
+		m_ItemRightClicked = false;
+
 		if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered()) {
 			m_SelectedPath.clear();
 			CancelRename();
@@ -181,15 +158,11 @@ namespace Bolt {
 			ImGui::TextDisabled("Empty folder");
 		}
 
-		// Context menu for the grid area (right-click on empty space)
 		RenderGridContextMenu();
 
 		ImGui::EndChild();
 	}
 
-	// ──────────────────────────────────────────────
-	//  Individual Asset Tile
-	// ──────────────────────────────────────────────
 
 	void AssetBrowser::RenderAssetTile(const DirectoryEntry& entry, int index) {
 		ImGui::PushID(index);
@@ -198,7 +171,6 @@ namespace Bolt {
 
 		ImGui::BeginGroup();
 
-		// Tile background
 		ImVec2 cursorPos = ImGui::GetCursorScreenPos();
 
 		if (isSelected) {
@@ -207,7 +179,6 @@ namespace Bolt {
 			ImGui::GetWindowDrawList()->AddRectFilled(bgMin, bgMax, IM_COL32(60, 100, 160, 180), 4.0f);
 		}
 
-		// Icon / Thumbnail area
 		ImVec2 iconPos = cursorPos;
 		unsigned int thumbnail = 0;
 
@@ -216,7 +187,6 @@ namespace Bolt {
 		}
 
 		if (thumbnail != 0) {
-			// Image thumbnail with correct aspect ratio, centered within tile
 			Texture2D* tex = nullptr;
 			auto it = m_Thumbnails.GetCacheEntry(entry.Path);
 			float texW = m_TileSize, texH = m_TileSize;
@@ -248,7 +218,6 @@ namespace Bolt {
 				ImVec2(0, 1), ImVec2(1, 0)
 			);
 
-			// Advance cursor past the full tile height
 			ImGui::SetCursorScreenPos(ImVec2(iconPos.x, iconPos.y + m_TileSize));
 		}
 		else {
@@ -260,13 +229,11 @@ namespace Bolt {
 			ImGui::Dummy(ImVec2(m_TileSize, m_TileSize));
 		}
 
-		// Label (name) below the icon
 		if (IsRenamingEntry(entry.Path)) {
 			m_RenameFrameCounter++;
 
 			ImGui::PushItemWidth(m_TileSize);
 
-			// Set focus on frame 1 (after the InputText widget exists)
 			if (m_RenameFrameCounter == 1) {
 				ImGui::SetKeyboardFocusHere();
 			}
@@ -281,21 +248,44 @@ namespace Bolt {
 				CancelRename();
 			}
 			else if (m_RenameFrameCounter > 2 && !ImGui::IsItemActive()) {
-				// Focus lost after the initial settle period — commit
 				CommitRename();
 			}
 
 			ImGui::PopItemWidth();
 		}
 		else {
-			ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + m_TileSize);
-			ImGui::TextUnformatted(entry.Name.c_str());
-			ImGui::PopTextWrapPos();
+			const float maxWidth = m_TileSize;
+			const std::string& name = entry.Name;
+			ImVec2 textSize = ImGui::CalcTextSize(name.c_str());
+
+			if (textSize.x <= maxWidth) {
+				float offsetX = (maxWidth - textSize.x) * 0.5f;
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offsetX);
+				ImGui::TextUnformatted(name.c_str());
+			}
+			else {
+				const char* ellipsis = "...";
+				float ellipsisWidth = ImGui::CalcTextSize(ellipsis).x;
+				float availWidth = maxWidth - ellipsisWidth;
+
+				int fitChars = 0;
+				for (int i = 1; i <= static_cast<int>(name.size()); i++) {
+					if (ImGui::CalcTextSize(name.c_str(), name.c_str() + i).x > availWidth)
+						break;
+					fitChars = i;
+				}
+
+				std::string display = name.substr(0, fitChars) + ellipsis;
+				ImGui::TextUnformatted(display.c_str());
+
+				if (ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("%s", name.c_str());
+				}
+			}
 		}
 
 		ImGui::EndGroup();
 
-		// Interaction: click to select, double-click folders to navigate
 		if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 			m_SelectedPath = entry.Path;
 			if (!IsRenamingEntry(entry.Path)) {
@@ -309,10 +299,8 @@ namespace Bolt {
 			return;
 		}
 
-		// Right-click context menu per item
 		RenderItemContextMenu(entry);
 
-		// Drag and drop
 		HandleDragSource(entry);
 		if (entry.IsDirectory) {
 			HandleDropTarget(entry);
@@ -324,16 +312,21 @@ namespace Bolt {
 		ImGui::Dummy(ImVec2(m_TilePadding, 0));
 	}
 
-	// ──────────────────────────────────────────────
-	//  Context Menus
-	// ──────────────────────────────────────────────
 
 	void AssetBrowser::RenderGridContextMenu() {
-		if (ImGui::BeginPopupContextWindow("##AssetGridCtx",
-			ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		if (!m_ItemRightClicked &&
+			ImGui::IsMouseReleased(ImGuiMouseButton_Right) &&
+			ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup))
 		{
+			ImGui::OpenPopup("##AssetGridCtx");
+		}
+
+		if (ImGui::BeginPopup("##AssetGridCtx")) {
 			if (ImGui::MenuItem("Create Folder")) {
 				CreateFolder(m_CurrentDirectory);
+			}
+			if (ImGui::MenuItem("Create Script (C#)")) {
+				CreateScript(m_CurrentDirectory);
 			}
 
 			ImGui::EndPopup();
@@ -341,7 +334,12 @@ namespace Bolt {
 	}
 
 	void AssetBrowser::RenderItemContextMenu(const DirectoryEntry& entry) {
-		if (ImGui::BeginPopupContextItem("##ItemCtx")) {
+		if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+			ImGui::OpenPopup("##ItemCtx");
+			m_ItemRightClicked = true;
+		}
+
+		if (ImGui::BeginPopup("##ItemCtx")) {
 			m_SelectedPath = entry.Path;
 
 			if (ImGui::MenuItem("Delete")) {
@@ -359,10 +357,6 @@ namespace Bolt {
 			ImGui::EndPopup();
 		}
 	}
-
-	// ──────────────────────────────────────────────
-	//  Drag and Drop
-	// ──────────────────────────────────────────────
 
 	void AssetBrowser::HandleDragSource(const DirectoryEntry& entry) {
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
@@ -392,9 +386,6 @@ namespace Bolt {
 		}
 	}
 
-	// ──────────────────────────────────────────────
-	//  Filesystem Actions
-	// ──────────────────────────────────────────────
 
 	void AssetBrowser::DeleteEntry(const std::string& path) {
 		m_Thumbnails.Invalidate(path);
@@ -437,7 +428,6 @@ namespace Bolt {
 		Directory::Create(folderPath, false);
 		m_NeedsRefresh = true;
 
-		// Refresh immediately so the entry exists for renaming
 		Refresh();
 
 		m_SelectedPath = folderPath;
@@ -445,4 +435,47 @@ namespace Bolt {
 		BeginRename(folderPath, name);
 	}
 
-} // namespace Bolt
+	void AssetBrowser::CreateScript(const std::string& parentDir) {
+		std::string baseName = "NewScript";
+		std::string ext = ".cs";
+		std::string scriptPath = (std::filesystem::path(parentDir) / (baseName + ext)).string();
+		int counter = 1;
+		while (std::filesystem::exists(scriptPath)) {
+			scriptPath = (std::filesystem::path(parentDir) / (baseName + std::to_string(counter) + ext)).string();
+			counter++;
+		}
+
+		// Derive class name from the filename (without extension)
+		std::string className = std::filesystem::path(scriptPath).stem().string();
+
+		// Write BoltScript boilerplate
+		std::string boilerplate =
+			"using Bolt;\n"
+			"\n"
+			"public class " + className + " : BoltScript\n"
+			"{\n"
+			"    public void Start()\n"
+			"    {\n"
+			"    }\n"
+			"\n"
+			"    public void Update()\n"
+			"    {\n"
+			"    }\n"
+			"}\n";
+
+		std::ofstream file(scriptPath);
+		if (file.is_open()) {
+			file << boilerplate;
+			file.close();
+		}
+
+		m_NeedsRefresh = true;
+		Refresh();
+
+		m_SelectedPath = scriptPath;
+		// Start rename so the user can immediately change the script name
+		std::string name = std::filesystem::path(scriptPath).filename().string();
+		BeginRename(scriptPath, name);
+	}
+
+}

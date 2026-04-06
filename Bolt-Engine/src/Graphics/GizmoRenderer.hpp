@@ -21,8 +21,11 @@ namespace Bolt {
         static void Render();
         static void EndFrame();
 
+        static void RenderWithVP(const glm::mat4& vp);
+
     private:
         static void FlushGizmos();
+        static void FlushGizmosWithVP(const glm::mat4& vp);
 
         static bool m_IsInitialized;
         static std::unique_ptr<Shader> m_GizmoShader;

@@ -7,65 +7,70 @@
 #include <span>
 
 namespace Bolt {
-	struct Particle {
-		Transform2DComponent Transform;
-		Color Color;
-		float LifeTime;
-		Vec2 Velocity;
-	};
-
-	enum class Space {
-		Local,
-		World
-	};
-
-	struct Burst {
-		uint32_t Count{ 10 };
-		float Interval{ 1.f };
-		float TimeUntilNext{ 0.f };
-	};
-
-	struct RenderingSettings {
-		uint32_t MaxParticles{ 1000 };
-		Color Color{ Color::White() };
-		short SortingOrder{ 0 };
-		uint8_t SortingLayer{ 0 };
-	};
-
-	struct ParticleSettings {
-		float LifeTime{ 1.f };
-		float Speed{ 5.f };
-		Vec2 Gravity{ 0.f };
-		bool UseGravity{ false };
-		bool UseRandomColors{ false };
-		float Scale{ 1.f };
-		Vec2 MoveDirection{ 0.f, 0.f };
-	};
-
-	struct EmissionSettings {
-		uint16_t EmitOverTime{ 10 };
-		uint16_t RateOverDistance{ 0 };
-		Space EmissionSpace{ Space::World };
-	};
-
-
-
-	struct CircleParams { float Radius = 1.f; bool IsOnCircle = false; };
-	struct SquareParams { Vec2 HalfExtends{ 1.f,1.f }; };
-
-	struct RandomColorParams { Color From{ 1.f,1.f,1.f,1.f }; Color To{ 1.f,1.f,1.f,0.f }; };
-	struct RandomScaleParams { Vec2 From{ 1.f,1.f }; Vec2 To{ 1.f,1.f }; };
-	struct RandomRotationParams { float From{ 0.f }; float To{ 0.f }; };
-
-	using ShapeParams = std::variant<CircleParams, SquareParams>;
-
-
 	class BOLT_API ParticleSystem2DComponent {
 		friend class Scene;
 		friend class Renderer2D;
 		friend class ParticleUpdateSystem;
 
 	public:
+
+		struct Particle {
+			Transform2DComponent Transform;
+			Color Color;
+			float LifeTime;
+			Vec2 Velocity;
+		};
+
+		enum class Space {
+			Local,
+			World
+		};
+
+		struct Burst {
+			uint32_t Count{ 10 };
+			float Interval{ 1.f };
+			float TimeUntilNext{ 0.f };
+		};
+
+		struct RenderingSettings {
+			uint32_t MaxParticles{ 1000 };
+			Color Color{ Color::White() };
+			short SortingOrder{ 0 };
+			uint8_t SortingLayer{ 0 };
+		};
+
+		struct ParticleSettings {
+			float LifeTime{ 1.f };
+			float Speed{ 5.f };
+			Vec2 Gravity{ 0.f };
+			bool UseGravity{ false };
+			bool UseRandomColors{ false };
+			float Scale{ 1.f };
+			Vec2 MoveDirection{ 0.f, 0.f };
+		};
+
+		struct EmissionSettings {
+			uint16_t EmitOverTime{ 10 };
+			uint16_t RateOverDistance{ 0 };
+			Space EmissionSpace{ Space::World };
+		};
+
+
+
+		struct CircleParams { float Radius = 1.f; bool IsOnCircle = false; };
+		struct SquareParams { Vec2 HalfExtends{ 1.f,1.f }; };
+
+		struct RandomColorParams { Color From{ 1.f,1.f,1.f,1.f }; Color To{ 1.f,1.f,1.f,0.f }; };
+		struct RandomScaleParams { Vec2 From{ 1.f,1.f }; Vec2 To{ 1.f,1.f }; };
+		struct RandomRotationParams { float From{ 0.f }; float To{ 0.f }; };
+
+		enum class ShapeType {
+			Circle,
+			Square
+		};
+		using ShapeParams = std::variant<CircleParams, SquareParams>;
+
+
 		ParticleSystem2DComponent() = default;
 		void SetTexture(const TextureHandle& texture) { m_TextureHandle = texture; }
 		const TextureHandle& GetTextureHandle() const { return m_TextureHandle; }

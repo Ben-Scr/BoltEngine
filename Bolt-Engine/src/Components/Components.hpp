@@ -14,4 +14,5 @@
 #include "Physics/Rigidbody2DComponent.hpp"
 
 #include "Audio/AudioSourceComponent.hpp"
+#include "Scripting/ScriptComponent.hpp"
 #include "Tags.hpp"

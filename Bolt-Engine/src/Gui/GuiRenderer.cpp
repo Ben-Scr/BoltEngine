@@ -85,7 +85,7 @@ namespace Bolt {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		// Info: Final Rendering
+		// (Ben-Scr) Final Rendering
 		for (const Instance44& instance : instances) {
 			m_SpriteShader.SetSpritePosition(instance.Position);
 			m_SpriteShader.SetScale(instance.Scale);
@@ -98,7 +98,7 @@ namespace Bolt {
 				handle = TextureManager::GetDefaultTexture(DefaultTexture::Square);
 			}
 			Texture2D* texture = TextureManager::GetTexture(handle);
-			if (texture->IsValid())
+			if (texture && texture->IsValid())
 				texture->Submit(0);
 
 

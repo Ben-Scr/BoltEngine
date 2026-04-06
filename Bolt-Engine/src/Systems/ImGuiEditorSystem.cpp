@@ -2,6 +2,7 @@
 #include "ImGuiEditorSystem.hpp"
 
 #include <imgui.h>
+#include <glad/glad.h>
 
 #include <cstdio>
 
@@ -10,6 +11,8 @@
 #include "Core/Window.hpp"
 #include "Graphics/OpenGL.hpp"
 #include "Graphics/Renderer2D.hpp"
+#include "Graphics/GizmoRenderer.hpp"
+#include "Graphics/Gizmos.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Scene/ComponentRegistry.hpp"
@@ -20,8 +23,72 @@
 #include "Serialization/Path.hpp"
 
 namespace Bolt {
+
+
+	void ImGuiEditorSystem::EnsureFBO(ViewportFBO& fbo, int width, int height) {
+		if (width <= 0 || height <= 0) return;
+
+		const bool sizeChanged = fbo.ViewportSize.GetWidth() != width || fbo.ViewportSize.GetHeight() != height;
+		if (fbo.FramebufferId != 0 && !sizeChanged) return;
+
+		DestroyFBO(fbo);
+		fbo.ViewportSize.SetSize(width, height);
+
+		glGenFramebuffers(1, &fbo.FramebufferId);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo.FramebufferId);
+
+		glGenTextures(1, &fbo.ColorTextureId);
+		glBindTexture(GL_TEXTURE_2D, fbo.ColorTextureId);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo.ColorTextureId, 0);
+
+		glGenRenderbuffers(1, &fbo.DepthRenderbufferId);
+		glBindRenderbuffer(GL_RENDERBUFFER, fbo.DepthRenderbufferId);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fbo.DepthRenderbufferId);
+
+		BT_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, BoltErrorCode::InvalidHandle,
+			"Viewport framebuffer is incomplete");
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+	void ImGuiEditorSystem::DestroyFBO(ViewportFBO& fbo) {
+		if (fbo.DepthRenderbufferId != 0) {
+			glDeleteRenderbuffers(1, &fbo.DepthRenderbufferId);
+			fbo.DepthRenderbufferId = 0;
+		}
+		if (fbo.ColorTextureId != 0) {
+			glDeleteTextures(1, &fbo.ColorTextureId);
+			fbo.ColorTextureId = 0;
+		}
+		if (fbo.FramebufferId != 0) {
+			glDeleteFramebuffers(1, &fbo.FramebufferId);
+			fbo.FramebufferId = 0;
+		}
+	}
+
+	void ImGuiEditorSystem::EnsureViewportFramebuffer(int width, int height) {
+		EnsureFBO(m_EditorViewFBO, width, height);
+	}
+
+	void ImGuiEditorSystem::DestroyViewportFramebuffer() {
+		DestroyFBO(m_EditorViewFBO);
+	}
+
+	// ──────────────────────────────────────────────
+	//  Lifecycle
+	// ──────────────────────────────────────────────
+
 	void ImGuiEditorSystem::Awake(Scene& scene) {
 		Application::SetIsPlaying(false);
+
+        auto* app = Application::GetInstance();
+		if (app && app->GetRenderer2D()) {
+			app->GetRenderer2D()->SetSkipBeginFrameRender(true);
+		}
 
 		(void)scene;
 		if (m_LogSubscriptionId.value != 0) {
@@ -44,58 +111,14 @@ namespace Bolt {
 			m_LogSubscriptionId = EventId{};
 		}
 
-		DestroyViewportFramebuffer();
+		DestroyFBO(m_EditorViewFBO);
+		DestroyFBO(m_GameViewFBO);
 		m_AssetBrowser.Shutdown();
 	}
 
-	void ImGuiEditorSystem::EnsureViewportFramebuffer(int width, int height) {
-		if (width <= 0 || height <= 0) {
-			return;
-		}
-
-		const bool sizeChanged = m_EditorViewport.GetWidth() != width || m_EditorViewport.GetHeight() != height;
-		if (m_ViewportFramebufferId != 0 && !sizeChanged) {
-			return;
-		}
-
-		DestroyViewportFramebuffer();
-		m_EditorViewport.SetSize(width, height);
-
-		glGenFramebuffers(1, &m_ViewportFramebufferId);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_ViewportFramebufferId);
-
-		glGenTextures(1, &m_ViewportColorTextureId);
-		glBindTexture(GL_TEXTURE_2D, m_ViewportColorTextureId);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ViewportColorTextureId, 0);
-
-		glGenRenderbuffers(1, &m_ViewportDepthRenderBufferId);
-		glBindRenderbuffer(GL_RENDERBUFFER, m_ViewportDepthRenderBufferId);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_ViewportDepthRenderBufferId);
-
-		BT_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, BoltErrorCode::InvalidHandle,
-			"Editor viewport framebuffer is incomplete");
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-
-	void ImGuiEditorSystem::DestroyViewportFramebuffer() {
-		if (m_ViewportDepthRenderBufferId != 0) {
-			glDeleteRenderbuffers(1, &m_ViewportDepthRenderBufferId);
-			m_ViewportDepthRenderBufferId = 0;
-		}
-		if (m_ViewportColorTextureId != 0) {
-			glDeleteTextures(1, &m_ViewportColorTextureId);
-			m_ViewportColorTextureId = 0;
-		}
-		if (m_ViewportFramebufferId != 0) {
-			glDeleteFramebuffers(1, &m_ViewportFramebufferId);
-			m_ViewportFramebufferId = 0;
-		}
-	}
+	// ──────────────────────────────────────────────
+	//  Dockspace & Menu
+	// ──────────────────────────────────────────────
 
 	void ImGuiEditorSystem::RenderDockspaceRoot() {
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -159,6 +182,10 @@ namespace Bolt {
 		ImGui::TextUnformatted(Application::GetIsPlaying() ? "Runtime" : "Editor Paused");
 		ImGui::End();
 	}
+
+	// ──────────────────────────────────────────────
+	//  Entities Panel (with rename support)
+	// ──────────────────────────────────────────────
 
 	void ImGuiEditorSystem::RenderEntitiesPanel(Scene& scene) {
 		ImGui::Begin("Entities");
@@ -271,8 +298,55 @@ namespace Bolt {
 			Entity entity = scene.GetEntity(entityHandle);
 			const bool selected = m_SelectedEntity == entityHandle;
 
-			if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
-				m_SelectedEntity = entityHandle;
+			ImGui::PushID(static_cast<int>(static_cast<uint32_t>(entityHandle)));
+
+
+			if (m_RenamingEntity == entityHandle) {
+				m_EntityRenameFrameCounter++;
+
+				ImGui::PushItemWidth(-1);
+				if (m_EntityRenameFrameCounter == 1) {
+					ImGui::SetKeyboardFocusHere();
+				}
+
+				bool committed = ImGui::InputText("##EntityRename", m_EntityRenameBuffer, sizeof(m_EntityRenameBuffer),
+					ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+
+				if (committed) {
+					std::string newName(m_EntityRenameBuffer);
+					if (!newName.empty() && entity.HasComponent<NameComponent>()) {
+						entity.GetComponent<NameComponent>().Name = newName;
+					}
+					m_RenamingEntity = entt::null;
+					m_EntityRenameFrameCounter = 0;
+				}
+				else if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+					m_RenamingEntity = entt::null;
+					m_EntityRenameFrameCounter = 0;
+				}
+				else if (m_EntityRenameFrameCounter > 2 && !ImGui::IsItemActive()) {
+					// (Ben-Scr) Focus lost = commit
+					std::string newName(m_EntityRenameBuffer);
+					if (!newName.empty() && entity.HasComponent<NameComponent>()) {
+						entity.GetComponent<NameComponent>().Name = newName;
+					}
+					m_RenamingEntity = entt::null;
+					m_EntityRenameFrameCounter = 0;
+				}
+
+				ImGui::PopItemWidth();
+			}
+			else {
+				if (ImGui::Selectable(entity.GetName().c_str(), selected)) {
+					m_SelectedEntity = entityHandle;
+				}
+
+				// (Ben-Scr) Double-click to rename
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+					m_RenamingEntity = entityHandle;
+					m_EntityRenameFrameCounter = 0;
+					std::snprintf(m_EntityRenameBuffer, sizeof(m_EntityRenameBuffer), "%s", entity.GetName().c_str());
+				}
 			}
 
 			if (ImGui::BeginPopupContextItem())
@@ -284,6 +358,8 @@ namespace Bolt {
 					scene.DestroyEntity(entity);
 					if (m_SelectedEntity == entityHandle)
 						m_SelectedEntity = entt::null;
+					if (m_RenamingEntity == entityHandle)
+						m_RenamingEntity = entt::null;
 				}
 
 				if (ImGui::MenuItem("Copy Entity"))
@@ -294,7 +370,7 @@ namespace Bolt {
 					registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
 						if (info.category != ComponentCategory::Component) return;
 						if (!info.has(entity)) return;
-						if (info.has(copy)) return; // already present (e.g. NameComponent, Transform2D)
+						if (info.has(copy)) return;
 						info.add(copy);
 					});
 
@@ -303,15 +379,23 @@ namespace Bolt {
 
 				if (ImGui::MenuItem("Rename"))
 				{
-
+					m_RenamingEntity = entityHandle;
+					m_EntityRenameFrameCounter = 0;
+					std::snprintf(m_EntityRenameBuffer, sizeof(m_EntityRenameBuffer), "%s", entity.GetName().c_str());
 				}
 
 				ImGui::EndPopup();
 			}
+
+			ImGui::PopID();
 		}
 
 		ImGui::End();
 	}
+
+	// ──────────────────────────────────────────────
+	//  Inspector Panel
+	// ──────────────────────────────────────────────
 
 	void ImGuiEditorSystem::RenderInspectorPanel(Scene& scene) {
 		ImGui::Begin("Inspector");
@@ -330,7 +414,6 @@ namespace Bolt {
 
 		const auto& registry = SceneManager::Get().GetComponentRegistry();
 
-		// Draw all components present on this entity via the registry
 		std::type_index pendingRemoval = typeid(void);
 
 		registry.ForEachComponentInfo([&](const std::type_index& typeId, const ComponentInfo& info) {
@@ -338,18 +421,20 @@ namespace Bolt {
 			if (!info.has(entity)) return;
 
 			bool removeRequested = false;
-			ImGuiUtils::BeginComponentSection(info.displayName.c_str(), removeRequested);
+			bool open = ImGuiUtils::BeginComponentSection(info.displayName.c_str(), removeRequested);
 
 			if (removeRequested) {
 				pendingRemoval = typeId;
 			}
 
-			if (info.drawInspector) {
-				info.drawInspector(entity);
+			if (open) {
+				if (info.drawInspector) {
+					info.drawInspector(entity);
+				}
+				ImGuiUtils::EndComponentSection();
 			}
 		});
 
-		// Process deferred removal
 		if (pendingRemoval != typeid(void)) {
 			registry.ForEachComponentInfo([&](const std::type_index& typeId, const ComponentInfo& info) {
 				if (typeId == pendingRemoval && info.remove) {
@@ -362,7 +447,6 @@ namespace Bolt {
 		ImGui::Separator();
 		ImGui::Spacing();
 
-		// "Add Component" button with dropdown
 		float buttonWidth = ImGui::GetContentRegionAvail().x;
 		if (ImGui::Button("Add Component", ImVec2(buttonWidth, 0))) {
 			ImGui::OpenPopup("AddComponentPopup");
@@ -383,38 +467,145 @@ namespace Bolt {
 		ImGui::End();
 	}
 
-	void ImGuiEditorSystem::RenderViewportPanel(Scene& scene) {
-		(void)scene;
-		ImGui::Begin("Viewport");
+	// ──────────────────────────────────────────────
+	//  Render scene into an FBO with a given camera
+	// ──────────────────────────────────────────────
+
+	void ImGuiEditorSystem::RenderSceneIntoFBO(ViewportFBO& fbo, Scene& scene,
+		const glm::mat4& vp, const AABB& viewportAABB,
+		bool withGizmos)
+	{
+		auto* app = Application::GetInstance();
+		if (!app) return;
+		auto* renderer = app->GetRenderer2D();
+		if (!renderer) return;
+
+		int w = fbo.ViewportSize.GetWidth();
+		int h = fbo.ViewportSize.GetHeight();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo.FramebufferId);
+		glViewport(0, 0, w, h);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		SceneManager::Get().ForeachLoadedScene([&](const Scene& s) {
+			renderer->RenderSceneWithVP(s, vp, viewportAABB);
+		});
+
+		if (withGizmos && Gizmo::IsEnabled()) {
+			GizmoRenderer2D::RenderWithVP(vp);
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		auto* window = Application::GetWindow();
+		if (window) {
+			glViewport(0, 0, window->GetWidth(), window->GetHeight());
+		}
+	}
+
+	// ──────────────────────────────────────────────
+	//  Editor View — free-move editor camera + gizmos
+	// ──────────────────────────────────────────────
+
+	void ImGuiEditorSystem::RenderEditorView(Scene& scene) {
+		ImGui::Begin("Editor View");
 
 		const ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-		const int framebufferWidth = static_cast<int>(viewportSize.x);
-		const int framebufferHeight = static_cast<int>(viewportSize.y);
+		const int fbW = static_cast<int>(viewportSize.x);
+		const int fbH = static_cast<int>(viewportSize.y);
 
-		if (framebufferWidth > 0 && framebufferHeight > 0) {
-			EnsureViewportFramebuffer(framebufferWidth, framebufferHeight);
+		if (fbW > 0 && fbH > 0) {
+			EnsureFBO(m_EditorViewFBO, fbW, fbH);
+			m_EditorCamera.SetViewportSize(fbW, fbH);
 
-			if (m_ViewportFramebufferId != 0) {
+			if (m_EditorViewFBO.FramebufferId != 0) {
 				auto* app = Application::GetInstance();
-				auto* renderer = app->GetRenderer2D();
+				if (app) {
+					auto& input = app->GetInput();
+					float dt = app->GetTime().GetDeltaTimeUnscaled();
 
-				renderer->SetOutputTarget(m_ViewportFramebufferId, framebufferWidth, framebufferHeight);
+					Vec2 mouseDelta = { 0.0f, 0.0f };
+					if (m_IsEditorViewHovered && input.GetMouse(MouseButton::Middle)) {
+						mouseDelta = input.GetMouseDelta();
+					}
+					float scroll = m_IsEditorViewHovered ? input.ScrollValue() : 0.0f;
+
+					m_EditorCamera.Update(dt, m_IsEditorViewHovered, mouseDelta, scroll);
+				}
+
+				glm::mat4 vp = m_EditorCamera.GetViewProjectionMatrix();
+				AABB viewAABB = m_EditorCamera.GetViewportAABB();
+
+				RenderSceneIntoFBO(m_EditorViewFBO, scene, vp, viewAABB, true);
 
 				ImGui::Image(
-					static_cast<ImTextureID>(static_cast<intptr_t>(m_ViewportColorTextureId)),
+					static_cast<ImTextureID>(static_cast<intptr_t>(m_EditorViewFBO.ColorTextureId)),
 					viewportSize,
 					ImVec2(0.0f, 1.0f),
 					ImVec2(1.0f, 0.0f));
 			}
 		}
 		else {
-			ImGui::TextDisabled("Viewport has no drawable area");
+			ImGui::TextDisabled("Editor View has no drawable area");
 		}
 
-		m_IsViewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
-		m_IsViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+		m_IsEditorViewHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+		m_IsEditorViewFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 		ImGui::End();
 	}
+
+	// ──────────────────────────────────────────────
+	//  Game View — renders with the in-game camera
+	// ──────────────────────────────────────────────
+
+	void ImGuiEditorSystem::RenderGameView(Scene& scene) {
+		(void)scene;
+		ImGui::Begin("Game View");
+
+		const ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		const int fbW = static_cast<int>(viewportSize.x);
+		const int fbH = static_cast<int>(viewportSize.y);
+
+		if (fbW > 0 && fbH > 0) {
+			EnsureFBO(m_GameViewFBO, fbW, fbH);
+
+			Camera2DComponent* gameCam = Camera2DComponent::Main();
+			if (m_GameViewFBO.FramebufferId != 0 && gameCam && gameCam->IsValid()) {
+				Viewport* savedViewport = gameCam->GetViewport();
+				int savedW = savedViewport->GetWidth();
+				int savedH = savedViewport->GetHeight();
+				savedViewport->SetSize(fbW, fbH);
+
+				gameCam->UpdateViewport();
+				glm::mat4 vp = gameCam->GetViewProjectionMatrix();
+				AABB viewAABB = gameCam->GetViewportAABB();
+
+				RenderSceneIntoFBO(m_GameViewFBO, scene, vp, viewAABB, false);
+
+				savedViewport->SetSize(savedW, savedH);
+
+				ImGui::Image(
+					static_cast<ImTextureID>(static_cast<intptr_t>(m_GameViewFBO.ColorTextureId)),
+					viewportSize,
+					ImVec2(0.0f, 1.0f),
+					ImVec2(1.0f, 0.0f));
+			}
+			else {
+				ImGui::TextDisabled("No main camera in scene");
+			}
+		}
+		else {
+			ImGui::TextDisabled("Game View has no drawable area");
+		}
+
+		m_IsGameViewHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+		m_IsGameViewFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+		ImGui::End();
+	}
+
+	// ──────────────────────────────────────────────
+	//  Log Panel
+	// ──────────────────────────────────────────────
 
 	void ImGuiEditorSystem::RenderLogPanel() {
 		ImGui::Begin("Log");
@@ -446,15 +637,17 @@ namespace Bolt {
 		ImGui::End();
 	}
 
+	// ──────────────────────────────────────────────
+	//  Project Panel (Asset Browser)
+	// ──────────────────────────────────────────────
+
 	void ImGuiEditorSystem::RenderProjectPanel() {
 		if (!m_AssetBrowserInitialized) {
 			std::string assetsRoot = Path::Combine(Path::ExecutableDir(), "Assets");
 			if (!Directory::Exists(assetsRoot)) {
-				// Fallback to working directory
 				assetsRoot = Path::Combine(Path::Current(), "Assets");
 			}
 			if (!Directory::Exists(assetsRoot)) {
-				// Last resort: create it
 				Directory::Create(assetsRoot);
 			}
 			m_AssetBrowser.Initialize(assetsRoot);
@@ -464,13 +657,18 @@ namespace Bolt {
 		m_AssetBrowser.Render();
 	}
 
+	// ──────────────────────────────────────────────
+	//  Main OnGui entry point
+	// ──────────────────────────────────────────────
+
 	void ImGuiEditorSystem::OnGui(Scene& scene) {
 		RenderDockspaceRoot();
 		RenderMainMenu(scene);
 		RenderToolbar();
 		RenderEntitiesPanel(scene);
 		RenderInspectorPanel(scene);
-		RenderViewportPanel(scene);
+		RenderEditorView(scene);
+		RenderGameView(scene);
 		RenderProjectPanel();
 		RenderLogPanel();
 		ImGui::End();

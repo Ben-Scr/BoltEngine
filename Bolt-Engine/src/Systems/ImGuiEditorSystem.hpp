@@ -9,6 +9,7 @@
 #include "Debugging/Logger.hpp"
 #include "Core/Log.hpp"
 #include "Gui/AssetBrowser.hpp"
+#include "Editor/EditorCamera.hpp"
 
 #include <string>
 #include <vector>
@@ -25,24 +26,50 @@ namespace Bolt {
 			Log::Level Level;
 		};
 
+		struct ViewportFBO {
+			unsigned int FramebufferId = 0;
+			unsigned int ColorTextureId = 0;
+			unsigned int DepthRenderbufferId = 0;
+			Viewport ViewportSize{ 1, 1 };
+		};
+
+		void EnsureFBO(ViewportFBO& fbo, int width, int height);
+		void DestroyFBO(ViewportFBO& fbo);
+
 		void EnsureViewportFramebuffer(int width, int height);
 		void DestroyViewportFramebuffer();
+
 		void RenderDockspaceRoot();
 		void RenderMainMenu(Scene& scene);
 		void RenderToolbar();
 		void RenderEntitiesPanel(Scene& scene);
 		void RenderInspectorPanel(Scene& scene);
-		void RenderViewportPanel(Scene& scene);
+		void RenderEditorView(Scene& scene);
+		void RenderGameView(Scene& scene);
 		void RenderLogPanel();
 		void RenderProjectPanel();
+
+		void RenderSceneIntoFBO(ViewportFBO& fbo, Scene& scene,
+			const glm::mat4& vp, const AABB& viewportAABB,
+			bool withGizmos);
 
 		EntityHandle m_SelectedEntity = entt::null;
 		EventId m_LogSubscriptionId{};
 		std::vector<LogEntry> m_LogEntries;
 
-		unsigned int m_ViewportFramebufferId = 0;
-		unsigned int m_ViewportColorTextureId = 0;
-		unsigned int m_ViewportDepthRenderBufferId = 0;
+		EntityHandle m_RenamingEntity = entt::null;
+		char m_EntityRenameBuffer[256]{};
+		int m_EntityRenameFrameCounter = 0;
+
+		ViewportFBO m_EditorViewFBO;
+		EditorCamera m_EditorCamera;
+		bool m_IsEditorViewHovered = false;
+		bool m_IsEditorViewFocused = false;
+
+		ViewportFBO m_GameViewFBO;
+		bool m_IsGameViewHovered = false;
+		bool m_IsGameViewFocused = false;
+
 		Viewport m_EditorViewport{ 1, 1 };
 		bool m_IsViewportHovered = false;
 		bool m_IsViewportFocused = false;
