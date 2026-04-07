@@ -1,0 +1,39 @@
+#include <Bolt.hpp>
+
+#include "Core/Application.hpp"
+#include "Scene/SceneDefinition.hpp"
+#include "Scene/SceneManager.hpp"
+#include <Systems/LauncherSystem.hpp>
+#include <Core/Version.hpp>
+
+using namespace Bolt;
+
+class LauncherApplication : public Application {
+public:
+	ApplicationConfig GetConfiguration() const override {
+		ApplicationConfig config;
+		config.WindowSpecification = WindowSpecification(900, 600, "Bolt Launcher " + std::string(BT_VERSION), true, true, false);
+		config.EnableAudio = false;
+		config.EnableGuiRenderer = false;
+		config.EnableGizmoRenderer = false;
+		config.EnablePhysics2D = false;
+		config.SetWindowIcon = true;
+		return config;
+	}
+
+	void ConfigureScenes() override {
+		SceneDefinition& launcherScene = GetSceneManager()->RegisterScene("Launcher");
+		launcherScene.AddSystem<LauncherSystem>();
+		launcherScene.SetAsStartupScene();
+	}
+
+	void Start() override {}
+	void Update() override {}
+	void FixedUpdate() override {}
+	void OnPaused() override {}
+	void OnQuit() override {}
+};
+
+Bolt::Application* Bolt::CreateApplication() {
+	return new LauncherApplication();
+}

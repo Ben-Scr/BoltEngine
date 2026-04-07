@@ -1,6 +1,9 @@
 #include <pch.hpp>
 #include "Gui/AssetBrowser.hpp"
 #include "Serialization/Path.hpp"
+#include "Project/ProjectManager.hpp"
+#include "Serialization/SceneSerializer.hpp"
+#include "Scene/SceneManager.hpp"
 #include "Core/Log.hpp"
 #include <imgui.h>
 #include <algorithm>
@@ -78,6 +81,27 @@ namespace Bolt {
 	}
 
 	void AssetBrowser::Render() {
+		// Load pending scene on main thread (before ImGui frame)
+		if (!m_PendingSceneLoad.empty())
+		{
+			std::string scenePath = m_PendingSceneLoad;
+			m_PendingSceneLoad.clear();
+
+			Scene* active = SceneManager::Get().GetActiveScene();
+			if (active)
+			{
+				SceneSerializer::LoadFromFile(*active, scenePath);
+
+				BoltProject* project = ProjectManager::GetCurrentProject();
+				if (project)
+				{
+					std::string sceneName = std::filesystem::path(scenePath).stem().string();
+					project->LastOpenedScene = sceneName;
+					project->Save();
+				}
+			}
+		}
+
 		ImGui::Begin("Project");
 
 		if (m_NeedsRefresh) {
@@ -336,8 +360,16 @@ namespace Bolt {
 			if (ImGui::MenuItem("Create Folder")) {
 				CreateFolder(m_CurrentDirectory);
 			}
+			ImGui::Separator();
+			if (ImGui::MenuItem("Create Scene")) {
+				CreateScene(m_CurrentDirectory);
+			}
+			ImGui::Separator();
 			if (ImGui::MenuItem("Create Script (C#)")) {
 				CreateScript(m_CurrentDirectory);
+			}
+			if (ImGui::MenuItem("Create Script (C++)")) {
+				CreateNativeScript(m_CurrentDirectory);
 			}
 
 			ImGui::EndPopup();
@@ -413,12 +445,59 @@ namespace Bolt {
 	void AssetBrowser::RenameEntry(const std::string& path, const std::string& newName) {
 		m_Thumbnails.Invalidate(path);
 
+		std::string oldExt = std::filesystem::path(path).extension().string();
+		std::string oldStem = std::filesystem::path(path).stem().string();
+
 		if (Directory::Rename(path, newName)) {
 			std::filesystem::path p(path);
 			std::string newPath = (p.parent_path() / newName).string();
 			if (m_SelectedPath == path) {
 				m_SelectedPath = newPath;
 			}
+
+			std::string ext = std::filesystem::path(newName).extension().string();
+			std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+			std::string newStem = std::filesystem::path(newName).stem().string();
+			auto exeDir = std::filesystem::path(Path::ExecutableDir());
+
+			// Determine which project source dir this script belongs to
+			std::filesystem::path projectSourceDir;
+			if (ext == ".cs")
+				projectSourceDir = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Source";
+			else if (ext == ".cpp" || ext == ".h" || ext == ".hpp")
+				projectSourceDir = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source";
+
+			if (!projectSourceDir.empty() && std::filesystem::exists(projectSourceDir))
+			{
+				auto oldProjectFile = projectSourceDir / (oldStem + oldExt);
+				auto newProjectFile = projectSourceDir / newName;
+
+				if (std::filesystem::exists(oldProjectFile))
+				{
+					std::error_code ec;
+					std::filesystem::rename(oldProjectFile, newProjectFile, ec);
+
+					if (!ec)
+					{
+						// Update all occurrences of the old class name in the file
+						std::ifstream in(newProjectFile);
+						std::string content((std::istreambuf_iterator<char>(in)),
+							std::istreambuf_iterator<char>());
+						in.close();
+
+						size_t pos = 0;
+						while ((pos = content.find(oldStem, pos)) != std::string::npos)
+						{
+							content.replace(pos, oldStem.size(), newStem);
+							pos += newStem.size();
+						}
+
+						std::ofstream out(newProjectFile);
+						out << content;
+					}
+				}
+			}
+
 			m_NeedsRefresh = true;
 		}
 	}
@@ -503,87 +582,219 @@ namespace Bolt {
 		Refresh();
 
 		m_SelectedPath = scriptPath;
-		// Start rename so the user can immediately change the script name
 		std::string name = std::filesystem::path(scriptPath).filename().string();
 		BeginRename(scriptPath, name);
 	}
 
-	void AssetBrowser::OpenAssetExternal(const DirectoryEntry& entry) {
-		std::string entryPath = entry.Path;
-		std::string exeDir = Path::ExecutableDir();
+	void AssetBrowser::CreateNativeScript(const std::string& parentDir) {
+		std::string baseName = "NewNativeScript";
+		std::string ext = ".cpp";
+		std::string scriptPath = (std::filesystem::path(parentDir) / (baseName + ext)).string();
+		int counter = 1;
+		while (std::filesystem::exists(scriptPath)) {
+			scriptPath = (std::filesystem::path(parentDir) / (baseName + std::to_string(counter) + ext)).string();
+			counter++;
+		}
 
-		std::thread([entryPath, exeDir]() {
-			try
+		std::string className = std::filesystem::path(scriptPath).stem().string();
+
+		std::string boilerplate =
+			"#include <Scripting/NativeScript.hpp>\n"
+			"\n"
+			"class " + className + " : public Bolt::NativeScript {\n"
+			"public:\n"
+			"    void Start() override\n"
+			"    {\n"
+			"    }\n"
+			"\n"
+			"    void Update(float dt) override\n"
+			"    {\n"
+			"    }\n"
+			"\n"
+			"    void OnDestroy() override\n"
+			"    {\n"
+			"    }\n"
+			"};\n"
+			"REGISTER_SCRIPT(" + className + ")\n";
+
+		// Write to Assets folder
+		std::ofstream file(scriptPath);
+		if (file.is_open()) {
+			file << boilerplate;
+			file.close();
+		}
+
+		// Also write to Bolt-NativeScripts/Source/
+		auto exeDir = std::filesystem::path(Path::ExecutableDir());
+		auto nativeSourceDir = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source";
+		if (std::filesystem::exists(nativeSourceDir))
+		{
+			auto projectScriptPath = nativeSourceDir / (className + ext);
+			if (!std::filesystem::exists(projectScriptPath))
 			{
-				std::string ext = std::filesystem::path(entryPath).extension().string();
-				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-
-#ifdef BT_PLATFORM_WINDOWS
-				if (ext == ".cs")
-				{
-					// Resolve the project source file
-					auto sandboxSource = std::filesystem::path(exeDir) / ".." / ".." / ".." / "Bolt-Sandbox" / "Source"
-						/ std::filesystem::path(entryPath).filename();
-					auto sandboxSln = std::filesystem::path(exeDir) / ".." / ".." / ".." / "Bolt-Sandbox" / "Bolt-Sandbox.sln";
-
-					std::filesystem::path fileToOpen;
-					if (std::filesystem::exists(sandboxSource))
-						fileToOpen = std::filesystem::canonical(sandboxSource);
-					else
-						fileToOpen = std::filesystem::absolute(entryPath);
-
-					// Check if VS is already running with the Bolt-Sandbox solution
-					// by searching for a window with "Bolt-Sandbox" in its title.
-					struct FindData { bool found; };
-					FindData data = { false };
-
-					EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
-						auto* d = reinterpret_cast<FindData*>(lParam);
-						wchar_t title[512]{};
-						GetWindowTextW(hwnd, title, 512);
-						if (wcsstr(title, L"Bolt-Sandbox") != nullptr)
-						{
-							d->found = true;
-							return FALSE;
-						}
-						return TRUE;
-					}, reinterpret_cast<LPARAM>(&data));
-
-					if (data.found)
-					{
-						// VS already has the solution open — just open the file.
-						// VS picks it up in the existing instance.
-						ShellExecuteW(nullptr, L"open", fileToOpen.wstring().c_str(),
-							nullptr, nullptr, SW_SHOWNORMAL);
-					}
-					else
-					{
-						// VS not running with this solution — open the .sln.
-						// This launches VS with full project context.
-						if (std::filesystem::exists(sandboxSln))
-						{
-							auto slnPath = std::filesystem::canonical(sandboxSln);
-							ShellExecuteW(nullptr, L"open", slnPath.wstring().c_str(),
-								nullptr, nullptr, SW_SHOWNORMAL);
-						}
-						else
-						{
-							ShellExecuteW(nullptr, L"open", fileToOpen.wstring().c_str(),
-								nullptr, nullptr, SW_SHOWNORMAL);
-						}
-					}
+				std::ofstream projectFile(projectScriptPath);
+				if (projectFile.is_open()) {
+					projectFile << boilerplate;
+					projectFile.close();
 				}
-				else
-				{
-					// Non-script files: open with default Windows handler
-					auto filePath = std::filesystem::absolute(entryPath);
-					ShellExecuteW(nullptr, L"open", filePath.wstring().c_str(),
-						nullptr, nullptr, SW_SHOWNORMAL);
-				}
-#endif
 			}
-			catch (...) { /* silently ignore on background thread */ }
-		}).detach();
+		}
+
+		m_NeedsRefresh = true;
+		Refresh();
+
+		m_SelectedPath = scriptPath;
+		std::string name = std::filesystem::path(scriptPath).filename().string();
+		BeginRename(scriptPath, name);
+	}
+
+	void AssetBrowser::CreateScene(const std::string& parentDir) {
+		std::string baseName = "NewScene";
+		std::string ext = ".scene";
+		std::string scenePath = (std::filesystem::path(parentDir) / (baseName + ext)).string();
+		int counter = 1;
+		while (std::filesystem::exists(scenePath)) {
+			scenePath = (std::filesystem::path(parentDir) / (baseName + std::to_string(counter) + ext)).string();
+			counter++;
+		}
+
+		std::string sceneName = std::filesystem::path(scenePath).stem().string();
+
+		// Default scene with a Camera entity
+		std::string content =
+			"{\n"
+			"  \"name\": \"" + sceneName + "\",\n"
+			"  \"entities\": [\n"
+			"    {\n"
+			"      \"name\": \"Camera\",\n"
+			"      \"Transform2D\": { \"posX\": 0, \"posY\": 0, \"rotation\": 0, \"scaleX\": 1, \"scaleY\": 1 },\n"
+			"      \"Camera2D\": { \"orthoSize\": 5, \"zoom\": 1 }\n"
+			"    }\n"
+			"  ]\n"
+			"}\n";
+
+		std::ofstream file(scenePath);
+		if (file.is_open()) {
+			file << content;
+			file.close();
+		}
+
+		m_NeedsRefresh = true;
+		Refresh();
+
+		m_SelectedPath = scenePath;
+		std::string name = std::filesystem::path(scenePath).filename().string();
+		BeginRename(scenePath, name);
+	}
+
+	void AssetBrowser::OpenAssetExternal(const DirectoryEntry& entry) {
+#ifdef BT_PLATFORM_WINDOWS
+		try
+		{
+			std::string ext = std::filesystem::path(entry.Path).extension().string();
+			std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+			// Scene files are loaded internally, not opened externally
+			if (ext == ".scene")
+			{
+				m_PendingSceneLoad = entry.Path;
+				return;
+			}
+
+			// Determine which project this file belongs to
+			std::wstring slnPath, filePath, windowTitle;
+			bool isScript = false;
+
+			auto exeDir = std::filesystem::path(Path::ExecutableDir());
+
+			if (ext == ".cs")
+			{
+				auto sln = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Bolt-Sandbox.sln";
+				auto src = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Source"
+					/ std::filesystem::path(entry.Path).filename();
+
+				if (std::filesystem::exists(sln))
+				{
+					slnPath = std::filesystem::canonical(sln).wstring();
+					filePath = std::filesystem::exists(src)
+						? std::filesystem::canonical(src).wstring()
+						: std::filesystem::absolute(entry.Path).wstring();
+					windowTitle = L"Bolt-Sandbox";
+					isScript = true;
+				}
+			}
+			else if (ext == ".cpp" || ext == ".h" || ext == ".hpp")
+			{
+				auto sln = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "build" / "Bolt-NativeScripts.sln";
+				auto src = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source"
+					/ std::filesystem::path(entry.Path).filename();
+
+				if (std::filesystem::exists(sln))
+				{
+					slnPath = std::filesystem::canonical(sln).wstring();
+					filePath = std::filesystem::exists(src)
+						? std::filesystem::canonical(src).wstring()
+						: std::filesystem::absolute(entry.Path).wstring();
+					windowTitle = L"Bolt-NativeScripts";
+					isScript = true;
+				}
+			}
+
+			if (isScript && !slnPath.empty())
+			{
+				// Check if VS already has this solution open
+				bool vsRunning = false;
+				std::wstring searchTitle = windowTitle;
+				auto enumCtx = std::make_pair(&vsRunning, &searchTitle);
+				EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+					auto* ctx = reinterpret_cast<std::pair<bool*, std::wstring*>*>(lParam);
+					wchar_t title[512]{};
+					GetWindowTextW(hwnd, title, 512);
+					if (wcsstr(title, ctx->second->c_str()) != nullptr)
+					{
+						*ctx->first = true;
+						return FALSE;
+					}
+					return TRUE;
+				}, reinterpret_cast<LPARAM>(&enumCtx));
+
+				std::wstring cmdLine;
+				const wchar_t* devenv = L"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe";
+
+				if (vsRunning)
+					cmdLine = L"\"" + std::wstring(devenv) + L"\" /Edit \"" + filePath + L"\"";
+				else
+					cmdLine = L"\"" + std::wstring(devenv) + L"\" \"" + slnPath
+						+ L"\" /command \"File.OpenFile " + filePath + L"\"";
+
+				std::thread([cmdLine]() {
+					std::vector<wchar_t> buf(cmdLine.begin(), cmdLine.end());
+					buf.push_back(L'\0');
+
+					STARTUPINFOW si{};
+					si.cb = sizeof(si);
+					PROCESS_INFORMATION pi{};
+
+					if (CreateProcessW(nullptr, buf.data(), nullptr, nullptr,
+						FALSE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi))
+					{
+						CloseHandle(pi.hProcess);
+						CloseHandle(pi.hThread);
+					}
+				}).detach();
+			}
+			else
+			{
+				std::wstring wpath = std::filesystem::absolute(entry.Path).wstring();
+				std::thread([wpath]() {
+					CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+					ShellExecuteW(nullptr, L"open", wpath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+					CoUninitialize();
+				}).detach();
+			}
+		}
+		catch (...) {}
+#endif
 	}
 
 }

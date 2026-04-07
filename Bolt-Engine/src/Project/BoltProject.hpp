@@ -1,0 +1,38 @@
+#pragma once
+#include "Core/Export.hpp"
+#include <string>
+
+namespace Bolt {
+
+	struct BOLT_API BoltProject {
+		std::string Name;
+		std::string RootDirectory;
+		std::string AssetsDirectory;
+		std::string ScriptsDirectory;
+		std::string ScenesDirectory;
+		std::string BoltAssetsDirectory;
+		std::string NativeScriptsDir;
+		std::string NativeSourceDir;
+		std::string CsprojPath;
+		std::string SlnPath;
+		std::string ProjectFilePath;
+		std::string EngineVersion;
+
+		// Persistence
+		std::string StartupScene = "SampleScene";
+		std::string LastOpenedScene = "SampleScene";
+
+		std::string GetUserAssemblyOutputPath() const;
+		std::string GetNativeDllPath() const;
+		std::string GetSceneFilePath(const std::string& sceneName) const;
+
+		void Save() const;
+
+		static BoltProject Create(const std::string& name, const std::string& parentDir);
+		static BoltProject Load(const std::string& rootDir);
+		static bool Validate(const std::string& rootDir);
+		static bool IsValidProjectName(const std::string& name);
+		static std::string GetDefaultProjectsDir();
+	};
+
+} // namespace Bolt

@@ -59,8 +59,7 @@ namespace Bolt {
 				std::string ext = std::filesystem::path(droppedPath).extension().string();
 				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-				if (ext == ".cs") {
-					// (Ben-Scr) Derive class name from filename (e.g. "PlayerController.cs" -> "PlayerController")
+				if (ext == ".cs" || ext == ".cpp" || ext == ".h" || ext == ".hpp") {
 					std::string className = std::filesystem::path(droppedPath).stem().string();
 					if (!scriptComp.HasScript(className)) {
 						scriptComp.AddScript(className);

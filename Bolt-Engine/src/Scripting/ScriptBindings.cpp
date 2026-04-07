@@ -177,6 +177,15 @@ namespace Bolt {
 		}
 	}
 
+	static uint64_t Bolt_Entity_Create(const char* name)
+	{
+		Scene* scene = GetScene();
+		if (!scene) return 0;
+
+		EntityHandle handle = scene->CreateEntity(name ? name : "Entity").GetHandle();
+		return FromEntityHandle(handle);
+	}
+
 	// ── NameComponent Bindings ──────────────────────────────────────────
 
 	static const char* Bolt_NameComponent_GetName(uint64_t entityID)
@@ -480,6 +489,7 @@ namespace Bolt {
 		b.Entity_IsValid = &Bolt_Entity_IsValid;
 		b.Entity_FindByName = &Bolt_Entity_FindByName;
 		b.Entity_Destroy = &Bolt_Entity_Destroy;
+		b.Entity_Create = &Bolt_Entity_Create;
 
 		// NameComponent
 		b.NameComponent_GetName = &Bolt_NameComponent_GetName;

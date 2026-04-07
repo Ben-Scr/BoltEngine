@@ -1,6 +1,6 @@
 workspace "Bolt"
     architecture "x64"
-    startproject "Bolt-Editor"
+    startproject "Bolt-Launcher"
 
     configurations
     {
@@ -157,6 +157,7 @@ include "Bolt-Engine"
 include "Bolt-ScriptCore"
 include "Bolt-Sandbox"
 include "Bolt-Editor"
+include "Bolt-Launcher"
 include "Bolt-Runtime"
 
 group ""

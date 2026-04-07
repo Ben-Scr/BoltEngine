@@ -26,6 +26,7 @@ namespace Bolt {
 		int      (*Entity_IsValid)(uint64_t entityID);
 		uint64_t (*Entity_FindByName)(const char* name);
 		void     (*Entity_Destroy)(uint64_t entityID);
+		uint64_t (*Entity_Create)(const char* name);
 
 		const char* (*NameComponent_GetName)(uint64_t entityID);
 		void        (*NameComponent_SetName)(uint64_t entityID, const char* name);

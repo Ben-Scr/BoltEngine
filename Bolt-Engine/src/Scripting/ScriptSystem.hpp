@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene/ISystem.hpp"
+#include "Scripting/NativeScriptHost.hpp"
 #include "Serialization/FileWatcher.hpp"
 #include "Core/Export.hpp"
 #include <string>
@@ -20,16 +21,26 @@ namespace Bolt {
 
 	private:
 		void RebuildAndReloadScripts();
+		void RebuildAndReloadNativeScripts();
 
 		std::string m_CoreAssemblyPath;
 		std::string m_UserAssemblyPath;
 		std::string m_SandboxProjectPath;
 		Scene* m_LastScene = nullptr;
-		FileWatcher m_ScriptWatcher;
 
+		// C# hot-reload
+		FileWatcher m_ScriptWatcher;
 		bool m_IsRebuilding = false;
 		std::future<int> m_RebuildFuture;
 		std::chrono::steady_clock::time_point m_RebuildStartTime;
+
+		// C++ native scripts
+		NativeScriptHost m_NativeHost;
+		FileWatcher m_NativeWatcher;
+		std::string m_NativeDLLPath;
+		bool m_IsRebuildingNative = false;
+		std::future<int> m_NativeRebuildFuture;
+		std::chrono::steady_clock::time_point m_NativeRebuildStartTime;
 	};
 
 } // namespace Bolt

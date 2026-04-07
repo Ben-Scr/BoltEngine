@@ -105,6 +105,16 @@ namespace Bolt
         internal static void Entity_Destroy(ulong entityID)
             => NativeCallbacks.Bindings.Entity_Destroy(entityID);
 
+        internal static ulong Entity_Create(string name)
+        {
+            int len = Encoding.UTF8.GetByteCount(name);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(name, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf)
+                return NativeCallbacks.Bindings.Entity_Create(ptr);
+        }
+
         // ── NameComponent ───────────────────────────────────────────────
 
         internal static string NameComponent_GetName(ulong entityID)

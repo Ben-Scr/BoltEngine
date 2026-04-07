@@ -66,6 +66,12 @@ namespace Bolt
             return id != 0 ? new Entity(id) : null;
         }
 
+        public static Entity Create(string name)
+        {
+            ulong id = InternalCalls.Entity_Create(name);
+            return new Entity(id);
+        }
+
         public void Destroy() => InternalCalls.Entity_Destroy(ID);
 
         public bool Equals(Entity? other) => other is not null && ID == other.ID;

@@ -28,6 +28,7 @@ namespace Bolt.Hosting
         public delegate* unmanaged<ulong, int> Entity_IsValid;
         public delegate* unmanaged<byte*, ulong> Entity_FindByName;
         public delegate* unmanaged<ulong, void> Entity_Destroy;
+        public delegate* unmanaged<byte*, ulong> Entity_Create;
 
         public delegate* unmanaged<ulong, byte*> NameComponent_GetName;
         public delegate* unmanaged<ulong, byte*, void> NameComponent_SetName;

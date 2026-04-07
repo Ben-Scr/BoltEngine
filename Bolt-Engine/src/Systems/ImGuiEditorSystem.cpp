@@ -21,6 +21,9 @@
 #include "Graphics/TextureManager.hpp"
 #include "Gui/ImGuiUtils.hpp"
 #include "Serialization/Path.hpp"
+#include "Project/ProjectManager.hpp"
+#include "Serialization/SceneSerializer.hpp"
+#include "Serialization/File.hpp"
 
 namespace Bolt {
 
@@ -90,6 +93,19 @@ namespace Bolt {
 			app->GetRenderer2D()->SetSkipBeginFrameRender(true);
 		}
 
+		// Load saved scene if project is active
+		BoltProject* project = ProjectManager::GetCurrentProject();
+		if (project) {
+			std::string scenePath = project->GetSceneFilePath(project->LastOpenedScene);
+			if (File::Exists(scenePath))
+				SceneSerializer::LoadFromFile(scene, scenePath);
+			else
+				EntityHelper::CreateCamera2DEntity();
+		}
+		else {
+			EntityHelper::CreateCamera2DEntity();
+		}
+
 		(void)scene;
 		if (m_LogSubscriptionId.value != 0) {
 			Log::OnLog.Remove(m_LogSubscriptionId);
@@ -151,9 +167,19 @@ namespace Bolt {
 		}
 
 		if (ImGui::BeginMenu("File")) {
+			if (ImGui::MenuItem("Save Scene", "Ctrl+S")) {
+				BoltProject* project = ProjectManager::GetCurrentProject();
+				if (project) {
+					std::string scenePath = project->GetSceneFilePath(scene.GetName());
+					SceneSerializer::SaveToFile(scene, scenePath);
+					project->LastOpenedScene = scene.GetName();
+					project->Save();
+				}
+			}
 			if (ImGui::MenuItem("Reload Scene")) {
 				SceneManager::Get().ReloadScene(scene.GetName());
 			}
+			ImGui::Separator();
 			if (ImGui::MenuItem("Quit")) {
 				Application::Quit();
 			}
@@ -297,6 +323,16 @@ namespace Bolt {
 			ImGui::EndPopup();
 		}
 
+		// Scene root node
+		ImGuiTreeNodeFlags sceneFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow
+			| ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Framed;
+		bool sceneOpen = ImGui::TreeNodeEx(scene.GetName().c_str(), sceneFlags);
+
+		if (!sceneOpen) {
+			ImGui::End();
+			return;
+		}
+
 		auto view = scene.GetRegistry().view<entt::entity>();
 		for (const EntityHandle entityHandle : view) {
 			Entity entity = scene.GetEntity(entityHandle);
@@ -393,6 +429,8 @@ namespace Bolt {
 
 			ImGui::PopID();
 		}
+
+		ImGui::TreePop(); // Scene root node
 
 		ImGui::End();
 	}
@@ -647,13 +685,16 @@ namespace Bolt {
 
 	void ImGuiEditorSystem::RenderProjectPanel() {
 		if (!m_AssetBrowserInitialized) {
-			std::string assetsRoot = Path::Combine(Path::ExecutableDir(), "Assets");
-			if (!Directory::Exists(assetsRoot)) {
-				assetsRoot = Path::Combine(Path::Current(), "Assets");
-			}
-			if (!Directory::Exists(assetsRoot)) {
+			std::string assetsRoot;
+			BoltProject* project = ProjectManager::GetCurrentProject();
+			if (project)
+				assetsRoot = project->AssetsDirectory;
+			else
+				assetsRoot = Path::Combine(Path::ExecutableDir(), "Assets");
+
+			if (!Directory::Exists(assetsRoot))
 				Directory::Create(assetsRoot);
-			}
+
 			m_AssetBrowser.Initialize(assetsRoot);
 			m_AssetBrowserInitialized = true;
 		}

@@ -6,6 +6,10 @@
 
 namespace Bolt {
 
+	class NativeScript;
+
+	enum class ScriptType : uint8_t { Managed, Native };
+
 	class BOLT_API ScriptInstance {
 	public:
 		ScriptInstance() = default;
@@ -16,23 +20,34 @@ namespace Bolt {
 		void SetClassName(const std::string& name) { m_ClassName = name; }
 
 		void Bind(EntityHandle entity) { m_Entity = entity; m_IsBound = true; }
-		void Unbind() { m_Entity = entt::null; m_IsBound = false; m_HasStarted = false; m_GCHandle = 0; }
+		void Unbind() { m_Entity = entt::null; m_IsBound = false; m_HasStarted = false; m_GCHandle = 0; m_NativePtr = nullptr; m_Type = ScriptType::Managed; }
 		bool IsBound() const { return m_IsBound; }
 		EntityHandle GetEntity() const { return m_Entity; }
 
 		bool HasStarted() const { return m_HasStarted; }
 		void MarkStarted() { m_HasStarted = true; }
 
+		// Managed (C#) instance
 		uint32_t GetGCHandle() const { return m_GCHandle; }
-		void SetGCHandle(uint32_t handle) { m_GCHandle = handle; }
+		void SetGCHandle(uint32_t handle) { m_GCHandle = handle; m_Type = ScriptType::Managed; }
 		bool HasManagedInstance() const { return m_GCHandle != 0; }
+
+		// Native (C++) instance
+		NativeScript* GetNativePtr() const { return m_NativePtr; }
+		void SetNativePtr(NativeScript* ptr) { m_NativePtr = ptr; m_Type = ScriptType::Native; }
+		bool HasNativeInstance() const { return m_NativePtr != nullptr; }
+
+		bool HasAnyInstance() const { return HasManagedInstance() || HasNativeInstance(); }
+		ScriptType GetType() const { return m_Type; }
 
 	private:
 		std::string m_ClassName;
 		EntityHandle m_Entity = entt::null;
 		bool m_IsBound = false;
 		bool m_HasStarted = false;
+		ScriptType m_Type = ScriptType::Managed;
 		uint32_t m_GCHandle = 0;
+		NativeScript* m_NativePtr = nullptr;
 	};
 
 } // namespace Bolt

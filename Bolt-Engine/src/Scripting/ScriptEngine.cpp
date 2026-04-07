@@ -32,11 +32,15 @@ namespace Bolt {
 
 	void ScriptEngine::Shutdown()
 	{
-		s_Host.Close();
+		// Do NOT close the host — CoreCLR can only be initialized once per process.
+		// Just unload user assemblies and reset state.
+		if (s_Callbacks.UnloadUserAssembly)
+			s_Callbacks.UnloadUserAssembly();
+
 		s_Initialized = false;
 		s_HasUserAssembly = false;
 		s_Callbacks = {};
-		BT_CORE_INFO_TAG("ScriptEngine", "CoreCLR runtime shut down");
+		BT_CORE_INFO_TAG("ScriptEngine", "Script engine shut down (host stays alive)");
 	}
 
 	bool ScriptEngine::IsInitialized()

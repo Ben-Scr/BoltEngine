@@ -14,8 +14,6 @@ public class PlayerController : BoltScript
         // Test 5
         var velocity = Vector2.One;
 
-        
-
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.Up))
             velocity.Y += 1.0f;
         if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.Down))

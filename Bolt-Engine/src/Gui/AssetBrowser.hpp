@@ -33,6 +33,8 @@ namespace Bolt {
 		void CopyPathToClipboard(const std::string& path);
 		void CreateFolder(const std::string& parentDir);
 		void CreateScript(const std::string& parentDir);
+		void CreateNativeScript(const std::string& parentDir);
+		void CreateScene(const std::string& parentDir);
 
 		void BeginRename(const std::string& path, const std::string& currentName);
 		void CommitRename();
@@ -54,6 +56,7 @@ namespace Bolt {
 		float m_TilePadding = 8.0f;
 
 		bool m_ItemRightClicked = false;
+		std::string m_PendingSceneLoad;
 
 		ThumbnailCache m_Thumbnails;
 	};
