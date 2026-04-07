@@ -27,6 +27,11 @@ namespace Bolt {
 			case spdlog::level::critical: entry.Level = Level::Critical; break;
 			default: entry.Level = Level::Info; break;
 			}
+			// Determine source type from logger name
+			auto name = fmt::to_string(msg.logger_name);
+			if (name == "APP") entry.Source = Type::Client;
+			else if (name == "EDITOR") entry.Source = Type::EditorConsole;
+			else entry.Source = Type::Core;
 			OnLog.Invoke(entry);
 			}));
 

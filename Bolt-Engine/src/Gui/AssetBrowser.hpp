@@ -26,6 +26,7 @@ namespace Bolt {
 
 		void HandleDragSource(const DirectoryEntry& entry);
 		void HandleDropTarget(const DirectoryEntry& entry);
+		void OpenAssetExternal(const DirectoryEntry& entry);
 
 		void DeleteEntry(const std::string& path);
 		void RenameEntry(const std::string& path, const std::string& newName);

@@ -97,6 +97,10 @@ namespace Bolt {
 
 		m_LogEntries.clear();
 		m_LogSubscriptionId = Log::OnLog.Add([this](const Log::Entry& entry) {
+			// Only show user-facing logs in editor panel (Client + EditorConsole)
+			// Core/engine logs still go to stdout but not the editor UI
+			if (entry.Source == Log::Type::Core) return;
+
 			m_LogEntries.push_back({ entry.Message, entry.Level });
 			if (m_LogEntries.size() > 2000) {
 				m_LogEntries.erase(m_LogEntries.begin(), m_LogEntries.begin() + 500);

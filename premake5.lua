@@ -9,7 +9,7 @@ workspace "Bolt"
         "Dist"
     }
 
-    filter "system:windows"
+    filter { "system:windows", "language:C++" }
         toolset "v143"
 
     filter {}
@@ -154,6 +154,8 @@ include "premake/dependencies/glad.lua"
 include "premake/dependencies/bolt_physics.lua"
 
 include "Bolt-Engine"
+include "Bolt-ScriptCore"
+include "Bolt-Sandbox"
 include "Bolt-Editor"
 include "Bolt-Runtime"
 

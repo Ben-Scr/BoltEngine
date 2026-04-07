@@ -12,6 +12,7 @@ IncludeDir["MagicEnum"] = "External/magic_enum/include"
 IncludeDir["MiniAudio"] = "External/miniaudio"
 IncludeDir["Cereal"] = "External/cereal/include"
 IncludeDir["Glad"] = "External/glad/include"
+IncludeDir["DotNet"] = "External/dotnet"
 IncludeDir["BoltEngine"] = "Bolt-Engine/Src"
 IncludeDir["BoltEngineLegacy"] = "Bolt-Engine/src"
 
@@ -21,6 +22,10 @@ Library["Box2D"] = "box2d.lib"
 Library["FreeType"] = "freetype.lib"
 Library["OpenGL"] = "%{cfg.system == 'windows' and 'opengl32.lib' or 'GL'}"
 Library["GDI32"] = "gdi32.lib"
+Library["NetHost"] = "nethost.lib"
+
+LibDir = {}
+LibDir["DotNet"] = "External/dotnet/lib"
 
 Dependency = {}
 Dependency["ImGui"] =
@@ -69,7 +74,13 @@ Dependency["EngineCore"] =
         "%{IncludeDir.MagicEnum}",
         "%{IncludeDir.MiniAudio}",
         "%{IncludeDir.Cereal}",
-        "%{IncludeDir.BoltPhysics}"
+        "%{IncludeDir.BoltPhysics}",
+        "%{IncludeDir.DotNet}"
+    },
+
+    LibDirs =
+    {
+        "%{LibDir.DotNet}"
     },
 
     DependsOn =
@@ -86,7 +97,8 @@ Dependency["EngineCore"] =
         "GLFW",
         "Box2D",
         "Bolt-Physics",
-        "%{Library.OpenGL}"
+        "%{Library.OpenGL}",
+        "%{Library.NetHost}"
     }
 }
 
@@ -107,7 +119,13 @@ Dependency["EditorRuntimeCommon"] =
         "%{IncludeDir.MagicEnum}",
         "%{IncludeDir.MiniAudio}",
         "%{IncludeDir.Cereal}",
-        "%{IncludeDir.BoltPhysics}"
+        "%{IncludeDir.BoltPhysics}",
+        "%{IncludeDir.DotNet}"
+    },
+
+    LibDirs =
+    {
+        "%{LibDir.DotNet}"
     },
 
     DependsOn =
@@ -128,6 +146,7 @@ Dependency["EditorRuntimeCommon"] =
         "GLFW",
         "%{Library.OpenGL}",
         "Box2D",
-        "Bolt-Physics"
+        "Bolt-Physics",
+        "%{Library.NetHost}"
     }
 }

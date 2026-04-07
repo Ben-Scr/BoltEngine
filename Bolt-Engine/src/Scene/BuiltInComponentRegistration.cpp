@@ -35,7 +35,7 @@ namespace Bolt {
 
 		RegisterComponent<AudioSourceComponent>(sceneManager, "Audio Source", DrawAudioSourceInspector);
 
-		//RegisterComponent<ScriptComponent>(sceneManager, "Scripts", DrawScriptComponentInspector);
+		RegisterComponent<ScriptComponent>(sceneManager, "Scripts", DrawScriptComponentInspector);
 
 		RegisterComponent<IdTag>(sceneManager, "Id", nullptr, ComponentCategory::Tag);
 		RegisterComponent<StaticTag>(sceneManager, "Static", nullptr, ComponentCategory::Tag);

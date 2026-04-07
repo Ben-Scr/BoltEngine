@@ -32,6 +32,7 @@ namespace Bolt {
 		struct Entry {
 			std::string Message;
 			Level Level = Level::Info;
+			Type Source = Type::Core;
 		};
 
 		static void Initialize();

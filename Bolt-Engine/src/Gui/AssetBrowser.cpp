@@ -1,9 +1,18 @@
 #include <pch.hpp>
 #include "Gui/AssetBrowser.hpp"
+#include "Serialization/Path.hpp"
+#include "Core/Log.hpp"
 #include <imgui.h>
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+
+#include <thread>
+
+#ifdef BT_PLATFORM_WINDOWS
+#include <windows.h>
+#include <shellapi.h>
+#endif
 
 namespace Bolt {
 	void AssetBrowser::Initialize(const std::string& rootDirectory) {
@@ -293,10 +302,12 @@ namespace Bolt {
 			}
 		}
 
-		if (entry.IsDirectory && ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-			NavigateTo(entry.Path);
-			ImGui::PopID();
-			return;
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+			if (entry.IsDirectory) {
+				NavigateTo(entry.Path);  // deferred via m_NeedsRefresh
+			} else {
+				OpenAssetExternal(entry);  // deferred via m_DeferredOpenPath
+			}
 		}
 
 		RenderItemContextMenu(entry);
@@ -463,10 +474,29 @@ namespace Bolt {
 			"    }\n"
 			"}\n";
 
+		// Write to Assets folder (for Asset Browser display + drag-drop)
 		std::ofstream file(scriptPath);
 		if (file.is_open()) {
 			file << boilerplate;
 			file.close();
+		}
+
+		// Also write to Bolt-Sandbox/Source/ (for compilation)
+		// The glob pattern in .csproj auto-includes it
+		auto exeDir = std::filesystem::path(Path::ExecutableDir());
+		auto sandboxSourceDir = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Source";
+		if (std::filesystem::exists(sandboxSourceDir))
+		{
+			auto projectScriptPath = sandboxSourceDir / (className + ext);
+			if (!std::filesystem::exists(projectScriptPath))
+			{
+				std::ofstream projectFile(projectScriptPath);
+				if (projectFile.is_open()) {
+					projectFile << boilerplate;
+					projectFile.close();
+					BT_INFO_TAG("AssetBrowser", "Script added to project: {}", projectScriptPath.string());
+				}
+			}
 		}
 
 		m_NeedsRefresh = true;
@@ -476,6 +506,84 @@ namespace Bolt {
 		// Start rename so the user can immediately change the script name
 		std::string name = std::filesystem::path(scriptPath).filename().string();
 		BeginRename(scriptPath, name);
+	}
+
+	void AssetBrowser::OpenAssetExternal(const DirectoryEntry& entry) {
+		std::string entryPath = entry.Path;
+		std::string exeDir = Path::ExecutableDir();
+
+		std::thread([entryPath, exeDir]() {
+			try
+			{
+				std::string ext = std::filesystem::path(entryPath).extension().string();
+				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+#ifdef BT_PLATFORM_WINDOWS
+				if (ext == ".cs")
+				{
+					// Resolve the project source file
+					auto sandboxSource = std::filesystem::path(exeDir) / ".." / ".." / ".." / "Bolt-Sandbox" / "Source"
+						/ std::filesystem::path(entryPath).filename();
+					auto sandboxSln = std::filesystem::path(exeDir) / ".." / ".." / ".." / "Bolt-Sandbox" / "Bolt-Sandbox.sln";
+
+					std::filesystem::path fileToOpen;
+					if (std::filesystem::exists(sandboxSource))
+						fileToOpen = std::filesystem::canonical(sandboxSource);
+					else
+						fileToOpen = std::filesystem::absolute(entryPath);
+
+					// Check if VS is already running with the Bolt-Sandbox solution
+					// by searching for a window with "Bolt-Sandbox" in its title.
+					struct FindData { bool found; };
+					FindData data = { false };
+
+					EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+						auto* d = reinterpret_cast<FindData*>(lParam);
+						wchar_t title[512]{};
+						GetWindowTextW(hwnd, title, 512);
+						if (wcsstr(title, L"Bolt-Sandbox") != nullptr)
+						{
+							d->found = true;
+							return FALSE;
+						}
+						return TRUE;
+					}, reinterpret_cast<LPARAM>(&data));
+
+					if (data.found)
+					{
+						// VS already has the solution open — just open the file.
+						// VS picks it up in the existing instance.
+						ShellExecuteW(nullptr, L"open", fileToOpen.wstring().c_str(),
+							nullptr, nullptr, SW_SHOWNORMAL);
+					}
+					else
+					{
+						// VS not running with this solution — open the .sln.
+						// This launches VS with full project context.
+						if (std::filesystem::exists(sandboxSln))
+						{
+							auto slnPath = std::filesystem::canonical(sandboxSln);
+							ShellExecuteW(nullptr, L"open", slnPath.wstring().c_str(),
+								nullptr, nullptr, SW_SHOWNORMAL);
+						}
+						else
+						{
+							ShellExecuteW(nullptr, L"open", fileToOpen.wstring().c_str(),
+								nullptr, nullptr, SW_SHOWNORMAL);
+						}
+					}
+				}
+				else
+				{
+					// Non-script files: open with default Windows handler
+					auto filePath = std::filesystem::absolute(entryPath);
+					ShellExecuteW(nullptr, L"open", filePath.wstring().c_str(),
+						nullptr, nullptr, SW_SHOWNORMAL);
+				}
+#endif
+			}
+			catch (...) { /* silently ignore on background thread */ }
+		}).detach();
 	}
 
 }

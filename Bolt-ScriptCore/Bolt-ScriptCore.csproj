@@ -1,0 +1,86 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net9.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Debug;Release;Dist</Configurations>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Debug-windows-x86_64\Bolt-ScriptCore\</OutputPath>
+    <IntermediateOutputPath>..\bin-int\Debug-windows-x86_64\Bolt-ScriptCore\</IntermediateOutputPath>
+    <DefineConstants>BT_DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\Release-windows-x86_64\Bolt-ScriptCore\</OutputPath>
+    <IntermediateOutputPath>..\bin-int\Release-windows-x86_64\Bolt-ScriptCore\</IntermediateOutputPath>
+    <DefineConstants>BT_RELEASE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Dist|x64' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>..\bin\Dist-windows-x86_64\Bolt-ScriptCore\</OutputPath>
+    <IntermediateOutputPath>..\bin-int\Dist-windows-x86_64\Bolt-ScriptCore\</IntermediateOutputPath>
+    <DefineConstants>BT_RELEASE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Dist|x64' ">
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Source\Bolt\Attributes\ClampValueAttribute.cs" />
+    <Compile Include="Source\Bolt\Attributes\HideFromEditorAttribute.cs" />
+    <Compile Include="Source\Bolt\Attributes\ShowInEditorAttribute.cs" />
+    <Compile Include="Source\Bolt\Core\Application.cs" />
+    <Compile Include="Source\Bolt\Core\Input.cs" />
+    <Compile Include="Source\Bolt\Core\InternalCalls.cs" />
+    <Compile Include="Source\Bolt\Core\KeyCodes.cs" />
+    <Compile Include="Source\Bolt\Core\Log.cs" />
+    <Compile Include="Source\Bolt\Core\Time.cs" />
+    <Compile Include="Source\Bolt\Hosting\NativeCallbacks.cs" />
+    <Compile Include="Source\Bolt\Hosting\ScriptHostBridge.cs" />
+    <Compile Include="Source\Bolt\Hosting\ScriptInstanceManager.cs" />
+    <Compile Include="Source\Bolt\Interop\NativeInterop.cs" />
+    <Compile Include="Source\Bolt\Math\Color.cs" />
+    <Compile Include="Source\Bolt\Math\Mathf.cs" />
+    <Compile Include="Source\Bolt\Math\Vector2.cs" />
+    <Compile Include="Source\Bolt\Math\Vector3.cs" />
+    <Compile Include="Source\Bolt\Math\Vector4.cs" />
+    <Compile Include="Source\Bolt\Physics2D\Physics2D.cs" />
+    <Compile Include="Source\Bolt\Scene\BoltScript.cs" />
+    <Compile Include="Source\Bolt\Scene\Component.cs" />
+    <Compile Include="Source\Bolt\Scene\Components.cs" />
+    <Compile Include="Source\Bolt\Scene\Entity.cs" />
+  </ItemGroup>
+</Project>

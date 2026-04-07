@@ -9,6 +9,7 @@
 #include <Systems/ImGuiDebugSystem.hpp>
 #include <Systems/GizmosDebugSystem.hpp>
 #include <Systems/ParticleUpdateSystem.hpp>
+#include <Scripting/ScriptSystem.hpp>
 #include <Core/Version.hpp>
 
 using namespace Bolt;
@@ -33,6 +34,7 @@ public:
 		editorScene.AddSystem<ImGuiDebugSystem>();
 		editorScene.AddSystem<GizmosDebugSystem>();
 		editorScene.AddSystem<ParticleUpdateSystem>();
+		editorScene.AddSystem<ScriptSystem>();
 		editorScene.SetAsStartupScene();
 	}
 

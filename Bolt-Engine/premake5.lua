@@ -44,6 +44,15 @@ project "Bolt-Engine"
     filter "files:**/ImGuiEditorSystem.cpp"
         flags { "NoPCH" }
 
+    filter "files:**/ScriptEngine.cpp"
+        flags { "NoPCH" }
+
+    filter "files:**/ScriptBindings.cpp"
+        flags { "NoPCH" }
+
+    filter "files:**/DotNetHost.cpp"
+        flags { "NoPCH" }
+
     filter "system:windows"
         systemversion "latest"
 
