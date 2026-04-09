@@ -3,14 +3,11 @@ namespace Bolt
 {
     public static class Time
     {
-        /// <summary>
-        /// Time in seconds since the last frame.
-        /// </summary>
         public static float DeltaTime => InternalCalls.Application_GetDeltaTime();
+        public static float UnscaledDeltaTime => 0.0f;
+        public static float FixedDeltaTime => 0.0f;
+        public static float FixedUnscaledDeltaTime => 0.0f;
 
-        /// <summary>
-        /// Time in seconds since the application started.
-        /// </summary>
         public static float ElapsedTime => InternalCalls.Application_GetElapsedTime();
     }
 }

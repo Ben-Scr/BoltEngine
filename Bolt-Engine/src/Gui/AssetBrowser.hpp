@@ -12,6 +12,18 @@ namespace Bolt {
 		void Shutdown();
 		void Render();
 
+		std::string TakePendingSceneLoad() {
+			std::string p = std::move(m_PendingSceneLoad);
+			m_PendingSceneLoad.clear();
+			return p;
+		}
+
+		/// Call this when external files are dropped onto the window.
+		void OnExternalFileDrop(const std::vector<std::string>& paths);
+
+		/// Returns the currently selected asset path (empty if none).
+		const std::string& GetSelectedPath() const { return m_SelectedPath; }
+
 	private:
 		void NavigateTo(const std::string& directory);
 		void NavigateUp();
@@ -58,7 +70,15 @@ namespace Bolt {
 		bool m_ItemRightClicked = false;
 		std::string m_PendingSceneLoad;
 
+		// Deferred script creation — file is only written after rename is committed
+		enum class PendingScriptType { None, CSharp, Native };
+		PendingScriptType m_PendingScriptType = PendingScriptType::None;
+		std::string m_PendingScriptDir;  // parent directory for the new script
+
 		ThumbnailCache m_Thumbnails;
+
+		// Pending OS file drops — set externally, consumed in Render()
+		std::vector<std::string> m_PendingExternalDrops;
 	};
 
 }

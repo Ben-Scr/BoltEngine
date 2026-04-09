@@ -35,7 +35,12 @@ namespace Bolt {
 			return true;
 		}
 
-		s_RootPath = Path::Combine(Path::ExecutableDir(), "Assets", "Audio");
+		// Try BoltAssets first (packaged build), fall back to Assets (dev layout)
+		std::string base = Path::ExecutableDir();
+		std::string audioDir = std::filesystem::exists(Path::Combine(base, "BoltAssets", "Audio"))
+			? Path::Combine(base, "BoltAssets", "Audio")
+			: Path::Combine(base, "Assets", "Audio");
+		s_RootPath = audioDir;
 
 		ma_result result = ma_engine_init(nullptr, &s_Engine);
 		if (result != MA_SUCCESS) {
@@ -94,7 +99,7 @@ namespace Bolt {
 		}
 	}
 
-	bool AudioManager::CanPlaySound(const AudioHandle& blockTexture, float priority) {
+	bool AudioManager::CanPlaySound(const AudioHandle& audioHandle, float priority) {
 		if (priority >= 2.0f) {
 			return true;
 		}
@@ -144,14 +149,14 @@ namespace Bolt {
 		}
 	}
 
-	void AudioManager::ThrottleSound(const AudioHandle& blockTexture) {
-		auto& limitData = s_soundLimits[blockTexture.GetHandle()];
+	void AudioManager::ThrottleSound(const AudioHandle& audioHandle) {
+		auto& limitData = s_soundLimits[audioHandle.GetHandle()];
 		limitData.LastPlayTime = std::chrono::steady_clock::now();
 		limitData.FramePlayCount++;
 	}
 
-	bool AudioManager::IsThrottled(const AudioHandle& blockTexture) {
-		auto it = s_soundLimits.find(blockTexture.GetHandle());
+	bool AudioManager::IsThrottled(const AudioHandle& audioHandle) {
+		auto it = s_soundLimits.find(audioHandle.GetHandle());
 		if (it == s_soundLimits.end()) {
 			return false;
 		}
@@ -189,21 +194,21 @@ namespace Bolt {
 			return AudioHandle();
 		}
 
-		AudioHandle::HandleType blockTexture = GenerateHandle();
-		s_audioMap[blockTexture] = std::move(audio);
-		return AudioHandle(blockTexture);
+		AudioHandle::HandleType id = GenerateHandle();
+		s_audioMap[id] = std::move(audio);
+		return AudioHandle(id);
 	}
 
-	void AudioManager::UnloadAudio(const AudioHandle& blockTexture) {
-		if (!blockTexture.IsValid()) {
+	void AudioManager::UnloadAudio(const AudioHandle& audioHandle) {
+		if (!audioHandle.IsValid()) {
 			return;
 		}
 
-		auto it = s_audioMap.find(blockTexture.GetHandle());
+		auto it = s_audioMap.find(audioHandle.GetHandle());
 		if (it != s_audioMap.end()) {
 
 			for (auto& instance : s_soundInstances) {
-				if (instance.IsValid && instance.AudioHandle == blockTexture) {
+				if (instance.IsValid && instance.AudioHandle == audioHandle) {
 					ma_sound_stop(&instance.Sound);
 					ma_sound_uninit(&instance.Sound);
 					instance.IsValid = false;
@@ -447,13 +452,11 @@ namespace Bolt {
 		for (size_t i = 0; i < s_soundInstances.size(); ++i) {
 			SoundInstance& instance = s_soundInstances[i];
 
-			if (instance.IsValid) {
-				if (!ma_sound_is_playing(&instance.Sound)) {
-					ma_sound_uninit(&instance.Sound);
-					instance.IsValid = false;
-					instance.AudioHandle = AudioHandle();
-					s_freeInstanceIndices.push_back(static_cast<uint32_t>(i));
-				}
+			if (instance.IsValid && !ma_sound_is_playing(&instance.Sound) && !ma_sound_is_looping(&instance.Sound)) {
+				ma_sound_uninit(&instance.Sound);
+				instance.IsValid = false;
+				instance.AudioHandle = AudioHandle();
+				s_freeInstanceIndices.push_back(static_cast<uint32_t>(i));
 			}
 		}
 	}

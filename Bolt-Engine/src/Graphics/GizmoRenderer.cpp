@@ -44,9 +44,12 @@ namespace Bolt {
 			return true;
 
 		const std::string base = Path::ExecutableDir();
+		// Try BoltAssets first (packaged build), fall back to Assets (dev layout)
+		std::string shaderDir = std::filesystem::exists(Path::Combine(base, "BoltAssets/Shader"))
+			? "BoltAssets/Shader" : "Assets/Shader";
 		m_GizmoShader = std::make_unique<Shader>(
-			Path::Combine(base, "Assets/Shader/gizmo.vert.glsl").c_str(),
-			Path::Combine(base, "Assets/Shader/gizmo.frag.glsl").c_str()
+			Path::Combine(base, shaderDir + "/gizmo.vert.glsl").c_str(),
+			Path::Combine(base, shaderDir + "/gizmo.frag.glsl").c_str()
 		);
 		BT_ASSERT(m_GizmoShader && m_GizmoShader->IsValid(), BoltErrorCode::Undefined, "Failed to load gizmo shader");
 

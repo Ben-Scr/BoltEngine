@@ -107,6 +107,7 @@ namespace Bolt {
 			glfwSetFramebufferSizeCallback(m_GLFWwindow, SetWindowResizedCallback);
 		}
 
+		glfwSetDropCallback(m_GLFWwindow, SetDropCallback);
 		glfwSetWindowRefreshCallback(m_GLFWwindow, RefreshCallback);
 
 		glfwSwapInterval(s_IsVsync ? 1 : 0);
@@ -397,6 +398,20 @@ namespace Bolt {
 		return glfwGetWindowAttrib(m_GLFWwindow, GLFW_RESIZABLE);
 	}
 
+
+	void Window::SetDropCallback(GLFWwindow* window, int count, const char** paths) {
+		Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (!win || !win->m_EventCallback || count <= 0) return;
+
+		std::vector<std::string> filePaths;
+		filePaths.reserve(count);
+		for (int i = 0; i < count; i++) {
+			filePaths.emplace_back(paths[i]);
+		}
+
+		FileDropEvent e(std::move(filePaths));
+		win->m_EventCallback(e);
+	}
 
 	void Window::UpdateViewport() {
 		if (OpenGL::IsInitialized())

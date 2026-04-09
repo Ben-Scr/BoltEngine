@@ -6,13 +6,16 @@
 #include "Scene/Scene.hpp"
 #include "Collections/Ids.hpp"
 #include "Collections/Viewport.hpp"
-#include "Debugging/Logger.hpp"
 #include "Core/Log.hpp"
 #include "Gui/AssetBrowser.hpp"
+#include "Gui/PackageManagerPanel.hpp"
+#include "Packages/PackageManager.hpp"
 #include "Editor/EditorCamera.hpp"
+
 
 #include <string>
 #include <vector>
+#include <chrono>
 
 namespace Bolt {
 	class BOLT_API ImGuiEditorSystem : public ISystem {
@@ -42,16 +45,21 @@ namespace Bolt {
 		void RenderDockspaceRoot();
 		void RenderMainMenu(Scene& scene);
 		void RenderToolbar();
-		void RenderEntitiesPanel(Scene& scene);
+		void RenderEntitiesPanel();
 		void RenderInspectorPanel(Scene& scene);
 		void RenderEditorView(Scene& scene);
 		void RenderGameView(Scene& scene);
 		void RenderLogPanel();
 		void RenderProjectPanel();
+		void RenderBuildPanel();
+		void RenderPlayerSettingsPanel();
+		void ExecuteBuild();
+		void RenderPackageManagerPanel();
+		void RenderAssetInspector();
 
 		void RenderSceneIntoFBO(ViewportFBO& fbo, Scene& scene,
 			const glm::mat4& vp, const AABB& viewportAABB,
-			bool withGizmos);
+			bool withGizmos, const Color& clearColor = Color::Background());
 
 		EntityHandle m_SelectedEntity = entt::null;
 		EventId m_LogSubscriptionId{};
@@ -77,5 +85,31 @@ namespace Bolt {
 
 		AssetBrowser m_AssetBrowser;
 		bool m_AssetBrowserInitialized = false;
+
+		std::string m_PendingSceneFileDrop;
+		std::string m_PendingSceneSwitch;
+		std::string m_ConfirmDialogPendingPath;
+		bool m_ShowSaveConfirmDialog = false;
+		bool m_InspectorItemWasActive = false;
+		char m_ComponentSearchBuffer[128]{};
+		std::string m_SelectedAssetPath;
+
+		std::string m_PlayModeScenePath;
+
+		bool m_ShowBuildPanel = false;
+		bool m_ShowPlayerSettings = false;
+		bool m_ShowPackageManager = false;
+
+		// Scene list for build
+		std::vector<std::string> m_BuildSceneList;
+		bool m_BuildSceneListInitialized = false;
+		int m_DraggedSceneIndex = -1;
+		bool m_PackageManagerInitialized = false;
+		PackageManager m_PackageManager;
+		PackageManagerPanel m_PackageManagerPanel;
+		std::string m_BuildOutputDir;
+		char m_BuildOutputDirBuffer[512]{};
+		int m_BuildState = 0; // 0=idle, 1=pending (render overlay), 2=execute
+		std::chrono::steady_clock::time_point m_BuildStartTime;
 	};
 }

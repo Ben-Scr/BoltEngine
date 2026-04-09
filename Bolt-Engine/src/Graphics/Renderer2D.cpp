@@ -40,6 +40,12 @@ namespace Bolt {
 			glViewport(0, 0, m_OutputWidth, m_OutputHeight);
 			Window::GetMainViewport()->SetSize(m_OutputWidth, m_OutputHeight);
 
+			// Apply main camera clear color to FBO render target
+			Camera2DComponent* cam = Camera2DComponent::Main();
+			if (cam) {
+				const auto& cc = cam->GetClearColor();
+				glClearColor(cc.r, cc.g, cc.b, cc.a);
+			}
 			glClear(GL_COLOR_BUFFER_BIT);
 			if (m_IsInitialized && m_IsEnabled)
 				RenderScenes();
@@ -52,6 +58,12 @@ namespace Bolt {
 			m_OutputFboId = 0;
 		}
 		else {
+			// In runtime mode, use the main camera's clear color
+			Camera2DComponent* cam = Camera2DComponent::Main();
+			if (cam) {
+				const auto& cc = cam->GetClearColor();
+				glClearColor(cc.r, cc.g, cc.b, cc.a);
+			}
 			glClear(GL_COLOR_BUFFER_BIT);
 			if (m_IsInitialized && m_IsEnabled)
 				RenderScenes();
@@ -78,99 +90,22 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScene(const Scene& scene) {
-		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
-		m_SpriteShader.Bind();
-
 		Camera2DComponent* camera2D = Camera2DComponent::Main();
-
 		if (!camera2D) {
 			BT_WARN_TAG("Renderer2D", "No main camera found in the scene. Nothing will be rendered.");
 			return;
 		}
 
 		camera2D->UpdateViewport();
-		AABB viewportAABB = camera2D->GetViewportAABB();
-
-		const glm::mat4 vp = camera2D->GetViewProjectionMatrix();
-		m_SpriteShader.SetMVP(vp);
-
-		m_Instances.clear();
-
-		auto ptsView = scene.GetRegistry().view<ParticleSystem2DComponent>(entt::exclude<DisabledTag>);
-		auto srView = scene.GetRegistry().view<Transform2DComponent, SpriteRendererComponent>(entt::exclude<DisabledTag>);
-
-		m_Instances.reserve(ptsView.size_hint() + srView.size_hint());
-
-		for (const auto& [ent, particleSystem] : ptsView.each()) {
-			glActiveTexture(GL_TEXTURE0);
-
-			Texture2D* texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
-			if (texture && texture->IsValid())
-				texture->Submit(0);
-
-			for (const auto& particle : particleSystem.GetParticles()) {
-				if (!AABB::Intersects(viewportAABB, AABB::FromTransform(particle.Transform)))
-					continue;
-
-				m_Instances.emplace_back(
-					particle.Transform.Position,
-					particle.Transform.Scale,
-					particle.Transform.Rotation,
-					particleSystem.RenderingSettings.Color,
-					particleSystem.m_TextureHandle,
-					particleSystem.RenderingSettings.SortingOrder,
-					particleSystem.RenderingSettings.SortingLayer
-				);
-			}
-		}
-
-		for (const auto& [ent, tr, spriteRenderer] : srView.each()) {
-			if (!AABB::Intersects(viewportAABB, AABB::FromTransform(tr)))
-				continue;
-
-			m_Instances.emplace_back(
-				tr.Position,
-				tr.Scale,
-				tr.Rotation,
-				spriteRenderer.Color,
-				spriteRenderer.TextureHandle,
-				spriteRenderer.SortingOrder,
-				spriteRenderer.SortingLayer
-			);
-		}
-
-		std::sort(m_Instances.begin(), m_Instances.end(),
-			[](const Instance44& a, const Instance44& b) {
-				if (a.SortingLayer != b.SortingLayer)
-					return a.SortingLayer < b.SortingLayer;
-				return a.SortingOrder < b.SortingOrder;
-			});
-
-		for (const Instance44& instance : m_Instances) {
-			m_SpriteShader.SetSpritePosition(instance.Position);
-			m_SpriteShader.SetScale(instance.Scale);
-			m_SpriteShader.SetRotation(instance.Rotation);
-			m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
-
-			glActiveTexture(GL_TEXTURE0);
-
-			Texture2D* texture = TextureManager::GetTexture(instance.TextureHandle);
-			if (texture && texture->IsValid())
-				texture->Submit(0);
-
-			m_QuadMesh.Bind();
-			m_SpriteShader.SetVertexColor(instance.Color);
-			m_QuadMesh.Draw();
-			m_QuadMesh.Unbind();
-		}
-
-		m_SpriteShader.Unbind();
-		m_RenderedInstancesCount = m_Instances.size();
+		CollectAndRenderInstances(scene, camera2D->GetViewProjectionMatrix(), camera2D->GetViewportAABB());
 	}
 
 	void Renderer2D::RenderSceneWithVP(const Scene& scene, const glm::mat4& vp, const AABB& viewportAABB) {
 		if (!m_IsInitialized || !m_IsEnabled) return;
+		CollectAndRenderInstances(scene, vp, viewportAABB);
+	}
 
+	void Renderer2D::CollectAndRenderInstances(const Scene& scene, const glm::mat4& vp, const AABB& viewportAABB) {
 		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
 		m_SpriteShader.Bind();
 		m_SpriteShader.SetMVP(vp);

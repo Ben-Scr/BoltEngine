@@ -56,5 +56,13 @@ namespace Bolt
         public override bool Equals(object? obj) => obj is Vector4 other && Equals(other);
         public override int GetHashCode() => HashCode.Combine(X, Y, Z, W);
         public override string ToString() => $"Vector4({X}, {Y}, {Z}, {W})";
+
+        // ── Conversions ─────────────────────────────────────────────
+        public static explicit operator Vector2(Vector4 v) => new(v.X, v.Y);
+        public static explicit operator Vector3(Vector4 v) => new(v.X, v.Y, v.Z);
+
+        // Vector4 ↔ Color
+        public static implicit operator Color(Vector4 v) => new(v.X, v.Y, v.Z, v.W);
+        public static implicit operator Vector4(Color c) => new(c.R, c.G, c.B, c.A);
     }
 }

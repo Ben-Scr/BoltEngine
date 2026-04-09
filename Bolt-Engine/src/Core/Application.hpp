@@ -89,6 +89,12 @@ namespace Bolt {
 		void RenderOnceForRefresh();
 		void OnEvent(BoltEvent& event);
 
+		std::vector<std::string> TakePendingFileDrops() {
+			std::vector<std::string> paths = std::move(m_PendingFileDrops);
+			m_PendingFileDrops.clear();
+			return paths;
+		}
+
 	private:
 		std::unique_ptr<Window> m_Window;
 		std::unique_ptr<Renderer2D> m_Renderer2D;
@@ -117,6 +123,7 @@ namespace Bolt {
 		static Application* s_Instance;
 
 
+		std::vector<std::string> m_PendingFileDrops;
 		double m_FixedUpdateAccumulator;
 		std::chrono::steady_clock::time_point m_LastFrameTime = Clock::now();
 

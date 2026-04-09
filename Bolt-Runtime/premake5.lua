@@ -13,7 +13,8 @@ project "Bolt-Runtime"
     {
         "Src/**.cpp",
         "Src/**.h",
-        "Src/**.hpp"
+        "Src/**.hpp",
+        "icon.rc"
     }
 
     UseDependencySet(Dependency.EditorRuntimeCommon)

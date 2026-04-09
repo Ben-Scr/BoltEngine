@@ -29,19 +29,19 @@ namespace Bolt {
 		}
 
 		void RenderScene(const Scene& scene);
-
 		void RenderSceneWithVP(const Scene& scene, const glm::mat4& vp, const AABB& viewportAABB);
 
 		void SetSkipBeginFrameRender(bool skip) { m_SkipBeginFrameRender = skip; }
 
-		const size_t GetRenderedInstancesCount() const { return m_RenderedInstancesCount; }
-		const float GetRRenderLoopDuration() const { return m_RenderLoopDuration; }
+		size_t GetRenderedInstancesCount() const { return m_RenderedInstancesCount; }
+		float GetRenderLoopDuration() const { return m_RenderLoopDuration; }
 
 		using SceneProvider = std::function<void(const std::function<void(const Scene&)>&)>;
 		void SetSceneProvider(SceneProvider provider) { m_SceneProvider = std::move(provider); }
 
 	private:
 		void RenderScenes();
+		void CollectAndRenderInstances(const Scene& scene, const glm::mat4& vp, const AABB& viewportAABB);
 
 		size_t m_RenderedInstancesCount = 0;
 		float m_RenderLoopDuration = 0.0f;

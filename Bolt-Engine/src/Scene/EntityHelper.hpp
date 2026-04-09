@@ -6,7 +6,7 @@
 #include "Scene/Scene.hpp"
 #include "Components/ComponentUtils.hpp"
 #include "Core/Export.hpp"
-#include "Debugging/Logger.hpp"
+#include "Core/Log.hpp"
 
 namespace Bolt {
     class BOLT_API EntityHelper {
@@ -16,7 +16,7 @@ namespace Bolt {
         static Entity CreateWith() {
             Scene* activeScene = SceneManager::Get().GetActiveScene();
             if (!activeScene || !activeScene->IsLoaded()) {
-                Logger::Error("EntityHelper", "Cannot create entity because there is no active scene loaded");
+                BT_ERROR_TAG("EntityHelper", "Cannot create entity because there is no active scene loaded");
                 return Entity::Null;
             }
 
@@ -31,7 +31,7 @@ namespace Bolt {
         static EntityHandle CreateHandleWith() {
             Scene* activeScene = SceneManager::Get().GetActiveScene();
             if (!activeScene || !activeScene->IsLoaded()) {
-                Logger::Error("EntityHelper", "Cannot create entity handle because there is no active scene loaded");
+                BT_ERROR_TAG("EntityHelper", "Cannot create entity handle because there is no active scene loaded");
                 return entt::null;
             }
 

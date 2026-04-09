@@ -32,6 +32,9 @@ namespace Bolt {
 			std::optional<BoxCollider2DComponent> boxCollider2D;
 			std::optional<Rigidbody2DComponent> rigidbody2D;
 			std::optional<AudioSourceComponent> audioSource;
+			std::optional<BoltBody2DComponent> boltBody2D;
+			std::optional<BoltBoxCollider2DComponent> boltBoxCollider2D;
+			std::optional<BoltCircleCollider2DComponent> boltCircleCollider2D;
 			bool hasIdTag = false;
 			bool hasStaticTag = false;
 			bool hasDisabledTag = false;
@@ -74,6 +77,9 @@ namespace Bolt {
 				CaptureComponentIfExists(registry, entity, entitySnapshot.boxCollider2D);
 				CaptureComponentIfExists(registry, entity, entitySnapshot.rigidbody2D);
 				CaptureComponentIfExists(registry, entity, entitySnapshot.audioSource);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.boltBody2D);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.boltBoxCollider2D);
+				CaptureComponentIfExists(registry, entity, entitySnapshot.boltCircleCollider2D);
 
 				entitySnapshot.hasIdTag = registry.all_of<IdTag>(entity);
 				entitySnapshot.hasStaticTag = registry.all_of<StaticTag>(entity);
@@ -106,6 +112,9 @@ namespace Bolt {
 				RestoreComponentIfExists(registry, entity, entitySnapshot.boxCollider2D);
 				RestoreComponentIfExists(registry, entity, entitySnapshot.rigidbody2D);
 				RestoreComponentIfExists(registry, entity, entitySnapshot.audioSource);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.boltBody2D);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.boltBoxCollider2D);
+				RestoreComponentIfExists(registry, entity, entitySnapshot.boltCircleCollider2D);
 
 				if (entitySnapshot.hasIdTag) registry.emplace<IdTag>(entity);
 				if (entitySnapshot.hasStaticTag) registry.emplace<StaticTag>(entity);
@@ -123,11 +132,11 @@ namespace Bolt {
 
 	void SceneManager::Initialize() {
 		if (m_IsInitialized) {
-			BT_WARN_TAG("SceneManager", "Initialize called more than once");
+			BT_CORE_WARN_TAG("SceneManager", "Initialize called more than once");
 			return;
 		}
 		if (m_SceneDefinitions.empty()) {
-			BT_ERROR_TAG("SceneManager", "No scenes were registered before SceneManager initialization");
+			BT_CORE_ERROR_TAG("SceneManager", "No scenes were registered before SceneManager initialization");
 			return;
 		}
 
@@ -138,10 +147,10 @@ namespace Bolt {
 		if (m_LoadedScenes.empty()) {
 			auto& firstPair = *m_SceneDefinitions.begin();
 			if (LoadScene(firstPair.first).expired()) {
-				BT_ERROR_TAG("SceneManager", "Failed to load fallback scene '" + firstPair.first + "'");
+				BT_CORE_ERROR_TAG("SceneManager", "Failed to load fallback scene '{}'", firstPair.first);
 			}
 			else {
-				BT_WARN_TAG("SceneManager", "Loaded fallback scene '" + firstPair.first + "'");
+				BT_CORE_WARN_TAG("SceneManager", "Loaded fallback scene '{}'", firstPair.first);
 			}
 		}
 	}
@@ -160,7 +169,7 @@ namespace Bolt {
 	SceneDefinition& SceneManager::RegisterScene(const std::string& name) {
 		auto [it, inserted] = m_SceneDefinitions.emplace(name, std::make_unique<SceneDefinition>(name));
 		if (!inserted) {
-			BT_WARN_TAG("SceneManager", "Scene definition with name '" + name + "' already exists");
+			BT_CORE_WARN_TAG("SceneManager", "Scene definition '{}' already exists", name);
 			return *it->second;
 		}
 
@@ -180,7 +189,7 @@ namespace Bolt {
 
 	std::shared_ptr<Scene> SceneManager::LoadSceneInternal(const std::string& name, bool additive) {
 		if (!m_IsInitialized) {
-			BT_ERROR_TAG("SceneManager", "LoadScene called before SceneManager initialization");
+			BT_CORE_ERROR_TAG("SceneManager", "LoadScene called before SceneManager initialization");
 			return {};
 		}
 		SceneDefinition* definition = GetSceneDefinition(name);
@@ -189,7 +198,7 @@ namespace Bolt {
 		}
 		if (!additive) {
 			if (IsSceneLoaded(name)) {
-				BT_WARN_TAG("SceneManager", "Scene '" + name + "' is already loaded. Use LoadSceneAdditive() for multiple instances.");
+				BT_CORE_WARN_TAG("SceneManager", "Scene '{}' is already loaded. Use LoadSceneAdditive() for multiple instances.", name);
 				return GetLoadedScene(name).lock();
 			}
 			UnloadAllScenes(false);
@@ -230,7 +239,7 @@ namespace Bolt {
 	std::weak_ptr<Scene> SceneManager::ReloadScene(const std::string& name) {
 		std::shared_ptr<Scene> scene = GetLoadedScene(name).lock();
 		if (!scene) {
-			BT_WARN_TAG("SceneManager", "ReloadScene called for scene '" + name + "' but it is not loaded");
+			BT_CORE_WARN_TAG("SceneManager", "ReloadScene: scene '{}' is not loaded", name);
 			return {};
 		}
 		const bool wasActive = m_ActiveScene == scene.get();
@@ -248,7 +257,7 @@ namespace Bolt {
 	void SceneManager::UnloadScene(const std::string& name) {
 		auto it = FindLoadedSceneIterator(name);
 		if (it == m_LoadedScenes.end()) {
-			BT_WARN_TAG("SceneManager", "Scene '" + name + "' is not loaded");
+			BT_CORE_WARN_TAG("SceneManager", "Scene '{}' is not loaded", name);
 			return;
 		}
 
@@ -316,7 +325,7 @@ namespace Bolt {
 	std::weak_ptr<Scene> SceneManager::GetLoadedScene(const std::string& name) {
 		auto it = FindLoadedSceneIterator(name);
 		if (it == m_LoadedScenes.end()) {
-			BT_WARN_TAG("SceneManager", "Scene '" + name + "' is not loaded");
+			BT_CORE_WARN_TAG("SceneManager", "Scene '{}' is not loaded", name);
 			return {};
 		}
 		return std::weak_ptr(*it);
@@ -324,14 +333,14 @@ namespace Bolt {
 
 	Scene* SceneManager::GetActiveScene() {
 		if (!m_ActiveScene) {
-			BT_WARN_TAG("SceneManager", "There is no active scene");
+			BT_CORE_WARN_TAG("SceneManager", "There is no active scene");
 		}
 		return m_ActiveScene;
 	}
 
 	const Scene* SceneManager::GetActiveScene() const {
 		if (!m_ActiveScene) {
-			BT_WARN_TAG("SceneManager", "There is no active scene");
+			BT_CORE_WARN_TAG("SceneManager", "There is no active scene");
 		}
 		return m_ActiveScene;
 	}
@@ -339,7 +348,7 @@ namespace Bolt {
 	bool SceneManager::SetActiveScene(const std::string& name) {
 		auto it = FindLoadedSceneIterator(name);
 		if (it == m_LoadedScenes.end()) {
-			BT_WARN_TAG("SceneManager", "Scene '" + name + "' is not loaded. Load it first before setting as active.");
+			BT_CORE_WARN_TAG("SceneManager", "Scene '{}' is not loaded, load it first", name);
 			return false;
 		}
 		m_ActiveScene = it->get();
@@ -397,10 +406,10 @@ namespace Bolt {
 				}
 			}
 			catch (const std::exception& e) {
-				BT_ERROR("Failed to load startup scene with name '" + name + "': " + e.what());
+				BT_CORE_ERROR_TAG("SceneManager", "Failed to load startup scene '{}': {}", name, e.what());
 			}
 			catch (...) {
-				BT_ERROR("Failed to load startup scene with name '" + name + "'");
+				BT_CORE_ERROR_TAG("SceneManager", "Failed to load startup scene '{}'", name);
 			}
 		}
 	}
@@ -408,7 +417,7 @@ namespace Bolt {
 	SceneDefinition* SceneManager::GetSceneDefinition(const std::string& name) {
 		auto it = m_SceneDefinitions.find(name);
 		if (it == m_SceneDefinitions.end()) {
-			BT_ERROR("SceneManager", "Scene definition '" + name + "' not found. Call SceneManager::RegisterScene() first.");
+			BT_CORE_ERROR_TAG("SceneManager", "Scene definition '{}' not found, call RegisterScene() first", name);
 			return nullptr;
 		}
 		return it->second.get();
@@ -417,7 +426,7 @@ namespace Bolt {
 	const SceneDefinition* SceneManager::GetSceneDefinition(const std::string& name) const {
 		auto it = m_SceneDefinitions.find(name);
 		if (it == m_SceneDefinitions.end()) {
-			BT_ERROR("SceneManager", "Scene definition '" + name + "' not found. Call SceneManager::RegisterScene() first.");
+			BT_CORE_ERROR_TAG("SceneManager", "Scene definition '{}' not found, call RegisterScene() first", name);
 			return nullptr;
 		}
 		return it->second.get();

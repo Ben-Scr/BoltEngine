@@ -2,6 +2,7 @@
 #include "Scene/ISystem.hpp"
 #include "Project/LauncherRegistry.hpp"
 #include "Core/Export.hpp"
+#include <chrono>
 
 namespace Bolt {
 
@@ -27,6 +28,10 @@ namespace Bolt {
 		std::string m_BrowseError;
 
 		int m_SelectedIndex = -1;
+
+		bool m_IsOpening = false;
+		std::chrono::steady_clock::time_point m_OpenStartTime;
+		std::string m_OpeningProjectName;
 	};
 
 } // namespace Bolt

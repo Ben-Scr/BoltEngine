@@ -6,6 +6,10 @@
 
 #include "Components/Physics/Rigidbody2DComponent.hpp"
 #include "Components/Physics/BoxCollider2DComponent.hpp"
+#include "Components/Physics/BoltBody2DComponent.hpp"
+#include "Components/Physics/BoltBoxCollider2DComponent.hpp"
+#include "Components/Physics/BoltCircleCollider2DComponent.hpp"
+#include "Physics/PhysicsSystem2D.hpp"
 #include "Components/Graphics/ParticleSystem2DComponent.hpp"
 #include "Components/Graphics/SpriteRendererComponent.hpp"
 #include "Components/General/NameComponent.hpp"
@@ -19,19 +23,21 @@ namespace Bolt {
 	Entity Scene::CreateEntity() {
 		auto entityHandle = CreateEntityHandle();
 		AddComponent<Transform2DComponent>(entityHandle);
+		m_Dirty = true;
 		return Entity(entityHandle, m_Registry);
 	}
 	Entity Scene::CreateEntity(const std::string& name) {
 		auto entityHandle = CreateEntityHandle();
 		AddComponent<Transform2DComponent>(entityHandle);
 		AddComponent<NameComponent>(entityHandle, name);
+		m_Dirty = true;
 		return Entity(entityHandle, m_Registry);
 	}
 
 	EntityHandle Scene::CreateEntityHandle() { return m_Registry.create(); }
 
-	void Scene::DestroyEntity(Entity entity) { Entity::Destroy(entity); }
-	void Scene::DestroyEntity(EntityHandle nativeEntity) { m_Registry.destroy(nativeEntity); }
+	void Scene::DestroyEntity(Entity entity) { m_Dirty = true; Entity::Destroy(entity); }
+	void Scene::DestroyEntity(EntityHandle nativeEntity) { m_Dirty = true; m_Registry.destroy(nativeEntity); }
 
 	void Scene::AwakeSystems() {
 		ForeachEnabledSystem([this](ISystem& s) { s.Awake(*this); });
@@ -72,6 +78,14 @@ namespace Bolt {
 		m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
 		m_Registry.on_destroy<Camera2DComponent>().connect<&Scene::OnCamera2DComponentDestruct>(this);
 		m_Registry.on_destroy<ParticleSystem2DComponent>().connect<&Scene::OnParticleSystem2DComponentDestruct>(this);
+
+		// Bolt-Physics component hooks
+		m_Registry.on_construct<BoltBody2DComponent>().connect<&Scene::OnBoltBody2DConstruct>(this);
+		m_Registry.on_destroy<BoltBody2DComponent>().connect<&Scene::OnBoltBody2DDestroy>(this);
+		m_Registry.on_construct<BoltBoxCollider2DComponent>().connect<&Scene::OnBoltBoxCollider2DConstruct>(this);
+		m_Registry.on_destroy<BoltBoxCollider2DComponent>().connect<&Scene::OnBoltBoxCollider2DDestroy>(this);
+		m_Registry.on_construct<BoltCircleCollider2DComponent>().connect<&Scene::OnBoltCircleCollider2DConstruct>(this);
+		m_Registry.on_destroy<BoltCircleCollider2DComponent>().connect<&Scene::OnBoltCircleCollider2DDestroy>(this);
 	}
 
 	void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, EntityHandle entity)
@@ -163,5 +177,49 @@ namespace Bolt {
 	void Scene::OnParticleSystem2DComponentDestruct(entt::registry& registry, EntityHandle entity) {
 		auto& ps = registry.get<ParticleSystem2DComponent>(entity);
 		ps.m_EmitterTransform = nullptr;
+	}
+
+	// ── Bolt-Physics component hooks ────────────────────────────────
+
+	void Scene::OnBoltBody2DConstruct(entt::registry& registry, EntityHandle entity) {
+		auto& comp = registry.get<BoltBody2DComponent>(entity);
+		auto& boltWorld = PhysicsSystem2D::GetBoltPhysicsWorld();
+
+		comp.m_Body = boltWorld.CreateBody(entity, comp.Type);
+		if (comp.m_Body) {
+			comp.m_Body->SetMass(comp.Mass);
+			comp.m_Body->SetGravityEnabled(comp.UseGravity);
+			comp.m_Body->SetBoundaryCheckEnabled(comp.BoundaryCheck);
+
+			// Sync initial position from Transform
+			if (HasComponent<Transform2DComponent>(entity)) {
+				auto& tf = GetComponent<Transform2DComponent>(entity);
+				comp.m_Body->SetPosition({ tf.Position.x, tf.Position.y });
+			}
+		}
+	}
+
+	void Scene::OnBoltBody2DDestroy(entt::registry& registry, EntityHandle entity) {
+		PhysicsSystem2D::GetBoltPhysicsWorld().DestroyBody(entity);
+	}
+
+	void Scene::OnBoltBoxCollider2DConstruct(entt::registry& registry, EntityHandle entity) {
+		auto& comp = registry.get<BoltBoxCollider2DComponent>(entity);
+		auto& boltWorld = PhysicsSystem2D::GetBoltPhysicsWorld();
+		comp.m_Collider = boltWorld.CreateBoxCollider(entity, comp.HalfExtents);
+	}
+
+	void Scene::OnBoltBoxCollider2DDestroy(entt::registry& registry, EntityHandle entity) {
+		PhysicsSystem2D::GetBoltPhysicsWorld().DestroyCollider(entity);
+	}
+
+	void Scene::OnBoltCircleCollider2DConstruct(entt::registry& registry, EntityHandle entity) {
+		auto& comp = registry.get<BoltCircleCollider2DComponent>(entity);
+		auto& boltWorld = PhysicsSystem2D::GetBoltPhysicsWorld();
+		comp.m_Collider = boltWorld.CreateCircleCollider(entity, comp.Radius);
+	}
+
+	void Scene::OnBoltCircleCollider2DDestroy(entt::registry& registry, EntityHandle entity) {
+		PhysicsSystem2D::GetBoltPhysicsWorld().DestroyCollider(entity);
 	}
 }

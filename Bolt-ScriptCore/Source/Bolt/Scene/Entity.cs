@@ -15,6 +15,25 @@ namespace Bolt
 
         public readonly ulong ID;
 
+        // Maps C# component types to the native ComponentRegistry display names.
+        // These must match the names used in BuiltInComponentRegistration.cpp.
+        private static readonly Dictionary<Type, string> s_NativeComponentNames = new()
+        {
+            { typeof(NameComponent),                  "Name" },
+            { typeof(Transform2DComponent),           "Transform 2D" },
+            { typeof(SpriteRendererComponent),        "Sprite Renderer" },
+            { typeof(Camera2DComponent),              "Camera 2D" },
+            { typeof(Rigidbody2DComponent),           "Rigidbody 2D" },
+            { typeof(BoxCollider2DComponent),         "Box Collider 2D" },
+            { typeof(AudioSourceComponent),           "Audio Source" },
+            { typeof(BoltBody2DComponent),            "Bolt Body 2D" },
+            { typeof(BoltBoxCollider2DComponent),     "Bolt Box Collider 2D" },
+            { typeof(BoltCircleCollider2DComponent),  "Bolt Circle Collider 2D" },
+        };
+
+        private static string? GetNativeName<T>() =>
+            s_NativeComponentNames.TryGetValue(typeof(T), out string? name) ? name : null;
+
         public string Name => GetComponent<NameComponent>()?.Name ?? "";
 
         public Transform2DComponent Transform
@@ -29,24 +48,46 @@ namespace Bolt
                 }
                 return m_TransformComponent;
             }
+            set
+            {
+                m_TransformComponent = value;
+            }
         }
 
-        public Vector2 Position
+        /// <summary>
+        /// Add a component to this entity on the native side.
+        /// Returns the managed wrapper, or null if the component type is unknown.
+        /// </summary>
+        public T? AddComponent<T>() where T : Component, new()
         {
-            get => Transform.Position;
-            set => Transform.Position = value;
+            string? nativeName = GetNativeName<T>();
+            if (nativeName != null)
+                InternalCalls.Entity_AddComponent(ID, nativeName);
+            return GetComponent<T>();
         }
 
-        public float Rotation
+        /// <summary>
+        /// Check whether this entity has a specific component.
+        /// </summary>
+        public bool HasComponent<T>() where T : Component, new()
         {
-            get => Transform.Rotation;
-            set => Transform.Rotation = value;
+            string? nativeName = GetNativeName<T>();
+            if (nativeName == null) return false;
+            return InternalCalls.Entity_HasComponent(ID, nativeName);
         }
 
-        public Vector2 Scale
+        /// <summary>
+        /// Remove a component from this entity.
+        /// Returns true if the component was removed.
+        /// </summary>
+        public bool RemoveComponent<T>() where T : Component, new()
         {
-            get => Transform.Scale;
-            set => Transform.Scale = value;
+            string? nativeName = GetNativeName<T>();
+            if (nativeName == null) return false;
+            m_ComponentCache.Remove(typeof(T));
+            if (typeof(T) == typeof(Transform2DComponent))
+                m_TransformComponent = null;
+            return InternalCalls.Entity_RemoveComponent(ID, nativeName);
         }
 
         public T? GetComponent<T>() where T : Component, new()
@@ -71,6 +112,16 @@ namespace Bolt
             ulong id = InternalCalls.Entity_Create(name);
             return new Entity(id);
         }
+
+       
+        public static Entity Create(Entity source)
+        {
+            if (source is null || source == Invalid) return Invalid;
+            ulong id = InternalCalls.Entity_Clone(source.ID);
+            return id != 0 ? new Entity(id) : Invalid;
+        }
+
+        public Entity Clone() => Create(this);
 
         public void Destroy() => InternalCalls.Entity_Destroy(ID);
 

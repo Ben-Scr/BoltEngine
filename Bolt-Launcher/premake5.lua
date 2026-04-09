@@ -14,7 +14,8 @@ project "Bolt-Launcher"
     {
         "src/**.cpp",
         "src/**.h",
-        "src/**.hpp"
+        "src/**.hpp",
+        "icon.rc"
     }
 
     UseDependencySet(Dependency.EditorRuntimeCommon)

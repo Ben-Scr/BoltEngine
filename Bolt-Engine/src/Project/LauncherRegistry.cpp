@@ -35,6 +35,22 @@ namespace Bolt {
 		return out;
 	}
 
+	static std::string UnescapeJSON(const std::string& s) {
+		std::string out;
+		for (size_t i = 0; i < s.size(); i++) {
+			if (s[i] == '\\' && i + 1 < s.size()) {
+				char next = s[i + 1];
+				if (next == '\\') { out += '\\'; i++; }
+				else if (next == '"') { out += '"'; i++; }
+				else if (next == 'n') { out += '\n'; i++; }
+				else out += s[i];
+			} else {
+				out += s[i];
+			}
+		}
+		return out;
+	}
+
 	static std::string ExtractValue(const std::string& json, const std::string& key) {
 		std::string search = "\"" + key + "\"";
 		auto pos = json.find(search);
@@ -46,7 +62,7 @@ namespace Bolt {
 		auto end = json.find('"', pos + 1);
 		if (end == std::string::npos) return "";
 
-		return json.substr(pos + 1, end - pos - 1);
+		return UnescapeJSON(json.substr(pos + 1, end - pos - 1));
 	}
 
 	std::string LauncherRegistry::GetRegistryPath() {

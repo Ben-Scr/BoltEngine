@@ -238,6 +238,11 @@ namespace Bolt {
 			}
 			return false;
 		});
+
+		dispatcher.Dispatch<FileDropEvent>([this](FileDropEvent& e) {
+			m_PendingFileDrops = e.GetPaths();
+			return false;
+		});
 	}
 
 	void Application::Quit() {

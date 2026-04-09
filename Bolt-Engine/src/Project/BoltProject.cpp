@@ -25,6 +25,22 @@ namespace Bolt {
 		return out;
 	}
 
+	static std::string UnescapeJSON(const std::string& s) {
+		std::string out;
+		for (size_t i = 0; i < s.size(); i++) {
+			if (s[i] == '\\' && i + 1 < s.size()) {
+				char next = s[i + 1];
+				if (next == '\\') { out += '\\'; i++; }
+				else if (next == '"') { out += '"'; i++; }
+				else if (next == 'n') { out += '\n'; i++; }
+				else out += s[i];
+			} else {
+				out += s[i];
+			}
+		}
+		return out;
+	}
+
 	static std::string ExtractValue(const std::string& json, const std::string& key) {
 		std::string search = "\"" + key + "\"";
 		auto pos = json.find(search);
@@ -33,7 +49,31 @@ namespace Bolt {
 		if (pos == std::string::npos) return "";
 		auto end = json.find('"', pos + 1);
 		if (end == std::string::npos) return "";
-		return json.substr(pos + 1, end - pos - 1);
+		return UnescapeJSON(json.substr(pos + 1, end - pos - 1));
+	}
+
+	static int ExtractInt(const std::string& json, const std::string& key, int def = 0) {
+		std::string search = "\"" + key + "\"";
+		auto pos = json.find(search);
+		if (pos == std::string::npos) return def;
+		pos = json.find(':', pos + search.size());
+		if (pos == std::string::npos) return def;
+		pos++;
+		while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
+		try { return std::stoi(json.substr(pos)); }
+		catch (...) { return def; }
+	}
+
+	static bool ExtractBool(const std::string& json, const std::string& key, bool def = false) {
+		std::string search = "\"" + key + "\"";
+		auto pos = json.find(search);
+		if (pos == std::string::npos) return def;
+		pos = json.find(':', pos + search.size());
+		if (pos == std::string::npos) return def;
+		auto rest = json.substr(pos + 1);
+		if (rest.find("true") < rest.find_first_of(",}")) return true;
+		if (rest.find("false") < rest.find_first_of(",}")) return false;
+		return def;
 	}
 
 	static std::string GenerateGUID() {
@@ -68,6 +108,7 @@ namespace Bolt {
 		p.BoltAssetsDirectory = Path::Combine(p.RootDirectory, "BoltAssets");
 		p.NativeScriptsDir = Path::Combine(p.RootDirectory, "NativeScripts");
 		p.NativeSourceDir = Path::Combine(p.NativeScriptsDir, "Source");
+		p.PackagesDirectory = Path::Combine(p.RootDirectory, "Packages");
 		p.CsprojPath = Path::Combine(p.RootDirectory, p.Name + ".csproj");
 		p.SlnPath = Path::Combine(p.RootDirectory, p.Name + ".sln");
 		p.ProjectFilePath = Path::Combine(p.RootDirectory, "bolt-project.json");
@@ -91,7 +132,11 @@ namespace Bolt {
 		   << "  \"name\": \"" << EscapeJSON(Name) << "\",\n"
 		   << "  \"engineVersion\": \"" << EngineVersion << "\",\n"
 		   << "  \"startupScene\": \"" << EscapeJSON(StartupScene) << "\",\n"
-		   << "  \"lastOpenedScene\": \"" << EscapeJSON(LastOpenedScene) << "\"\n"
+		   << "  \"lastOpenedScene\": \"" << EscapeJSON(LastOpenedScene) << "\",\n"
+		   << "  \"buildWidth\": " << BuildWidth << ",\n"
+		   << "  \"buildHeight\": " << BuildHeight << ",\n"
+		   << "  \"buildFullscreen\": " << (BuildFullscreen ? "true" : "false") << ",\n"
+		   << "  \"buildResizable\": " << (BuildResizable ? "true" : "false") << "\n"
 		   << "}\n";
 		File::WriteAllText(ProjectFilePath, ss.str());
 	}
@@ -132,6 +177,11 @@ namespace Bolt {
 
 			std::string lastScene = ExtractValue(json, "lastOpenedScene");
 			if (!lastScene.empty()) project.LastOpenedScene = lastScene;
+
+			project.BuildWidth = ExtractInt(json, "buildWidth", 1280);
+			project.BuildHeight = ExtractInt(json, "buildHeight", 720);
+			project.BuildFullscreen = ExtractBool(json, "buildFullscreen", false);
+			project.BuildResizable = ExtractBool(json, "buildResizable", true);
 		}
 
 		if (project.Name.empty())
@@ -158,6 +208,7 @@ namespace Bolt {
 		Directory::Create(project.BoltAssetsDirectory);
 		Directory::Create(project.NativeScriptsDir);
 		Directory::Create(project.NativeSourceDir);
+		Directory::Create(project.PackagesDirectory);
 		Directory::Create(Path::Combine(project.RootDirectory, "bin"));
 		Directory::Create(Path::Combine(project.RootDirectory, ".vscode"));
 
@@ -190,6 +241,31 @@ namespace Bolt {
 		else
 			scriptCorePath = "..\\Bolt-ScriptCore\\Bolt-ScriptCore.csproj";
 
+		// Preserve existing NuGet PackageReference entries if .csproj already exists
+		std::string existingPackageRefs;
+		if (File::Exists(project.CsprojPath)) {
+			std::ifstream existing(project.CsprojPath);
+			std::string content((std::istreambuf_iterator<char>(existing)), std::istreambuf_iterator<char>());
+			existing.close();
+
+			// Extract all ItemGroup blocks that contain PackageReference
+			size_t searchPos = 0;
+			while (searchPos < content.size()) {
+				size_t igStart = content.find("<ItemGroup>", searchPos);
+				if (igStart == std::string::npos) break;
+				size_t igEnd = content.find("</ItemGroup>", igStart);
+				if (igEnd == std::string::npos) break;
+				igEnd += 12; // length of "</ItemGroup>"
+
+				std::string block = content.substr(igStart, igEnd - igStart);
+				if (block.find("PackageReference") != std::string::npos
+					|| block.find("<Reference ") != std::string::npos) {
+					existingPackageRefs += "  " + block + "\n";
+				}
+				searchPos = igEnd;
+			}
+		}
+
 		// Generate .csproj
 		std::string csproj = R"(<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -197,6 +273,7 @@ namespace Bolt {
     <TargetFramework>net9.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDynamicLoading>true</EnableDynamicLoading>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <Nullable>enable</Nullable>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -217,7 +294,7 @@ namespace Bolt {
       <ExcludeAssets>runtime</ExcludeAssets>
     </ProjectReference>
   </ItemGroup>
-</Project>
+)" + existingPackageRefs + R"(</Project>
 )";
 		File::WriteAllText(project.CsprojPath, csproj);
 
@@ -298,7 +375,7 @@ endif()
 
 		// Generate .gitignore
 		File::WriteAllText(Path::Combine(project.RootDirectory, ".gitignore"),
-			"bin/\nobj/\n.vs/\n*.user\nNativeScripts/build/\n");
+			"bin/\nobj/\n.vs/\n*.user\nNativeScripts/build/\nPackages/\n");
 
 		BT_INFO_TAG("BoltProject", "Created project: {} at {}", name, project.RootDirectory);
 		return project;

@@ -44,6 +44,9 @@ namespace Bolt {
 
 		// Assets
 		AssetReloaded,
+
+		// File drop
+		FileDrop,
 	};
 
 	enum EventCategory {

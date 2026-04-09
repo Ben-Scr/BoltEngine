@@ -1,3 +1,5 @@
+using System;
+
 namespace Bolt
 {
     /// <summary>
@@ -6,19 +8,17 @@ namespace Bolt
     /// </summary>
     public static class Application
     {
-        /// <summary>
-        /// Current screen/window width in pixels.
-        /// </summary>
+        public static Action OnApplicationQuit;
+        public static Action<bool> OnWindowFocus;
+
+        public static float TargetFrameRate
+        {
+            get => 0.0f;
+            //set => InternalCalls.Application_SetTargetFrameRate(value);
+        }
+
         public static int ScreenWidth => InternalCalls.Application_GetScreenWidth();
-
-        /// <summary>
-        /// Current screen/window height in pixels.
-        /// </summary>
         public static int ScreenHeight => InternalCalls.Application_GetScreenHeight();
-
-        /// <summary>
-        /// Current screen aspect ratio (width / height).
-        /// </summary>
         public static float AspectRatio => ScreenHeight > 0 ? (float)ScreenWidth / ScreenHeight : 1.0f;
     }
 }

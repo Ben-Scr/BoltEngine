@@ -12,19 +12,13 @@ namespace Bolt
             Entity = new Entity(id);
         }
 
-        protected Vector2 Position
-        {
-            get => Entity.Position;
-            set => Entity.Position = value;
-        }
-
-        protected float Rotation
-        {
-            get => Entity.Rotation;
-            set => Entity.Rotation = value;
-        }
-
         protected Entity? FindEntity(string name) => Entity.FindByName(name);
         protected T? GetComponent<T>() where T : Component, new() => Entity.GetComponent<T>();
+
+        /// <summary>Create a new empty entity with the given name.</summary>
+        protected Entity Create(string name = "") => Entity.Create(name);
+
+        /// <summary>Clone an existing entity with all its components (prefab instantiation).</summary>
+        protected Entity Create(Entity source) => Entity.Create(source);
     }
 }

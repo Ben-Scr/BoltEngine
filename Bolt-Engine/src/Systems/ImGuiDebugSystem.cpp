@@ -218,7 +218,7 @@ namespace Bolt {
 
 			if (ImGui::CollapsingHeader("Renderer")) {
 				ImGui::BulletText("Instances: %d", renderer2D->GetRenderedInstancesCount());
-				ImGui::BulletText("Loop Duration: %.3f ms", renderer2D->GetRRenderLoopDuration());
+				ImGui::BulletText("Loop Duration: %.3f ms", renderer2D->GetRenderLoopDuration());
 
 				ImGui::Spacing();
 				ImGui::TextDisabled("Window & Viewport:");

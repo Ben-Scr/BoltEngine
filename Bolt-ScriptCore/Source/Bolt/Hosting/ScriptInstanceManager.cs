@@ -12,17 +12,93 @@ namespace Bolt.Hosting
     internal class ScriptAssemblyLoadContext : AssemblyLoadContext
     {
         private readonly Assembly _coreAssembly;
+        private readonly AssemblyDependencyResolver? _resolver;
+        private readonly string? _userAssemblyDir;
 
-        public ScriptAssemblyLoadContext(Assembly coreAssembly)
+        public ScriptAssemblyLoadContext(Assembly coreAssembly, string? userAssemblyPath = null)
             : base("BoltUserScripts", isCollectible: true)
         {
             _coreAssembly = coreAssembly;
+            if (userAssemblyPath != null)
+            {
+                _userAssemblyDir = System.IO.Path.GetDirectoryName(
+                    System.IO.Path.GetFullPath(userAssemblyPath));
+
+                try { _resolver = new AssemblyDependencyResolver(userAssemblyPath); }
+                catch (Exception ex)
+                {
+                    Log.Warn($"[ScriptLoader] AssemblyDependencyResolver failed: {ex.Message}");
+                    _resolver = null;
+                }
+            }
+
+            // Register Resolving event as a last-resort fallback.
+            // This fires when Load() returns null AND the Default context also fails.
+            this.Resolving += OnResolving;
         }
 
         protected override Assembly? Load(AssemblyName name)
         {
             if (name.Name == _coreAssembly.GetName().Name)
                 return _coreAssembly;
+
+            // Try .deps.json resolver (resolves NuGet packages from cache or local copy)
+            if (_resolver != null)
+            {
+                string? resolvedPath = _resolver.ResolveAssemblyToPath(name);
+                if (resolvedPath != null)
+                    return LoadFromAssemblyPath(resolvedPath);
+            }
+
+            // Probe the user assembly's output directory
+            Assembly? probed = ProbeDirectory(_userAssemblyDir, name.Name);
+            if (probed != null) return probed;
+
+            return null;
+        }
+
+        private Assembly? OnResolving(AssemblyLoadContext context, AssemblyName name)
+        {
+            // Last-resort: re-probe directory and NuGet cache
+            Log.Warn($"[ScriptLoader] Resolving fallback for: {name.Name}");
+
+            Assembly? probed = ProbeDirectory(_userAssemblyDir, name.Name);
+            if (probed != null) return probed;
+
+            // Check NuGet global packages cache
+            if (name.Name != null && name.Version != null)
+            {
+                string? nugetDir = System.Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+                if (string.IsNullOrEmpty(nugetDir))
+                    nugetDir = System.IO.Path.Combine(
+                        System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile),
+                        ".nuget", "packages");
+
+                string packageDir = System.IO.Path.Combine(
+                    nugetDir, name.Name.ToLowerInvariant(), name.Version.ToString());
+
+                if (System.IO.Directory.Exists(packageDir))
+                {
+                    string[] tfms = { "net9.0", "net8.0", "net7.0", "net6.0", "netstandard2.1", "netstandard2.0" };
+                    foreach (string tfm in tfms)
+                    {
+                        string dllPath = System.IO.Path.Combine(packageDir, "lib", tfm, name.Name + ".dll");
+                        if (System.IO.File.Exists(dllPath))
+                            return LoadFromAssemblyPath(dllPath);
+                    }
+                }
+            }
+
+            Log.Error($"[ScriptLoader] Failed to resolve: {name.FullName}");
+            return null;
+        }
+
+        private Assembly? ProbeDirectory(string? dir, string? assemblyName)
+        {
+            if (dir == null || assemblyName == null) return null;
+            string candidate = System.IO.Path.Combine(dir, assemblyName + ".dll");
+            if (System.IO.File.Exists(candidate))
+                return LoadFromAssemblyPath(candidate);
             return null;
         }
     }
@@ -149,10 +225,10 @@ namespace Bolt.Hosting
                 }
 
                 s_ClassCache.Clear();
-                s_UserLoadContext = new ScriptAssemblyLoadContext(s_CoreAssembly!);
 
                 // Load from bytes to avoid file-locking the DLL on disk
                 string fullPath = System.IO.Path.GetFullPath(path);
+                s_UserLoadContext = new ScriptAssemblyLoadContext(s_CoreAssembly!, fullPath);
                 byte[] assemblyBytes = System.IO.File.ReadAllBytes(fullPath);
                 s_UserAssembly = s_UserLoadContext.LoadFromStream(
                     new System.IO.MemoryStream(assemblyBytes));

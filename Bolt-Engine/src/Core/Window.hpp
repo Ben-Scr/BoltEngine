@@ -127,6 +127,7 @@ namespace Bolt {
 		static void SetCursorPositionCallback(GLFWwindow* window, double xPos, double yPos);
 		static void SetScrollCallback(GLFWwindow* window, double xOffset, double yOffset);
 		static void SetWindowResizedCallback(GLFWwindow* window, int width, int height);
+		static void SetDropCallback(GLFWwindow* window, int count, const char** paths);
 
 		static Window* s_ActiveWindow;
 

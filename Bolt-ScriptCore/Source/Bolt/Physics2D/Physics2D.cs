@@ -1,32 +1,15 @@
 namespace Bolt
 {
-    /// <summary>
-    /// Result of a 2D raycast query.
-    /// </summary>
     public struct RaycastHit2D
     {
-        /// <summary>The entity that was hit, or null if nothing was hit.</summary>
         public Entity? Entity;
-
-        /// <summary>World-space point where the ray hit.</summary>
         public Vector2 Point;
-
-        /// <summary>Surface normal at the hit point.</summary>
         public Vector2 Normal;
-
-        /// <summary>Whether the raycast hit anything.</summary>
         public bool Hit;
     }
 
-    /// <summary>
-    /// 2D physics query interface. Wraps Bolt-Engine's Box2D-based physics.
-    /// </summary>
     public static class Physics2D
     {
-        /// <summary>
-        /// Cast a ray from origin in the given direction up to maxDistance.
-        /// Returns a RaycastHit2D with the result.
-        /// </summary>
         public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float maxDistance = Mathf.Infinity)
         {
             RaycastHit2D result = new();

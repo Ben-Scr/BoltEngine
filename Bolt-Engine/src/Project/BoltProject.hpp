@@ -13,6 +13,7 @@ namespace Bolt {
 		std::string BoltAssetsDirectory;
 		std::string NativeScriptsDir;
 		std::string NativeSourceDir;
+		std::string PackagesDirectory;
 		std::string CsprojPath;
 		std::string SlnPath;
 		std::string ProjectFilePath;
@@ -21,6 +22,12 @@ namespace Bolt {
 		// Persistence
 		std::string StartupScene = "SampleScene";
 		std::string LastOpenedScene = "SampleScene";
+
+		// Build settings
+		int BuildWidth = 1280;
+		int BuildHeight = 720;
+		bool BuildFullscreen = false;
+		bool BuildResizable = true;
 
 		std::string GetUserAssemblyOutputPath() const;
 		std::string GetNativeDllPath() const;

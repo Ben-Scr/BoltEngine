@@ -5,7 +5,7 @@
 #include "Components/General/NameComponent.hpp"
 #include "Components/General/Transform2DComponent.hpp"
 #include "Components/Tags.hpp"
-#include "Debugging/Logger.hpp"
+#include "Core/Log.hpp"
 
 
 namespace Bolt {
@@ -21,7 +21,7 @@ namespace Bolt {
 	Entity Entity::Create() {
 		Scene* activeScene = SceneManager::Get().GetActiveScene();
 		if (!activeScene || !activeScene->IsLoaded()) {
-			Logger::Error("Entity", "Cannot create entity because there is no active scene loaded");
+			BT_ERROR_TAG("Entity", "Cannot create entity: no active scene loaded");
 			return Entity::Null;
 		}
 

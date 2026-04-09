@@ -23,14 +23,19 @@ namespace Bolt {
 
 		ScriptEngine::Init();
 
-		// Core assembly — always engine-relative
+		// Core assembly — check multiple locations
 		if (m_CoreAssemblyPath.empty())
 		{
-			auto siblingPath = exeDir / ".." / "Bolt-ScriptCore" / "Bolt-ScriptCore.dll";
-			if (std::filesystem::exists(siblingPath))
-				m_CoreAssemblyPath = siblingPath.string();
-			else
-				m_CoreAssemblyPath = "Bolt-ScriptCore.dll";
+			std::vector<std::filesystem::path> candidates = {
+				exeDir / ".." / "Bolt-ScriptCore" / "Bolt-ScriptCore.dll",  // dev layout
+				exeDir / "Bolt-ScriptCore.dll",                              // packaged build (beside exe)
+			};
+			for (const auto& candidate : candidates) {
+				if (std::filesystem::exists(candidate)) {
+					m_CoreAssemblyPath = std::filesystem::canonical(candidate).string();
+					break;
+				}
+			}
 		}
 
 		if (std::filesystem::exists(m_CoreAssemblyPath))
@@ -129,7 +134,7 @@ namespace Bolt {
 		m_IsRebuilding = true;
 		m_RebuildStartTime = std::chrono::steady_clock::now();
 
-		std::string buildCmd = "dotnet build \"" + m_SandboxProjectPath + "\" -c Release -p:Platform=x64 --no-dependencies --nologo -v q";
+		std::string buildCmd = "dotnet build \"" + m_SandboxProjectPath + "\" -c Release --nologo -v q";
 		m_RebuildFuture = std::async(std::launch::async, [buildCmd]() {
 			return std::system(buildCmd.c_str());
 		});

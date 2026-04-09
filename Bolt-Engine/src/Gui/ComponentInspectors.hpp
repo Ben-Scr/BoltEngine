@@ -12,4 +12,9 @@ namespace Bolt {
 	void DrawBoxCollider2DInspector(Entity entity);
 	void DrawAudioSourceInspector(Entity entity);
 
+	// Bolt-Physics inspectors
+	void DrawBoltBody2DInspector(Entity entity);
+	void DrawBoltBoxCollider2DInspector(Entity entity);
+	void DrawBoltCircleCollider2DInspector(Entity entity);
+
 } // namespace Bolt

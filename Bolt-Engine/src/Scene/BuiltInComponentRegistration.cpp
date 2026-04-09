@@ -33,6 +33,11 @@ namespace Bolt {
 		RegisterComponent<BoxCollider2DComponent>(sceneManager, "Box Collider 2D", DrawBoxCollider2DInspector);
 		RegisterComponent<Rigidbody2DComponent>(sceneManager, "Rigidbody 2D", DrawRigidbody2DInspector);
 
+		// Bolt-Physics components (lightweight AABB physics)
+		RegisterComponent<BoltBody2DComponent>(sceneManager, "Bolt Body 2D", DrawBoltBody2DInspector);
+		RegisterComponent<BoltBoxCollider2DComponent>(sceneManager, "Bolt Box Collider 2D", DrawBoltBoxCollider2DInspector);
+		RegisterComponent<BoltCircleCollider2DComponent>(sceneManager, "Bolt Circle Collider 2D", DrawBoltCircleCollider2DInspector);
+
 		RegisterComponent<AudioSourceComponent>(sceneManager, "Audio Source", DrawAudioSourceInspector);
 
 		RegisterComponent<ScriptComponent>(sceneManager, "Scripts", DrawScriptComponentInspector);

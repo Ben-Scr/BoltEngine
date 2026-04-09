@@ -1,3 +1,5 @@
+using System;
+
 namespace Bolt
 {
     public enum MouseButton
@@ -13,6 +15,14 @@ namespace Bolt
     /// </summary>
     public static class Input
     {
+        public static Action<KeyCode> OnKeyDown;
+        public static Action<KeyCode> OnKeyUp;
+
+        public static Action<MouseButton> OnMouseDown;
+        public static Action<MouseButton> OnMouseUp;
+
+        public static Action<Vector2> OnMouseMove;
+
         /// <summary>
         /// Returns true every frame the key is held down.
         /// </summary>

@@ -6,16 +6,19 @@ namespace Bolt {
 	/// Layout must match C# NativeBindingsStruct exactly (Sequential, blittable).
 	struct NativeBindings
 	{
+		// ── Application ──────────────────────────────────────────────
 		float  (*Application_GetDeltaTime)();
 		float  (*Application_GetElapsedTime)();
 		int    (*Application_GetScreenWidth)();
 		int    (*Application_GetScreenHeight)();
 
+		// ── Log ──────────────────────────────────────────────────────
 		void   (*Log_Trace)(const char* message);
 		void   (*Log_Info)(const char* message);
 		void   (*Log_Warn)(const char* message);
 		void   (*Log_Error)(const char* message);
 
+		// ── Input ────────────────────────────────────────────────────
 		int    (*Input_GetKey)(int keyCode);
 		int    (*Input_GetKeyDown)(int keyCode);
 		int    (*Input_GetKeyUp)(int keyCode);
@@ -23,14 +26,21 @@ namespace Bolt {
 		int    (*Input_GetMouseButtonDown)(int button);
 		void   (*Input_GetMousePosition)(float* outX, float* outY);
 
+		// ── Entity ───────────────────────────────────────────────────
 		int      (*Entity_IsValid)(uint64_t entityID);
 		uint64_t (*Entity_FindByName)(const char* name);
 		void     (*Entity_Destroy)(uint64_t entityID);
 		uint64_t (*Entity_Create)(const char* name);
+		uint64_t (*Entity_Clone)(uint64_t sourceEntityID);
+		int      (*Entity_HasComponent)(uint64_t entityID, const char* componentName);
+		int      (*Entity_AddComponent)(uint64_t entityID, const char* componentName);
+		int      (*Entity_RemoveComponent)(uint64_t entityID, const char* componentName);
 
+		// ── NameComponent ────────────────────────────────────────────
 		const char* (*NameComponent_GetName)(uint64_t entityID);
 		void        (*NameComponent_SetName)(uint64_t entityID, const char* name);
 
+		// ── Transform2D ──────────────────────────────────────────────
 		void  (*Transform2D_GetPosition)(uint64_t entityID, float* outX, float* outY);
 		void  (*Transform2D_SetPosition)(uint64_t entityID, float x, float y);
 		float (*Transform2D_GetRotation)(uint64_t entityID);
@@ -38,21 +48,80 @@ namespace Bolt {
 		void  (*Transform2D_GetScale)(uint64_t entityID, float* outX, float* outY);
 		void  (*Transform2D_SetScale)(uint64_t entityID, float x, float y);
 
+		// ── SpriteRenderer ───────────────────────────────────────────
 		void (*SpriteRenderer_GetColor)(uint64_t entityID, float* r, float* g, float* b, float* a);
 		void (*SpriteRenderer_SetColor)(uint64_t entityID, float r, float g, float b, float a);
+		int  (*SpriteRenderer_GetSortingOrder)(uint64_t entityID);
+		void (*SpriteRenderer_SetSortingOrder)(uint64_t entityID, int order);
+		int  (*SpriteRenderer_GetSortingLayer)(uint64_t entityID);
+		void (*SpriteRenderer_SetSortingLayer)(uint64_t entityID, int layer);
 
+		// ── Camera2D ─────────────────────────────────────────────────
 		float (*Camera2D_GetOrthographicSize)(uint64_t entityID);
 		void  (*Camera2D_SetOrthographicSize)(uint64_t entityID, float size);
 		float (*Camera2D_GetZoom)(uint64_t entityID);
 		void  (*Camera2D_SetZoom)(uint64_t entityID, float zoom);
+		void  (*Camera2D_GetClearColor)(uint64_t entityID, float* r, float* g, float* b, float* a);
+		void  (*Camera2D_SetClearColor)(uint64_t entityID, float r, float g, float b, float a);
+		void  (*Camera2D_ScreenToWorld)(uint64_t entityID, float sx, float sy, float* outX, float* outY);
+		float (*Camera2D_GetViewportWidth)(uint64_t entityID);
+		float (*Camera2D_GetViewportHeight)(uint64_t entityID);
 
+		// ── Rigidbody2D ──────────────────────────────────────────────
 		void  (*Rigidbody2D_ApplyForce)(uint64_t entityID, float forceX, float forceY, int wake);
 		void  (*Rigidbody2D_ApplyImpulse)(uint64_t entityID, float impulseX, float impulseY, int wake);
 		void  (*Rigidbody2D_GetLinearVelocity)(uint64_t entityID, float* outX, float* outY);
 		void  (*Rigidbody2D_SetLinearVelocity)(uint64_t entityID, float x, float y);
 		float (*Rigidbody2D_GetAngularVelocity)(uint64_t entityID);
 		void  (*Rigidbody2D_SetAngularVelocity)(uint64_t entityID, float velocity);
+		int   (*Rigidbody2D_GetBodyType)(uint64_t entityID);
+		void  (*Rigidbody2D_SetBodyType)(uint64_t entityID, int type);
+		float (*Rigidbody2D_GetGravityScale)(uint64_t entityID);
+		void  (*Rigidbody2D_SetGravityScale)(uint64_t entityID, float scale);
+		float (*Rigidbody2D_GetMass)(uint64_t entityID);
+		void  (*Rigidbody2D_SetMass)(uint64_t entityID, float mass);
 
+		// ── BoxCollider2D ────────────────────────────────────────────
+		void  (*BoxCollider2D_GetScale)(uint64_t entityID, float* outX, float* outY);
+		void  (*BoxCollider2D_GetCenter)(uint64_t entityID, float* outX, float* outY);
+		void  (*BoxCollider2D_SetEnabled)(uint64_t entityID, int enabled);
+
+		// ── AudioSource ──────────────────────────────────────────────
+		void  (*AudioSource_Play)(uint64_t entityID);
+		void  (*AudioSource_Pause)(uint64_t entityID);
+		void  (*AudioSource_Stop)(uint64_t entityID);
+		void  (*AudioSource_Resume)(uint64_t entityID);
+		float (*AudioSource_GetVolume)(uint64_t entityID);
+		void  (*AudioSource_SetVolume)(uint64_t entityID, float volume);
+		float (*AudioSource_GetPitch)(uint64_t entityID);
+		void  (*AudioSource_SetPitch)(uint64_t entityID, float pitch);
+		int   (*AudioSource_GetLoop)(uint64_t entityID);
+		void  (*AudioSource_SetLoop)(uint64_t entityID, int loop);
+		int   (*AudioSource_IsPlaying)(uint64_t entityID);
+
+		// ── Bolt-Physics ─────────────────────────────────────────────
+		int   (*BoltBody2D_GetBodyType)(uint64_t entityID);
+		void  (*BoltBody2D_SetBodyType)(uint64_t entityID, int type);
+		float (*BoltBody2D_GetMass)(uint64_t entityID);
+		void  (*BoltBody2D_SetMass)(uint64_t entityID, float mass);
+		int   (*BoltBody2D_GetUseGravity)(uint64_t entityID);
+		void  (*BoltBody2D_SetUseGravity)(uint64_t entityID, int enabled);
+		void  (*BoltBody2D_GetVelocity)(uint64_t entityID, float* outX, float* outY);
+		void  (*BoltBody2D_SetVelocity)(uint64_t entityID, float x, float y);
+		void  (*BoltBoxCollider2D_GetHalfExtents)(uint64_t entityID, float* outX, float* outY);
+		void  (*BoltBoxCollider2D_SetHalfExtents)(uint64_t entityID, float x, float y);
+		float (*BoltCircleCollider2D_GetRadius)(uint64_t entityID);
+		void  (*BoltCircleCollider2D_SetRadius)(uint64_t entityID, float radius);
+
+		// ── Gizmos ───────────────────────────────────────────────────
+		void (*Gizmo_DrawLine)(float x1, float y1, float x2, float y2);
+		void (*Gizmo_DrawSquare)(float cx, float cy, float sx, float sy, float degrees);
+		void (*Gizmo_DrawCircle)(float cx, float cy, float radius, int segments);
+		void (*Gizmo_SetColor)(float r, float g, float b, float a);
+		void (*Gizmo_GetColor)(float* r, float* g, float* b, float* a);
+		void (*Gizmo_SetLineWidth)(float width);
+
+		// ── Physics2D ────────────────────────────────────────────────
 		int (*Physics2D_Raycast)(float originX, float originY, float dirX, float dirY, float distance,
 		                         uint64_t* hitEntityID, float* hitX, float* hitY, float* hitNormalX, float* hitNormalY);
 	};

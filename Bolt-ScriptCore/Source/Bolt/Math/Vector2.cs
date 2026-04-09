@@ -92,5 +92,11 @@ namespace Bolt
         public override bool Equals(object? obj) => obj is Vector2 other && Equals(other);
         public override int GetHashCode() => HashCode.Combine(X, Y);
         public override string ToString() => $"Vector2({X}, {Y})";
+
+        // ── Conversions ─────────────────────────────────────────────
+        public static implicit operator Vector3(Vector2 v) => new(v.X, v.Y, 0f);
+        public static implicit operator Vector4(Vector2 v) => new(v.X, v.Y, 0f, 0f);
+        public static explicit operator Vector2(Vector3 v) => new(v.X, v.Y);
+        public static explicit operator Vector2(Vector4 v) => new(v.X, v.Y);
     }
 }

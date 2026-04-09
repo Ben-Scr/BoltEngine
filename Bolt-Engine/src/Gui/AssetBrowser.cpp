@@ -5,6 +5,7 @@
 #include "Serialization/SceneSerializer.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Core/Log.hpp"
+#include "Editor/ExternalEditor.hpp"
 #include <imgui.h>
 #include <algorithm>
 #include <filesystem>
@@ -64,6 +65,109 @@ namespace Bolt {
 		std::string newName(m_RenameBuffer);
 		std::string oldName = std::filesystem::path(m_RenamePath).filename().string();
 
+		// If this is a pending script creation, write the boilerplate now with the final name
+		if (m_PendingScriptType != PendingScriptType::None) {
+			std::string className = newName; // User typed the class name (no extension)
+			std::string ext = (m_PendingScriptType == PendingScriptType::CSharp) ? ".cs" : ".cpp";
+
+			// Ensure the name has the right extension
+			if (!className.empty() && className.find('.') == std::string::npos) {
+				// User typed bare name without extension — add it
+			}
+			else if (className.size() > ext.size()) {
+				// User might have typed with extension — strip it for the class name
+				std::string lowerName = className;
+				std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+				if (lowerName.substr(lowerName.size() - ext.size()) == ext)
+					className = className.substr(0, className.size() - ext.size());
+			}
+
+			if (className.empty()) className = "NewScript";
+
+			std::string finalFileName = className + ext;
+			std::string finalPath = (std::filesystem::path(m_PendingScriptDir) / finalFileName).string();
+
+			// Delete the placeholder file
+			if (std::filesystem::exists(m_RenamePath)) {
+				std::error_code ec;
+				std::filesystem::remove(m_RenamePath, ec);
+			}
+
+			// Write the real boilerplate with the correct class name
+			if (m_PendingScriptType == PendingScriptType::CSharp) {
+				std::string boilerplate =
+					"using Bolt;\n"
+					"\n"
+					"public class " + className + " : BoltScript\n"
+					"{\n"
+					"    public void Start()\n"
+					"    {\n"
+					"    }\n"
+					"\n"
+					"    public void Update()\n"
+					"    {\n"
+					"    }\n"
+					"}\n";
+
+				std::ofstream file(finalPath);
+				if (file.is_open()) { file << boilerplate; file.close(); }
+
+				// Legacy sandbox copy
+				BoltProject* project = ProjectManager::GetCurrentProject();
+				if (!project) {
+					auto sandboxDir = std::filesystem::path(Path::ExecutableDir()) / ".." / ".." / ".." / "Bolt-Sandbox" / "Source";
+					if (std::filesystem::exists(sandboxDir)) {
+						auto dst = sandboxDir / finalFileName;
+						if (!std::filesystem::exists(dst)) {
+							std::ofstream f(dst); if (f.is_open()) { f << boilerplate; f.close(); }
+						}
+					}
+				}
+			}
+			else { // Native
+				std::string boilerplate =
+					"#include <Scripting/NativeScript.hpp>\n"
+					"\n"
+					"class " + className + " : public Bolt::NativeScript {\n"
+					"public:\n"
+					"    void Start() override\n"
+					"    {\n"
+					"    }\n"
+					"\n"
+					"    void Update(float dt) override\n"
+					"    {\n"
+					"    }\n"
+					"\n"
+					"    void OnDestroy() override\n"
+					"    {\n"
+					"    }\n"
+					"};\n"
+					"REGISTER_SCRIPT(" + className + ")\n";
+
+				std::ofstream file(finalPath);
+				if (file.is_open()) { file << boilerplate; file.close(); }
+
+				// Copy to NativeScripts/Source/
+				BoltProject* project = ProjectManager::GetCurrentProject();
+				std::string nativeDir = project ? project->NativeSourceDir
+					: (std::filesystem::path(Path::ExecutableDir()) / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source").string();
+				if (std::filesystem::exists(nativeDir)) {
+					auto dst = std::filesystem::path(nativeDir) / finalFileName;
+					if (!std::filesystem::exists(dst)) {
+						std::ofstream f(dst); if (f.is_open()) { f << boilerplate; f.close(); }
+					}
+				}
+			}
+
+			m_SelectedPath = finalPath;
+			m_PendingScriptType = PendingScriptType::None;
+			m_PendingScriptDir.clear();
+			m_NeedsRefresh = true;
+			CancelRename();
+			return;
+		}
+
+		// Normal rename (not a script creation)
 		if (!newName.empty() && newName != oldName) {
 			RenameEntry(m_RenamePath, newName);
 		}
@@ -71,6 +175,17 @@ namespace Bolt {
 	}
 
 	void AssetBrowser::CancelRename() {
+		// If cancelling a pending script creation, delete the placeholder
+		if (m_PendingScriptType != PendingScriptType::None) {
+			if (!m_RenamePath.empty() && std::filesystem::exists(m_RenamePath)) {
+				std::error_code ec;
+				std::filesystem::remove(m_RenamePath, ec);
+			}
+			m_PendingScriptType = PendingScriptType::None;
+			m_PendingScriptDir.clear();
+			m_NeedsRefresh = true;
+		}
+
 		m_IsRenaming = false;
 		m_RenamePath.clear();
 		m_RenameFrameCounter = 0;
@@ -81,6 +196,12 @@ namespace Bolt {
 	}
 
 	void AssetBrowser::Render() {
+		// Process pending OS file drops
+		if (!m_PendingExternalDrops.empty()) {
+			OnExternalFileDrop(m_PendingExternalDrops);
+			m_PendingExternalDrops.clear();
+		}
+
 		// Load pending scene on main thread (before ImGui frame)
 		if (!m_PendingSceneLoad.empty())
 		{
@@ -462,10 +583,21 @@ namespace Bolt {
 
 			// Determine which project source dir this script belongs to
 			std::filesystem::path projectSourceDir;
+			BoltProject* project = ProjectManager::GetCurrentProject();
 			if (ext == ".cs")
-				projectSourceDir = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Source";
+			{
+				if (project)
+					projectSourceDir = project->ScriptsDirectory;
+				else
+					projectSourceDir = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Source";
+			}
 			else if (ext == ".cpp" || ext == ".h" || ext == ".hpp")
-				projectSourceDir = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source";
+			{
+				if (project)
+					projectSourceDir = project->NativeSourceDir;
+				else
+					projectSourceDir = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source";
+			}
 
 			if (!projectSourceDir.empty() && std::filesystem::exists(projectSourceDir))
 			{
@@ -526,6 +658,11 @@ namespace Bolt {
 	}
 
 	void AssetBrowser::CreateScript(const std::string& parentDir) {
+		// Don't write the file yet — just create a placeholder entry for renaming.
+		// The actual .cs file with boilerplate is written in CommitRename() after
+		// the user confirms the name. This prevents the FileWatcher from triggering
+		// a recompile with "NewScript" as the class name.
+
 		std::string baseName = "NewScript";
 		std::string ext = ".cs";
 		std::string scriptPath = (std::filesystem::path(parentDir) / (baseName + ext)).string();
@@ -535,54 +672,20 @@ namespace Bolt {
 			counter++;
 		}
 
-		// Derive class name from the filename (without extension)
-		std::string className = std::filesystem::path(scriptPath).stem().string();
-
-		// Write BoltScript boilerplate
-		std::string boilerplate =
-			"using Bolt;\n"
-			"\n"
-			"public class " + className + " : BoltScript\n"
-			"{\n"
-			"    public void Start()\n"
-			"    {\n"
-			"    }\n"
-			"\n"
-			"    public void Update()\n"
-			"    {\n"
-			"    }\n"
-			"}\n";
-
-		// Write to Assets folder (for Asset Browser display + drag-drop)
-		std::ofstream file(scriptPath);
-		if (file.is_open()) {
-			file << boilerplate;
-			file.close();
-		}
-
-		// Also write to Bolt-Sandbox/Source/ (for compilation)
-		// The glob pattern in .csproj auto-includes it
-		auto exeDir = std::filesystem::path(Path::ExecutableDir());
-		auto sandboxSourceDir = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Source";
-		if (std::filesystem::exists(sandboxSourceDir))
+		// Write a minimal empty file so it shows up in the browser
 		{
-			auto projectScriptPath = sandboxSourceDir / (className + ext);
-			if (!std::filesystem::exists(projectScriptPath))
-			{
-				std::ofstream projectFile(projectScriptPath);
-				if (projectFile.is_open()) {
-					projectFile << boilerplate;
-					projectFile.close();
-					BT_INFO_TAG("AssetBrowser", "Script added to project: {}", projectScriptPath.string());
-				}
-			}
+			std::ofstream placeholder(scriptPath);
+			placeholder << "// Rename this script to generate boilerplate\n";
 		}
+
+		m_PendingScriptType = PendingScriptType::CSharp;
+		m_PendingScriptDir = parentDir;
 
 		m_NeedsRefresh = true;
 		Refresh();
 
 		m_SelectedPath = scriptPath;
-		std::string name = std::filesystem::path(scriptPath).filename().string();
+		std::string name = std::filesystem::path(scriptPath).stem().string();
 		BeginRename(scriptPath, name);
 	}
 
@@ -596,55 +699,20 @@ namespace Bolt {
 			counter++;
 		}
 
-		std::string className = std::filesystem::path(scriptPath).stem().string();
-
-		std::string boilerplate =
-			"#include <Scripting/NativeScript.hpp>\n"
-			"\n"
-			"class " + className + " : public Bolt::NativeScript {\n"
-			"public:\n"
-			"    void Start() override\n"
-			"    {\n"
-			"    }\n"
-			"\n"
-			"    void Update(float dt) override\n"
-			"    {\n"
-			"    }\n"
-			"\n"
-			"    void OnDestroy() override\n"
-			"    {\n"
-			"    }\n"
-			"};\n"
-			"REGISTER_SCRIPT(" + className + ")\n";
-
-		// Write to Assets folder
-		std::ofstream file(scriptPath);
-		if (file.is_open()) {
-			file << boilerplate;
-			file.close();
-		}
-
-		// Also write to Bolt-NativeScripts/Source/
-		auto exeDir = std::filesystem::path(Path::ExecutableDir());
-		auto nativeSourceDir = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source";
-		if (std::filesystem::exists(nativeSourceDir))
+		// Write a minimal placeholder so it shows up in the browser
 		{
-			auto projectScriptPath = nativeSourceDir / (className + ext);
-			if (!std::filesystem::exists(projectScriptPath))
-			{
-				std::ofstream projectFile(projectScriptPath);
-				if (projectFile.is_open()) {
-					projectFile << boilerplate;
-					projectFile.close();
-				}
-			}
+			std::ofstream placeholder(scriptPath);
+			placeholder << "// Rename this script to generate boilerplate\n";
 		}
+
+		m_PendingScriptType = PendingScriptType::Native;
+		m_PendingScriptDir = parentDir;
 
 		m_NeedsRefresh = true;
 		Refresh();
 
 		m_SelectedPath = scriptPath;
-		std::string name = std::filesystem::path(scriptPath).filename().string();
+		std::string name = std::filesystem::path(scriptPath).stem().string();
 		BeginRename(scriptPath, name);
 	}
 
@@ -688,7 +756,6 @@ namespace Bolt {
 	}
 
 	void AssetBrowser::OpenAssetExternal(const DirectoryEntry& entry) {
-#ifdef BT_PLATFORM_WINDOWS
 		try
 		{
 			std::string ext = std::filesystem::path(entry.Path).extension().string();
@@ -701,100 +768,72 @@ namespace Bolt {
 				return;
 			}
 
-			// Determine which project this file belongs to
-			std::wstring slnPath, filePath, windowTitle;
-			bool isScript = false;
-
-			auto exeDir = std::filesystem::path(Path::ExecutableDir());
-
-			if (ext == ".cs")
+			// Script/code files: always route through the configured external editor
+			if (ExternalEditor::IsScriptExtension(ext))
 			{
-				auto sln = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Bolt-Sandbox.sln";
-				auto src = exeDir / ".." / ".." / ".." / "Bolt-Sandbox" / "Source"
-					/ std::filesystem::path(entry.Path).filename();
-
-				if (std::filesystem::exists(sln))
-				{
-					slnPath = std::filesystem::canonical(sln).wstring();
-					filePath = std::filesystem::exists(src)
-						? std::filesystem::canonical(src).wstring()
-						: std::filesystem::absolute(entry.Path).wstring();
-					windowTitle = L"Bolt-Sandbox";
-					isScript = true;
-				}
-			}
-			else if (ext == ".cpp" || ext == ".h" || ext == ".hpp")
-			{
-				auto sln = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "build" / "Bolt-NativeScripts.sln";
-				auto src = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source"
-					/ std::filesystem::path(entry.Path).filename();
-
-				if (std::filesystem::exists(sln))
-				{
-					slnPath = std::filesystem::canonical(sln).wstring();
-					filePath = std::filesystem::exists(src)
-						? std::filesystem::canonical(src).wstring()
-						: std::filesystem::absolute(entry.Path).wstring();
-					windowTitle = L"Bolt-NativeScripts";
-					isScript = true;
-				}
+				ExternalEditor::OpenFile(entry.Path);
+				return;
 			}
 
-			if (isScript && !slnPath.empty())
-			{
-				// Check if VS already has this solution open
-				bool vsRunning = false;
-				std::wstring searchTitle = windowTitle;
-				auto enumCtx = std::make_pair(&vsRunning, &searchTitle);
-				EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
-					auto* ctx = reinterpret_cast<std::pair<bool*, std::wstring*>*>(lParam);
-					wchar_t title[512]{};
-					GetWindowTextW(hwnd, title, 512);
-					if (wcsstr(title, ctx->second->c_str()) != nullptr)
-					{
-						*ctx->first = true;
-						return FALSE;
-					}
-					return TRUE;
-				}, reinterpret_cast<LPARAM>(&enumCtx));
-
-				std::wstring cmdLine;
-				const wchar_t* devenv = L"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\Common7\\IDE\\devenv.exe";
-
-				if (vsRunning)
-					cmdLine = L"\"" + std::wstring(devenv) + L"\" /Edit \"" + filePath + L"\"";
-				else
-					cmdLine = L"\"" + std::wstring(devenv) + L"\" \"" + slnPath
-						+ L"\" /command \"File.OpenFile " + filePath + L"\"";
-
-				std::thread([cmdLine]() {
-					std::vector<wchar_t> buf(cmdLine.begin(), cmdLine.end());
-					buf.push_back(L'\0');
-
-					STARTUPINFOW si{};
-					si.cb = sizeof(si);
-					PROCESS_INFORMATION pi{};
-
-					if (CreateProcessW(nullptr, buf.data(), nullptr, nullptr,
-						FALSE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi))
-					{
-						CloseHandle(pi.hProcess);
-						CloseHandle(pi.hThread);
-					}
-				}).detach();
-			}
-			else
-			{
-				std::wstring wpath = std::filesystem::absolute(entry.Path).wstring();
-				std::thread([wpath]() {
-					CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
-					ShellExecuteW(nullptr, L"open", wpath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
-					CoUninitialize();
-				}).detach();
-			}
+			// Non-script files (images, audio, etc.): open with OS default
+#ifdef BT_PLATFORM_WINDOWS
+			std::wstring wpath = std::filesystem::absolute(entry.Path).wstring();
+			std::thread([wpath]() {
+				CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+				ShellExecuteW(nullptr, L"open", wpath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+				CoUninitialize();
+			}).detach();
+#endif
 		}
 		catch (...) {}
-#endif
+	}
+
+	void AssetBrowser::OnExternalFileDrop(const std::vector<std::string>& paths) {
+		if (m_CurrentDirectory.empty()) return;
+
+		int imported = 0;
+		for (const auto& sourcePath : paths) {
+			try {
+				std::filesystem::path src(sourcePath);
+				if (!std::filesystem::exists(src)) continue;
+
+				std::filesystem::path destDir(m_CurrentDirectory);
+
+				if (std::filesystem::is_directory(src)) {
+					// Copy entire directory
+					std::filesystem::path dest = destDir / src.filename();
+					std::filesystem::copy(src, dest,
+						std::filesystem::copy_options::recursive | std::filesystem::copy_options::skip_existing);
+					imported++;
+				}
+				else {
+					// Copy single file
+					std::filesystem::path dest = destDir / src.filename();
+
+					// Avoid overwriting — append counter if file exists
+					if (std::filesystem::exists(dest)) {
+						std::string stem = dest.stem().string();
+						std::string ext = dest.extension().string();
+						int counter = 1;
+						while (std::filesystem::exists(dest)) {
+							dest = destDir / (stem + " (" + std::to_string(counter) + ")" + ext);
+							counter++;
+						}
+					}
+
+					std::filesystem::copy_file(src, dest);
+					imported++;
+				}
+			}
+			catch (const std::exception& e) {
+				BT_CORE_WARN_TAG("AssetBrowser", "Failed to import '{}': {}", sourcePath, e.what());
+			}
+		}
+
+		if (imported > 0) {
+			m_NeedsRefresh = true;
+			BT_CORE_INFO_TAG("AssetBrowser", "Imported {} file(s) into {}", imported, m_CurrentDirectory);
+		}
 	}
 
 }

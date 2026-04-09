@@ -31,24 +31,24 @@ namespace Bolt {
 		}
 		template<typename TComponent, typename... Args>
 			requires (!std::is_empty_v<TComponent>)
-		TComponent& AddComponent(EntityHandle blockTexture, Args&&... args) {
-			return ComponentUtils::AddComponent<TComponent>(m_Registry, blockTexture, std::forward<Args>(args)...);
+		TComponent& AddComponent(EntityHandle entity, Args&&... args) {
+			return ComponentUtils::AddComponent<TComponent>(m_Registry, entity, std::forward<Args>(args)...);
 		}
 
 		template<typename TTag>
 			requires std::is_empty_v<TTag>
-		void AddComponent(EntityHandle blockTexture) {
-			ComponentUtils::AddComponent<TTag>(m_Registry, blockTexture);
+		void AddComponent(EntityHandle entity) {
+			ComponentUtils::AddComponent<TTag>(m_Registry, entity);
 		}
 
 		template<typename TComponent>
-		bool HasComponent(EntityHandle blockTexture) const {
-			return ComponentUtils::HasComponent<TComponent>(m_Registry, blockTexture);
+		bool HasComponent(EntityHandle entity) const {
+			return ComponentUtils::HasComponent<TComponent>(m_Registry, entity);
 		}
 
 		template<typename... TComponent>
-		bool HasAnyComponent(EntityHandle blockTexture) const {
-			return ComponentUtils::HasAnyComponent<TComponent...>(m_Registry, blockTexture);
+		bool HasAnyComponent(EntityHandle entity) const {
+			return ComponentUtils::HasAnyComponent<TComponent...>(m_Registry, entity);
 		}
 
 		template<typename... TComponent, typename... TEntity>
@@ -57,24 +57,24 @@ namespace Bolt {
 		}
 
 		template<typename TComponent>
-		TComponent& GetComponent(EntityHandle blockTexture) {
-			return ComponentUtils::GetComponent<TComponent>(m_Registry, blockTexture);
+		TComponent& GetComponent(EntityHandle entity) {
+			return ComponentUtils::GetComponent<TComponent>(m_Registry, entity);
 		}
 
 		template<typename TComponent>
-		const TComponent& GetComponent(EntityHandle blockTexture) const {
-			return ComponentUtils::GetComponent<TComponent>(m_Registry, blockTexture);
+		const TComponent& GetComponent(EntityHandle entity) const {
+			return ComponentUtils::GetComponent<TComponent>(m_Registry, entity);
 		}
 
 		template<typename TComponent>
-		bool TryGetComponent(EntityHandle blockTexture, TComponent*& out) {
-			out = ComponentUtils::TryGetComponent<TComponent>(m_Registry, blockTexture);
+		bool TryGetComponent(EntityHandle entity, TComponent*& out) {
+			out = ComponentUtils::TryGetComponent<TComponent>(m_Registry, entity);
 			return out != nullptr;
 		}
 
 		template<typename TComponent>
-		void RemoveComponent(EntityHandle blockTexture) {
-			ComponentUtils::RemoveComponent<TComponent>(m_Registry, blockTexture);
+		void RemoveComponent(EntityHandle entity) {
+			ComponentUtils::RemoveComponent<TComponent>(m_Registry, entity);
 		}
 
 		template<typename TComponent>
@@ -179,9 +179,14 @@ namespace Bolt {
 		const entt::registry& GetRegistry() const { return m_Registry; }
 
 		const std::string& GetName() const { return m_Name; }
+		void SetName(const std::string& name) { m_Name = name; }
 		bool IsLoaded() const { return m_IsLoaded; }
 		bool IsPersistent() const { return m_Persistent; }
 		const SceneDefinition* GetDefinition() const { return m_Definition; }
+
+		bool IsDirty() const { return m_Dirty; }
+		void MarkDirty() { m_Dirty = true; }
+		void ClearDirty() { m_Dirty = false; }
 
 	private:
 		Scene(const std::string& name, const SceneDefinition* definition, bool IsPersistent);
@@ -197,7 +202,14 @@ namespace Bolt {
 
 		void OnParticleSystem2DComponentConstruct(entt::registry& registry, EntityHandle entity);
 		void OnParticleSystem2DComponentDestruct(entt::registry& registry, EntityHandle entity);
-		//void OnCircleCollider2DComponentConstruct(entt::registry& registry, entt::entity entity);
+
+		// Bolt-Physics component hooks
+		void OnBoltBody2DConstruct(entt::registry& registry, EntityHandle entity);
+		void OnBoltBody2DDestroy(entt::registry& registry, EntityHandle entity);
+		void OnBoltBoxCollider2DConstruct(entt::registry& registry, EntityHandle entity);
+		void OnBoltBoxCollider2DDestroy(entt::registry& registry, EntityHandle entity);
+		void OnBoltCircleCollider2DConstruct(entt::registry& registry, EntityHandle entity);
+		void OnBoltCircleCollider2DDestroy(entt::registry& registry, EntityHandle entity);
 
 		void AwakeSystems();
 		void StartSystems();
@@ -230,5 +242,6 @@ namespace Bolt {
 
 		bool m_IsLoaded = false;
 		bool m_Persistent = false;
+		bool m_Dirty = false;
 	};
 }

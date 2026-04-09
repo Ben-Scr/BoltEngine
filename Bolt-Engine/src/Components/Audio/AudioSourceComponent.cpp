@@ -108,12 +108,12 @@ namespace Bolt {
 	}
 
 
-	void AudioSourceComponent::SetAudioHandle(const AudioHandle& blockTexture) {
+	void AudioSourceComponent::SetAudioHandle(const AudioHandle& audioHandle) {
 		if (IsPlaying()) {
 			Stop();
 		}
 
-		m_audioHandle = blockTexture;
+		m_audioHandle = audioHandle;
 	}
 
 	void AudioSourceComponent::PlayOneShot() {

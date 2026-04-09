@@ -68,6 +68,7 @@
     <Compile Include="Source\Bolt\Core\KeyCodes.cs" />
     <Compile Include="Source\Bolt\Core\Log.cs" />
     <Compile Include="Source\Bolt\Core\Time.cs" />
+    <Compile Include="Source\Bolt\Graphics\Gizmos.cs" />
     <Compile Include="Source\Bolt\Hosting\NativeCallbacks.cs" />
     <Compile Include="Source\Bolt\Hosting\ScriptHostBridge.cs" />
     <Compile Include="Source\Bolt\Hosting\ScriptInstanceManager.cs" />

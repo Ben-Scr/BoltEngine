@@ -1,6 +1,7 @@
 #pragma once
 #include "Components/General/Transform2DComponent.hpp"
 #include "Collections/AABB.hpp"
+#include "Collections/Color.hpp"
 #include "Collections/Viewport.hpp"
 
 #include <glm/glm.hpp>
@@ -31,6 +32,9 @@ namespace Bolt {
 		void SetZoom(float z) { m_Zoom = z; UpdateProj(); }
 		float GetZoom() const { return m_Zoom; }
 
+		void SetClearColor(const Color& color) { m_ClearColor = color; }
+		const Color& GetClearColor() const { return m_ClearColor; }
+
 
 		AABB GetViewportAABB() const { return m_WorldViewportAABB; }
 		Viewport* GetViewport() const { return m_Viewport; }
@@ -58,6 +62,7 @@ namespace Bolt {
 		static Camera2DComponent* s_Main;
 		float m_Zoom{ 1.0f };
 		float m_OrthographicSize{ 5.0f };
+		Color m_ClearColor{ 0.1f, 0.1f, 0.1f, 1.0f };
 		Viewport* m_Viewport;
 
 		glm::mat4 m_ViewMat{};

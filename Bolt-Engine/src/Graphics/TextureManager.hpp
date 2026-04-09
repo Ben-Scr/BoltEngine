@@ -49,16 +49,49 @@ namespace Bolt {
 
             static TextureHandle LoadTexture(const std::string_view& path, Filter filter = Filter::Point, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
             static TextureHandle GetDefaultTexture(DefaultTexture type);
-            static void UnloadTexture(TextureHandle blockTexture);
+            static void UnloadTexture(TextureHandle handle);
             static TextureHandle GetTextureHandle(const std::string& name);
-            static Texture2D* GetTexture(TextureHandle blockTexture);
+            static Texture2D* GetTexture(TextureHandle handle);
             static std::vector<TextureHandle> GetLoadedHandles();
             static void UnloadAll(bool defaultTextures = false);
 
-            static bool IsValid(TextureHandle blockTexture) {
-                return blockTexture.index < s_Textures.size() &&
-                    s_Textures[blockTexture.index].IsValid &&
-                    s_Textures[blockTexture.index].Generation == blockTexture.generation;
+            /// Returns the texture path relative to a texture root directory.
+            /// This is the same format accepted by LoadTexture().
+            static std::string GetTextureName(TextureHandle handle) {
+                if (handle.index >= s_Textures.size() || !s_Textures[handle.index].IsValid
+                    || s_Textures[handle.index].Generation != handle.generation)
+                    return "";
+
+                const std::string& fullName = s_Textures[handle.index].Name;
+
+                // Try stripping any known texture root prefix
+                auto tryStrip = [&](const std::string& root) -> std::string {
+                    if (root.empty() || fullName.size() <= root.size()) return "";
+                    if (fullName.compare(0, root.size(), root) != 0) return "";
+                    size_t start = root.size();
+                    if (start < fullName.size() && (fullName[start] == '/' || fullName[start] == '\\'))
+                        start++;
+                    return fullName.substr(start);
+                };
+
+                // Try primary root first
+                std::string rel = tryStrip(s_RootPath);
+                if (!rel.empty()) return rel;
+
+                // Try alternative roots (Assets/Textures, BoltAssets/Textures)
+                std::string base = Path::ExecutableDir();
+                rel = tryStrip(Path::Combine(base, "Assets", "Textures"));
+                if (!rel.empty()) return rel;
+                rel = tryStrip(Path::Combine(base, "BoltAssets", "Textures"));
+                if (!rel.empty()) return rel;
+
+                return fullName;
+            }
+
+            static bool IsValid(TextureHandle handle) {
+                return handle.index < s_Textures.size() &&
+                    s_Textures[handle.index].IsValid &&
+                    s_Textures[handle.index].Generation == handle.generation;
             }
 
         private:

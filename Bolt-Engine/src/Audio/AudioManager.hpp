@@ -94,10 +94,10 @@ namespace Bolt {
 		static std::unordered_map<AudioHandle::HandleType, SoundLimitData> s_soundLimits;
 
 
-		static bool CanPlaySound(const AudioHandle& blockTexture, float priority);
+		static bool CanPlaySound(const AudioHandle& audioHandle, float priority);
 		static void ProcessSoundQueue();
-		static void ThrottleSound(const AudioHandle& blockTexture);
-		static bool IsThrottled(const AudioHandle& blockTexture);
+		static void ThrottleSound(const AudioHandle& audioHandle);
+		static bool IsThrottled(const AudioHandle& audioHandle);
 
 
 		static std::unordered_map<AudioHandle::HandleType, std::unique_ptr<Audio>> s_audioMap;

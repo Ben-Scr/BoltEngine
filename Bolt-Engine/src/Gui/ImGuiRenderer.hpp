@@ -15,6 +15,7 @@ namespace Bolt {
 		void EndFrame();
 
 	private:
+		static void ApplyBoltTheme();
 		bool m_IsInitialized = false;
 	};
 }

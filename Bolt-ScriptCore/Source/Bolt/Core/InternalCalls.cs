@@ -9,76 +9,34 @@ namespace Bolt
     {
         // ── Application ─────────────────────────────────────────────────
 
-        internal static float Application_GetDeltaTime()
-            => NativeCallbacks.Bindings.Application_GetDeltaTime();
-
-        internal static float Application_GetElapsedTime()
-            => NativeCallbacks.Bindings.Application_GetElapsedTime();
-
-        internal static int Application_GetScreenWidth()
-            => NativeCallbacks.Bindings.Application_GetScreenWidth();
-
-        internal static int Application_GetScreenHeight()
-            => NativeCallbacks.Bindings.Application_GetScreenHeight();
+        internal static float Application_GetDeltaTime() => NativeCallbacks.Bindings.Application_GetDeltaTime();
+        internal static float Application_GetElapsedTime() => NativeCallbacks.Bindings.Application_GetElapsedTime();
+        internal static int Application_GetScreenWidth() => NativeCallbacks.Bindings.Application_GetScreenWidth();
+        internal static int Application_GetScreenHeight() => NativeCallbacks.Bindings.Application_GetScreenHeight();
 
         // ── Log ─────────────────────────────────────────────────────────
 
-        internal static void Log_Trace(string message)
+        private static void CallStringBinding(delegate* unmanaged<byte*, void> fn, string message)
         {
             int len = Encoding.UTF8.GetByteCount(message);
             Span<byte> buf = len <= 512 ? stackalloc byte[len + 1] : new byte[len + 1];
             Encoding.UTF8.GetBytes(message, buf);
             buf[len] = 0;
-            fixed (byte* ptr = buf)
-                NativeCallbacks.Bindings.Log_Trace(ptr);
+            fixed (byte* ptr = buf) fn(ptr);
         }
 
-        internal static void Log_Info(string message)
-        {
-            int len = Encoding.UTF8.GetByteCount(message);
-            Span<byte> buf = len <= 512 ? stackalloc byte[len + 1] : new byte[len + 1];
-            Encoding.UTF8.GetBytes(message, buf);
-            buf[len] = 0;
-            fixed (byte* ptr = buf)
-                NativeCallbacks.Bindings.Log_Info(ptr);
-        }
-
-        internal static void Log_Warn(string message)
-        {
-            int len = Encoding.UTF8.GetByteCount(message);
-            Span<byte> buf = len <= 512 ? stackalloc byte[len + 1] : new byte[len + 1];
-            Encoding.UTF8.GetBytes(message, buf);
-            buf[len] = 0;
-            fixed (byte* ptr = buf)
-                NativeCallbacks.Bindings.Log_Warn(ptr);
-        }
-
-        internal static void Log_Error(string message)
-        {
-            int len = Encoding.UTF8.GetByteCount(message);
-            Span<byte> buf = len <= 512 ? stackalloc byte[len + 1] : new byte[len + 1];
-            Encoding.UTF8.GetBytes(message, buf);
-            buf[len] = 0;
-            fixed (byte* ptr = buf)
-                NativeCallbacks.Bindings.Log_Error(ptr);
-        }
+        internal static void Log_Trace(string message) => CallStringBinding(NativeCallbacks.Bindings.Log_Trace, message);
+        internal static void Log_Info(string message) => CallStringBinding(NativeCallbacks.Bindings.Log_Info, message);
+        internal static void Log_Warn(string message) => CallStringBinding(NativeCallbacks.Bindings.Log_Warn, message);
+        internal static void Log_Error(string message) => CallStringBinding(NativeCallbacks.Bindings.Log_Error, message);
 
         // ── Input ───────────────────────────────────────────────────────
 
-        internal static bool Input_GetKey(int keyCode)
-            => NativeCallbacks.Bindings.Input_GetKey(keyCode) != 0;
-
-        internal static bool Input_GetKeyDown(int keyCode)
-            => NativeCallbacks.Bindings.Input_GetKeyDown(keyCode) != 0;
-
-        internal static bool Input_GetKeyUp(int keyCode)
-            => NativeCallbacks.Bindings.Input_GetKeyUp(keyCode) != 0;
-
-        internal static bool Input_GetMouseButton(int button)
-            => NativeCallbacks.Bindings.Input_GetMouseButton(button) != 0;
-
-        internal static bool Input_GetMouseButtonDown(int button)
-            => NativeCallbacks.Bindings.Input_GetMouseButtonDown(button) != 0;
+        internal static bool Input_GetKey(int keyCode) => NativeCallbacks.Bindings.Input_GetKey(keyCode) != 0;
+        internal static bool Input_GetKeyDown(int keyCode) => NativeCallbacks.Bindings.Input_GetKeyDown(keyCode) != 0;
+        internal static bool Input_GetKeyUp(int keyCode) => NativeCallbacks.Bindings.Input_GetKeyUp(keyCode) != 0;
+        internal static bool Input_GetMouseButton(int button) => NativeCallbacks.Bindings.Input_GetMouseButton(button) != 0;
+        internal static bool Input_GetMouseButtonDown(int button) => NativeCallbacks.Bindings.Input_GetMouseButtonDown(button) != 0;
 
         internal static void Input_GetMousePosition(out float x, out float y)
         {
@@ -89,8 +47,7 @@ namespace Bolt
 
         // ── Entity ──────────────────────────────────────────────────────
 
-        internal static bool Entity_IsValid(ulong entityID)
-            => NativeCallbacks.Bindings.Entity_IsValid(entityID) != 0;
+        internal static bool Entity_IsValid(ulong entityID) => NativeCallbacks.Bindings.Entity_IsValid(entityID) != 0;
 
         internal static ulong Entity_FindByName(string name)
         {
@@ -98,12 +55,40 @@ namespace Bolt
             Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
             Encoding.UTF8.GetBytes(name, buf);
             buf[len] = 0;
-            fixed (byte* ptr = buf)
-                return NativeCallbacks.Bindings.Entity_FindByName(ptr);
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Entity_FindByName(ptr);
         }
 
-        internal static void Entity_Destroy(ulong entityID)
-            => NativeCallbacks.Bindings.Entity_Destroy(entityID);
+        internal static void Entity_Destroy(ulong entityID) => NativeCallbacks.Bindings.Entity_Destroy(entityID);
+
+        internal static ulong Entity_Clone(ulong sourceEntityID)
+            => NativeCallbacks.Bindings.Entity_Clone(sourceEntityID);
+
+        internal static bool Entity_HasComponent(ulong entityID, string componentName)
+        {
+            int len = Encoding.UTF8.GetByteCount(componentName);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(componentName, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Entity_HasComponent(entityID, ptr) != 0;
+        }
+
+        internal static bool Entity_AddComponent(ulong entityID, string componentName)
+        {
+            int len = Encoding.UTF8.GetByteCount(componentName);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(componentName, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Entity_AddComponent(entityID, ptr) != 0;
+        }
+
+        internal static bool Entity_RemoveComponent(ulong entityID, string componentName)
+        {
+            int len = Encoding.UTF8.GetByteCount(componentName);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(componentName, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Entity_RemoveComponent(entityID, ptr) != 0;
+        }
 
         internal static ulong Entity_Create(string name)
         {
@@ -111,8 +96,7 @@ namespace Bolt
             Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
             Encoding.UTF8.GetBytes(name, buf);
             buf[len] = 0;
-            fixed (byte* ptr = buf)
-                return NativeCallbacks.Bindings.Entity_Create(ptr);
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Entity_Create(ptr);
         }
 
         // ── NameComponent ───────────────────────────────────────────────
@@ -129,101 +113,106 @@ namespace Bolt
             Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
             Encoding.UTF8.GetBytes(name, buf);
             buf[len] = 0;
-            fixed (byte* ptr = buf)
-                NativeCallbacks.Bindings.NameComponent_SetName(entityID, ptr);
+            fixed (byte* ptr = buf) NativeCallbacks.Bindings.NameComponent_SetName(entityID, ptr);
         }
 
-        // ── Transform2DComponent ────────────────────────────────────────
+        // ── Transform2D ─────────────────────────────────────────────────
 
-        internal static void Transform2D_GetPosition(ulong entityID, out float x, out float y)
-        {
-            float ox, oy;
-            NativeCallbacks.Bindings.Transform2D_GetPosition(entityID, &ox, &oy);
-            x = ox; y = oy;
-        }
+        internal static void Transform2D_GetPosition(ulong id, out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.Transform2D_GetPosition(id, &ox, &oy); x = ox; y = oy; }
+        internal static void Transform2D_SetPosition(ulong id, float x, float y) => NativeCallbacks.Bindings.Transform2D_SetPosition(id, x, y);
+        internal static float Transform2D_GetRotation(ulong id) => NativeCallbacks.Bindings.Transform2D_GetRotation(id);
+        internal static void Transform2D_SetRotation(ulong id, float rotation) => NativeCallbacks.Bindings.Transform2D_SetRotation(id, rotation);
+        internal static void Transform2D_GetScale(ulong id, out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.Transform2D_GetScale(id, &ox, &oy); x = ox; y = oy; }
+        internal static void Transform2D_SetScale(ulong id, float x, float y) => NativeCallbacks.Bindings.Transform2D_SetScale(id, x, y);
 
-        internal static void Transform2D_SetPosition(ulong entityID, float x, float y)
-            => NativeCallbacks.Bindings.Transform2D_SetPosition(entityID, x, y);
+        // ── SpriteRenderer ──────────────────────────────────────────────
 
-        internal static float Transform2D_GetRotation(ulong entityID)
-            => NativeCallbacks.Bindings.Transform2D_GetRotation(entityID);
+        internal static void SpriteRenderer_GetColor(ulong id, out float r, out float g, out float b, out float a) { float cr, cg, cb, ca; NativeCallbacks.Bindings.SpriteRenderer_GetColor(id, &cr, &cg, &cb, &ca); r = cr; g = cg; b = cb; a = ca; }
+        internal static void SpriteRenderer_SetColor(ulong id, float r, float g, float b, float a) => NativeCallbacks.Bindings.SpriteRenderer_SetColor(id, r, g, b, a);
+        internal static int SpriteRenderer_GetSortingOrder(ulong id) => NativeCallbacks.Bindings.SpriteRenderer_GetSortingOrder(id);
+        internal static void SpriteRenderer_SetSortingOrder(ulong id, int order) => NativeCallbacks.Bindings.SpriteRenderer_SetSortingOrder(id, order);
+        internal static int SpriteRenderer_GetSortingLayer(ulong id) => NativeCallbacks.Bindings.SpriteRenderer_GetSortingLayer(id);
+        internal static void SpriteRenderer_SetSortingLayer(ulong id, int layer) => NativeCallbacks.Bindings.SpriteRenderer_SetSortingLayer(id, layer);
 
-        internal static void Transform2D_SetRotation(ulong entityID, float rotation)
-            => NativeCallbacks.Bindings.Transform2D_SetRotation(entityID, rotation);
+        // ── Camera2D ────────────────────────────────────────────────────
 
-        internal static void Transform2D_GetScale(ulong entityID, out float x, out float y)
-        {
-            float ox, oy;
-            NativeCallbacks.Bindings.Transform2D_GetScale(entityID, &ox, &oy);
-            x = ox; y = oy;
-        }
+        internal static float Camera2D_GetOrthographicSize(ulong id) => NativeCallbacks.Bindings.Camera2D_GetOrthographicSize(id);
+        internal static void Camera2D_SetOrthographicSize(ulong id, float size) => NativeCallbacks.Bindings.Camera2D_SetOrthographicSize(id, size);
+        internal static float Camera2D_GetZoom(ulong id) => NativeCallbacks.Bindings.Camera2D_GetZoom(id);
+        internal static void Camera2D_SetZoom(ulong id, float zoom) => NativeCallbacks.Bindings.Camera2D_SetZoom(id, zoom);
+        internal static void Camera2D_GetClearColor(ulong id, out float r, out float g, out float b, out float a) { float cr, cg, cb, ca; NativeCallbacks.Bindings.Camera2D_GetClearColor(id, &cr, &cg, &cb, &ca); r = cr; g = cg; b = cb; a = ca; }
+        internal static void Camera2D_SetClearColor(ulong id, float r, float g, float b, float a) => NativeCallbacks.Bindings.Camera2D_SetClearColor(id, r, g, b, a);
+        internal static void Camera2D_ScreenToWorld(ulong id, float sx, float sy, out float wx, out float wy) { float ox, oy; NativeCallbacks.Bindings.Camera2D_ScreenToWorld(id, sx, sy, &ox, &oy); wx = ox; wy = oy; }
+        internal static float Camera2D_GetViewportWidth(ulong id) => NativeCallbacks.Bindings.Camera2D_GetViewportWidth(id);
+        internal static float Camera2D_GetViewportHeight(ulong id) => NativeCallbacks.Bindings.Camera2D_GetViewportHeight(id);
 
-        internal static void Transform2D_SetScale(ulong entityID, float x, float y)
-            => NativeCallbacks.Bindings.Transform2D_SetScale(entityID, x, y);
+        // ── Rigidbody2D ─────────────────────────────────────────────────
 
-        // ── SpriteRendererComponent ─────────────────────────────────────
+        internal static void Rigidbody2D_ApplyForce(ulong id, float fx, float fy, bool wake) => NativeCallbacks.Bindings.Rigidbody2D_ApplyForce(id, fx, fy, wake ? 1 : 0);
+        internal static void Rigidbody2D_ApplyImpulse(ulong id, float ix, float iy, bool wake) => NativeCallbacks.Bindings.Rigidbody2D_ApplyImpulse(id, ix, iy, wake ? 1 : 0);
+        internal static void Rigidbody2D_GetLinearVelocity(ulong id, out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.Rigidbody2D_GetLinearVelocity(id, &ox, &oy); x = ox; y = oy; }
+        internal static void Rigidbody2D_SetLinearVelocity(ulong id, float x, float y) => NativeCallbacks.Bindings.Rigidbody2D_SetLinearVelocity(id, x, y);
+        internal static float Rigidbody2D_GetAngularVelocity(ulong id) => NativeCallbacks.Bindings.Rigidbody2D_GetAngularVelocity(id);
+        internal static void Rigidbody2D_SetAngularVelocity(ulong id, float v) => NativeCallbacks.Bindings.Rigidbody2D_SetAngularVelocity(id, v);
+        internal static int Rigidbody2D_GetBodyType(ulong id) => NativeCallbacks.Bindings.Rigidbody2D_GetBodyType(id);
+        internal static void Rigidbody2D_SetBodyType(ulong id, int type) => NativeCallbacks.Bindings.Rigidbody2D_SetBodyType(id, type);
+        internal static float Rigidbody2D_GetGravityScale(ulong id) => NativeCallbacks.Bindings.Rigidbody2D_GetGravityScale(id);
+        internal static void Rigidbody2D_SetGravityScale(ulong id, float scale) => NativeCallbacks.Bindings.Rigidbody2D_SetGravityScale(id, scale);
+        internal static float Rigidbody2D_GetMass(ulong id) => NativeCallbacks.Bindings.Rigidbody2D_GetMass(id);
+        internal static void Rigidbody2D_SetMass(ulong id, float mass) => NativeCallbacks.Bindings.Rigidbody2D_SetMass(id, mass);
 
-        internal static void SpriteRenderer_GetColor(ulong entityID, out float r, out float g, out float b, out float a)
-        {
-            float or2, og, ob, oa;
-            NativeCallbacks.Bindings.SpriteRenderer_GetColor(entityID, &or2, &og, &ob, &oa);
-            r = or2; g = og; b = ob; a = oa;
-        }
+        // ── BoxCollider2D ───────────────────────────────────────────────
 
-        internal static void SpriteRenderer_SetColor(ulong entityID, float r, float g, float b, float a)
-            => NativeCallbacks.Bindings.SpriteRenderer_SetColor(entityID, r, g, b, a);
+        internal static void BoxCollider2D_GetScale(ulong id, out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.BoxCollider2D_GetScale(id, &ox, &oy); x = ox; y = oy; }
+        internal static void BoxCollider2D_GetCenter(ulong id, out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.BoxCollider2D_GetCenter(id, &ox, &oy); x = ox; y = oy; }
+        internal static void BoxCollider2D_SetEnabled(ulong id, bool enabled) => NativeCallbacks.Bindings.BoxCollider2D_SetEnabled(id, enabled ? 1 : 0);
 
-        // ── Camera2DComponent ───────────────────────────────────────────
+        // ── AudioSource ─────────────────────────────────────────────────
 
-        internal static float Camera2D_GetOrthographicSize(ulong entityID)
-            => NativeCallbacks.Bindings.Camera2D_GetOrthographicSize(entityID);
+        internal static void AudioSource_Play(ulong id) => NativeCallbacks.Bindings.AudioSource_Play(id);
+        internal static void AudioSource_Pause(ulong id) => NativeCallbacks.Bindings.AudioSource_Pause(id);
+        internal static void AudioSource_Stop(ulong id) => NativeCallbacks.Bindings.AudioSource_Stop(id);
+        internal static void AudioSource_Resume(ulong id) => NativeCallbacks.Bindings.AudioSource_Resume(id);
+        internal static float AudioSource_GetVolume(ulong id) => NativeCallbacks.Bindings.AudioSource_GetVolume(id);
+        internal static void AudioSource_SetVolume(ulong id, float v) => NativeCallbacks.Bindings.AudioSource_SetVolume(id, v);
+        internal static float AudioSource_GetPitch(ulong id) => NativeCallbacks.Bindings.AudioSource_GetPitch(id);
+        internal static void AudioSource_SetPitch(ulong id, float p) => NativeCallbacks.Bindings.AudioSource_SetPitch(id, p);
+        internal static bool AudioSource_GetLoop(ulong id) => NativeCallbacks.Bindings.AudioSource_GetLoop(id) != 0;
+        internal static void AudioSource_SetLoop(ulong id, bool loop) => NativeCallbacks.Bindings.AudioSource_SetLoop(id, loop ? 1 : 0);
+        internal static bool AudioSource_IsPlaying(ulong id) => NativeCallbacks.Bindings.AudioSource_IsPlaying(id) != 0;
 
-        internal static void Camera2D_SetOrthographicSize(ulong entityID, float size)
-            => NativeCallbacks.Bindings.Camera2D_SetOrthographicSize(entityID, size);
+        // ── Bolt-Physics ────────────────────────────────────────────────
 
-        internal static float Camera2D_GetZoom(ulong entityID)
-            => NativeCallbacks.Bindings.Camera2D_GetZoom(entityID);
+        internal static int BoltBody2D_GetBodyType(ulong id) => NativeCallbacks.Bindings.BoltBody2D_GetBodyType(id);
+        internal static void BoltBody2D_SetBodyType(ulong id, int type) => NativeCallbacks.Bindings.BoltBody2D_SetBodyType(id, type);
+        internal static float BoltBody2D_GetMass(ulong id) => NativeCallbacks.Bindings.BoltBody2D_GetMass(id);
+        internal static void BoltBody2D_SetMass(ulong id, float mass) => NativeCallbacks.Bindings.BoltBody2D_SetMass(id, mass);
+        internal static bool BoltBody2D_GetUseGravity(ulong id) => NativeCallbacks.Bindings.BoltBody2D_GetUseGravity(id) != 0;
+        internal static void BoltBody2D_SetUseGravity(ulong id, bool enabled) => NativeCallbacks.Bindings.BoltBody2D_SetUseGravity(id, enabled ? 1 : 0);
+        internal static void BoltBody2D_GetVelocity(ulong id, out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.BoltBody2D_GetVelocity(id, &ox, &oy); x = ox; y = oy; }
+        internal static void BoltBody2D_SetVelocity(ulong id, float x, float y) => NativeCallbacks.Bindings.BoltBody2D_SetVelocity(id, x, y);
+        internal static void BoltBoxCollider2D_GetHalfExtents(ulong id, out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.BoltBoxCollider2D_GetHalfExtents(id, &ox, &oy); x = ox; y = oy; }
+        internal static void BoltBoxCollider2D_SetHalfExtents(ulong id, float x, float y) => NativeCallbacks.Bindings.BoltBoxCollider2D_SetHalfExtents(id, x, y);
+        internal static float BoltCircleCollider2D_GetRadius(ulong id) => NativeCallbacks.Bindings.BoltCircleCollider2D_GetRadius(id);
+        internal static void BoltCircleCollider2D_SetRadius(ulong id, float radius) => NativeCallbacks.Bindings.BoltCircleCollider2D_SetRadius(id, radius);
 
-        internal static void Camera2D_SetZoom(ulong entityID, float zoom)
-            => NativeCallbacks.Bindings.Camera2D_SetZoom(entityID, zoom);
+        // ── Gizmos ──────────────────────────────────────────────────────
 
-        // ── Rigidbody2DComponent ────────────────────────────────────────
-
-        internal static void Rigidbody2D_ApplyForce(ulong entityID, float forceX, float forceY, bool wake)
-            => NativeCallbacks.Bindings.Rigidbody2D_ApplyForce(entityID, forceX, forceY, wake ? 1 : 0);
-
-        internal static void Rigidbody2D_ApplyImpulse(ulong entityID, float impulseX, float impulseY, bool wake)
-            => NativeCallbacks.Bindings.Rigidbody2D_ApplyImpulse(entityID, impulseX, impulseY, wake ? 1 : 0);
-
-        internal static void Rigidbody2D_GetLinearVelocity(ulong entityID, out float x, out float y)
-        {
-            float ox, oy;
-            NativeCallbacks.Bindings.Rigidbody2D_GetLinearVelocity(entityID, &ox, &oy);
-            x = ox; y = oy;
-        }
-
-        internal static void Rigidbody2D_SetLinearVelocity(ulong entityID, float x, float y)
-            => NativeCallbacks.Bindings.Rigidbody2D_SetLinearVelocity(entityID, x, y);
-
-        internal static float Rigidbody2D_GetAngularVelocity(ulong entityID)
-            => NativeCallbacks.Bindings.Rigidbody2D_GetAngularVelocity(entityID);
-
-        internal static void Rigidbody2D_SetAngularVelocity(ulong entityID, float velocity)
-            => NativeCallbacks.Bindings.Rigidbody2D_SetAngularVelocity(entityID, velocity);
+        internal static void Gizmo_DrawLine(float x1, float y1, float x2, float y2) => NativeCallbacks.Bindings.Gizmo_DrawLine(x1, y1, x2, y2);
+        internal static void Gizmo_DrawSquare(float cx, float cy, float sx, float sy, float deg) => NativeCallbacks.Bindings.Gizmo_DrawSquare(cx, cy, sx, sy, deg);
+        internal static void Gizmo_DrawCircle(float cx, float cy, float r, int seg) => NativeCallbacks.Bindings.Gizmo_DrawCircle(cx, cy, r, seg);
+        internal static void Gizmo_SetColor(float r, float g, float b, float a) => NativeCallbacks.Bindings.Gizmo_SetColor(r, g, b, a);
+        internal static void Gizmo_GetColor(out float r, out float g, out float b, out float a) { float cr, cg, cb, ca; NativeCallbacks.Bindings.Gizmo_GetColor(&cr, &cg, &cb, &ca); r = cr; g = cg; b = cb; a = ca; }
+        internal static void Gizmo_SetLineWidth(float w) => NativeCallbacks.Bindings.Gizmo_SetLineWidth(w);
 
         // ── Physics2D ───────────────────────────────────────────────────
 
         internal static bool Physics2D_Raycast(float originX, float originY, float dirX, float dirY, float distance,
             out ulong hitEntityID, out float hitX, out float hitY, out float hitNormalX, out float hitNormalY)
         {
-            ulong eid;
-            float hx, hy, hnx, hny;
-            int result = NativeCallbacks.Bindings.Physics2D_Raycast(
-                originX, originY, dirX, dirY, distance,
-                &eid, &hx, &hy, &hnx, &hny);
-            hitEntityID = eid;
-            hitX = hx; hitY = hy;
-            hitNormalX = hnx; hitNormalY = hny;
+            ulong eid; float hx, hy, hnx, hny;
+            int result = NativeCallbacks.Bindings.Physics2D_Raycast(originX, originY, dirX, dirY, distance, &eid, &hx, &hy, &hnx, &hny);
+            hitEntityID = eid; hitX = hx; hitY = hy; hitNormalX = hnx; hitNormalY = hny;
             return result != 0;
         }
     }

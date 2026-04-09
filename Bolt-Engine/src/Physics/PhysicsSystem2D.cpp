@@ -1,6 +1,7 @@
 #include "pch.hpp"
 
 #include <Components/Physics/Rigidbody2DComponent.hpp>
+#include <Components/Physics/BoltBody2DComponent.hpp>
 #include <Components/General/Transform2DComponent.hpp>
 #include <Components/Tags.hpp>
 
@@ -14,17 +15,22 @@
 namespace Bolt {
 	bool PhysicsSystem2D::s_IsEnabled = true;
 	std::optional<Box2DWorld> PhysicsSystem2D::s_MainWorld;
+	std::optional<BoltPhysicsWorld2D> PhysicsSystem2D::s_BoltWorld;
 
 	void PhysicsSystem2D::Initialize() {
 		s_MainWorld.emplace();
+		s_BoltWorld.emplace();
+		BT_CORE_INFO_TAG("PhysicsSystem", "Box2D + Bolt-Physics initialized");
 	}
 
 	void PhysicsSystem2D::FixedUpdate(float dt) {
 		if (!s_IsEnabled) return;
-        
+
+		// Box2D simulation
 		s_MainWorld->Step(dt);
 		s_MainWorld->GetDispatcher().Process(s_MainWorld->GetWorldID());
 
+		// Box2D transform sync
 		for (auto& weakScene : SceneManager::Get().GetLoadedScenes())
 		{
 			if (auto scene = weakScene.lock()) {
@@ -34,9 +40,29 @@ namespace Bolt {
 				}
 			}
 		}
+
+		// Bolt-Physics simulation
+		s_BoltWorld->Step(dt);
+
+		// Bolt-Physics transform sync
+		for (auto& weakScene : SceneManager::Get().GetLoadedScenes())
+		{
+			if (auto scene = weakScene.lock()) {
+				for (auto [ent, body, tf] : scene->GetRegistry().view<BoltBody2DComponent, Transform2DComponent>(entt::exclude<DisabledTag>).each()) {
+					if (body.m_Body) {
+						auto pos = body.m_Body->GetPosition();
+						tf.Position = { pos.x, pos.y };
+					}
+				}
+			}
+		}
 	}
 
 	void PhysicsSystem2D::Shutdown() {
+		if (s_BoltWorld) {
+			s_BoltWorld->Destroy();
+			s_BoltWorld.reset();
+		}
 		s_MainWorld.reset();
 	}
 }

@@ -29,7 +29,12 @@ namespace Bolt {
 			return;
 		}
 
-		s_RootPath = Path::Combine(Path::ExecutableDir(), "Assets", "Textures");
+		// Try BoltAssets first (packaged build), fall back to Assets (dev layout)
+		std::string base = Path::ExecutableDir();
+		std::string texDir = std::filesystem::exists(Path::Combine(base, "BoltAssets", "Textures"))
+			? Path::Combine(base, "BoltAssets", "Textures")
+			: Path::Combine(base, "Assets", "Textures");
+		s_RootPath = texDir;
 
 		s_Textures.clear();
 		while (!s_FreeIndices.empty()) {
@@ -56,15 +61,32 @@ namespace Bolt {
 	}
 
 	TextureHandle TextureManager::LoadTexture(const std::string_view& path, Filter filter, Wrap u, Wrap v) {
-		const std::string fullpath = Path::Combine(s_RootPath, path);
+		std::string fullpath = Path::Combine(s_RootPath, path);
 
 		if (!s_IsInitialized) {
 			BT_CORE_ERROR("[{}] TextureManager isn't initialized", ErrorCodeToString(BoltErrorCode::NotInitialized));
 			return TextureHandle::Invalid();
 		}
+
+		// If not found at primary root, try alternative roots (BoltAssets ↔ Assets)
 		if (!File::Exists(fullpath)) {
-			BT_CORE_ERROR("[{}] File with path '{}' doesn't exist", ErrorCodeToString(BoltErrorCode::FileNotFound), fullpath);
-			return TextureHandle::Invalid();
+			std::string base = Path::ExecutableDir();
+			std::string altPaths[] = {
+				Path::Combine(base, "Assets", "Textures", path),
+				Path::Combine(base, "BoltAssets", "Textures", path),
+			};
+			bool found = false;
+			for (const auto& alt : altPaths) {
+				if (File::Exists(alt)) {
+					fullpath = alt;
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				BT_CORE_ERROR("[{}] Texture '{}' not found", ErrorCodeToString(BoltErrorCode::FileNotFound), std::string(path));
+				return TextureHandle::Invalid();
+			}
 		}
 
 		auto existingHandle = FindTextureByPath(fullpath);
@@ -127,25 +149,25 @@ namespace Bolt {
 		return TextureHandle(static_cast<uint16_t>(index), s_Textures[index].Generation);
 	}
 
-	void TextureManager::UnloadTexture(TextureHandle blockTexture) {
+	void TextureManager::UnloadTexture(TextureHandle handle) {
 		if (!s_IsInitialized) {
 			BT_CORE_WARN("TextureManager isn't initialized");
 			return;
 		}
 
-		if (blockTexture.index >= s_Textures.size()) {
-			BT_CORE_WARN("[{}] Invalid texture handle index: {}", ErrorCodeToString(BoltErrorCode::InvalidHandle), blockTexture.index);
+		if (handle.index >= s_Textures.size()) {
+			BT_CORE_WARN("[{}] Invalid texture handle index: {}", ErrorCodeToString(BoltErrorCode::InvalidHandle), handle.index);
 			return;
 		}
 
-		TextureEntry& entry = s_Textures[blockTexture.index];
+		TextureEntry& entry = s_Textures[handle.index];
 
-		if (!entry.IsValid || entry.Generation != blockTexture.generation) {
+		if (!entry.IsValid || entry.Generation != handle.generation) {
 			BT_CORE_WARN("[{}] Texture handle is outdated or invalid", ErrorCodeToString(BoltErrorCode::InvalidHandle));
 			return;
 		}
 
-		if (blockTexture.index < s_DefaultTextures.size()) {
+		if (handle.index < s_DefaultTextures.size()) {
 			BT_CORE_WARN("Cannot unload default texture");
 			return;
 		}
@@ -153,7 +175,7 @@ namespace Bolt {
 		entry.Texture.Destroy();
 		entry.IsValid = false;
 		entry.Name.clear();
-		s_FreeIndices.push(blockTexture.index);
+		s_FreeIndices.push(handle.index);
 	}
 
 	TextureHandle TextureManager::GetTextureHandle(const std::string& name) {
@@ -162,14 +184,14 @@ namespace Bolt {
 			return TextureHandle::Invalid();
 		}
 
-		auto blockTexture = FindTextureByPath(name);
+		auto handle = FindTextureByPath(name);
 
-		if (blockTexture.index == k_InvalidIndex) {
+		if (handle.index == k_InvalidIndex) {
 			BT_CORE_WARN("[{}] Texture with name '{}' doesn't exist", ErrorCodeToString(BoltErrorCode::InvalidArgument), name);
 			return TextureHandle::Invalid();
 		}
 
-		return blockTexture;
+		return handle;
 	}
 
 	std::vector<TextureHandle> TextureManager::GetLoadedHandles() {
@@ -190,26 +212,26 @@ namespace Bolt {
 		return handles;
 	}
 
-	Texture2D* TextureManager::GetTexture(TextureHandle blockTexture) {
+	Texture2D* TextureManager::GetTexture(TextureHandle handle) {
 		if (!s_IsInitialized) {
 			BT_CORE_ERROR("[{}] TextureManager isn't initialized", ErrorCodeToString(BoltErrorCode::NotInitialized));
 			return nullptr;
 		}
 
-		if (blockTexture.index >= s_Textures.size()) {
-			BT_CORE_ERROR("[{}] TextureHandle index {} out of range", ErrorCodeToString(BoltErrorCode::OutOfRange), blockTexture.index);
+		if (handle.index >= s_Textures.size()) {
+			BT_CORE_ERROR("[{}] TextureHandle index {} out of range", ErrorCodeToString(BoltErrorCode::OutOfRange), handle.index);
 			return nullptr;
 		}
 
-		TextureEntry& entry = s_Textures[blockTexture.index];
+		TextureEntry& entry = s_Textures[handle.index];
 
 		if (!entry.IsValid) {
-			BT_CORE_ERROR("[{}] Texture at index {} is not valid", ErrorCodeToString(BoltErrorCode::InvalidHandle), blockTexture.index);
+			BT_CORE_ERROR("[{}] Texture at index {} is not valid", ErrorCodeToString(BoltErrorCode::InvalidHandle), handle.index);
 			return nullptr;
 		}
 
-		if (entry.Generation != blockTexture.generation) {
-			BT_CORE_ERROR("[{}] Invalid texture generation: entry {} != handle {}", ErrorCodeToString(BoltErrorCode::InvalidHandle), entry.Generation, blockTexture.generation);
+		if (entry.Generation != handle.generation) {
+			BT_CORE_ERROR("[{}] Invalid texture generation: entry {} != handle {}", ErrorCodeToString(BoltErrorCode::InvalidHandle), entry.Generation, handle.generation);
 			return nullptr;
 		}
 

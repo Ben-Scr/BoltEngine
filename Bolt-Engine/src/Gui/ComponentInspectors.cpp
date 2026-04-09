@@ -14,12 +14,112 @@
 
 namespace Bolt {
 
+	// ── Texture Picker State (for SpriteRenderer inspector) ─────────
+
+	namespace {
+		struct TexturePickerEntry {
+			std::string RelativePath;
+			std::string DisplayName;
+		};
+
+		static bool s_TexturePickerOpen = false;
+		static char s_TexturePickerSearch[128] = {};
+		static std::vector<TexturePickerEntry> s_TexturePickerEntries;
+		static SpriteRendererComponent* s_TexturePickerTarget = nullptr;
+
+		static bool IsImageExtension(const std::string& ext) {
+			return ext == ".png" || ext == ".jpg" || ext == ".jpeg"
+				|| ext == ".bmp" || ext == ".tga";
+		}
+
+		static void CollectTextureFiles(const std::filesystem::path& dir, const std::filesystem::path& root,
+			std::vector<TexturePickerEntry>& entries) {
+			if (!std::filesystem::exists(dir)) return;
+			for (const auto& entry : std::filesystem::recursive_directory_iterator(dir)) {
+				if (!entry.is_regular_file()) continue;
+				std::string ext = entry.path().extension().string();
+				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+				if (!IsImageExtension(ext)) continue;
+
+				std::string rel = std::filesystem::relative(entry.path(), root).string();
+				std::string name = entry.path().filename().string();
+				entries.push_back({ rel, name });
+			}
+			std::sort(entries.begin(), entries.end(),
+				[](const TexturePickerEntry& a, const TexturePickerEntry& b) {
+					return a.DisplayName < b.DisplayName;
+				});
+		}
+
+		static void OpenTexturePicker(SpriteRendererComponent& target) {
+			s_TexturePickerOpen = true;
+			s_TexturePickerSearch[0] = '\0';
+			s_TexturePickerTarget = &target;
+			s_TexturePickerEntries.clear();
+
+			// Collect from both Assets/Textures and BoltAssets/Textures
+			std::string base = Path::ExecutableDir();
+			auto assetsDir = std::filesystem::path(base) / "Assets" / "Textures";
+			auto boltAssetsDir = std::filesystem::path(base) / "BoltAssets" / "Textures";
+
+			CollectTextureFiles(assetsDir, assetsDir, s_TexturePickerEntries);
+			CollectTextureFiles(boltAssetsDir, boltAssetsDir, s_TexturePickerEntries);
+		}
+
+		static void RenderTexturePicker() {
+			if (!s_TexturePickerOpen) return;
+
+			ImGui::SetNextWindowSize(ImVec2(340, 420), ImGuiCond_FirstUseEver);
+			if (!ImGui::Begin("Select Texture", &s_TexturePickerOpen)) {
+				ImGui::End();
+				return;
+			}
+
+			ImGui::SetNextItemWidth(-1);
+			ImGui::InputTextWithHint("##TexSearch", "Search...", s_TexturePickerSearch, sizeof(s_TexturePickerSearch));
+			ImGui::Separator();
+
+			ImGui::BeginChild("##TexList");
+
+			// Option to clear texture
+			if (ImGui::Selectable("(None)", false)) {
+				if (s_TexturePickerTarget)
+					s_TexturePickerTarget->TextureHandle = TextureHandle();
+				s_TexturePickerOpen = false;
+			}
+
+			std::string filter(s_TexturePickerSearch);
+			std::transform(filter.begin(), filter.end(), filter.begin(), ::tolower);
+
+			for (const auto& entry : s_TexturePickerEntries) {
+				if (!filter.empty()) {
+					std::string lowerName = entry.DisplayName;
+					std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+					if (lowerName.find(filter) == std::string::npos) continue;
+				}
+
+				if (ImGui::Selectable(entry.DisplayName.c_str(), false)) {
+					if (s_TexturePickerTarget)
+						s_TexturePickerTarget->TextureHandle = TextureManager::LoadTexture(entry.RelativePath);
+					s_TexturePickerOpen = false;
+				}
+
+				if (ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("%s", entry.RelativePath.c_str());
+				}
+			}
+
+			ImGui::EndChild();
+			ImGui::End();
+		}
+	}
+
 	void DrawNameComponentInspector(Entity entity)
 	{
 		auto& name = entity.GetComponent<NameComponent>();
 		char buffer[256]{};
 		std::snprintf(buffer, sizeof(buffer), "%s", name.Name.c_str());
-		if (ImGui::InputText("Name", buffer, sizeof(buffer))) {
+		if (ImGui::InputText("##NameValue", buffer, sizeof(buffer))) {
 			name.Name = buffer;
 		}
 	}
@@ -66,11 +166,13 @@ namespace Bolt {
 		ImGui::DragScalar("Sorting Layer", ImGuiDataType_U8, &sprite.SortingLayer, 1.0f);
 
 		
-		if (ImGui::Button(sprite.TextureHandle.IsValid() ? "Change Texture..." : "Assign Texture...",
+		if (ImGui::Button(sprite.TextureHandle.IsValid() ? "Change Texture" : "Assign Texture",
 			ImVec2(ImGui::GetContentRegionAvail().x, 0)))
 		{
-			// Button should open the asset browser with a filter for only images and without any directory structure
+			OpenTexturePicker(sprite);
 		}
+
+		RenderTexturePicker();
 
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
@@ -120,6 +222,12 @@ namespace Bolt {
 		float ortho = camera.GetOrthographicSize();
 		if (ImGui::DragFloat("Orthographic Size", &ortho, 0.05f, 0.05f, 1000.0f)) {
 			camera.SetOrthographicSize(ortho);
+		}
+
+		Color clearColor = camera.GetClearColor();
+		Color newClearColor = ImGuiUtils::DrawColorPick4("Clear Color", clearColor);
+		if (newClearColor != clearColor) {
+			camera.SetClearColor(newClearColor);
 		}
 
 		ImGuiUtils::DrawVec2ReadOnly("Viewport Size", camera.GetViewport()->GetSize());
@@ -224,6 +332,65 @@ namespace Bolt {
 		bool loop = audio.IsLooping();
 		if (ImGui::Checkbox("Loop", &loop)) {
 			audio.SetLoop(loop);
+		}
+	}
+
+	// ── Bolt-Physics Inspectors ─────────────────────────────────────
+
+	void DrawBoltBody2DInspector(Entity entity)
+	{
+		auto& body = entity.GetComponent<BoltBody2DComponent>();
+
+		// Body type selector
+		const char* bodyTypeNames[] = { "Static", "Dynamic", "Kinematic" };
+		int currentType = static_cast<int>(body.Type);
+		if (ImGui::Combo("Body Type", &currentType, bodyTypeNames, 3)) {
+			body.Type = static_cast<BoltPhys::BodyType>(currentType);
+			if (body.m_Body) body.m_Body->SetBodyType(body.Type);
+		}
+
+		if (ImGui::DragFloat("Mass", &body.Mass, 0.1f, 0.001f, 10000.0f)) {
+			if (body.m_Body) body.m_Body->SetMass(body.Mass);
+		}
+
+		if (ImGui::Checkbox("Use Gravity", &body.UseGravity)) {
+			if (body.m_Body) body.m_Body->SetGravityEnabled(body.UseGravity);
+		}
+
+		if (ImGui::Checkbox("Boundary Check", &body.BoundaryCheck)) {
+			if (body.m_Body) body.m_Body->SetBoundaryCheckEnabled(body.BoundaryCheck);
+		}
+
+		// Runtime info
+		if (body.IsValid()) {
+			ImGui::Separator();
+			ImGui::TextDisabled("Runtime");
+			Vec2 vel = body.GetVelocity();
+			ImGuiUtils::DrawVec2ReadOnly("Velocity", vel);
+			Vec2 pos = body.GetPosition();
+			ImGuiUtils::DrawVec2ReadOnly("Position", pos);
+		}
+	}
+
+	void DrawBoltBoxCollider2DInspector(Entity entity)
+	{
+		auto& collider = entity.GetComponent<BoltBoxCollider2DComponent>();
+
+		if (ImGui::DragFloat2("Half Extents", &collider.HalfExtents.x, 0.05f, 0.01f, 100.0f)) {
+			if (collider.m_Collider) {
+				collider.m_Collider->SetHalfExtents({ collider.HalfExtents.x, collider.HalfExtents.y });
+			}
+		}
+	}
+
+	void DrawBoltCircleCollider2DInspector(Entity entity)
+	{
+		auto& collider = entity.GetComponent<BoltCircleCollider2DComponent>();
+
+		if (ImGui::DragFloat("Radius", &collider.Radius, 0.05f, 0.01f, 100.0f)) {
+			if (collider.m_Collider) {
+				collider.m_Collider->SetRadius(collider.Radius);
+			}
 		}
 	}
 
