@@ -9,7 +9,7 @@
 #include "Core/Log.hpp"
 #include "Gui/AssetBrowser.hpp"
 #include "Gui/PackageManagerPanel.hpp"
-#include "Packages/PackageManager.hpp"
+//#include "Packages/PackageManager.hpp"
 #include "Editor/EditorCamera.hpp"
 
 
@@ -105,8 +105,8 @@ namespace Bolt {
 		bool m_BuildSceneListInitialized = false;
 		int m_DraggedSceneIndex = -1;
 		bool m_PackageManagerInitialized = false;
-		PackageManager m_PackageManager;
-		PackageManagerPanel m_PackageManagerPanel;
+		//PackageManager m_PackageManager;
+		//PackageManagerPanel m_PackageManagerPanel;
 		std::string m_BuildOutputDir;
 		char m_BuildOutputDirBuffer[512]{};
 		int m_BuildState = 0; // 0=idle, 1=pending (render overlay), 2=execute

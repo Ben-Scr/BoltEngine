@@ -24,8 +24,8 @@
 #include "Project/ProjectManager.hpp"
 #include "Serialization/SceneSerializer.hpp"
 #include "Serialization/File.hpp"
-#include "Packages/NuGetSource.hpp"
-#include "Packages/GitHubSource.hpp"
+//#include "Packages/NuGetSource.hpp"
+//#include "Packages/GitHubSource.hpp"
 #include "Editor/ExternalEditor.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include <algorithm>
@@ -140,8 +140,8 @@ namespace Bolt {
 		DestroyFBO(m_EditorViewFBO);
 		DestroyFBO(m_GameViewFBO);
 		m_AssetBrowser.Shutdown();
-		m_PackageManagerPanel.Shutdown();
-		m_PackageManager.Shutdown();
+		//m_PackageManagerPanel.Shutdown();
+		//m_PackageManager.Shutdown();
 	}
 
 	// ──────────────────────────────────────────────
@@ -420,6 +420,7 @@ namespace Bolt {
 
 			if (sceneOpen) {
 				auto view = scene.GetRegistry().view<entt::entity>();
+
 				for (const EntityHandle entityHandle : view) {
 					Entity entity = scene.GetEntity(entityHandle);
 					const bool selected = m_SelectedEntity == entityHandle;
@@ -1394,26 +1395,26 @@ namespace Bolt {
 	void ImGuiEditorSystem::RenderPackageManagerPanel() {
 		if (!m_ShowPackageManager) return;
 
-		if (!m_PackageManagerInitialized) {
-			auto exeDir = std::filesystem::path(Path::ExecutableDir());
-			auto toolPath = exeDir / ".." / ".." / ".." / "Bolt-PackageTool" / "bin" / "Release" / "net9.0" / "Bolt-PackageTool.exe";
-			m_PackageManager.Initialize(toolPath.string());
+		//if (!m_PackageManagerInitialized) {
+		//	auto exeDir = std::filesystem::path(Path::ExecutableDir());
+		//	auto toolPath = exeDir / ".." / ".." / ".." / "Bolt-PackageTool" / "bin" / "Release" / "net9.0" / "Bolt-PackageTool.exe";
+		//	m_PackageManager.Initialize(toolPath.string());
 
-			// Add default sources
-			if (m_PackageManager.IsReady()) {
-				m_PackageManager.AddSource(std::make_unique<NuGetSource>(m_PackageManager.GetToolPath()));
-				m_PackageManager.AddSource(std::make_unique<GitHubSource>(
-					m_PackageManager.GetToolPath(),
-					"https://raw.githubusercontent.com/Ben-Scr/bolt-packages/main/index.json",
-					"Engine Packages"));
-			}
+		//	// Add default sources
+		//	if (m_PackageManager.IsReady()) {
+		//		m_PackageManager.AddSource(std::make_unique<NuGetSource>(m_PackageManager.GetToolPath()));
+		//		m_PackageManager.AddSource(std::make_unique<GitHubSource>(
+		//			m_PackageManager.GetToolPath(),
+		//			"https://raw.githubusercontent.com/Ben-Scr/bolt-packages/main/index.json",
+		//			"Engine Packages"));
+		//	}
 
-			m_PackageManagerPanel.Initialize(&m_PackageManager);
-			m_PackageManagerInitialized = true;
-		}
+		//	//m_PackageManagerPanel.Initialize(&m_PackageManager);
+		//	m_PackageManagerInitialized = true;
+		//}
 
 		ImGui::Begin("Package Manager", &m_ShowPackageManager);
-		m_PackageManagerPanel.Render();
+		//m_PackageManagerPanel.Render();
 		ImGui::End();
 	}
 }

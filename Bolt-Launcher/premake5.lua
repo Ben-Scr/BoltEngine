@@ -26,7 +26,8 @@ project "Bolt-Launcher"
         defines { "BT_PLATFORM_WINDOWS" }
 
         postbuildcommands {
-            '{COPYDIR} "%{wks.location}bin/' .. outputdir .. '/Bolt-Editor/Assets" "%{cfg.targetdir}/Assets"'
+            '{COPYDIR} "%{wks.location}bin/' .. outputdir .. '/Bolt-Editor/Assets" "%{cfg.targetdir}/Assets"',
+            '{COPYFILE} "%{wks.location}External/dotnet/lib/nethost.dll" "%{cfg.targetdir}/nethost.dll"'
         }
 
     filter "system:linux"

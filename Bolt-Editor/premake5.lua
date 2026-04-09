@@ -24,6 +24,9 @@ project "Bolt-Editor"
         buildoptions { "/utf-8" }
         systemversion "latest"
         defines { "BT_PLATFORM_WINDOWS" }
+        postbuildcommands {
+            '{COPYFILE} "%{wks.location}External/dotnet/lib/nethost.dll" "%{cfg.targetdir}/nethost.dll"'
+        }
 
     filter "system:linux"
         defines { "BT_PLATFORM_LINUX" }
