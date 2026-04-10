@@ -29,10 +29,13 @@ namespace Bolt
             { typeof(BoltBody2DComponent),            "Bolt Body 2D" },
             { typeof(BoltBoxCollider2DComponent),     "Bolt Box Collider 2D" },
             { typeof(BoltCircleCollider2DComponent),  "Bolt Circle Collider 2D" },
+            { typeof(ParticleSystem2DComponent),     "Particle System 2D" },
         };
 
         private static string? GetNativeName<T>() =>
             s_NativeComponentNames.TryGetValue(typeof(T), out string? name) ? name : null;
+
+        internal static string? GetNativeComponentName<T>() where T : Component, new() => GetNativeName<T>();
 
         public string Name => GetComponent<NameComponent>()?.Name ?? "";
 

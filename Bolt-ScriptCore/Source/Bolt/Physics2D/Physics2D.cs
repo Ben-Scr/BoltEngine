@@ -10,6 +10,7 @@ namespace Bolt
 
     public static class Physics2D
     {
+
         public static RaycastHit2D Raycast(Vector2 origin, Vector2 direction, float maxDistance = Mathf.Infinity)
         {
             RaycastHit2D result = new();

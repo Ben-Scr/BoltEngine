@@ -27,9 +27,12 @@
 //#include "Packages/NuGetSource.hpp"
 //#include "Packages/GitHubSource.hpp"
 #include "Editor/ExternalEditor.hpp"
+#include "Gui/EditorIcons.hpp"
 #include "Scripting/ScriptEngine.hpp"
+#include "Scripting/ScriptSystem.hpp"
 #include <algorithm>
 #include <filesystem>
+#include <unordered_set>
 
 namespace Bolt {
 
@@ -103,8 +106,10 @@ namespace Bolt {
 		BoltProject* project = ProjectManager::GetCurrentProject();
 		if (project) {
 			std::string scenePath = project->GetSceneFilePath(project->LastOpenedScene);
-			if (File::Exists(scenePath))
+			if (File::Exists(scenePath)) {
 				SceneSerializer::LoadFromFile(scene, scenePath);
+				m_EntityOrder.clear();
+			}
 			else
 				EntityHelper::CreateCamera2DEntity();
 		}
@@ -139,6 +144,7 @@ namespace Bolt {
 
 		DestroyFBO(m_EditorViewFBO);
 		DestroyFBO(m_GameViewFBO);
+		EditorIcons::Shutdown();
 		m_AssetBrowser.Shutdown();
 		//m_PackageManagerPanel.Shutdown();
 		//m_PackageManager.Shutdown();
@@ -237,10 +243,26 @@ namespace Bolt {
 		ImGui::EndMenuBar();
 	}
 
+	static bool IconButton(const char* id, const char* iconName, float iconSize, const ImVec2& btnSize) {
+		unsigned int tex = EditorIcons::Get(iconName, (int)iconSize);
+		if (tex)
+			return ImGui::ImageButton(id, (ImTextureID)(intptr_t)tex, btnSize, ImVec2(0, 1), ImVec2(1, 0));
+		return ImGui::Button(id + 2); // skip "##"
+	}
+
 	void ImGuiEditorSystem::RenderToolbar() {
 		ImGui::Begin("Toolbar");
-		if (!Application::GetIsPlaying()) {
-			if (ImGui::Button("Play")) {
+
+		const float iconSize = ImGui::GetTextLineHeight();
+		const ImVec2 btnSize(iconSize, iconSize);
+		const bool isPlaying = Application::GetIsPlaying();
+		const bool isPaused = Application::IsPlaymodePaused();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+
+		if (!isPlaying) {
+			// ── Editor mode: [Play] ──
+			if (IconButton("##Play", "play", iconSize, btnSize)) {
 				Scene* active = SceneManager::Get().GetActiveScene();
 				BoltProject* project = ProjectManager::GetCurrentProject();
 				if (active && project) {
@@ -252,26 +274,85 @@ namespace Bolt {
 					}
 					m_PlayModeScenePath = scenePath;
 				}
+				Application::SetPlaymodePaused(false);
 				Application::SetIsPlaying(true);
 			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Play (Enter playmode)");
 		}
 		else {
-			if (ImGui::Button("Stop")) {
+			// ── Play mode: [Pause/Continue] [Step] [Stop] ──
+			if (isPaused) {
+				if (IconButton("##Continue", "play", iconSize, btnSize))
+					Application::SetPlaymodePaused(false);
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Continue");
+			}
+			else {
+				if (IconButton("##Pause", "pause", iconSize, btnSize))
+					Application::SetPlaymodePaused(true);
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Pause");
+			}
+
+			ImGui::SameLine();
+			if (IconButton("##Step", "step_forward", iconSize, btnSize)) {
+				Application::SetPlaymodePaused(false);
+				m_StepFrames = 2; // 1 frame to unpause, 1 frame for gameplay to run
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Step (advance one frame)");
+
+			ImGui::SameLine();
+			if (IconButton("##Stop", "stop", iconSize, btnSize)) {
+				// Remember selected entity UUID before reload (stable across save/load)
+				uint64_t selectedUUID = 0;
+				{
+					Scene* active = SceneManager::Get().GetActiveScene();
+					if (active && m_SelectedEntity != entt::null && active->IsValid(m_SelectedEntity)
+						&& active->HasComponent<UUIDComponent>(m_SelectedEntity)) {
+						selectedUUID = static_cast<uint64_t>(active->GetComponent<UUIDComponent>(m_SelectedEntity).Id);
+					}
+				}
+
+				Application::SetPlaymodePaused(false);
 				Application::SetIsPlaying(false);
 				if (!m_PlayModeScenePath.empty()) {
 					Scene* active = SceneManager::Get().GetActiveScene();
 					if (active) {
 						SceneSerializer::LoadFromFile(*active, m_PlayModeScenePath);
+						m_EntityOrder.clear();
 					}
 					m_PlayModeScenePath.clear();
 				}
+
+				// Restore selection by UUID
 				m_SelectedEntity = entt::null;
 				m_RenamingEntity = entt::null;
+				if (selectedUUID != 0) {
+					Scene* active = SceneManager::Get().GetActiveScene();
+					if (active) {
+						auto view = active->GetRegistry().view<UUIDComponent>();
+						for (auto [ent, uuid] : view.each()) {
+							if (static_cast<uint64_t>(uuid.Id) == selectedUUID) {
+								m_SelectedEntity = ent;
+								break;
+							}
+						}
+					}
+				}
 			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Stop (exit playmode)");
 		}
+
+		ImGui::PopStyleVar();
 		ImGui::SameLine();
-		ImGui::TextUnformatted(Application::GetIsPlaying() ? "Runtime" : "Editor Paused");
+		const char* statusText = !isPlaying ? "Editor" : (isPaused ? "Paused" : "Playing");
+		ImGui::TextUnformatted(statusText);
 		ImGui::End();
+
+		// Handle step-frame logic: pause again after stepping one frame
+		if (isPlaying && m_StepFrames > 0) {
+			m_StepFrames--;
+			if (m_StepFrames == 0)
+				Application::SetPlaymodePaused(true);
+		}
 	}
 
 
@@ -421,11 +502,38 @@ namespace Bolt {
 			if (sceneOpen) {
 				auto view = scene.GetRegistry().view<entt::entity>();
 
-				for (const EntityHandle entityHandle : view) {
+				// Rebuild entity order if size changed (scene load, entity create/destroy)
+				{
+					std::vector<entt::entity> viewEntities(view.begin(), view.end());
+					if (m_EntityOrder.size() != viewEntities.size()) {
+						m_EntityOrder = viewEntities;
+					} else {
+						std::unordered_set<uint32_t> viewSet;
+						for (auto e : viewEntities) viewSet.insert(static_cast<uint32_t>(e));
+						m_EntityOrder.erase(
+							std::remove_if(m_EntityOrder.begin(), m_EntityOrder.end(),
+								[&](entt::entity e) { return viewSet.find(static_cast<uint32_t>(e)) == viewSet.end(); }),
+							m_EntityOrder.end());
+						std::unordered_set<uint32_t> orderSet;
+						for (auto e : m_EntityOrder) orderSet.insert(static_cast<uint32_t>(e));
+						for (auto e : viewEntities) {
+							if (orderSet.find(static_cast<uint32_t>(e)) == orderSet.end())
+								m_EntityOrder.push_back(e);
+						}
+					}
+				}
+
+				for (int entityIdx = 0; entityIdx < static_cast<int>(m_EntityOrder.size()); entityIdx++) {
+					const EntityHandle entityHandle = m_EntityOrder[entityIdx];
+					if (!scene.IsValid(entityHandle)) continue;
 					Entity entity = scene.GetEntity(entityHandle);
 					const bool selected = m_SelectedEntity == entityHandle;
 
 					ImGui::PushID(static_cast<int>(static_cast<uint32_t>(entityHandle)));
+
+					bool entityIsDisabled = scene.HasComponent<DisabledTag>(entityHandle);
+					if (entityIsDisabled)
+						ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 0.5f));
 
 					if (m_RenamingEntity == entityHandle) {
 						m_EntityRenameFrameCounter++;
@@ -452,7 +560,6 @@ namespace Bolt {
 							m_EntityRenameFrameCounter = 0;
 						}
 						else if (m_EntityRenameFrameCounter > 2 && !ImGui::IsItemActive()) {
-							// (Ben-Scr) Focus lost = commit
 							std::string newName(m_EntityRenameBuffer);
 							if (!newName.empty() && entity.HasComponent<NameComponent>()) {
 								entity.GetComponent<NameComponent>().Name = newName;
@@ -469,12 +576,45 @@ namespace Bolt {
 							m_SelectedEntity = entityHandle;
 						}
 
-						// (Ben-Scr) Double-click to rename
 						if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 							m_RenamingEntity = entityHandle;
 							m_EntityRenameFrameCounter = 0;
 							std::snprintf(m_EntityRenameBuffer, sizeof(m_EntityRenameBuffer), "%s", entity.GetName().c_str());
 						}
+					}
+
+					// Drag-drop source: drag entity to reorder or to asset browser for prefab
+					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+						struct HierarchyDragData { int Index; uint32_t EntityHandle; };
+						HierarchyDragData dragData{ entityIdx, static_cast<uint32_t>(entityHandle) };
+						ImGui::SetDragDropPayload("HIERARCHY_ENTITY", &dragData, sizeof(dragData));
+						ImGui::Text("Move: %s", entity.GetName().c_str());
+						ImGui::EndDragDropSource();
+					}
+
+					// Drag-drop target: reorder entities, or accept .prefab from asset browser
+					if (ImGui::BeginDragDropTarget()) {
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
+							struct HierarchyDragData { int Index; uint32_t EntityHandle; };
+							auto* dragData = static_cast<const HierarchyDragData*>(payload->Data);
+							int srcIndex = dragData->Index;
+							if (srcIndex != entityIdx && srcIndex >= 0 && srcIndex < static_cast<int>(m_EntityOrder.size())) {
+								entt::entity moved = m_EntityOrder[srcIndex];
+								m_EntityOrder.erase(m_EntityOrder.begin() + srcIndex);
+								int insertAt = (srcIndex < entityIdx) ? entityIdx - 1 : entityIdx;
+								m_EntityOrder.insert(m_EntityOrder.begin() + insertAt, moved);
+							}
+						}
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
+							std::string droppedPath(static_cast<const char*>(payload->Data));
+							std::string ext = std::filesystem::path(droppedPath).extension().string();
+							std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+							if (ext == ".prefab") {
+								SceneSerializer::LoadEntityFromFile(scene, droppedPath);
+								m_EntityOrder.clear();
+							}
+						}
+						ImGui::EndDragDropTarget();
 					}
 
 					if (ImGui::BeginPopupContextItem())
@@ -488,6 +628,7 @@ namespace Bolt {
 								m_SelectedEntity = entt::null;
 							if (m_RenamingEntity == entityHandle)
 								m_RenamingEntity = entt::null;
+							m_EntityOrder.clear();
 						}
 
 						if (ImGui::MenuItem("Duplicate"))
@@ -498,12 +639,13 @@ namespace Bolt {
 							compReg.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
 								if (info.category != ComponentCategory::Component) return;
 								if (!info.has(entity)) return;
-								if (info.has(clone)) return;
-								info.add(clone);
+								if (info.copyTo)
+									info.copyTo(entity, clone);
 							});
 
 							m_SelectedEntity = clone.GetHandle();
 							scene.MarkDirty();
+							m_EntityOrder.clear();
 						}
 
 						if (ImGui::MenuItem("Rename"))
@@ -515,6 +657,9 @@ namespace Bolt {
 
 						ImGui::EndPopup();
 					}
+
+					if (entityIsDisabled)
+						ImGui::PopStyleColor();
 
 					ImGui::PopID();
 				}
@@ -545,6 +690,32 @@ namespace Bolt {
 						if (ext == ".scene") {
 							m_PendingSceneFileDrop = droppedPath;
 						}
+						else if (ext == ".prefab") {
+							Scene* dropScene = SceneManager::Get().GetActiveScene();
+							if (dropScene) {
+								SceneSerializer::LoadEntityFromFile(*dropScene, droppedPath);
+								m_EntityOrder.clear();
+							}
+						}
+						else if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga") {
+							Scene* dropScene = SceneManager::Get().GetActiveScene();
+							if (dropScene) {
+								std::string entityName = std::filesystem::path(droppedPath).stem().string();
+								Entity newEntity = dropScene->CreateEntity(entityName);
+								auto& sr = newEntity.AddComponent<SpriteRendererComponent>();
+								sr.TextureHandle = TextureManager::LoadTexture(droppedPath);
+
+								Texture2D* tex = TextureManager::GetTexture(sr.TextureHandle);
+								if (tex && tex->IsValid() && tex->GetHeight() > 0) {
+									float aspect = (float)tex->GetWidth() / (float)tex->GetHeight();
+									auto& transform = newEntity.GetComponent<Transform2DComponent>();
+									transform.Scale = { aspect, 1.0f };
+								}
+
+								m_SelectedEntity = newEntity.GetHandle();
+								dropScene->MarkDirty();
+							}
+						}
 					}
 					ImGui::EndDragDropTarget();
 				}
@@ -570,8 +741,60 @@ namespace Bolt {
 		}
 
 		Entity entity = scene.GetEntity(m_SelectedEntity);
-		std::string entityName = entity.GetName();
-		ImGui::Text("Entity: %s", entityName.c_str());
+
+		// ── Entity Header: Name + Toggles + UUID ──────────────────
+
+		// Editable Name
+		std::string entityName = entity.HasComponent<NameComponent>()
+			? entity.GetComponent<NameComponent>().Name : "Entity";
+		char nameBuf[256];
+		std::snprintf(nameBuf, sizeof(nameBuf), "%s", entityName.c_str());
+		ImGui::SetNextItemWidth(-1);
+		if (ImGui::InputText("##EntityName", nameBuf, sizeof(nameBuf), ImGuiInputTextFlags_EnterReturnsTrue)) {
+			if (entity.HasComponent<NameComponent>()) {
+				entity.GetComponent<NameComponent>().Name = nameBuf;
+			} else {
+				scene.AddComponent<NameComponent>(m_SelectedEntity, std::string(nameBuf));
+			}
+			scene.MarkDirty();
+		}
+
+		// Toggles row: Enabled + Static
+		{
+			bool isDisabled = entity.HasComponent<DisabledTag>();
+			bool isEnabled = !isDisabled;
+			if (ImGui::Checkbox("Enabled", &isEnabled)) {
+				if (isEnabled && entity.HasComponent<DisabledTag>())
+					entity.RemoveComponent<DisabledTag>();
+				else if (!isEnabled && !entity.HasComponent<DisabledTag>())
+					entity.AddComponent<DisabledTag>();
+				scene.MarkDirty();
+			}
+
+			ImGui::SameLine();
+
+			bool isStatic = entity.HasComponent<StaticTag>();
+			if (ImGui::Checkbox("Static", &isStatic)) {
+				if (isStatic && !entity.HasComponent<StaticTag>())
+					entity.AddComponent<StaticTag>();
+				else if (!isStatic && entity.HasComponent<StaticTag>())
+					entity.RemoveComponent<StaticTag>();
+				scene.MarkDirty();
+			}
+		}
+
+		// UUID display (read-only, small gray text)
+		if (entity.HasComponent<UUIDComponent>()) {
+			uint64_t uuid = static_cast<uint64_t>(entity.GetComponent<UUIDComponent>().Id);
+			ImGui::TextDisabled("UUID: %llu", uuid);
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Click to copy");
+			}
+			if (ImGui::IsItemClicked()) {
+				ImGui::SetClipboardText(std::to_string(uuid).c_str());
+			}
+		}
+
 		ImGui::Separator();
 
 		const auto& registry = SceneManager::Get().GetComponentRegistry();
@@ -580,6 +803,7 @@ namespace Bolt {
 
 		registry.ForEachComponentInfo([&](const std::type_index& typeId, const ComponentInfo& info) {
 			if (info.category != ComponentCategory::Component) return;
+			if (info.displayName == "Name") return; // Shown in entity header
 			if (!info.has(entity)) return;
 
 			bool removeRequested = false;
@@ -723,6 +947,30 @@ namespace Bolt {
 				glm::mat4 vp = m_EditorCamera.GetViewProjectionMatrix();
 				AABB viewAABB = m_EditorCamera.GetViewportAABB();
 
+				// Draw selection outline for selected entity
+				if (m_SelectedEntity != entt::null && scene.IsValid(m_SelectedEntity)
+					&& scene.HasComponent<Transform2DComponent>(m_SelectedEntity)) {
+
+					auto& transform = scene.GetComponent<Transform2DComponent>(m_SelectedEntity);
+					Vec2 outlineScale = transform.Scale;
+
+					if (scene.HasComponent<SpriteRendererComponent>(m_SelectedEntity)) {
+						auto& sr = scene.GetComponent<SpriteRendererComponent>(m_SelectedEntity);
+						Texture2D* tex = TextureManager::GetTexture(sr.TextureHandle);
+						if (tex && tex->IsValid() && tex->GetHeight() > 0) {
+							// bounds already encoded in transform scale
+						}
+					}
+
+					Color prevColor = Gizmo::GetColor();
+					float prevWidth = Gizmo::GetLineWidth();
+					Gizmo::SetColor(Color(1.0f, 0.6f, 0.0f, 1.0f)); // Orange
+					Gizmo::SetLineWidth(2.0f);
+					Gizmo::DrawSquare(transform.Position, outlineScale, transform.Rotation * (180.0f / 3.14159265f));
+					Gizmo::SetColor(prevColor);
+					Gizmo::SetLineWidth(prevWidth);
+				}
+
 				// Editor view always uses a stable default background
 				static const Color k_EditorClearColor(0.18f, 0.18f, 0.20f, 1.0f);
 				RenderSceneIntoFBO(m_EditorViewFBO, scene, vp, viewAABB, true, k_EditorClearColor);
@@ -732,6 +980,45 @@ namespace Bolt {
 					viewportSize,
 					ImVec2(0.0f, 1.0f),
 					ImVec2(1.0f, 0.0f));
+
+				ImVec2 imageTopLeft = ImGui::GetItemRectMin();
+
+				// Overlay component icons at entity positions
+				{
+					const float iconSize = 24.0f;
+					const float halfIcon = iconSize * 0.5f;
+
+					auto camView = scene.GetRegistry().view<Camera2DComponent, Transform2DComponent>();
+					for (auto [ent, cam, transform] : camView.each()) {
+						glm::vec4 worldPos(transform.Position.x, transform.Position.y, 0.0f, 1.0f);
+						glm::vec4 clipPos = vp * worldPos;
+
+						// Perspective divide (orthographic, w should be 1)
+						if (clipPos.w == 0.0f) continue;
+						float ndcX = clipPos.x / clipPos.w;
+						float ndcY = clipPos.y / clipPos.w;
+
+						// NDC to screen: [-1,1] -> [0, viewportSize]
+						float screenX = (ndcX * 0.5f + 0.5f) * viewportSize.x;
+						float screenY = (1.0f - (ndcY * 0.5f + 0.5f)) * viewportSize.y;
+
+						// Skip if outside visible viewport
+						if (screenX < -halfIcon || screenX > viewportSize.x + halfIcon ||
+							screenY < -halfIcon || screenY > viewportSize.y + halfIcon)
+							continue;
+
+						unsigned int camIcon = EditorIcons::Get("camera", 24);
+						if (camIcon) {
+							ImVec2 iconPos(imageTopLeft.x + screenX - halfIcon,
+							               imageTopLeft.y + screenY - halfIcon);
+							ImGui::GetWindowDrawList()->AddImage(
+								static_cast<ImTextureID>(static_cast<intptr_t>(camIcon)),
+								iconPos,
+								ImVec2(iconPos.x + iconSize, iconPos.y + iconSize),
+								ImVec2(0, 1), ImVec2(1, 0));
+						}
+					}
+				}
 			}
 		}
 		else {
@@ -800,23 +1087,134 @@ namespace Bolt {
 	void ImGuiEditorSystem::RenderLogPanel() {
 		ImGui::Begin("Log");
 
+		// Toolbar: Clear + Level filters
 		if (ImGui::Button("Clear")) {
 			m_LogEntries.clear();
 		}
+
+		// Count messages per level for display
+		int infoCount = 0, warnCount = 0, errorCount = 0;
+		for (const auto& e : m_LogEntries) {
+			if (e.Level <= Log::Level::Info) infoCount++;
+			else if (e.Level == Log::Level::Warn) warnCount++;
+			else errorCount++;
+		}
+
+		ImGui::SameLine();
+		ImGui::TextDisabled("|");
+		ImGui::SameLine();
+
+		// Info filter toggle
+		{
+			unsigned int infoIcon = EditorIcons::Get("info", 16);
+			if (infoIcon) {
+				ImVec4 tint = m_ShowLogInfo ? ImVec4(1,1,1,1) : ImVec4(0.4f,0.4f,0.4f,0.5f);
+				if (ImGui::ImageButton("##FilterInfo",
+					static_cast<ImTextureID>(static_cast<intptr_t>(infoIcon)),
+					ImVec2(14, 14), ImVec2(0,1), ImVec2(1,0), ImVec4(0,0,0,0), tint))
+					m_ShowLogInfo = !m_ShowLogInfo;
+			} else {
+				if (ImGui::SmallButton(m_ShowLogInfo ? "[I]" : "( )"))
+					m_ShowLogInfo = !m_ShowLogInfo;
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Info (%d)", infoCount);
+		}
+
+		ImGui::SameLine();
+
+		// Warn filter toggle
+		{
+			unsigned int warnIcon = EditorIcons::Get("warning", 16);
+			ImVec4 tint = m_ShowLogWarn ? ImVec4(1,1,1,1) : ImVec4(0.4f,0.4f,0.4f,0.5f);
+			if (warnIcon) {
+				if (ImGui::ImageButton("##FilterWarn",
+					static_cast<ImTextureID>(static_cast<intptr_t>(warnIcon)),
+					ImVec2(14, 14), ImVec2(0,1), ImVec2(1,0), ImVec4(0,0,0,0), tint))
+					m_ShowLogWarn = !m_ShowLogWarn;
+			} else {
+				ImGui::PushStyleColor(ImGuiCol_Text, tint);
+				if (ImGui::SmallButton(m_ShowLogWarn ? "W" : "(W)"))
+					m_ShowLogWarn = !m_ShowLogWarn;
+				ImGui::PopStyleColor();
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Warnings (%d)", warnCount);
+		}
+
+		ImGui::SameLine();
+
+		// Error filter toggle
+		{
+			unsigned int errIcon = EditorIcons::Get("error", 16);
+			ImVec4 tint = m_ShowLogError ? ImVec4(1,1,1,1) : ImVec4(0.4f,0.4f,0.4f,0.5f);
+			if (errIcon) {
+				if (ImGui::ImageButton("##FilterError",
+					static_cast<ImTextureID>(static_cast<intptr_t>(errIcon)),
+					ImVec2(14, 14), ImVec2(0,1), ImVec2(1,0), ImVec4(0,0,0,0), tint))
+					m_ShowLogError = !m_ShowLogError;
+			} else {
+				ImGui::PushStyleColor(ImGuiCol_Text, tint);
+				if (ImGui::SmallButton(m_ShowLogError ? "E" : "(E)"))
+					m_ShowLogError = !m_ShowLogError;
+				ImGui::PopStyleColor();
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Errors (%d)", errorCount);
+		}
+
 		ImGui::Separator();
 
+		// Log entries with filtering and right-click copy
 		ImGui::BeginChild("LogScroll");
-		for (const LogEntry& entry : m_LogEntries) {
+		for (int i = 0; i < static_cast<int>(m_LogEntries.size()); i++) {
+			const LogEntry& entry = m_LogEntries[i];
+
+			// Level filtering
+			if (entry.Level <= Log::Level::Info && !m_ShowLogInfo) continue;
+			if (entry.Level == Log::Level::Warn && !m_ShowLogWarn) continue;
+			if (entry.Level >= Log::Level::Error && !m_ShowLogError) continue;
+
+			// Level color
 			ImVec4 color = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
-			if (entry.Level == Log::Level::Warn) {
+			if (entry.Level == Log::Level::Warn)
 				color = ImVec4(1.0f, 0.8f, 0.2f, 1.0f);
-			}
-			else if (entry.Level == Log::Level::Error) {
+			else if (entry.Level >= Log::Level::Error)
 				color = ImVec4(1.0f, 0.35f, 0.35f, 1.0f);
-			}
+
+			ImGui::PushID(i);
 			ImGui::PushStyleColor(ImGuiCol_Text, color);
+
+			// Selectable row for click interaction
+			if (ImGui::Selectable("##LogEntry", false, ImGuiSelectableFlags_AllowOverlap)) {
+				ImGui::SetClipboardText(entry.Message.c_str());
+			}
+			if (ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("Click to copy");
+			}
+
+			// Draw the actual text over the selectable
+			ImGui::SameLine(0, 0);
 			ImGui::TextUnformatted(entry.Message.c_str());
+
 			ImGui::PopStyleColor();
+
+			// Right-click context menu
+			if (ImGui::BeginPopupContextItem("##LogCtx")) {
+				if (ImGui::MenuItem("Copy")) {
+					ImGui::SetClipboardText(entry.Message.c_str());
+				}
+				if (ImGui::MenuItem("Copy All Visible")) {
+					std::string all;
+					for (const auto& e : m_LogEntries) {
+						if (e.Level <= Log::Level::Info && !m_ShowLogInfo) continue;
+						if (e.Level == Log::Level::Warn && !m_ShowLogWarn) continue;
+						if (e.Level >= Log::Level::Error && !m_ShowLogError) continue;
+						all += e.Message + "\n";
+					}
+					ImGui::SetClipboardText(all.c_str());
+				}
+				ImGui::EndPopup();
+			}
+
+			ImGui::PopID();
 		}
 
 		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
@@ -907,7 +1305,7 @@ namespace Bolt {
 		// 1. Compile C# scripts
 		if (std::filesystem::exists(project->CsprojPath)) {
 			BT_INFO_TAG("Build", "Compiling C# scripts...");
-			std::string cmd = "dotnet build \"" + project->CsprojPath + "\" -c Release --nologo -v q 2>&1";
+			std::string cmd = "dotnet build \"" + project->CsprojPath + "\" -c Release --nologo -v q -p:DefineConstants=BOLT_BUILD 2>&1";
 			int result = std::system(cmd.c_str());
 			if (result != 0) {
 				BT_ERROR_TAG("Build", "C# script compilation failed (exit code {}).", result);
@@ -970,9 +1368,21 @@ namespace Bolt {
 		}
 
 		// 7. Copy BoltAssets directory (incremental)
-		if (std::filesystem::exists(project->BoltAssetsDirectory)) {
-			int n = CopyDirIncremental(project->BoltAssetsDirectory, outDir / "BoltAssets");
-			BT_INFO_TAG("Build", "BoltAssets: {} file(s) updated", n);
+		// Try project-local BoltAssets first, fall back to engine's BoltAssets
+		{
+			std::string boltAssetsSrc;
+			if (std::filesystem::exists(project->BoltAssetsDirectory)) {
+				boltAssetsSrc = project->BoltAssetsDirectory;
+			} else {
+				boltAssetsSrc = Path::ResolveBoltAssets("");
+			}
+
+			if (!boltAssetsSrc.empty() && std::filesystem::exists(boltAssetsSrc)) {
+				int n = CopyDirIncremental(boltAssetsSrc, outDir / "BoltAssets");
+				BT_INFO_TAG("Build", "BoltAssets: {} file(s) updated", n);
+			} else {
+				BT_WARN_TAG("Build", "BoltAssets not found — build may be incomplete");
+			}
 		}
 
 		// 8. Copy compiled C# user assembly + all dependencies (NuGet DLLs, deps.json, etc.)
@@ -1006,6 +1416,10 @@ namespace Bolt {
 
 		float elapsed = std::chrono::duration<float>(std::chrono::steady_clock::now() - m_BuildStartTime).count();
 		BT_INFO_TAG("Build", "Build completed in {:.2f}s -> {}", elapsed, m_BuildOutputDir);
+
+#ifdef BT_PLATFORM_WINDOWS
+		ShellExecuteA(nullptr, "open", outDir.string().c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#endif
 	}
 
 	void ImGuiEditorSystem::RenderBuildPanel() {
@@ -1171,6 +1585,63 @@ namespace Bolt {
 			ImGui::Unindent(8);
 		}
 
+		if (ImGui::CollapsingHeader("App Icon", ImGuiTreeNodeFlags_DefaultOpen)) {
+			ImGui::Indent(8);
+
+			if (!project->AppIconPath.empty()) {
+				TextureHandle iconHandle = TextureManager::LoadTexture(project->AppIconPath);
+				Texture2D* iconTex = TextureManager::GetTexture(iconHandle);
+				if (iconTex && iconTex->IsValid()) {
+					ImGui::Image(
+						static_cast<ImTextureID>(static_cast<intptr_t>(iconTex->GetHandle())),
+						ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+				} else {
+					ImGui::TextDisabled("Failed to load: %s", project->AppIconPath.c_str());
+				}
+
+				ImGui::SameLine();
+				if (ImGui::Button("Clear")) {
+					project->AppIconPath.clear();
+					changed = true;
+					Application::GetInstance()->GetWindow()->SetWindowIconFromResource();
+				}
+			} else {
+				ImGui::TextDisabled("No icon set");
+				ImGui::TextDisabled("Drag an image from the Asset Browser");
+			}
+
+			// Drop target for asset browser images
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
+					std::string droppedPath(static_cast<const char*>(payload->Data));
+					std::string ext = std::filesystem::path(droppedPath).extension().string();
+					std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+					if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp") {
+						// Store relative path from Assets directory
+						std::filesystem::path absPath(droppedPath);
+						std::filesystem::path assetsDir(project->AssetsDirectory);
+						if (absPath.string().find(assetsDir.string()) == 0) {
+							project->AppIconPath = std::filesystem::relative(absPath, assetsDir.parent_path()).string();
+						} else {
+							project->AppIconPath = absPath.filename().string();
+						}
+						changed = true;
+
+						// Apply icon to editor window immediately
+						TextureHandle h = TextureManager::LoadTexture(project->AppIconPath);
+						Texture2D* tex = TextureManager::GetTexture(h);
+						if (tex && tex->IsValid()) {
+							Application::GetInstance()->GetWindow()->SetWindowIcon(tex);
+						}
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::Unindent(8);
+		}
+
 		if (changed) project->Save();
 
 		ImGui::End();
@@ -1211,8 +1682,10 @@ namespace Bolt {
 				sm.RegisterScene(sceneName);
 			if (!sm.IsSceneLoaded(sceneName)) {
 				auto weakScene = sm.LoadSceneAdditive(sceneName);
-				if (auto loaded = weakScene.lock())
+				if (auto loaded = weakScene.lock()) {
 					SceneSerializer::LoadFromFile(*loaded, dropPath);
+					m_EntityOrder.clear();
+				}
 			}
 		}
 
@@ -1224,6 +1697,7 @@ namespace Bolt {
 			Scene* active = SceneManager::Get().GetActiveScene();
 			if (active) {
 				SceneSerializer::LoadFromFile(*active, switchPath);
+				m_EntityOrder.clear();
 				BoltProject* project = ProjectManager::GetCurrentProject();
 				if (project) {
 					project->LastOpenedScene = std::filesystem::path(switchPath).stem().string();
@@ -1258,10 +1732,56 @@ namespace Bolt {
 			}
 		}
 
+		// Intercept quit request: exit playmode first, then check for unsaved changes
+		if (Application::IsQuitRequested()) {
+			// Exit playmode and restore scene first
+			if (Application::GetIsPlaying()) {
+				uint64_t selectedUUID = 0;
+				{
+					Scene* active = SceneManager::Get().GetActiveScene();
+					if (active && m_SelectedEntity != entt::null && active->IsValid(m_SelectedEntity)
+						&& active->HasComponent<UUIDComponent>(m_SelectedEntity)) {
+						selectedUUID = static_cast<uint64_t>(active->GetComponent<UUIDComponent>(m_SelectedEntity).Id);
+					}
+				}
+
+				Application::SetPlaymodePaused(false);
+				Application::SetIsPlaying(false);
+				if (!m_PlayModeScenePath.empty()) {
+					Scene* active = SceneManager::Get().GetActiveScene();
+					if (active) {
+						SceneSerializer::LoadFromFile(*active, m_PlayModeScenePath);
+						m_EntityOrder.clear();
+					}
+					m_PlayModeScenePath.clear();
+				}
+
+				m_SelectedEntity = entt::null;
+				m_RenamingEntity = entt::null;
+				if (selectedUUID != 0) {
+					Scene* active = SceneManager::Get().GetActiveScene();
+					if (active) {
+						auto view = active->GetRegistry().view<UUIDComponent>();
+						for (auto [ent, uuid] : view.each()) {
+							if (static_cast<uint64_t>(uuid.Id) == selectedUUID) { m_SelectedEntity = ent; break; }
+						}
+					}
+				}
+			}
+
+			Scene* active = SceneManager::Get().GetActiveScene();
+			if (active && active->IsDirty()) {
+				m_ShowQuitSaveDialog = true;
+				Application::CancelQuit();
+			} else {
+				Application::ConfirmQuit();
+			}
+		}
+
 		RenderDockspaceRoot();
 		RenderMainMenu(scene);
 
-		// Save confirmation modal dialog
+		// Save confirmation modal dialog (scene switch)
 		if (m_ShowSaveConfirmDialog) {
 			ImGui::OpenPopup("Save Changes?");
 			m_ShowSaveConfirmDialog = false;
@@ -1296,6 +1816,49 @@ namespace Bolt {
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::EndPopup();
+		}
+
+		// Quit confirmation modal dialog
+		if (m_ShowQuitSaveDialog) {
+			ImGui::OpenPopup("Save Before Quit?");
+			m_ShowQuitSaveDialog = false;
+		}
+		if (ImGui::BeginPopupModal("Save Before Quit?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+			Scene* active = SceneManager::Get().GetActiveScene();
+			std::string activeName = active ? active->GetName() : "Scene";
+			ImGui::Text("Save changes to %s before closing?", activeName.c_str());
+			ImGui::Spacing();
+
+			if (ImGui::Button("Save", ImVec2(100, 0))) {
+				if (active) {
+					BoltProject* project = ProjectManager::GetCurrentProject();
+					if (project) {
+						std::string savePath = project->GetSceneFilePath(active->GetName());
+						SceneSerializer::SaveToFile(*active, savePath);
+						project->LastOpenedScene = active->GetName();
+						project->Save();
+					}
+				}
+				ImGui::CloseCurrentPopup();
+				Application::ConfirmQuit();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Don't Save", ImVec2(100, 0))) {
+				ImGui::CloseCurrentPopup();
+				Application::ConfirmQuit();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel", ImVec2(100, 0))) {
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+
+		// Suppress script recompilation while a script is being created/renamed
+		if (scene.HasSystem<ScriptSystem>()) {
+			auto* scriptSys = scene.GetSystem<ScriptSystem>();
+				if (scriptSys)
+					scriptSys->SetRecompileSuppressed(m_AssetBrowser.IsCreatingScript());
 		}
 
 		RenderToolbar();

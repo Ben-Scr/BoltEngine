@@ -10,6 +10,10 @@
 #include "Components/Physics/Rigidbody2DComponent.hpp"
 #include "Components/Physics/BoxCollider2DComponent.hpp"
 #include "Components/Audio/AudioSourceComponent.hpp"
+#include "Components/General/RectTransformComponent.hpp"
+#include "Components/Graphics/ImageComponent.hpp"
+#include "Components/Graphics/ParticleSystem2DComponent.hpp"
+#include "Components/General/UUIDComponent.hpp"
 #include "Components/Tags.hpp"
 #include "Scripting/ScriptComponent.hpp"
 #include "Components/Physics/BoltBody2DComponent.hpp"
@@ -113,6 +117,17 @@ namespace Bolt {
 		return static_cast<int>(ReadFloat(json, key, static_cast<float>(def)));
 	}
 
+	static uint64_t ReadUint64(const std::string& json, const std::string& key, uint64_t def = 0) {
+		std::string search = "\"" + key + "\"";
+		auto pos = json.find(search);
+		if (pos == std::string::npos) return def;
+		pos = json.find(':', pos + search.size());
+		if (pos == std::string::npos) return def;
+		pos++;
+		while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
+		try { return std::stoull(json.substr(pos)); } catch (...) { return def; }
+	}
+
 	static bool ReadBool(const std::string& json, const std::string& key, bool def = false) {
 		std::string search = "\"" + key + "\"";
 		auto pos = json.find(search);
@@ -178,9 +193,16 @@ namespace Bolt {
 
 			auto& registry = scene.GetRegistry();
 			auto view = registry.view<entt::entity>();
+
+			// Collect entities into a stable vector so the file order
+			// matches the view order. On reload the same view order is
+			// reproduced because CreateEntity appends to the registry
+			// in file order, and the view iterates in that same order.
+			std::vector<entt::entity> entities(view.begin(), view.end());
+
 			bool first = true;
 
-			for (auto entity : view) {
+			for (auto entity : entities) {
 				if (!first) ss << ",\n";
 				first = false;
 
@@ -190,6 +212,11 @@ namespace Bolt {
 
 				ss << "    {\n";
 				ss << "      \"name\": \"" << Escape(name) << "\"";
+
+				if (registry.all_of<UUIDComponent>(entity)) {
+					uint64_t uuid = static_cast<uint64_t>(registry.get<UUIDComponent>(entity).Id);
+					ss << ",\n      \"uuid\": " << uuid;
+				}
 
 				if (registry.all_of<Transform2DComponent>(entity)) {
 					auto& t = registry.get<Transform2DComponent>(entity);
@@ -293,6 +320,76 @@ namespace Bolt {
 				if (registry.all_of<BoltCircleCollider2DComponent>(entity)) {
 					auto& c = registry.get<BoltCircleCollider2DComponent>(entity);
 					ss << ",\n      \"BoltCircleCollider2D\": { \"radius\": " << c.Radius << " }";
+				}
+
+				if (registry.all_of<ParticleSystem2DComponent>(entity)) {
+					auto& ps = registry.get<ParticleSystem2DComponent>(entity);
+					int shapeType = std::holds_alternative<ParticleSystem2DComponent::CircleParams>(ps.Shape) ? 0 : 1;
+					ss << ",\n      \"ParticleSystem2D\": {"
+					   << " \"playOnAwake\": " << (ps.PlayOnAwake ? "true" : "false")
+					   << ", \"lifetime\": " << ps.ParticleSettings.LifeTime
+					   << ", \"speed\": " << ps.ParticleSettings.Speed
+					   << ", \"scale\": " << ps.ParticleSettings.Scale
+					   << ", \"gravityX\": " << ps.ParticleSettings.Gravity.x
+					   << ", \"gravityY\": " << ps.ParticleSettings.Gravity.y
+					   << ", \"useGravity\": " << (ps.ParticleSettings.UseGravity ? "true" : "false")
+					   << ", \"useRandomColors\": " << (ps.ParticleSettings.UseRandomColors ? "true" : "false")
+					   << ", \"moveDirectionX\": " << ps.ParticleSettings.MoveDirection.x
+					   << ", \"moveDirectionY\": " << ps.ParticleSettings.MoveDirection.y
+					   << ", \"emitOverTime\": " << ps.EmissionSettings.EmitOverTime
+					   << ", \"rateOverDistance\": " << ps.EmissionSettings.RateOverDistance
+					   << ", \"emissionSpace\": " << static_cast<int>(ps.EmissionSettings.EmissionSpace)
+					   << ", \"shapeType\": " << shapeType;
+					if (shapeType == 0) {
+						auto& circle = std::get<ParticleSystem2DComponent::CircleParams>(ps.Shape);
+						ss << ", \"radius\": " << circle.Radius
+						   << ", \"isOnCircle\": " << (circle.IsOnCircle ? "true" : "false");
+					} else {
+						auto& square = std::get<ParticleSystem2DComponent::SquareParams>(ps.Shape);
+						ss << ", \"halfExtendsX\": " << square.HalfExtends.x
+						   << ", \"halfExtendsY\": " << square.HalfExtends.y;
+					}
+					ss << ", \"maxParticles\": " << ps.RenderingSettings.MaxParticles
+					   << ", \"colorR\": " << ps.RenderingSettings.Color.r
+					   << ", \"colorG\": " << ps.RenderingSettings.Color.g
+					   << ", \"colorB\": " << ps.RenderingSettings.Color.b
+					   << ", \"colorA\": " << ps.RenderingSettings.Color.a
+					   << ", \"sortOrder\": " << ps.RenderingSettings.SortingOrder
+					   << ", \"sortLayer\": " << static_cast<int>(ps.RenderingSettings.SortingLayer);
+					std::string psTexName = TextureManager::GetTextureName(ps.GetTextureHandle());
+					if (!psTexName.empty()) {
+						ss << ", \"texture\": \"" << Escape(psTexName) << "\"";
+					}
+					ss << " }";
+				}
+
+				if (registry.all_of<RectTransformComponent>(entity)) {
+					auto& rt = registry.get<RectTransformComponent>(entity);
+					ss << ",\n      \"RectTransform\": {"
+					   << " \"posX\": " << rt.Position.x
+					   << ", \"posY\": " << rt.Position.y
+					   << ", \"pivotX\": " << rt.Pivot.x
+					   << ", \"pivotY\": " << rt.Pivot.y
+					   << ", \"width\": " << rt.Width
+					   << ", \"height\": " << rt.Height
+					   << ", \"rotation\": " << rt.Rotation
+					   << ", \"scaleX\": " << rt.Scale.x
+					   << ", \"scaleY\": " << rt.Scale.y
+					   << " }";
+				}
+
+				if (registry.all_of<ImageComponent>(entity)) {
+					auto& img = registry.get<ImageComponent>(entity);
+					ss << ",\n      \"Image\": {"
+					   << " \"r\": " << img.Color.r
+					   << ", \"g\": " << img.Color.g
+					   << ", \"b\": " << img.Color.b
+					   << ", \"a\": " << img.Color.a;
+					std::string imgTexName = TextureManager::GetTextureName(img.TextureHandle);
+					if (!imgTexName.empty()) {
+						ss << ", \"texture\": \"" << Escape(imgTexName) << "\"";
+					}
+					ss << " }";
 				}
 
 				if (registry.all_of<ScriptComponent>(entity)) {
@@ -405,6 +502,12 @@ namespace Bolt {
 	void SceneSerializer::DeserializeEntity(Scene& scene, const std::string& entityJson) {
 		std::string name = ReadString(entityJson, "name", "Entity");
 		EntityHandle entity = scene.CreateEntity(name).GetHandle();
+
+		// UUID (overwrite the auto-generated one if saved value exists)
+		uint64_t savedUUID = ReadUint64(entityJson, "uuid", 0);
+		if (savedUUID != 0 && scene.HasComponent<UUIDComponent>(entity)) {
+			scene.GetComponent<UUIDComponent>(entity).Id = UUID(savedUUID);
+		}
 
 		// Transform2D (always exists from CreateEntity, overwrite with saved values)
 		std::string t2dBlock = ReadBlock(entityJson, "Transform2D");
@@ -522,12 +625,341 @@ namespace Bolt {
 				c.m_Collider->SetRadius(c.Radius);
 		}
 
+		// ParticleSystem2D
+		std::string psBlock = ReadBlock(entityJson, "ParticleSystem2D");
+		if (!psBlock.empty()) {
+			auto& ps = scene.AddComponent<ParticleSystem2DComponent>(entity);
+			ps.PlayOnAwake = ReadBool(psBlock, "playOnAwake", true);
+			ps.ParticleSettings.LifeTime = ReadFloat(psBlock, "lifetime", 1.0f);
+			ps.ParticleSettings.Speed = ReadFloat(psBlock, "speed", 5.0f);
+			ps.ParticleSettings.Scale = ReadFloat(psBlock, "scale", 1.0f);
+			ps.ParticleSettings.Gravity.x = ReadFloat(psBlock, "gravityX", 0.0f);
+			ps.ParticleSettings.Gravity.y = ReadFloat(psBlock, "gravityY", 0.0f);
+			ps.ParticleSettings.UseGravity = ReadBool(psBlock, "useGravity", false);
+			ps.ParticleSettings.UseRandomColors = ReadBool(psBlock, "useRandomColors", false);
+			ps.ParticleSettings.MoveDirection.x = ReadFloat(psBlock, "moveDirectionX", 0.0f);
+			ps.ParticleSettings.MoveDirection.y = ReadFloat(psBlock, "moveDirectionY", 0.0f);
+			ps.EmissionSettings.EmitOverTime = static_cast<uint16_t>(ReadInt(psBlock, "emitOverTime", 10));
+			ps.EmissionSettings.RateOverDistance = static_cast<uint16_t>(ReadInt(psBlock, "rateOverDistance", 0));
+			ps.EmissionSettings.EmissionSpace = static_cast<ParticleSystem2DComponent::Space>(ReadInt(psBlock, "emissionSpace", 1));
+			int shapeType = ReadInt(psBlock, "shapeType", 0);
+			if (shapeType == 0) {
+				ParticleSystem2DComponent::CircleParams circle;
+				circle.Radius = ReadFloat(psBlock, "radius", 1.0f);
+				circle.IsOnCircle = ReadBool(psBlock, "isOnCircle", false);
+				ps.Shape = circle;
+			} else {
+				ParticleSystem2DComponent::SquareParams square;
+				square.HalfExtends.x = ReadFloat(psBlock, "halfExtendsX", 1.0f);
+				square.HalfExtends.y = ReadFloat(psBlock, "halfExtendsY", 1.0f);
+				ps.Shape = square;
+			}
+			ps.RenderingSettings.MaxParticles = static_cast<uint32_t>(ReadInt(psBlock, "maxParticles", 1000));
+			ps.RenderingSettings.Color.r = ReadFloat(psBlock, "colorR", 1.0f);
+			ps.RenderingSettings.Color.g = ReadFloat(psBlock, "colorG", 1.0f);
+			ps.RenderingSettings.Color.b = ReadFloat(psBlock, "colorB", 1.0f);
+			ps.RenderingSettings.Color.a = ReadFloat(psBlock, "colorA", 1.0f);
+			ps.RenderingSettings.SortingOrder = static_cast<short>(ReadInt(psBlock, "sortOrder", 0));
+			ps.RenderingSettings.SortingLayer = static_cast<uint8_t>(ReadInt(psBlock, "sortLayer", 0));
+			std::string psTexPath = ReadString(psBlock, "texture");
+			if (!psTexPath.empty()) {
+				ps.SetTexture(TextureManager::LoadTexture(psTexPath));
+			}
+		}
+
+		// RectTransform
+		std::string rtBlock = ReadBlock(entityJson, "RectTransform");
+		if (!rtBlock.empty()) {
+			auto& rt = scene.AddComponent<RectTransformComponent>(entity);
+			rt.Position.x = ReadFloat(rtBlock, "posX", 0.0f);
+			rt.Position.y = ReadFloat(rtBlock, "posY", 0.0f);
+			rt.Pivot.x = ReadFloat(rtBlock, "pivotX", 0.0f);
+			rt.Pivot.y = ReadFloat(rtBlock, "pivotY", 0.0f);
+			rt.Width = ReadFloat(rtBlock, "width", 100.0f);
+			rt.Height = ReadFloat(rtBlock, "height", 100.0f);
+			rt.Rotation = ReadFloat(rtBlock, "rotation", 0.0f);
+			rt.Scale.x = ReadFloat(rtBlock, "scaleX", 1.0f);
+			rt.Scale.y = ReadFloat(rtBlock, "scaleY", 1.0f);
+		}
+
+		// Image
+		std::string imgBlock = ReadBlock(entityJson, "Image");
+		if (!imgBlock.empty()) {
+			auto& img = scene.AddComponent<ImageComponent>(entity);
+			img.Color.r = ReadFloat(imgBlock, "r", 1.0f);
+			img.Color.g = ReadFloat(imgBlock, "g", 1.0f);
+			img.Color.b = ReadFloat(imgBlock, "b", 1.0f);
+			img.Color.a = ReadFloat(imgBlock, "a", 1.0f);
+			std::string imgTexPath = ReadString(imgBlock, "texture");
+			if (!imgTexPath.empty()) {
+				img.TextureHandle = TextureManager::LoadTexture(imgTexPath);
+			}
+		}
+
 		// Scripts
 		auto scripts = ReadStringArray(entityJson, "Scripts");
 		if (!scripts.empty()) {
 			auto& sc = scene.AddComponent<ScriptComponent>(entity);
 			for (auto& className : scripts)
 				sc.AddScript(className);
+		}
+	}
+
+	// ── Prefab: SaveEntityToFile ─────────────────────────────────────
+
+	bool SceneSerializer::SaveEntityToFile(Scene& scene, EntityHandle entity, const std::string& path) {
+		try {
+			auto parentDir = std::filesystem::path(path).parent_path();
+			if (!std::filesystem::exists(parentDir))
+				std::filesystem::create_directories(parentDir);
+
+			auto& registry = scene.GetRegistry();
+
+			std::string name = "Entity";
+			if (registry.all_of<NameComponent>(entity))
+				name = registry.get<NameComponent>(entity).Name;
+
+			std::stringstream ss;
+			ss << "{\n  \"prefab\": {\n";
+			ss << "      \"name\": \"" << Escape(name) << "\"";
+
+			if (registry.all_of<UUIDComponent>(entity)) {
+				uint64_t uuid = static_cast<uint64_t>(registry.get<UUIDComponent>(entity).Id);
+				ss << ",\n      \"uuid\": " << uuid;
+			}
+
+			if (registry.all_of<Transform2DComponent>(entity)) {
+				auto& t = registry.get<Transform2DComponent>(entity);
+				ss << ",\n      \"Transform2D\": {"
+				   << " \"posX\": " << t.Position.x
+				   << ", \"posY\": " << t.Position.y
+				   << ", \"rotation\": " << t.Rotation
+				   << ", \"scaleX\": " << t.Scale.x
+				   << ", \"scaleY\": " << t.Scale.y << " }";
+			}
+
+			if (registry.all_of<SpriteRendererComponent>(entity)) {
+				auto& s = registry.get<SpriteRendererComponent>(entity);
+				std::string texName = TextureManager::GetTextureName(s.TextureHandle);
+				ss << ",\n      \"SpriteRenderer\": {"
+				   << " \"r\": " << s.Color.r
+				   << ", \"g\": " << s.Color.g
+				   << ", \"b\": " << s.Color.b
+				   << ", \"a\": " << s.Color.a
+				   << ", \"sortOrder\": " << s.SortingOrder
+				   << ", \"sortLayer\": " << static_cast<int>(s.SortingLayer);
+				if (!texName.empty()) {
+				   ss << ", \"texture\": \"" << Escape(texName) << "\"";
+				   Texture2D* tex = TextureManager::GetTexture(s.TextureHandle);
+				   if (tex) {
+				       ss << ", \"filter\": " << static_cast<int>(tex->GetFilter())
+				          << ", \"wrapU\": " << static_cast<int>(tex->GetWrapU())
+				          << ", \"wrapV\": " << static_cast<int>(tex->GetWrapV());
+				   }
+				}
+				ss << " }";
+			}
+
+			if (registry.all_of<Rigidbody2DComponent>(entity)) {
+				auto& rb = registry.get<Rigidbody2DComponent>(entity);
+				ss << ",\n      \"Rigidbody2D\": {"
+				   << " \"bodyType\": " << static_cast<int>(rb.GetBodyType())
+				   << ", \"gravityScale\": " << rb.GetGravityScale()
+				   << ", \"mass\": " << rb.GetMass()
+				   << " }";
+			}
+
+			if (registry.all_of<BoxCollider2DComponent>(entity)) {
+				auto& bc = registry.get<BoxCollider2DComponent>(entity);
+				Vec2 scale = bc.GetScale();
+				Vec2 center = bc.GetCenter();
+				ss << ",\n      \"BoxCollider2D\": {"
+				   << " \"scaleX\": " << scale.x
+				   << ", \"scaleY\": " << scale.y
+				   << ", \"centerX\": " << center.x
+				   << ", \"centerY\": " << center.y
+				   << " }";
+			}
+
+			if (registry.all_of<AudioSourceComponent>(entity)) {
+				auto& audio = registry.get<AudioSourceComponent>(entity);
+				ss << ",\n      \"AudioSource\": {"
+				   << " \"volume\": " << audio.GetVolume()
+				   << ", \"pitch\": " << audio.GetPitch()
+				   << ", \"loop\": " << (audio.IsLooping() ? "true" : "false")
+				   << " }";
+			}
+
+			if (registry.all_of<StaticTag>(entity))
+				ss << ",\n      \"static\": true";
+			if (registry.all_of<DisabledTag>(entity))
+				ss << ",\n      \"disabled\": true";
+			if (registry.all_of<DeadlyTag>(entity))
+				ss << ",\n      \"deadly\": true";
+
+			if (registry.all_of<Camera2DComponent>(entity)) {
+				auto& c = registry.get<Camera2DComponent>(entity);
+				ss << ",\n      \"Camera2D\": {"
+				   << " \"orthoSize\": " << c.GetOrthographicSize()
+				   << ", \"zoom\": " << c.GetZoom()
+				   << ", \"clearR\": " << c.GetClearColor().r
+				   << ", \"clearG\": " << c.GetClearColor().g
+				   << ", \"clearB\": " << c.GetClearColor().b
+				   << ", \"clearA\": " << c.GetClearColor().a
+				   << " }";
+			}
+
+			if (registry.all_of<BoltBody2DComponent>(entity)) {
+				auto& b = registry.get<BoltBody2DComponent>(entity);
+				ss << ",\n      \"BoltBody2D\": {"
+				   << " \"type\": " << static_cast<int>(b.Type)
+				   << ", \"mass\": " << b.Mass
+				   << ", \"useGravity\": " << (b.UseGravity ? "true" : "false")
+				   << ", \"boundaryCheck\": " << (b.BoundaryCheck ? "true" : "false")
+				   << " }";
+			}
+			if (registry.all_of<BoltBoxCollider2DComponent>(entity)) {
+				auto& c = registry.get<BoltBoxCollider2DComponent>(entity);
+				ss << ",\n      \"BoltBoxCollider2D\": {"
+				   << " \"halfX\": " << c.HalfExtents.x
+				   << ", \"halfY\": " << c.HalfExtents.y
+				   << " }";
+			}
+			if (registry.all_of<BoltCircleCollider2DComponent>(entity)) {
+				auto& c = registry.get<BoltCircleCollider2DComponent>(entity);
+				ss << ",\n      \"BoltCircleCollider2D\": { \"radius\": " << c.Radius << " }";
+			}
+
+			if (registry.all_of<ParticleSystem2DComponent>(entity)) {
+				auto& ps = registry.get<ParticleSystem2DComponent>(entity);
+				int shapeType = std::holds_alternative<ParticleSystem2DComponent::CircleParams>(ps.Shape) ? 0 : 1;
+				ss << ",\n      \"ParticleSystem2D\": {"
+				   << " \"playOnAwake\": " << (ps.PlayOnAwake ? "true" : "false")
+				   << ", \"lifetime\": " << ps.ParticleSettings.LifeTime
+				   << ", \"speed\": " << ps.ParticleSettings.Speed
+				   << ", \"scale\": " << ps.ParticleSettings.Scale
+				   << ", \"gravityX\": " << ps.ParticleSettings.Gravity.x
+				   << ", \"gravityY\": " << ps.ParticleSettings.Gravity.y
+				   << ", \"useGravity\": " << (ps.ParticleSettings.UseGravity ? "true" : "false")
+				   << ", \"useRandomColors\": " << (ps.ParticleSettings.UseRandomColors ? "true" : "false")
+				   << ", \"moveDirectionX\": " << ps.ParticleSettings.MoveDirection.x
+				   << ", \"moveDirectionY\": " << ps.ParticleSettings.MoveDirection.y
+				   << ", \"emitOverTime\": " << ps.EmissionSettings.EmitOverTime
+				   << ", \"rateOverDistance\": " << ps.EmissionSettings.RateOverDistance
+				   << ", \"emissionSpace\": " << static_cast<int>(ps.EmissionSettings.EmissionSpace)
+				   << ", \"shapeType\": " << shapeType;
+				if (shapeType == 0) {
+					auto& circle = std::get<ParticleSystem2DComponent::CircleParams>(ps.Shape);
+					ss << ", \"radius\": " << circle.Radius
+					   << ", \"isOnCircle\": " << (circle.IsOnCircle ? "true" : "false");
+				} else {
+					auto& square = std::get<ParticleSystem2DComponent::SquareParams>(ps.Shape);
+					ss << ", \"halfExtendsX\": " << square.HalfExtends.x
+					   << ", \"halfExtendsY\": " << square.HalfExtends.y;
+				}
+				ss << ", \"maxParticles\": " << ps.RenderingSettings.MaxParticles
+				   << ", \"colorR\": " << ps.RenderingSettings.Color.r
+				   << ", \"colorG\": " << ps.RenderingSettings.Color.g
+				   << ", \"colorB\": " << ps.RenderingSettings.Color.b
+				   << ", \"colorA\": " << ps.RenderingSettings.Color.a
+				   << ", \"sortOrder\": " << ps.RenderingSettings.SortingOrder
+				   << ", \"sortLayer\": " << static_cast<int>(ps.RenderingSettings.SortingLayer);
+				std::string psTexName = TextureManager::GetTextureName(ps.GetTextureHandle());
+				if (!psTexName.empty()) {
+					ss << ", \"texture\": \"" << Escape(psTexName) << "\"";
+				}
+				ss << " }";
+			}
+
+			if (registry.all_of<RectTransformComponent>(entity)) {
+				auto& rt = registry.get<RectTransformComponent>(entity);
+				ss << ",\n      \"RectTransform\": {"
+				   << " \"posX\": " << rt.Position.x
+				   << ", \"posY\": " << rt.Position.y
+				   << ", \"pivotX\": " << rt.Pivot.x
+				   << ", \"pivotY\": " << rt.Pivot.y
+				   << ", \"width\": " << rt.Width
+				   << ", \"height\": " << rt.Height
+				   << ", \"rotation\": " << rt.Rotation
+				   << ", \"scaleX\": " << rt.Scale.x
+				   << ", \"scaleY\": " << rt.Scale.y
+				   << " }";
+			}
+
+			if (registry.all_of<ImageComponent>(entity)) {
+				auto& img = registry.get<ImageComponent>(entity);
+				ss << ",\n      \"Image\": {"
+				   << " \"r\": " << img.Color.r
+				   << ", \"g\": " << img.Color.g
+				   << ", \"b\": " << img.Color.b
+				   << ", \"a\": " << img.Color.a;
+				std::string imgTexName = TextureManager::GetTextureName(img.TextureHandle);
+				if (!imgTexName.empty()) {
+					ss << ", \"texture\": \"" << Escape(imgTexName) << "\"";
+				}
+				ss << " }";
+			}
+
+			if (registry.all_of<ScriptComponent>(entity)) {
+				auto& sc = registry.get<ScriptComponent>(entity);
+				if (!sc.Scripts.empty()) {
+					ss << ",\n      \"Scripts\": [";
+					for (size_t i = 0; i < sc.Scripts.size(); i++) {
+						if (i > 0) ss << ", ";
+						ss << "\"" << Escape(sc.Scripts[i].GetClassName()) << "\"";
+					}
+					ss << "]";
+				}
+			}
+
+			ss << "\n  }\n}\n";
+			File::WriteAllText(path, ss.str());
+			BT_CORE_INFO_TAG("SceneSerializer", "Saved prefab: {}", name);
+			return true;
+		}
+		catch (const std::exception& e) {
+			BT_CORE_ERROR_TAG("SceneSerializer", "SaveEntityToFile failed: {}", e.what());
+			return false;
+		}
+	}
+
+	// ── Prefab: LoadEntityFromFile ───────────────────────────────────
+
+	EntityHandle SceneSerializer::LoadEntityFromFile(Scene& scene, const std::string& path) {
+		try {
+			if (!File::Exists(path)) {
+				BT_CORE_WARN_TAG("SceneSerializer", "Prefab file not found: {}", path);
+				return entt::null;
+			}
+
+			std::ifstream in(path);
+			std::string json((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+			in.close();
+
+			std::string entityBlock = ReadBlock(json, "prefab");
+			if (entityBlock.empty()) {
+				BT_CORE_WARN_TAG("SceneSerializer", "No prefab block in file: {}", path);
+				return entt::null;
+			}
+
+			// Remember entity count before deserialization
+			auto countBefore = scene.GetRegistry().view<entt::entity>().size();
+
+			DeserializeEntity(scene, entityBlock);
+
+			// Find the newly created entity (last in registry)
+			auto view = scene.GetRegistry().view<entt::entity>();
+			if (view.size() > countBefore) {
+				// The newest entity is the one just created
+				auto it = view.begin();
+				return *it; // entt views iterate newest-first
+			}
+
+			return entt::null;
+		}
+		catch (const std::exception& e) {
+			BT_CORE_ERROR_TAG("SceneSerializer", "LoadEntityFromFile failed: {}", e.what());
+			return entt::null;
 		}
 	}
 

@@ -10,7 +10,10 @@ namespace Bolt {
 		template<typename TComponent, typename... Args>
 			requires (!std::is_empty_v<TComponent>)
 		static TComponent& AddComponent(entt::registry& registry, EntityHandle entity, Args&&... args) {
-			BT_ASSERT(!registry.all_of<TComponent>(entity), BoltErrorCode::Undefined, "Component '" + std::string(typeid(TComponent).name()) + "' already exists on entity.");
+			if (registry.all_of<TComponent>(entity)) {
+				BT_CORE_WARN_TAG("ComponentUtils", "Component '{}' already exists on entity, returning existing.", typeid(TComponent).name());
+				return registry.get<TComponent>(entity);
+			}
 
 			if constexpr (std::is_constructible_v<TComponent, EntityHandle, Args...>) {
 				return registry.emplace<TComponent>(
@@ -30,7 +33,10 @@ namespace Bolt {
 		template<typename TTag>
 			requires std::is_empty_v<TTag>
 		static void AddComponent(entt::registry& registry, EntityHandle entity) {
-			BT_ASSERT(!registry.all_of<TTag>(entity), BoltErrorCode::Undefined, "Component of type '" + std::string(typeid(TTag).name()) + "' already exists on entity.");
+			if (registry.all_of<TTag>(entity)) {
+				BT_CORE_WARN_TAG("ComponentUtils", "Tag component '{}' already exists on entity, skipping.", typeid(TTag).name());
+				return;
+			}
 			registry.emplace<TTag>(entity);
 		}
 
@@ -75,7 +81,10 @@ namespace Bolt {
 
 		template<typename TComponent>
 		static void RemoveComponent(entt::registry& registry, EntityHandle entity) {
-			BT_ASSERT(registry.all_of<TComponent>(entity), BoltErrorCode::Undefined, "Component of type '" + std::string(typeid(TComponent).name()) + "' not found on entity.");
+			if (!registry.all_of<TComponent>(entity)) {
+				BT_CORE_WARN_TAG("ComponentUtils", "Cannot remove component '{}': not found on entity.", typeid(TComponent).name());
+				return;
+			}
 			registry.remove<TComponent>(entity);
 		}
 	};

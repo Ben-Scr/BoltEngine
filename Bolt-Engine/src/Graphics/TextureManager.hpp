@@ -78,11 +78,9 @@ namespace Bolt {
                 std::string rel = tryStrip(s_RootPath);
                 if (!rel.empty()) return rel;
 
-                // Try alternative roots (Assets/Textures, BoltAssets/Textures)
+                // Try user Assets/Textures as fallback
                 std::string base = Path::ExecutableDir();
                 rel = tryStrip(Path::Combine(base, "Assets", "Textures"));
-                if (!rel.empty()) return rel;
-                rel = tryStrip(Path::Combine(base, "BoltAssets", "Textures"));
                 if (!rel.empty()) return rel;
 
                 return fullName;

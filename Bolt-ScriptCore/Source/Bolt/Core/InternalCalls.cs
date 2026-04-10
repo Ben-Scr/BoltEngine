@@ -13,6 +13,11 @@ namespace Bolt
         internal static float Application_GetElapsedTime() => NativeCallbacks.Bindings.Application_GetElapsedTime();
         internal static int Application_GetScreenWidth() => NativeCallbacks.Bindings.Application_GetScreenWidth();
         internal static int Application_GetScreenHeight() => NativeCallbacks.Bindings.Application_GetScreenHeight();
+        internal static float Application_GetTargetFrameRate() => NativeCallbacks.Bindings.Application_GetTargetFrameRate();
+        internal static void Application_SetTargetFrameRate(float fps) => NativeCallbacks.Bindings.Application_SetTargetFrameRate(fps);
+        internal static float Application_GetFixedDeltaTime() => NativeCallbacks.Bindings.Application_GetFixedDeltaTime();
+        internal static float Application_GetUnscaledDeltaTime() => NativeCallbacks.Bindings.Application_GetUnscaledDeltaTime();
+        internal static float Application_GetFixedUnscaledDeltaTime() => NativeCallbacks.Bindings.Application_GetFixedUnscaledDeltaTime();
 
         // ── Log ─────────────────────────────────────────────────────────
 
@@ -43,6 +48,54 @@ namespace Bolt
             float ox, oy;
             NativeCallbacks.Bindings.Input_GetMousePosition(&ox, &oy);
             x = ox; y = oy;
+        }
+
+        internal static void Input_GetAxis(out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.Input_GetAxis(&ox, &oy); x = ox; y = oy; }
+        internal static void Input_GetMouseDelta(out float x, out float y) { float ox, oy; NativeCallbacks.Bindings.Input_GetMouseDelta(&ox, &oy); x = ox; y = oy; }
+        internal static float Input_GetScrollWheelDelta() => NativeCallbacks.Bindings.Input_GetScrollWheelDelta();
+
+        // ── Scene ───────────────────────────────────────────────────
+
+        internal static string Scene_GetActiveSceneName()
+        {
+            byte* ptr = NativeCallbacks.Bindings.Scene_GetActiveSceneName();
+            return Marshal.PtrToStringUTF8((IntPtr)ptr) ?? "";
+        }
+        internal static int Scene_GetEntityCount() => NativeCallbacks.Bindings.Scene_GetEntityCount();
+
+        internal static bool Scene_LoadAdditive(string sceneName)
+        {
+            int len = Encoding.UTF8.GetByteCount(sceneName);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(sceneName, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Scene_LoadAdditive(ptr) != 0;
+        }
+
+        internal static void Scene_Unload(string sceneName)
+        {
+            int len = Encoding.UTF8.GetByteCount(sceneName);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(sceneName, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) NativeCallbacks.Bindings.Scene_Unload(ptr);
+        }
+
+        internal static bool Scene_SetActive(string sceneName)
+        {
+            int len = Encoding.UTF8.GetByteCount(sceneName);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(sceneName, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Scene_SetActive(ptr) != 0;
+        }
+
+        internal static int Scene_GetLoadedCount() => NativeCallbacks.Bindings.Scene_GetLoadedCount();
+
+        internal static string Scene_GetLoadedSceneNameAt(int index)
+        {
+            byte* ptr = NativeCallbacks.Bindings.Scene_GetLoadedSceneNameAt(index);
+            return Marshal.PtrToStringUTF8((IntPtr)ptr) ?? "";
         }
 
         // ── Entity ──────────────────────────────────────────────────────
@@ -196,6 +249,41 @@ namespace Bolt
         internal static float BoltCircleCollider2D_GetRadius(ulong id) => NativeCallbacks.Bindings.BoltCircleCollider2D_GetRadius(id);
         internal static void BoltCircleCollider2D_SetRadius(ulong id, float radius) => NativeCallbacks.Bindings.BoltCircleCollider2D_SetRadius(id, radius);
 
+        // ── Scene Query ─────────────────────────────────────────────
+
+        internal static int Scene_QueryEntities(string componentNames, Span<ulong> outEntityIDs)
+        {
+            int len = Encoding.UTF8.GetByteCount(componentNames);
+            Span<byte> buf = len <= 512 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(componentNames, buf);
+            buf[len] = 0;
+            fixed (byte* namePtr = buf)
+            fixed (ulong* idPtr = outEntityIDs)
+            {
+                return NativeCallbacks.Bindings.Scene_QueryEntities(namePtr, idPtr, outEntityIDs.Length);
+            }
+        }
+
+        // ── ParticleSystem2D ────────────────────────────────────────
+
+        internal static void ParticleSystem2D_Play(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_Play(id);
+        internal static void ParticleSystem2D_Pause(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_Pause(id);
+        internal static void ParticleSystem2D_Stop(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_Stop(id);
+        internal static bool ParticleSystem2D_IsPlaying(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_IsPlaying(id) != 0;
+        internal static bool ParticleSystem2D_GetPlayOnAwake(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_GetPlayOnAwake(id) != 0;
+        internal static void ParticleSystem2D_SetPlayOnAwake(ulong id, bool enabled) => NativeCallbacks.Bindings.ParticleSystem2D_SetPlayOnAwake(id, enabled ? 1 : 0);
+        internal static void ParticleSystem2D_GetColor(ulong id, out float r, out float g, out float b, out float a) { float cr, cg, cb, ca; NativeCallbacks.Bindings.ParticleSystem2D_GetColor(id, &cr, &cg, &cb, &ca); r = cr; g = cg; b = cb; a = ca; }
+        internal static void ParticleSystem2D_SetColor(ulong id, float r, float g, float b, float a) => NativeCallbacks.Bindings.ParticleSystem2D_SetColor(id, r, g, b, a);
+        internal static float ParticleSystem2D_GetLifeTime(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_GetLifeTime(id);
+        internal static void ParticleSystem2D_SetLifeTime(ulong id, float v) => NativeCallbacks.Bindings.ParticleSystem2D_SetLifeTime(id, v);
+        internal static float ParticleSystem2D_GetSpeed(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_GetSpeed(id);
+        internal static void ParticleSystem2D_SetSpeed(ulong id, float v) => NativeCallbacks.Bindings.ParticleSystem2D_SetSpeed(id, v);
+        internal static float ParticleSystem2D_GetScale(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_GetScale(id);
+        internal static void ParticleSystem2D_SetScale(ulong id, float v) => NativeCallbacks.Bindings.ParticleSystem2D_SetScale(id, v);
+        internal static int ParticleSystem2D_GetEmitOverTime(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_GetEmitOverTime(id);
+        internal static void ParticleSystem2D_SetEmitOverTime(ulong id, int v) => NativeCallbacks.Bindings.ParticleSystem2D_SetEmitOverTime(id, v);
+        internal static void ParticleSystem2D_Emit(ulong id, int count) => NativeCallbacks.Bindings.ParticleSystem2D_Emit(id, count);
+
         // ── Gizmos ──────────────────────────────────────────────────────
 
         internal static void Gizmo_DrawLine(float x1, float y1, float x2, float y2) => NativeCallbacks.Bindings.Gizmo_DrawLine(x1, y1, x2, y2);
@@ -203,6 +291,7 @@ namespace Bolt
         internal static void Gizmo_DrawCircle(float cx, float cy, float r, int seg) => NativeCallbacks.Bindings.Gizmo_DrawCircle(cx, cy, r, seg);
         internal static void Gizmo_SetColor(float r, float g, float b, float a) => NativeCallbacks.Bindings.Gizmo_SetColor(r, g, b, a);
         internal static void Gizmo_GetColor(out float r, out float g, out float b, out float a) { float cr, cg, cb, ca; NativeCallbacks.Bindings.Gizmo_GetColor(&cr, &cg, &cb, &ca); r = cr; g = cg; b = cb; a = ca; }
+        internal static float Gizmo_GetLineWidth() => NativeCallbacks.Bindings.Gizmo_GetLineWidth();
         internal static void Gizmo_SetLineWidth(float w) => NativeCallbacks.Bindings.Gizmo_SetLineWidth(w);
 
         // ── Physics2D ───────────────────────────────────────────────────

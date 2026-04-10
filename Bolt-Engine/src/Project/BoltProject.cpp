@@ -136,8 +136,11 @@ namespace Bolt {
 		   << "  \"buildWidth\": " << BuildWidth << ",\n"
 		   << "  \"buildHeight\": " << BuildHeight << ",\n"
 		   << "  \"buildFullscreen\": " << (BuildFullscreen ? "true" : "false") << ",\n"
-		   << "  \"buildResizable\": " << (BuildResizable ? "true" : "false") << "\n"
-		   << "}\n";
+		   << "  \"buildResizable\": " << (BuildResizable ? "true" : "false");
+		if (!AppIconPath.empty()) {
+			ss << ",\n  \"appIcon\": \"" << EscapeJSON(AppIconPath) << "\"";
+		}
+		ss << "\n}\n";
 		File::WriteAllText(ProjectFilePath, ss.str());
 	}
 
@@ -182,6 +185,7 @@ namespace Bolt {
 			project.BuildHeight = ExtractInt(json, "buildHeight", 720);
 			project.BuildFullscreen = ExtractBool(json, "buildFullscreen", false);
 			project.BuildResizable = ExtractBool(json, "buildResizable", true);
+			project.AppIconPath = ExtractValue(json, "appIcon");
 		}
 
 		if (project.Name.empty())
@@ -212,9 +216,9 @@ namespace Bolt {
 		Directory::Create(Path::Combine(project.RootDirectory, "bin"));
 		Directory::Create(Path::Combine(project.RootDirectory, ".vscode"));
 
-		// Copy engine default assets
-		std::string engineAssets = Path::Combine(Path::ExecutableDir(), "Assets");
-		if (Directory::Exists(engineAssets)) {
+		// Copy engine default assets into the project's BoltAssets directory
+		std::string engineAssets = Path::ResolveBoltAssets("");
+		if (!engineAssets.empty() && Directory::Exists(engineAssets)) {
 			try {
 				std::filesystem::copy(engineAssets, project.BoltAssetsDirectory,
 					std::filesystem::copy_options::recursive | std::filesystem::copy_options::skip_existing);
@@ -267,6 +271,16 @@ namespace Bolt {
 		}
 
 		// Generate .csproj
+		// Resolve the Bolt-ScriptCore DLL path relative to the project root.
+		// We reference the compiled DLL instead of the .csproj so that
+		// Bolt-ScriptCore does not appear in the user's Solution Explorer.
+		std::string scriptCoreDllPath = Path::Combine(
+			std::filesystem::path(scriptCorePath).parent_path().string(),
+			"..", "bin", "Release-windows-x86_64", "Bolt-ScriptCore", "Bolt-ScriptCore.dll");
+		// Normalize to absolute
+		if (std::filesystem::exists(scriptCoreDllPath))
+			scriptCoreDllPath = std::filesystem::canonical(scriptCoreDllPath).string();
+
 		std::string csproj = R"(<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -275,6 +289,7 @@ namespace Bolt {
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Nullable>enable</Nullable>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
@@ -289,25 +304,24 @@ namespace Bolt {
     <Compile Include="Assets\Scripts\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include=")" + scriptCorePath + R"(">
+    <Reference Include="Bolt-ScriptCore">
+      <HintPath>)" + scriptCoreDllPath + R"(</HintPath>
       <Private>false</Private>
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </ProjectReference>
+    </Reference>
   </ItemGroup>
 )" + existingPackageRefs + R"(</Project>
 )";
 		File::WriteAllText(project.CsprojPath, csproj);
 
-		// Generate .sln
+		// Generate .sln — only the user project is visible.
+		// Bolt-ScriptCore is linked via DLL reference in the .csproj,
+		// so it does not need a project entry here.
 		std::string projGuid = GenerateGUID();
-		std::string scriptCoreGuid = "C1A72EAF-2D33-9C73-3644-1F68A24EF873";
 
 		std::string sln = R"(
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = ")" + name + R"(", ")" + name + R"(.csproj", "{)" + projGuid + R"(}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bolt-ScriptCore", ")" + scriptCorePath + R"(", "{)" + scriptCoreGuid + R"(}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -319,10 +333,6 @@ Global
 		{)" + projGuid + R"(}.Debug|Any CPU.Build.0 = Debug|AnyCPU
 		{)" + projGuid + R"(}.Release|Any CPU.ActiveCfg = Release|AnyCPU
 		{)" + projGuid + R"(}.Release|Any CPU.Build.0 = Release|AnyCPU
-		{)" + scriptCoreGuid + R"(}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
-		{)" + scriptCoreGuid + R"(}.Debug|Any CPU.Build.0 = Debug|AnyCPU
-		{)" + scriptCoreGuid + R"(}.Release|Any CPU.ActiveCfg = Release|AnyCPU
-		{)" + scriptCoreGuid + R"(}.Release|Any CPU.Build.0 = Release|AnyCPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

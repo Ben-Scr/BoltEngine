@@ -11,6 +11,11 @@ namespace Bolt {
 		float  (*Application_GetElapsedTime)();
 		int    (*Application_GetScreenWidth)();
 		int    (*Application_GetScreenHeight)();
+		float  (*Application_GetTargetFrameRate)();
+		void   (*Application_SetTargetFrameRate)(float fps);
+		float  (*Application_GetFixedDeltaTime)();
+		float  (*Application_GetUnscaledDeltaTime)();
+		float  (*Application_GetFixedUnscaledDeltaTime)();
 
 		// ── Log ──────────────────────────────────────────────────────
 		void   (*Log_Trace)(const char* message);
@@ -25,6 +30,9 @@ namespace Bolt {
 		int    (*Input_GetMouseButton)(int button);
 		int    (*Input_GetMouseButtonDown)(int button);
 		void   (*Input_GetMousePosition)(float* outX, float* outY);
+		void   (*Input_GetAxis)(float* outX, float* outY);
+		void   (*Input_GetMouseDelta)(float* outX, float* outY);
+		float  (*Input_GetScrollWheelDelta)();
 
 		// ── Entity ───────────────────────────────────────────────────
 		int      (*Entity_IsValid)(uint64_t entityID);
@@ -113,12 +121,42 @@ namespace Bolt {
 		float (*BoltCircleCollider2D_GetRadius)(uint64_t entityID);
 		void  (*BoltCircleCollider2D_SetRadius)(uint64_t entityID, float radius);
 
+		// ── Scene ────────────────────────────────────────────────────
+		const char* (*Scene_GetActiveSceneName)();
+		int         (*Scene_GetEntityCount)();
+		int         (*Scene_LoadAdditive)(const char* sceneName);
+		void        (*Scene_Unload)(const char* sceneName);
+		int         (*Scene_SetActive)(const char* sceneName);
+		int         (*Scene_GetLoadedCount)();
+		const char* (*Scene_GetLoadedSceneNameAt)(int index);
+		int         (*Scene_QueryEntities)(const char* componentNames, uint64_t* outEntityIDs, int maxOut);
+
+		// ── ParticleSystem2D ─────────────────────────────────────────
+		void  (*ParticleSystem2D_Play)(uint64_t entityID);
+		void  (*ParticleSystem2D_Pause)(uint64_t entityID);
+		void  (*ParticleSystem2D_Stop)(uint64_t entityID);
+		int   (*ParticleSystem2D_IsPlaying)(uint64_t entityID);
+		int   (*ParticleSystem2D_GetPlayOnAwake)(uint64_t entityID);
+		void  (*ParticleSystem2D_SetPlayOnAwake)(uint64_t entityID, int enabled);
+		void  (*ParticleSystem2D_GetColor)(uint64_t entityID, float* r, float* g, float* b, float* a);
+		void  (*ParticleSystem2D_SetColor)(uint64_t entityID, float r, float g, float b, float a);
+		float (*ParticleSystem2D_GetLifeTime)(uint64_t entityID);
+		void  (*ParticleSystem2D_SetLifeTime)(uint64_t entityID, float lifetime);
+		float (*ParticleSystem2D_GetSpeed)(uint64_t entityID);
+		void  (*ParticleSystem2D_SetSpeed)(uint64_t entityID, float speed);
+		float (*ParticleSystem2D_GetScale)(uint64_t entityID);
+		void  (*ParticleSystem2D_SetScale)(uint64_t entityID, float scale);
+		int   (*ParticleSystem2D_GetEmitOverTime)(uint64_t entityID);
+		void  (*ParticleSystem2D_SetEmitOverTime)(uint64_t entityID, int rate);
+		void  (*ParticleSystem2D_Emit)(uint64_t entityID, int count);
+
 		// ── Gizmos ───────────────────────────────────────────────────
 		void (*Gizmo_DrawLine)(float x1, float y1, float x2, float y2);
 		void (*Gizmo_DrawSquare)(float cx, float cy, float sx, float sy, float degrees);
 		void (*Gizmo_DrawCircle)(float cx, float cy, float radius, int segments);
 		void (*Gizmo_SetColor)(float r, float g, float b, float a);
 		void (*Gizmo_GetColor)(float* r, float* g, float* b, float* a);
+		float (*Gizmo_GetLineWidth)();
 		void (*Gizmo_SetLineWidth)(float width);
 
 		// ── Physics2D ────────────────────────────────────────────────

@@ -134,7 +134,7 @@ namespace Bolt {
 		m_IsRebuilding = true;
 		m_RebuildStartTime = std::chrono::steady_clock::now();
 
-		std::string buildCmd = "dotnet build \"" + m_SandboxProjectPath + "\" -c Release --nologo -v q";
+		std::string buildCmd = "dotnet build \"" + m_SandboxProjectPath + "\" -c Release --nologo -v q -p:DefineConstants=BOLT_EDITOR";
 		m_RebuildFuture = std::async(std::launch::async, [buildCmd]() {
 			return std::system(buildCmd.c_str());
 		});
@@ -171,8 +171,12 @@ namespace Bolt {
 	void ScriptSystem::OnGui(Scene& scene)
 	{
 		(void)scene;
-		m_ScriptWatcher.Poll(1.0f);
-		m_NativeWatcher.Poll(1.0f);
+
+		// Skip file watcher polling while a script is being created/renamed
+		if (!m_SuppressRecompile) {
+			m_ScriptWatcher.Poll(1.0f);
+			m_NativeWatcher.Poll(1.0f);
+		}
 
 		bool anyRebuilding = false;
 

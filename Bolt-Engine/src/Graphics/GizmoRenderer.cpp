@@ -43,14 +43,12 @@ namespace Bolt {
 		if (m_IsInitialized)
 			return true;
 
-		const std::string base = Path::ExecutableDir();
-		// Try BoltAssets first (packaged build), fall back to Assets (dev layout)
-		std::string shaderDir = std::filesystem::exists(Path::Combine(base, "BoltAssets/Shader"))
-			? "BoltAssets/Shader" : "Assets/Shader";
-		m_GizmoShader = std::make_unique<Shader>(
-			Path::Combine(base, shaderDir + "/gizmo.vert.glsl").c_str(),
-			Path::Combine(base, shaderDir + "/gizmo.frag.glsl").c_str()
-		);
+		std::string shaderDir = Path::ResolveBoltAssets("Shader");
+		if (shaderDir.empty()) {
+			BT_CORE_ERROR("BoltAssets/Shader not found");
+			shaderDir = Path::Combine(Path::ExecutableDir(), "BoltAssets", "Shader");
+		}
+		m_GizmoShader = std::make_unique<Shader>(Path::Combine(shaderDir, "gizmo.vert.glsl"), Path::Combine(shaderDir, "gizmo.frag.glsl"));
 		BT_ASSERT(m_GizmoShader && m_GizmoShader->IsValid(), BoltErrorCode::Undefined, "Failed to load gizmo shader");
 
 		GLuint program = m_GizmoShader->GetHandle();
@@ -313,6 +311,10 @@ namespace Bolt {
 	}
 
 	void GizmoRenderer2D::EndFrame() {
-		Render();
+		if (Gizmo::GetShowInRuntime()) {
+			Render();
+		} else {
+			Gizmo::Clear();
+		}
 	}
 }

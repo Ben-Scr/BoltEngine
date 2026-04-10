@@ -23,7 +23,11 @@ newoption
     description = "Include imgui_demo.cpp in the ImGui static library project."
 }
 
+require("premake/fix_csharp_platforms")
 include "Dependencies.lua"
+
+-- Shared postbuild command: copies BoltAssets to a shared location (bin/<config>/BoltAssets/)
+CopyBoltAssets = '{COPYDIR} "%{wks.location}Bolt-Runtime/BoltAssets" "%{wks.location}bin/' .. outputdir .. '/BoltAssets"'
 
 local function NormalizeRootPath(pathValue)
     if path.isabsolute(pathValue) then

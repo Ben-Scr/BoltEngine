@@ -19,7 +19,7 @@ namespace Bolt {
 	std::queue<uint16_t> TextureManager::s_FreeIndices = {};
 
 	bool TextureManager::s_IsInitialized = false;
-	std::string TextureManager::s_RootPath = Path::Combine("Assets", "Textures");
+	std::string TextureManager::s_RootPath = Path::Combine("BoltAssets", "Textures");
 
 	constexpr uint16_t k_InvalidIndex = std::numeric_limits<uint16_t>::max();
 
@@ -29,11 +29,11 @@ namespace Bolt {
 			return;
 		}
 
-		// Try BoltAssets first (packaged build), fall back to Assets (dev layout)
-		std::string base = Path::ExecutableDir();
-		std::string texDir = std::filesystem::exists(Path::Combine(base, "BoltAssets", "Textures"))
-			? Path::Combine(base, "BoltAssets", "Textures")
-			: Path::Combine(base, "Assets", "Textures");
+		std::string texDir = Path::ResolveBoltAssets("Textures");
+		if (texDir.empty()) {
+			BT_CORE_ERROR("BoltAssets/Textures not found");
+			texDir = Path::Combine(Path::ExecutableDir(), "BoltAssets", "Textures");
+		}
 		s_RootPath = texDir;
 
 		s_Textures.clear();
@@ -68,22 +68,13 @@ namespace Bolt {
 			return TextureHandle::Invalid();
 		}
 
-		// If not found at primary root, try alternative roots (BoltAssets ↔ Assets)
 		if (!File::Exists(fullpath)) {
-			std::string base = Path::ExecutableDir();
-			std::string altPaths[] = {
-				Path::Combine(base, "Assets", "Textures", path),
-				Path::Combine(base, "BoltAssets", "Textures", path),
-			};
-			bool found = false;
-			for (const auto& alt : altPaths) {
-				if (File::Exists(alt)) {
-					fullpath = alt;
-					found = true;
-					break;
-				}
+			// Try user project Assets/Textures as fallback
+			std::string userPath = Path::Combine(Path::ExecutableDir(), "Assets", "Textures", path);
+			if (File::Exists(userPath)) {
+				fullpath = userPath;
 			}
-			if (!found) {
+			else {
 				BT_CORE_ERROR("[{}] Texture '{}' not found", ErrorCodeToString(BoltErrorCode::FileNotFound), std::string(path));
 				return TextureHandle::Invalid();
 			}

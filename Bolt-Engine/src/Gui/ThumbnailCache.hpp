@@ -16,7 +16,8 @@ namespace Bolt {
 		Font,
 		Script,
 		Scene,
-		Config
+		Config,
+		Prefab
 	};
 
 	class ThumbnailCache {

@@ -64,6 +64,12 @@ namespace Bolt {
 		EntityHandle m_SelectedEntity = entt::null;
 		EventId m_LogSubscriptionId{};
 		std::vector<LogEntry> m_LogEntries;
+		bool m_ShowLogInfo = true;
+		bool m_ShowLogWarn = true;
+		bool m_ShowLogError = true;
+
+		// Entity ordering for hierarchy drag-reorder
+		std::vector<entt::entity> m_EntityOrder;
 
 		EntityHandle m_RenamingEntity = entt::null;
 		char m_EntityRenameBuffer[256]{};
@@ -95,7 +101,9 @@ namespace Bolt {
 		std::string m_SelectedAssetPath;
 
 		std::string m_PlayModeScenePath;
+		int m_StepFrames = 0;
 
+		bool m_ShowQuitSaveDialog = false;
 		bool m_ShowBuildPanel = false;
 		bool m_ShowPlayerSettings = false;
 		bool m_ShowPackageManager = false;

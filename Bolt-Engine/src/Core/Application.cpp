@@ -10,6 +10,8 @@
 #include <Utils/StringHelper.hpp>
 
 #include "Input.hpp"
+#include "Project/ProjectManager.hpp"
+#include "Project/BoltProject.hpp"
 #include <GLFW/glfw3.h>
 
 namespace Bolt {
@@ -79,7 +81,7 @@ namespace Bolt {
 				m_FixedUpdateAccumulator += m_Time.GetDeltaTime();
 				while (m_FixedUpdateAccumulator >= m_Time.GetUnscaledFixedDeltaTime()) {
 					try {
-						if (!m_IsPaused) {
+						if (!m_IsPaused && !m_IsPlaymodePaused) {
 							BeginFixedFrame();
 							EndFixedFrame();
 						}
@@ -184,13 +186,16 @@ namespace Bolt {
 		BT_INFO_TAG("SceneManager", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.SetWindowIcon) {
-			auto handle = TextureManager::LoadTexture("icon.png");
-			auto texture = TextureManager::GetTexture(handle);
-			if (texture) {
-				m_Window->SetWindowIcon(texture);
-			}
-			else {
-				BT_WARN_TAG("Window", "Window icon texture could not be loaded. Continuing without icon.");
+			m_Window->SetWindowIconFromResource();
+
+			// Override with project-specific app icon if set
+			BoltProject* project = ProjectManager::GetCurrentProject();
+			if (project && !project->AppIconPath.empty()) {
+				TextureHandle h = TextureManager::LoadTexture(project->AppIconPath);
+				Texture2D* tex = TextureManager::GetTexture(h);
+				if (tex && tex->IsValid()) {
+					m_Window->SetWindowIcon(tex);
+				}
 			}
 		}
 	}
@@ -200,10 +205,11 @@ namespace Bolt {
 		CoreInput();
 
 		if (!m_IsPaused) {
-			if (m_IsPlaying && m_Configuration.EnableAudio) AudioManager::Update();
+			bool gameplayActive = m_IsPlaying && !m_IsPlaymodePaused;
+			if (gameplayActive && m_Configuration.EnableAudio) AudioManager::Update();
 			Update();
 
-			if (m_IsPlaying && m_SceneManager) m_SceneManager->UpdateScenes();
+			if (gameplayActive && m_SceneManager) m_SceneManager->UpdateScenes();
 
 			if (m_ImGuiRenderer) {
 				BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
@@ -228,7 +234,8 @@ namespace Bolt {
 		EventDispatcher dispatcher(event);
 
 		dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) {
-			m_ShouldQuit = true;
+			m_QuitRequested = true;
+			glfwSetWindowShouldClose(m_Window->GetGLFWWindow(), GLFW_FALSE);
 			return true;
 		});
 

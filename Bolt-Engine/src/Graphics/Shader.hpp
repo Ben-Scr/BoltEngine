@@ -9,6 +9,13 @@ namespace Bolt {
         Shader(const std::string& vsPath, const std::string& fsPath);
         ~Shader();
 
+        static Shader FromBinary(const std::string& binaryPath);
+        bool ExportBinary(const std::string& outputPath) const;
+        static Shader LoadWithBinaryCache(
+            const std::string& binaryPath,
+            const std::string& vsPath,
+            const std::string& fsPath);
+
         void Submit() const;
 
         GLuint GetHandle() const { return m_Program; }
@@ -20,6 +27,7 @@ namespace Bolt {
         Shader& operator=(Shader&&) noexcept;
 
     private:
+        explicit Shader(GLuint program);
         static GLuint LoadAndCompile(GLenum type, const std::string& path);
         GLuint m_Program{ 0 };
         bool m_IsValid{ false };

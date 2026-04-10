@@ -18,26 +18,32 @@
 #include "Physics/Box2DWorld.hpp"
 
 #include "Components/Graphics/Camera2DComponent.hpp"
+#include "Components/General/UUIDComponent.hpp"
+#include "Core/Application.hpp"
 
 namespace Bolt {
 	Entity Scene::CreateEntity() {
 		auto entityHandle = CreateEntityHandle();
+		AddComponent<UUIDComponent>(entityHandle);
 		AddComponent<Transform2DComponent>(entityHandle);
-		m_Dirty = true;
+		if (!Application::GetIsPlaying()) m_Dirty = true;
 		return Entity(entityHandle, m_Registry);
 	}
 	Entity Scene::CreateEntity(const std::string& name) {
 		auto entityHandle = CreateEntityHandle();
+		AddComponent<UUIDComponent>(entityHandle);
 		AddComponent<Transform2DComponent>(entityHandle);
 		AddComponent<NameComponent>(entityHandle, name);
-		m_Dirty = true;
+		if (!Application::GetIsPlaying()) m_Dirty = true;
 		return Entity(entityHandle, m_Registry);
 	}
 
 	EntityHandle Scene::CreateEntityHandle() { return m_Registry.create(); }
 
-	void Scene::DestroyEntity(Entity entity) { m_Dirty = true; Entity::Destroy(entity); }
-	void Scene::DestroyEntity(EntityHandle nativeEntity) { m_Dirty = true; m_Registry.destroy(nativeEntity); }
+	void Scene::DestroyEntity(Entity entity) { if (!Application::GetIsPlaying()) m_Dirty = true; Entity::Destroy(entity); }
+	void Scene::DestroyEntity(EntityHandle nativeEntity) { if (!Application::GetIsPlaying()) m_Dirty = true; m_Registry.destroy(nativeEntity); }
+
+	void Scene::MarkDirty() { if (!Application::GetIsPlaying()) m_Dirty = true; }
 
 	void Scene::AwakeSystems() {
 		ForeachEnabledSystem([this](ISystem& s) { s.Awake(*this); });

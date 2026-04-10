@@ -66,7 +66,10 @@ namespace Bolt {
 		int w = 0, h = 0, n = 0;
 		unsigned char* pixels = stbi_load(path, &w, &h, &n, 0);
 		stbi_set_flip_vertically_on_load(false);
-		BT_ASSERT(pixels, BoltErrorCode::LoadFailed, "Failed to load path: " + std::string(path));
+		if (!pixels) {
+			BT_CORE_WARN_TAG("Texture2D", "Failed to load texture: {}", path);
+			return false;
+		}
 
 		GLint internalFmt = GL_RGBA8;
 		GLenum dataFmt = GL_RGBA;

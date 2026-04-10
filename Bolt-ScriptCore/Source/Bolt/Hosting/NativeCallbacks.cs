@@ -13,6 +13,11 @@ namespace Bolt.Hosting
         public delegate* unmanaged<float> Application_GetElapsedTime;
         public delegate* unmanaged<int> Application_GetScreenWidth;
         public delegate* unmanaged<int> Application_GetScreenHeight;
+        public delegate* unmanaged<float> Application_GetTargetFrameRate;
+        public delegate* unmanaged<float, void> Application_SetTargetFrameRate;
+        public delegate* unmanaged<float> Application_GetFixedDeltaTime;
+        public delegate* unmanaged<float> Application_GetUnscaledDeltaTime;
+        public delegate* unmanaged<float> Application_GetFixedUnscaledDeltaTime;
 
         // ── Log ──────────────────────────────────────────────────────
         public delegate* unmanaged<byte*, void> Log_Trace;
@@ -27,6 +32,9 @@ namespace Bolt.Hosting
         public delegate* unmanaged<int, int> Input_GetMouseButton;
         public delegate* unmanaged<int, int> Input_GetMouseButtonDown;
         public delegate* unmanaged<float*, float*, void> Input_GetMousePosition;
+        public delegate* unmanaged<float*, float*, void> Input_GetAxis;
+        public delegate* unmanaged<float*, float*, void> Input_GetMouseDelta;
+        public delegate* unmanaged<float> Input_GetScrollWheelDelta;
 
         // ── Entity ───────────────────────────────────────────────────
         public delegate* unmanaged<ulong, int> Entity_IsValid;
@@ -115,12 +123,42 @@ namespace Bolt.Hosting
         public delegate* unmanaged<ulong, float> BoltCircleCollider2D_GetRadius;
         public delegate* unmanaged<ulong, float, void> BoltCircleCollider2D_SetRadius;
 
+        // ── Scene Query ──────────────────────────────────────────────
+        public delegate* unmanaged<byte*> Scene_GetActiveSceneName;
+        public delegate* unmanaged<int> Scene_GetEntityCount;
+        public delegate* unmanaged<byte*, int> Scene_LoadAdditive;
+        public delegate* unmanaged<byte*, void> Scene_Unload;
+        public delegate* unmanaged<byte*, int> Scene_SetActive;
+        public delegate* unmanaged<int> Scene_GetLoadedCount;
+        public delegate* unmanaged<int, byte*> Scene_GetLoadedSceneNameAt;
+        public delegate* unmanaged<byte*, ulong*, int, int> Scene_QueryEntities;
+
+        // ── ParticleSystem2D ─────────────────────────────────────────
+        public delegate* unmanaged<ulong, void> ParticleSystem2D_Play;
+        public delegate* unmanaged<ulong, void> ParticleSystem2D_Pause;
+        public delegate* unmanaged<ulong, void> ParticleSystem2D_Stop;
+        public delegate* unmanaged<ulong, int> ParticleSystem2D_IsPlaying;
+        public delegate* unmanaged<ulong, int> ParticleSystem2D_GetPlayOnAwake;
+        public delegate* unmanaged<ulong, int, void> ParticleSystem2D_SetPlayOnAwake;
+        public delegate* unmanaged<ulong, float*, float*, float*, float*, void> ParticleSystem2D_GetColor;
+        public delegate* unmanaged<ulong, float, float, float, float, void> ParticleSystem2D_SetColor;
+        public delegate* unmanaged<ulong, float> ParticleSystem2D_GetLifeTime;
+        public delegate* unmanaged<ulong, float, void> ParticleSystem2D_SetLifeTime;
+        public delegate* unmanaged<ulong, float> ParticleSystem2D_GetSpeed;
+        public delegate* unmanaged<ulong, float, void> ParticleSystem2D_SetSpeed;
+        public delegate* unmanaged<ulong, float> ParticleSystem2D_GetScale;
+        public delegate* unmanaged<ulong, float, void> ParticleSystem2D_SetScale;
+        public delegate* unmanaged<ulong, int> ParticleSystem2D_GetEmitOverTime;
+        public delegate* unmanaged<ulong, int, void> ParticleSystem2D_SetEmitOverTime;
+        public delegate* unmanaged<ulong, int, void> ParticleSystem2D_Emit;
+
         // ── Gizmos ───────────────────────────────────────────────────
         public delegate* unmanaged<float, float, float, float, void> Gizmo_DrawLine;
         public delegate* unmanaged<float, float, float, float, float, void> Gizmo_DrawSquare;
         public delegate* unmanaged<float, float, float, int, void> Gizmo_DrawCircle;
         public delegate* unmanaged<float, float, float, float, void> Gizmo_SetColor;
         public delegate* unmanaged<float*, float*, float*, float*, void> Gizmo_GetColor;
+        public delegate* unmanaged<float> Gizmo_GetLineWidth;
         public delegate* unmanaged<float, void> Gizmo_SetLineWidth;
 
         // ── Physics2D ────────────────────────────────────────────────

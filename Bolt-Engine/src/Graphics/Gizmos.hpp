@@ -33,6 +33,9 @@ namespace Bolt {
 		static void SetEnabled(bool enabled) { s_IsEnabled = enabled; }
 		static bool IsEnabled() { return s_IsEnabled; }
 
+		static void SetShowInRuntime(bool show) { s_ShowInRuntime = show; }
+		static bool GetShowInRuntime() { return s_ShowInRuntime; }
+
 		static void SetColor(const Color& color) { s_Color = color; }
 		static Color GetColor() { return s_Color; }
 
@@ -45,6 +48,7 @@ namespace Bolt {
 		static AABB s_CamViewportAABB;
 	private:
 		static bool s_IsEnabled;
+		static bool s_ShowInRuntime;
 
 		static  Color s_Color;;
 

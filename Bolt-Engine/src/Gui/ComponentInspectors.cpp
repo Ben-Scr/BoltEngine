@@ -5,6 +5,7 @@
 #include "Components/Components.hpp"
 #include "Graphics/TextureManager.hpp"
 #include "Graphics/Texture2D.hpp"
+#include "Audio/AudioManager.hpp"
 #include "Physics/PhysicsTypes.hpp"
 
 #include <imgui.h>
@@ -57,13 +58,15 @@ namespace Bolt {
 			s_TexturePickerTarget = &target;
 			s_TexturePickerEntries.clear();
 
-			// Collect from both Assets/Textures and BoltAssets/Textures
+			// Collect from BoltAssets/Textures (engine) and Assets/Textures (user project)
+			std::string boltTexDir = Path::ResolveBoltAssets("Textures");
+			if (!boltTexDir.empty()) {
+				auto boltTexPath = std::filesystem::path(boltTexDir);
+				CollectTextureFiles(boltTexPath, boltTexPath, s_TexturePickerEntries);
+			}
 			std::string base = Path::ExecutableDir();
-			auto assetsDir = std::filesystem::path(base) / "Assets" / "Textures";
-			auto boltAssetsDir = std::filesystem::path(base) / "BoltAssets" / "Textures";
-
-			CollectTextureFiles(assetsDir, assetsDir, s_TexturePickerEntries);
-			CollectTextureFiles(boltAssetsDir, boltAssetsDir, s_TexturePickerEntries);
+			auto userTexDir = std::filesystem::path(base) / "Assets" / "Textures";
+			CollectTextureFiles(userTexDir, userTexDir, s_TexturePickerEntries);
 		}
 
 		static void RenderTexturePicker() {
@@ -247,6 +250,8 @@ namespace Bolt {
 			}
 		}
 
+		ImGui::Checkbox("Play On Awake", &ps.PlayOnAwake);
+
 		ImGui::InputFloat("LifeTime", &ps.ParticleSettings.LifeTime);
 		ImGui::InputFloat("Scale", &ps.ParticleSettings.Scale);
 		ImGui::InputFloat("Speed", &ps.ParticleSettings.Speed);
@@ -332,6 +337,21 @@ namespace Bolt {
 		bool loop = audio.IsLooping();
 		if (ImGui::Checkbox("Loop", &loop)) {
 			audio.SetLoop(loop);
+		}
+
+		// Audio file drag-drop
+		ImGui::Text("Audio Clip");
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
+				std::string droppedPath(static_cast<const char*>(payload->Data));
+				std::string ext = std::filesystem::path(droppedPath).extension().string();
+				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+				if (ext == ".wav" || ext == ".mp3" || ext == ".ogg" || ext == ".flac") {
+					AudioHandle handle = AudioManager::LoadAudio(droppedPath);
+					audio.SetAudioHandle(handle);
+				}
+			}
+			ImGui::EndDragDropTarget();
 		}
 	}
 

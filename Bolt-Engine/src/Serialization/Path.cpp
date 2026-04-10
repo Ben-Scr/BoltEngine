@@ -78,4 +78,20 @@ namespace Bolt {
         return std::filesystem::path(buf).parent_path().string();
 #endif
     }
+
+    std::string Path::ResolveBoltAssets(const std::string& subdirectory) {
+        std::string exeDir = ExecutableDir();
+
+        // 1. Packaged build: BoltAssets next to the executable
+        std::string packed = Combine(exeDir, "BoltAssets", subdirectory);
+        if (std::filesystem::exists(packed))
+            return packed;
+
+        // 2. Dev layout: shared BoltAssets one level up (bin/<config>/BoltAssets/)
+        std::string dev = Combine(exeDir, "..", "BoltAssets", subdirectory);
+        if (std::filesystem::exists(dev))
+            return std::filesystem::canonical(dev).string();
+
+        return {};
+    }
 }

@@ -6,8 +6,22 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 namespace Bolt {
+    namespace {
+        constexpr uint32_t kBoltShaderMagic   = 0x42534842; // "BSHB"
+        constexpr uint32_t kBoltShaderVersion = 1;
+
+        struct BinaryHeader {
+            uint32_t magic;
+            uint32_t version;
+            GLenum   binaryFormat;
+            GLsizei  dataLength;
+        };
+        static_assert(sizeof(BinaryHeader) == 16);
+    }
+
     static bool ReadFileToString(const std::string& path, std::string& out) {
         std::ifstream input(path, std::ios::binary);
         if (!input.is_open()) {
@@ -23,7 +37,10 @@ namespace Bolt {
     GLuint Shader::LoadAndCompile(GLenum type, const std::string& path) {
         std::string src;
 
-        BT_ASSERT(ReadFileToString(path, src), BoltErrorCode::LoadFailed, "Failed to read shader file: " + path);
+        if (!ReadFileToString(path, src)) {
+            BT_ERROR_TAG("Shader", "Failed to read shader file: " + path);
+            return 0;
+        }
 
         GLuint shader = glCreateShader(type);
         if (shader == 0) {
@@ -127,6 +144,114 @@ namespace Bolt {
         else {
             glUseProgram(0);
         }
+    }
+
+    Shader::Shader(GLuint program)
+        : m_Program(program)
+        , m_IsValid(program != 0)
+    {
+    }
+
+    Shader Shader::FromBinary(const std::string& binaryPath) {
+        std::ifstream file(binaryPath, std::ios::binary);
+        if (!file.is_open()) {
+            return Shader(static_cast<GLuint>(0));
+        }
+
+        BinaryHeader header{};
+        file.read(reinterpret_cast<char*>(&header), sizeof(header));
+        if (!file || header.magic != kBoltShaderMagic || header.version != kBoltShaderVersion || header.dataLength <= 0) {
+            BT_CORE_WARN_TAG("Shader", "Invalid binary shader header: " + binaryPath);
+            return Shader(static_cast<GLuint>(0));
+        }
+
+        std::vector<uint8_t> data(header.dataLength);
+        file.read(reinterpret_cast<char*>(data.data()), header.dataLength);
+        if (!file) {
+            BT_CORE_WARN_TAG("Shader", "Truncated binary shader file: " + binaryPath);
+            return Shader(static_cast<GLuint>(0));
+        }
+
+        GLuint program = glCreateProgram();
+        if (program == 0) {
+            BT_ERROR_TAG("Shader", "Failed to create program for binary shader: " + binaryPath);
+            return Shader(static_cast<GLuint>(0));
+        }
+
+        glProgramBinary(program, header.binaryFormat, data.data(), header.dataLength);
+
+        GLint linked = GL_FALSE;
+        glGetProgramiv(program, GL_LINK_STATUS, &linked);
+        if (linked != GL_TRUE) {
+            BT_CORE_WARN_TAG("Shader", "Binary shader validation failed (driver/GPU change?): " + binaryPath);
+            glDeleteProgram(program);
+            return Shader(static_cast<GLuint>(0));
+        }
+
+        return Shader(program);
+    }
+
+    bool Shader::ExportBinary(const std::string& outputPath) const {
+        if (!IsValid()) {
+            BT_ERROR_TAG("Shader", "Cannot export invalid shader program");
+            return false;
+        }
+
+        GLint binaryLength = 0;
+        glGetProgramiv(m_Program, GL_PROGRAM_BINARY_LENGTH, &binaryLength);
+        if (binaryLength <= 0) {
+            BT_CORE_WARN_TAG("Shader", "Driver does not support program binary retrieval");
+            return false;
+        }
+
+        std::vector<uint8_t> data(binaryLength);
+        GLenum binaryFormat = 0;
+        GLsizei actualLength = 0;
+        glGetProgramBinary(m_Program, binaryLength, &actualLength, &binaryFormat, data.data());
+
+        if (actualLength <= 0) {
+            BT_CORE_WARN_TAG("Shader", "glGetProgramBinary returned no data");
+            return false;
+        }
+
+        BinaryHeader header{};
+        header.magic = kBoltShaderMagic;
+        header.version = kBoltShaderVersion;
+        header.binaryFormat = binaryFormat;
+        header.dataLength = actualLength;
+
+        std::ofstream file(outputPath, std::ios::binary);
+        if (!file.is_open()) {
+            BT_CORE_WARN_TAG("Shader", "Cannot write binary shader to: " + outputPath);
+            return false;
+        }
+
+        file.write(reinterpret_cast<const char*>(&header), sizeof(header));
+        file.write(reinterpret_cast<const char*>(data.data()), actualLength);
+        return file.good();
+    }
+
+    Shader Shader::LoadWithBinaryCache(
+        const std::string& binaryPath,
+        const std::string& vsPath,
+        const std::string& fsPath)
+    {
+        if (std::filesystem::exists(binaryPath)) {
+            Shader cached = FromBinary(binaryPath);
+            if (cached.IsValid()) {
+                BT_INFO_TAG("Shader", "Loaded precompiled shader: " + binaryPath);
+                return cached;
+            }
+            BT_CORE_WARN_TAG("Shader", "Stale binary shader, recompiling from source");
+        }
+
+        Shader shader(vsPath, fsPath);
+        if (shader.IsValid()) {
+            if (shader.ExportBinary(binaryPath)) {
+                BT_INFO_TAG("Shader", "Cached compiled shader: " + binaryPath);
+            }
+        }
+        return shader;
     }
 
 }

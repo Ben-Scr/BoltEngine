@@ -8,6 +8,14 @@
 #include "Core/Log.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
+#include "Scene/SceneDefinition.hpp"
+#include "Serialization/SceneSerializer.hpp"
+#include "Serialization/Path.hpp"
+#include "Serialization/File.hpp"
+#include "Project/ProjectManager.hpp"
+#include "Project/BoltProject.hpp"
+#include "Scripting/ScriptSystem.hpp"
+#include <Systems/ParticleUpdateSystem.hpp>
 #include "Scene/ComponentRegistry.hpp"
 #include "Components/General/Transform2DComponent.hpp"
 #include "Components/General/NameComponent.hpp"
@@ -19,6 +27,7 @@
 #include "Components/Physics/BoltBoxCollider2DComponent.hpp"
 #include "Components/Physics/BoltCircleCollider2DComponent.hpp"
 #include "Components/Audio/AudioSourceComponent.hpp"
+#include "Components/Graphics/ParticleSystem2DComponent.hpp"
 #include "Audio/AudioManager.hpp"
 #include "Graphics/Gizmos.hpp"
 #include "Physics/Physics2D.hpp"
@@ -84,6 +93,22 @@ namespace Bolt {
 		return window ? window->GetHeight() : 0;
 	}
 
+	static float Bolt_Application_GetTargetFrameRate() { return Application::GetTargetFramerate(); }
+	static void  Bolt_Application_SetTargetFrameRate(float fps) { Application::SetTargetFramerate(fps); }
+
+	static float Bolt_Application_GetFixedDeltaTime() {
+		auto* app = Application::GetInstance();
+		return app ? app->GetTime().GetFixedDeltaTime() : (1.0f / 50.0f);
+	}
+	static float Bolt_Application_GetUnscaledDeltaTime() {
+		auto* app = Application::GetInstance();
+		return app ? app->GetTime().GetDeltaTimeUnscaled() : 0.0f;
+	}
+	static float Bolt_Application_GetFixedUnscaledDeltaTime() {
+		auto* app = Application::GetInstance();
+		return app ? app->GetTime().GetUnscaledFixedDeltaTime() : (1.0f / 50.0f);
+	}
+
 	// ── Log Bindings ────────────────────────────────────────────────────
 
 	static void Bolt_Log_Trace(const char* message) { Log::PrintMessageTag(Log::Type::Client, Log::Level::Trace, "Script", message); }
@@ -128,6 +153,21 @@ namespace Bolt {
 		auto* app = Application::GetInstance();
 		if (app) { Vec2 pos = app->GetInput().GetMousePosition(); *outX = pos.x; *outY = pos.y; }
 		else { *outX = 0.0f; *outY = 0.0f; }
+	}
+
+	static void Bolt_Input_GetAxis(float* outX, float* outY) {
+		auto* app = Application::GetInstance();
+		if (app) { Vec2 axis = app->GetInput().GetAxis(); *outX = axis.x; *outY = axis.y; }
+		else { *outX = 0.0f; *outY = 0.0f; }
+	}
+	static void Bolt_Input_GetMouseDelta(float* outX, float* outY) {
+		auto* app = Application::GetInstance();
+		if (app) { Vec2 delta = app->GetInput().GetMouseDelta(); *outX = delta.x; *outY = delta.y; }
+		else { *outX = 0.0f; *outY = 0.0f; }
+	}
+	static float Bolt_Input_GetScrollWheelDelta() {
+		auto* app = Application::GetInstance();
+		return app ? app->GetInput().ScrollValue() : 0.0f;
 	}
 
 	// ── Entity Bindings ─────────────────────────────────────────────────
@@ -239,11 +279,118 @@ namespace Bolt {
 		registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
 			if (info.category != ComponentCategory::Component) return;
 			if (!info.has(source)) return;
-			if (info.has(clone)) return;
-			info.add(clone);
+			if (info.copyTo)
+				info.copyTo(source, clone);
 		});
 
 		return FromEntityHandle(clone.GetHandle());
+	}
+
+	// ── Scene ───────────────────────────────────────────────────────────
+
+	static const char* Bolt_Scene_GetActiveSceneName() {
+		Scene* scene = GetScene();
+		if (!scene) { s_StringReturnBuffer.clear(); return s_StringReturnBuffer.c_str(); }
+		s_StringReturnBuffer = scene->GetName();
+		return s_StringReturnBuffer.c_str();
+	}
+	static int Bolt_Scene_GetEntityCount() {
+		Scene* scene = GetScene();
+		if (!scene) return 0;
+		return static_cast<int>(scene->GetRegistry().view<NameComponent>().size());
+	}
+
+	static int Bolt_Scene_LoadAdditive(const char* sceneName) {
+		auto& sm = SceneManager::Get();
+		std::string name(sceneName);
+
+		// Auto-register a SceneDefinition if one doesn't exist yet
+		if (!sm.HasSceneDefinition(name)) {
+			auto& def = sm.RegisterScene(name);
+			def.AddSystem<ScriptSystem>();
+			def.AddSystem<ParticleUpdateSystem>();
+		}
+
+		auto sceneWeak = sm.LoadSceneAdditive(name);
+		auto scenePtr = sceneWeak.lock();
+		if (!scenePtr) {
+			BT_CORE_ERROR_TAG("ScriptBindings", "Failed to load scene additively: {}", name);
+			return 0;
+		}
+
+		// Deserialize from scene file if a project is loaded
+		BoltProject* project = ProjectManager::GetCurrentProject();
+		if (project) {
+			std::string scenePath = project->GetSceneFilePath(name);
+			if (File::Exists(scenePath)) {
+				SceneSerializer::LoadFromFile(*scenePtr, scenePath);
+			}
+		}
+
+		BT_INFO_TAG("ScriptBindings", "Loaded scene additively: {}", name);
+		return 1;
+	}
+
+	static void Bolt_Scene_Unload(const char* sceneName) {
+		SceneManager::Get().UnloadScene(sceneName);
+	}
+
+	static int Bolt_Scene_SetActive(const char* sceneName) {
+		return SceneManager::Get().SetActiveScene(sceneName) ? 1 : 0;
+	}
+
+	static int Bolt_Scene_GetLoadedCount() {
+		return static_cast<int>(SceneManager::Get().GetLoadedScenes().size());
+	}
+
+	static const char* Bolt_Scene_GetLoadedSceneNameAt(int index) {
+		auto scenes = SceneManager::Get().GetLoadedScenes();
+		if (index < 0 || index >= static_cast<int>(scenes.size())) {
+			s_StringReturnBuffer.clear();
+			return s_StringReturnBuffer.c_str();
+		}
+		auto scene = scenes[index].lock();
+		s_StringReturnBuffer = scene ? scene->GetName() : "";
+		return s_StringReturnBuffer.c_str();
+	}
+
+	// ── Scene Query ─────────────────────────────────────────────────────
+
+	static int Bolt_Scene_QueryEntities(const char* componentNames, uint64_t* outEntityIDs, int maxOut) {
+		Scene* scene = GetScene();
+		if (!scene || !componentNames || !outEntityIDs || maxOut <= 0) return 0;
+
+		// Parse pipe-delimited component names
+		std::vector<const ComponentInfo*> infos;
+		std::string names(componentNames);
+		size_t start = 0;
+		while (start < names.size()) {
+			size_t end = names.find('|', start);
+			if (end == std::string::npos) end = names.size();
+			std::string name = names.substr(start, end - start);
+			const ComponentInfo* info = FindComponentByName(name);
+			if (!info || !info->has) return 0; // Unknown component = 0 results
+			infos.push_back(info);
+			start = end + 1;
+		}
+		if (infos.empty()) return 0;
+
+		int count = 0;
+		auto& registry = scene->GetRegistry();
+		auto view = registry.view<NameComponent>();
+		for (auto [entityHandle, nameComp] : view.each()) {
+			Entity entity = scene->GetEntity(entityHandle);
+			bool match = true;
+			for (auto* info : infos) {
+				if (!info->has(entity)) { match = false; break; }
+			}
+			if (match) {
+				if (count < maxOut)
+					outEntityIDs[count] = FromEntityHandle(entityHandle);
+				count++;
+			}
+		}
+		return count;
 	}
 
 	// ── NameComponent ───────────────────────────────────────────────────
@@ -528,6 +675,78 @@ namespace Bolt {
 	static float Bolt_BoltCircleCollider2D_GetRadius(uint64_t entityID) { GET_COMPONENT(BoltCircleCollider2DComponent, entityID, 0.5f); return comp.Radius; }
 	static void Bolt_BoltCircleCollider2D_SetRadius(uint64_t entityID, float radius) { GET_COMPONENT(BoltCircleCollider2DComponent, entityID, ); comp.SetRadius(radius); }
 
+	// ── ParticleSystem2D ────────────────────────────────────────────────
+
+	static void Bolt_ParticleSystem2D_Play(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.Play();
+	}
+	static void Bolt_ParticleSystem2D_Pause(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.Pause();
+	}
+	static void Bolt_ParticleSystem2D_Stop(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.Stop();
+	}
+	static int Bolt_ParticleSystem2D_IsPlaying(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, 0);
+		return comp.IsPlaying() ? 1 : 0;
+	}
+	static int Bolt_ParticleSystem2D_GetPlayOnAwake(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, 0);
+		return comp.PlayOnAwake ? 1 : 0;
+	}
+	static void Bolt_ParticleSystem2D_SetPlayOnAwake(uint64_t entityID, int enabled) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.PlayOnAwake = (enabled != 0);
+	}
+	static void Bolt_ParticleSystem2D_GetColor(uint64_t entityID, float* r, float* g, float* b, float* a) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		*r = comp.RenderingSettings.Color.r; *g = comp.RenderingSettings.Color.g;
+		*b = comp.RenderingSettings.Color.b; *a = comp.RenderingSettings.Color.a;
+	}
+	static void Bolt_ParticleSystem2D_SetColor(uint64_t entityID, float r, float g, float b, float a) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.RenderingSettings.Color = { r, g, b, a };
+	}
+	static float Bolt_ParticleSystem2D_GetLifeTime(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, 0.0f);
+		return comp.ParticleSettings.LifeTime;
+	}
+	static void Bolt_ParticleSystem2D_SetLifeTime(uint64_t entityID, float lifetime) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.ParticleSettings.LifeTime = lifetime;
+	}
+	static float Bolt_ParticleSystem2D_GetSpeed(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, 0.0f);
+		return comp.ParticleSettings.Speed;
+	}
+	static void Bolt_ParticleSystem2D_SetSpeed(uint64_t entityID, float speed) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.ParticleSettings.Speed = speed;
+	}
+	static float Bolt_ParticleSystem2D_GetScale(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, 0.0f);
+		return comp.ParticleSettings.Scale;
+	}
+	static void Bolt_ParticleSystem2D_SetScale(uint64_t entityID, float scale) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.ParticleSettings.Scale = scale;
+	}
+	static int Bolt_ParticleSystem2D_GetEmitOverTime(uint64_t entityID) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, 0);
+		return comp.EmissionSettings.EmitOverTime;
+	}
+	static void Bolt_ParticleSystem2D_SetEmitOverTime(uint64_t entityID, int rate) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.EmissionSettings.EmitOverTime = static_cast<uint16_t>(rate);
+	}
+	static void Bolt_ParticleSystem2D_Emit(uint64_t entityID, int count) {
+		GET_COMPONENT(ParticleSystem2DComponent, entityID, );
+		comp.Emit(static_cast<size_t>(count));
+	}
+
 	// ── Gizmos ──────────────────────────────────────────────────────────
 
 	static void Bolt_Gizmo_DrawLine(float x1, float y1, float x2, float y2) { Gizmo::DrawLine({ x1, y1 }, { x2, y2 }); }
@@ -535,6 +754,7 @@ namespace Bolt {
 	static void Bolt_Gizmo_DrawCircle(float cx, float cy, float radius, int segments) { Gizmo::DrawCircle({ cx, cy }, radius, segments); }
 	static void Bolt_Gizmo_SetColor(float r, float g, float b, float a) { Gizmo::SetColor(Color(r, g, b, a)); }
 	static void Bolt_Gizmo_GetColor(float* r, float* g, float* b, float* a) { Color c = Gizmo::GetColor(); *r = c.r; *g = c.g; *b = c.b; *a = c.a; }
+	static float Bolt_Gizmo_GetLineWidth() { return Gizmo::GetLineWidth(); }
 	static void Bolt_Gizmo_SetLineWidth(float width) { Gizmo::SetLineWidth(width); }
 
 	// ── Physics2D ───────────────────────────────────────────────────────
@@ -565,6 +785,11 @@ namespace Bolt {
 		b.Application_GetElapsedTime = &Bolt_Application_GetTime;
 		b.Application_GetScreenWidth = &Bolt_Application_GetScreenWidth;
 		b.Application_GetScreenHeight = &Bolt_Application_GetScreenHeight;
+		b.Application_GetTargetFrameRate = &Bolt_Application_GetTargetFrameRate;
+		b.Application_SetTargetFrameRate = &Bolt_Application_SetTargetFrameRate;
+		b.Application_GetFixedDeltaTime = &Bolt_Application_GetFixedDeltaTime;
+		b.Application_GetUnscaledDeltaTime = &Bolt_Application_GetUnscaledDeltaTime;
+		b.Application_GetFixedUnscaledDeltaTime = &Bolt_Application_GetFixedUnscaledDeltaTime;
 
 		b.Log_Trace = &Bolt_Log_Trace;
 		b.Log_Info = &Bolt_Log_Info;
@@ -577,6 +802,9 @@ namespace Bolt {
 		b.Input_GetMouseButton = &Bolt_Input_GetMouseButton;
 		b.Input_GetMouseButtonDown = &Bolt_Input_GetMouseButtonDown;
 		b.Input_GetMousePosition = &Bolt_Input_GetMousePosition;
+		b.Input_GetAxis = &Bolt_Input_GetAxis;
+		b.Input_GetMouseDelta = &Bolt_Input_GetMouseDelta;
+		b.Input_GetScrollWheelDelta = &Bolt_Input_GetScrollWheelDelta;
 
 		b.Entity_IsValid = &Bolt_Entity_IsValid;
 		b.Entity_FindByName = &Bolt_Entity_FindByName;
@@ -656,11 +884,39 @@ namespace Bolt {
 		b.BoltCircleCollider2D_GetRadius = &Bolt_BoltCircleCollider2D_GetRadius;
 		b.BoltCircleCollider2D_SetRadius = &Bolt_BoltCircleCollider2D_SetRadius;
 
+		b.Scene_GetActiveSceneName = &Bolt_Scene_GetActiveSceneName;
+		b.Scene_GetEntityCount = &Bolt_Scene_GetEntityCount;
+		b.Scene_LoadAdditive = &Bolt_Scene_LoadAdditive;
+		b.Scene_Unload = &Bolt_Scene_Unload;
+		b.Scene_SetActive = &Bolt_Scene_SetActive;
+		b.Scene_GetLoadedCount = &Bolt_Scene_GetLoadedCount;
+		b.Scene_GetLoadedSceneNameAt = &Bolt_Scene_GetLoadedSceneNameAt;
+		b.Scene_QueryEntities = &Bolt_Scene_QueryEntities;
+
+		b.ParticleSystem2D_Play = &Bolt_ParticleSystem2D_Play;
+		b.ParticleSystem2D_Pause = &Bolt_ParticleSystem2D_Pause;
+		b.ParticleSystem2D_Stop = &Bolt_ParticleSystem2D_Stop;
+		b.ParticleSystem2D_IsPlaying = &Bolt_ParticleSystem2D_IsPlaying;
+		b.ParticleSystem2D_GetPlayOnAwake = &Bolt_ParticleSystem2D_GetPlayOnAwake;
+		b.ParticleSystem2D_SetPlayOnAwake = &Bolt_ParticleSystem2D_SetPlayOnAwake;
+		b.ParticleSystem2D_GetColor = &Bolt_ParticleSystem2D_GetColor;
+		b.ParticleSystem2D_SetColor = &Bolt_ParticleSystem2D_SetColor;
+		b.ParticleSystem2D_GetLifeTime = &Bolt_ParticleSystem2D_GetLifeTime;
+		b.ParticleSystem2D_SetLifeTime = &Bolt_ParticleSystem2D_SetLifeTime;
+		b.ParticleSystem2D_GetSpeed = &Bolt_ParticleSystem2D_GetSpeed;
+		b.ParticleSystem2D_SetSpeed = &Bolt_ParticleSystem2D_SetSpeed;
+		b.ParticleSystem2D_GetScale = &Bolt_ParticleSystem2D_GetScale;
+		b.ParticleSystem2D_SetScale = &Bolt_ParticleSystem2D_SetScale;
+		b.ParticleSystem2D_GetEmitOverTime = &Bolt_ParticleSystem2D_GetEmitOverTime;
+		b.ParticleSystem2D_SetEmitOverTime = &Bolt_ParticleSystem2D_SetEmitOverTime;
+		b.ParticleSystem2D_Emit = &Bolt_ParticleSystem2D_Emit;
+
 		b.Gizmo_DrawLine = &Bolt_Gizmo_DrawLine;
 		b.Gizmo_DrawSquare = &Bolt_Gizmo_DrawSquare;
 		b.Gizmo_DrawCircle = &Bolt_Gizmo_DrawCircle;
 		b.Gizmo_SetColor = &Bolt_Gizmo_SetColor;
 		b.Gizmo_GetColor = &Bolt_Gizmo_GetColor;
+		b.Gizmo_GetLineWidth = &Bolt_Gizmo_GetLineWidth;
 		b.Gizmo_SetLineWidth = &Bolt_Gizmo_SetLineWidth;
 
 		b.Physics2D_Raycast = &Bolt_Physics2D_Raycast;

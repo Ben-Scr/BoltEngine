@@ -19,9 +19,15 @@ namespace Bolt {
 		void SetCoreAssemblyPath(const std::string& path) { m_CoreAssemblyPath = path; }
 		void SetUserAssemblyPath(const std::string& path) { m_UserAssemblyPath = path; }
 
+		/// Suppress file watcher polling (e.g. while a script is being created/renamed)
+		void SetRecompileSuppressed(bool suppressed) { m_SuppressRecompile = suppressed; }
+		bool IsRecompileSuppressed() const { return m_SuppressRecompile; }
+
 	private:
 		void RebuildAndReloadScripts();
 		void RebuildAndReloadNativeScripts();
+
+		bool m_SuppressRecompile = false;
 
 		std::string m_CoreAssemblyPath;
 		std::string m_UserAssemblyPath;

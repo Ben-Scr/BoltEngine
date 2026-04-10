@@ -1,18 +1,28 @@
+using System;
+using System.Drawing;
+
 namespace Bolt
 {
     public static class Gizmos
     {
-        public static void SetColor(Color color)
-            => InternalCalls.Gizmo_SetColor(color.R, color.G, color.B, color.A);
+        public static Color Color
+        {
+            get => GetColor();
+            set => InternalCalls.Gizmo_SetColor(value.R, value.G, value.B, value.A);
+        }
 
-        public static Color GetColor()
+        internal static Color GetColor()
         {
             InternalCalls.Gizmo_GetColor(out float r, out float g, out float b, out float a);
             return new Color(r, g, b, a);
         }
 
-        public static void SetLineWidth(float width)
-            => InternalCalls.Gizmo_SetLineWidth(width);
+        public static float LineWidth
+        {
+            get => InternalCalls.Gizmo_GetLineWidth();
+            set => InternalCalls.Gizmo_SetLineWidth(value);
+        }
+
 
         public static void DrawLine(Vector2 start, Vector2 end)
             => InternalCalls.Gizmo_DrawLine(start.X, start.Y, end.X, end.Y);

@@ -3,6 +3,7 @@
 #include "General/Transform2DComponent.hpp"
 #include "General/RectTransformComponent.hpp"
 #include "General/NameComponent.hpp"
+#include "General/UUIDComponent.hpp"
 #include "General/RectTransformComponent.hpp"
 
 #include "Graphics/SpriteRendererComponent.hpp"

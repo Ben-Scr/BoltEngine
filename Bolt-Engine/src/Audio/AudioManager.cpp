@@ -19,7 +19,7 @@ namespace Bolt {
 	std::vector<AudioManager::SoundInstance> AudioManager::s_soundInstances;
 	std::vector<uint32_t> AudioManager::s_freeInstanceIndices;
 	float AudioManager::s_masterVolume = 1.0f;
-	std::string AudioManager::s_RootPath = Path::Combine("Assets", "Audio");
+	std::string AudioManager::s_RootPath = Path::Combine("BoltAssets", "Audio");
 
 	uint32_t AudioManager::s_maxConcurrentSounds = MAX_CONCURRENT_SOUNDS;
 	uint32_t AudioManager::s_maxSoundsPerFrame = MAX_SOUNDS_PER_FRAME;
@@ -35,11 +35,11 @@ namespace Bolt {
 			return true;
 		}
 
-		// Try BoltAssets first (packaged build), fall back to Assets (dev layout)
-		std::string base = Path::ExecutableDir();
-		std::string audioDir = std::filesystem::exists(Path::Combine(base, "BoltAssets", "Audio"))
-			? Path::Combine(base, "BoltAssets", "Audio")
-			: Path::Combine(base, "Assets", "Audio");
+		std::string audioDir = Path::ResolveBoltAssets("Audio");
+		if (audioDir.empty()) {
+			BT_CORE_WARN("BoltAssets/Audio not found");
+			audioDir = Path::Combine(Path::ExecutableDir(), "BoltAssets", "Audio");
+		}
 		s_RootPath = audioDir;
 
 		ma_result result = ma_engine_init(nullptr, &s_Engine);

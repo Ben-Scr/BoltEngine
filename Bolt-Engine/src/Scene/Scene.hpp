@@ -78,27 +78,19 @@ namespace Bolt {
 		}
 
 		template<typename TComponent>
-		TComponent& GetSingletonComponent() {
+		TComponent* GetSingletonComponent() {
 			auto view = m_Registry.view<TComponent>();
 			const auto count = view.size();
 			if (count == 0) {
-				throw std::runtime_error(
-					"Component of type \"" +
-					std::string(typeid(TComponent).name()) +
-					"\" not found"
-				);
+				BT_CORE_ERROR_TAG("Scene", "Singleton component '{}' not found", typeid(TComponent).name());
+				return nullptr;
 			}
 			if (count > 1) {
-				throw std::runtime_error(
-					"More than one component of type \"" +
-					std::string(typeid(TComponent).name()) +
-					"\" exists in the registry, found " +
-					std::to_string(count)
-				);
+				BT_CORE_WARN_TAG("Scene", "Multiple ({}) instances of singleton component '{}', returning first", count, typeid(TComponent).name());
 			}
 
 			auto entity = *view.begin();
-			return view.get<TComponent>(entity);
+			return &view.get<TComponent>(entity);
 		}
 
 		template<typename TComponent>
@@ -107,36 +99,28 @@ namespace Bolt {
 
 			const auto count = view.size();
 			if (count == 0) {
-				throw std::runtime_error(
-					"Component of type \"" +
-					std::string(typeid(TComponent).name()) +
-					"\" not found"
-				);
+				BT_CORE_ERROR_TAG("Scene", "Singleton entity with component '{}' not found", typeid(TComponent).name());
+				return entt::null;
 			}
 			if (count > 1) {
-				throw std::runtime_error(
-					"More than one component of type \"" +
-					std::string(typeid(TComponent).name()) +
-					"\" exists in the registry, found " +
-					std::to_string(count)
-				);
+				BT_CORE_WARN_TAG("Scene", "Multiple ({}) instances of singleton component '{}', returning first", count, typeid(TComponent).name());
 			}
 
 			return *view.begin();
 		}
 
 		template<typename T>
-		T& GetSystem() {
+		T* GetSystem() {
 			static_assert(std::is_base_of<ISystem, T>::value, "T must derive from ISystem");
 
 			for (auto& sysPtr : m_Systems) {
 				if (auto ptr = dynamic_cast<T*>(sysPtr.get())) {
-					return *ptr;
+					return ptr;
 				}
 			}
 
-			BT_LOG_ERROR(BoltErrorCode::Undefined, "System not found");
-			std::terminate();
+			BT_CORE_ERROR_TAG("Scene", "System not found: {}", typeid(T).name());
+			return nullptr;
 		}
 
 		template<typename T>
@@ -185,7 +169,7 @@ namespace Bolt {
 		const SceneDefinition* GetDefinition() const { return m_Definition; }
 
 		bool IsDirty() const { return m_Dirty; }
-		void MarkDirty() { m_Dirty = true; }
+		void MarkDirty();
 		void ClearDirty() { m_Dirty = false; }
 
 	private:
@@ -227,7 +211,10 @@ namespace Bolt {
 						func(s);
 					}
 					catch (const std::exception& e) {
-						BT_ERROR(e.what());
+						BT_CORE_ERROR_TAG("Scene", "System error: {}", e.what());
+					}
+					catch (...) {
+						BT_CORE_ERROR_TAG("Scene", "Unknown system error");
 					}
 				}
 			}

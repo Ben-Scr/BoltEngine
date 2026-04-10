@@ -62,6 +62,7 @@ namespace Bolt {
 
 		void SetCursorImage(const Texture2D* tex2D);
 		void SetWindowIcon(const Texture2D* tex2D);
+		void SetWindowIconFromResource();
 
 		// Info: If enabled equals true the window will become fullscreen else windowed
 		void SetFullScreen(bool enabled);

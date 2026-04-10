@@ -13,8 +13,8 @@ namespace Bolt
 
         public static float TargetFrameRate
         {
-            get => 0.0f;
-            //set => InternalCalls.Application_SetTargetFrameRate(value);
+            get => InternalCalls.Application_GetTargetFrameRate();
+            set => InternalCalls.Application_SetTargetFrameRate(value);
         }
 
         public static int ScreenWidth => InternalCalls.Application_GetScreenWidth();

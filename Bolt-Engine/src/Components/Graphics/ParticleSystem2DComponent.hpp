@@ -97,6 +97,7 @@ namespace Bolt {
 
 		void Clear() { m_Particles.clear(); m_Bursts.clear();  m_EmitAccumulator = 0.f; }
 
+		bool PlayOnAwake{ true };
 		ParticleSettings ParticleSettings;
 		EmissionSettings EmissionSettings;
 		ShapeParams Shape = CircleParams{ 1.f };

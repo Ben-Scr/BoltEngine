@@ -25,6 +25,7 @@ project "Bolt-Editor"
         systemversion "latest"
         defines { "BT_PLATFORM_WINDOWS" }
         postbuildcommands {
+            CopyBoltAssets,
             '{COPYFILE} "%{wks.location}External/dotnet/lib/nethost.dll" "%{cfg.targetdir}/nethost.dll"'
         }
 

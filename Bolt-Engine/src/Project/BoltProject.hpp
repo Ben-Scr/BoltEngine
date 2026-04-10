@@ -28,6 +28,7 @@ namespace Bolt {
 		int BuildHeight = 720;
 		bool BuildFullscreen = false;
 		bool BuildResizable = true;
+		std::string AppIconPath;
 
 		std::string GetUserAssemblyOutputPath() const;
 		std::string GetNativeDllPath() const;

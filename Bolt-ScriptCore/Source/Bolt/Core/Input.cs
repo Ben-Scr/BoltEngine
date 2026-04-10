@@ -20,8 +20,52 @@ namespace Bolt
 
         public static Action<MouseButton> OnMouseDown;
         public static Action<MouseButton> OnMouseUp;
-
+        public static Action<MouseButton> OnMouseScroll;
         public static Action<Vector2> OnMouseMove;
+
+        public static int KeyCount => 0;
+        public static int MouseCount => 3;
+
+        /// <summary>
+        /// Returns a smoothed axis vector based on WASD/Arrow key input.
+        /// X = horizontal (-1 to 1), Y = vertical (-1 to 1).
+        /// </summary>
+        public static Vector2 GetAxis()
+        {
+            InternalCalls.Input_GetAxis(out float x, out float y);
+            return new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// Returns a raw (unsmoothed) axis vector based on key input.
+        /// Values are -1, 0, or 1 per axis.
+        /// </summary>
+        public static Vector2 GetAxisRaw()
+        {
+            float x = 0f, y = 0f;
+            if (GetKey(KeyCode.D) || GetKey(KeyCode.Right)) x += 1f;
+            if (GetKey(KeyCode.A) || GetKey(KeyCode.Left))  x -= 1f;
+            if (GetKey(KeyCode.W) || GetKey(KeyCode.Up))    y += 1f;
+            if (GetKey(KeyCode.S) || GetKey(KeyCode.Down))  y -= 1f;
+            return new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// Returns the mouse movement delta since the last frame.
+        /// </summary>
+        public static Vector2 GetMouseDelta()
+        {
+            InternalCalls.Input_GetMouseDelta(out float x, out float y);
+            return new Vector2(x, y);
+        }
+
+        /// <summary>
+        /// Returns the scroll wheel delta since the last frame.
+        /// </summary>
+        public static float GetScrollWheelDelta()
+        {
+            return InternalCalls.Input_GetScrollWheelDelta();
+        }
 
         /// <summary>
         /// Returns true every frame the key is held down.

@@ -86,6 +86,8 @@ namespace Bolt {
 			return AssetType::Script;
 		if (ext == ".scene" || ext == ".json" || ext == ".bolt")
 			return AssetType::Scene;
+		if (ext == ".prefab")
+			return AssetType::Prefab;
 		if (ext == ".cfg" || ext == ".ini" || ext == ".yaml" || ext == ".toml" || ext == ".xml")
 			return AssetType::Config;
 
@@ -102,6 +104,7 @@ namespace Bolt {
 			case AssetType::Script:  return "Script";
 			case AssetType::Scene:   return "Scene";
 			case AssetType::Config:  return "Config";
+			case AssetType::Prefab:  return "Prefab";
 			default:                 return "File";
 		}
 	}
@@ -180,6 +183,13 @@ namespace Bolt {
 				const float cx = (min.x + max.x) * 0.5f;
 				const float cy = (min.y + max.y) * 0.5f;
 				drawList->AddCircle(ImVec2(cx, cy), size * 0.15f, IM_COL32(255, 255, 255, 255), 0, 2.0f);
+				break;
+			}
+			case AssetType::Prefab: {
+				drawList->AddRectFilled(min, max, IM_COL32(70, 160, 180, 255), 3.0f);
+				const float cx = (min.x + max.x) * 0.5f;
+				const float cy = (min.y + max.y) * 0.5f;
+				drawList->AddText(ImVec2(cx - 6.0f, cy - 7.0f), IM_COL32(255, 255, 255, 255), "Pf");
 				break;
 			}
 			default: {

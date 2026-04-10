@@ -10,6 +10,12 @@
 #include <entt/entt.hpp>
 
 namespace Bolt {
+	void ParticleUpdateSystem::Awake(Scene& scene) {
+		for (const auto& [ent, particleSystem] : scene.GetRegistry().view<ParticleSystem2DComponent>(entt::exclude<DisabledTag>).each())
+			if (particleSystem.PlayOnAwake)
+				particleSystem.Play();
+	}
+
 	void ParticleUpdateSystem::Update(Scene& scene) {
 		for (const auto& [ent, particleSystem] : scene.GetRegistry().view<ParticleSystem2DComponent>(entt::exclude<DisabledTag>).each())
 			particleSystem.Update();

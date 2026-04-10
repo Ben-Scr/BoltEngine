@@ -32,5 +32,10 @@ namespace Bolt {
 		}
 
 		static std::string ExecutableDir();
+
+		/// Resolves a BoltAssets subdirectory (e.g. "Textures", "Shader").
+		/// Checks: exeDir/BoltAssets/<sub> (packaged), then exeDir/../BoltAssets/<sub> (dev layout).
+		/// Returns empty string if not found.
+		static std::string ResolveBoltAssets(const std::string& subdirectory);
 	};
 }

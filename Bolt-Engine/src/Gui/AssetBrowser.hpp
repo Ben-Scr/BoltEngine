@@ -12,6 +12,9 @@ namespace Bolt {
 		void Shutdown();
 		void Render();
 
+		/// Returns true when the user is currently naming a new script (rename in progress).
+		bool IsCreatingScript() const { return m_PendingScriptType != PendingScriptType::None; }
+
 		std::string TakePendingSceneLoad() {
 			std::string p = std::move(m_PendingSceneLoad);
 			m_PendingSceneLoad.clear();

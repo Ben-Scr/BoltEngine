@@ -86,6 +86,16 @@ namespace Bolt {
 		static void Pause(bool paused) { if (s_Instance) s_Instance->m_IsPaused = paused; }
 		static void Reload() { if (s_Instance) { s_Instance->m_ShouldQuit = true; s_Instance->m_CanReload = true; } };
 		static bool IsPaused() { return s_Instance ? s_Instance->m_IsPaused : false; }
+
+		/// Pauses only gameplay (scene updates, physics, audio) while keeping the editor responsive.
+		static void SetPlaymodePaused(bool paused) { if (s_Instance) s_Instance->m_IsPlaymodePaused = paused; }
+		static bool IsPlaymodePaused() { return s_Instance ? s_Instance->m_IsPlaymodePaused : false; }
+
+		/// Signals a quit request that can be intercepted (e.g. to show a save dialog).
+		static void RequestQuit() { if (s_Instance) s_Instance->m_QuitRequested = true; }
+		static bool IsQuitRequested() { return s_Instance ? s_Instance->m_QuitRequested : false; }
+		static void CancelQuit() { if (s_Instance) s_Instance->m_QuitRequested = false; }
+		static void ConfirmQuit() { Quit(); }
 		void RenderOnceForRefresh();
 		void OnEvent(BoltEvent& event);
 
@@ -115,6 +125,8 @@ namespace Bolt {
 		bool m_CanReload = false;
 		bool m_IsPaused = false;
 		bool m_IsPlaying = true;
+		bool m_IsPlaymodePaused = false;
+		bool m_QuitRequested = false;
 
 		float m_TargetFramerate = 144.0f;
 		float m_MaxPossibleFPS = 0.0f;

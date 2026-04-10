@@ -20,7 +20,10 @@ namespace Bolt {
 		m_SpriteShader.Initialize();
 		m_Instances.reserve(512);
 
-		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Sprite shader is invalid.");
+		if (!m_SpriteShader.IsValid()) {
+			BT_CORE_ERROR_TAG("Renderer2D", "Sprite shader is invalid — rendering disabled");
+			return;
+		}
 		m_IsInitialized = true;
 	}
 
@@ -106,7 +109,10 @@ namespace Bolt {
 	}
 
 	void Renderer2D::CollectAndRenderInstances(const Scene& scene, const glm::mat4& vp, const AABB& viewportAABB) {
-		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
+		if (!m_SpriteShader.IsValid()) {
+			BT_CORE_ERROR_TAG("Renderer2D", "Sprite shader is invalid — cannot render");
+			return;
+		}
 		m_SpriteShader.Bind();
 		m_SpriteShader.SetMVP(vp);
 

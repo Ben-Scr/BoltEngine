@@ -13,13 +13,11 @@ namespace Bolt
             R = r; G = g; B = b; A = a;
         }
 
-        // Vector-compatible accessors (X=R, Y=G, Z=B, W=A)
         public float X { get => R; set => R = value; }
         public float Y { get => G; set => G = value; }
         public float Z { get => B; set => B = value; }
         public float W { get => A; set => A = value; }
 
-        // ── Predefined colors ───────────────────────────────────────
         public static readonly Color White = new(1.0f, 1.0f, 1.0f);
         public static readonly Color Black = new(0.0f, 0.0f, 0.0f);
         public static readonly Color Red = new(1.0f, 0.0f, 0.0f);

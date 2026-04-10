@@ -188,6 +188,54 @@ namespace Bolt
         public void Resume() => InternalCalls.AudioSource_Resume(Entity.ID);
     }
 
+    // ── ParticleSystem2DComponent ─────────────────────────────────────────
+
+    public class ParticleSystem2DComponent : Component
+    {
+        public bool PlayOnAwake
+        {
+            get => InternalCalls.ParticleSystem2D_GetPlayOnAwake(Entity.ID);
+            set => InternalCalls.ParticleSystem2D_SetPlayOnAwake(Entity.ID, value);
+        }
+
+        public bool IsPlaying => InternalCalls.ParticleSystem2D_IsPlaying(Entity.ID);
+
+        public Vector4 Color
+        {
+            get { InternalCalls.ParticleSystem2D_GetColor(Entity.ID, out float r, out float g, out float b, out float a); return new Color(r, g, b, a); }
+            set => InternalCalls.ParticleSystem2D_SetColor(Entity.ID, value.X, value.Y, value.Z, value.W);
+        }
+
+        public float LifeTime
+        {
+            get => InternalCalls.ParticleSystem2D_GetLifeTime(Entity.ID);
+            set => InternalCalls.ParticleSystem2D_SetLifeTime(Entity.ID, value);
+        }
+
+        public float Speed
+        {
+            get => InternalCalls.ParticleSystem2D_GetSpeed(Entity.ID);
+            set => InternalCalls.ParticleSystem2D_SetSpeed(Entity.ID, value);
+        }
+
+        public float Scale
+        {
+            get => InternalCalls.ParticleSystem2D_GetScale(Entity.ID);
+            set => InternalCalls.ParticleSystem2D_SetScale(Entity.ID, value);
+        }
+
+        public int EmitOverTime
+        {
+            get => InternalCalls.ParticleSystem2D_GetEmitOverTime(Entity.ID);
+            set => InternalCalls.ParticleSystem2D_SetEmitOverTime(Entity.ID, value);
+        }
+
+        public void Play() => InternalCalls.ParticleSystem2D_Play(Entity.ID);
+        public void Pause() => InternalCalls.ParticleSystem2D_Pause(Entity.ID);
+        public void Stop() => InternalCalls.ParticleSystem2D_Stop(Entity.ID);
+        public void Emit(int count) => InternalCalls.ParticleSystem2D_Emit(Entity.ID, count);
+    }
+
     // ── Bolt-Physics Components ─────────────────────────────────────────
     // These use the lightweight Bolt-Physics engine (AABB-based collision).
     // For full physics (rotation, friction, CCD), use Rigidbody2DComponent

@@ -6,14 +6,13 @@
 
 namespace Bolt {
 	void SpriteShaderProgram::Initialize() {
-		const std::string base = Path::ExecutableDir();
-		// Try BoltAssets first (packaged build), fall back to Assets (dev layout)
-		std::string shaderDir = std::filesystem::exists(Path::Combine(base, "BoltAssets/Shader"))
-			? "BoltAssets/Shader" : "Assets/Shader";
-		m_Shader.emplace(
-			Path::Combine(base, shaderDir + "/2D/sprite.vert.glsl").c_str(),
-			Path::Combine(base, shaderDir + "/2D/sprite.frag.glsl").c_str()
-		);
+		std::string shaderDir = Path::ResolveBoltAssets("Shader");
+		if (shaderDir.empty()) {
+			BT_CORE_ERROR("BoltAssets/Shader not found");
+			shaderDir = Path::Combine(Path::ExecutableDir(), "BoltAssets", "Shader");
+		}
+
+		m_Shader.emplace(Path::Combine(shaderDir, "2D/sprite.vert.glsl"), Path::Combine(shaderDir, "2D/sprite.frag.glsl"));
 
 		BT_ASSERT(IsValid(), BoltErrorCode::Undefined, "Failed to create sprite shader program");
 

@@ -11,6 +11,7 @@ namespace Bolt {
 	float Gizmo::s_LineWidth = 1.0f;
 
 	bool Gizmo::s_IsEnabled = true;
+	bool Gizmo::s_ShowInRuntime = true;
 	Color Gizmo::s_Color = { 0.f, 1.f, 0.f, 1.f };
 
 	void Gizmo::DrawCircle(const Vec2& center, float radius, int segments) {

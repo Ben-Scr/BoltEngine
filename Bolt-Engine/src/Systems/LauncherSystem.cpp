@@ -18,7 +18,6 @@
 #include <chrono>
 
 #ifdef BT_PLATFORM_WINDOWS
-#include <windows.h>
 #include <shobjidl.h>
 #endif
 
@@ -39,7 +38,8 @@ namespace Bolt {
 		double seconds = std::difftime(now, then);
 
 		if (seconds < 0) return "Now";
-		if (seconds < 60) return "Now";
+		if (seconds < 5) return "Now";
+		if (seconds < 60) return std::to_string(static_cast<int>(seconds)) + "s ago";
 
 		int minutes = static_cast<int>(seconds / 60);
 		if (minutes < 60) return std::to_string(minutes) + "m ago";
@@ -88,7 +88,6 @@ namespace Bolt {
 	void LauncherSystem::OnGui(Scene& scene) {
 		(void)scene;
 		RenderLauncherPanel();
-		if (m_ShowCreatePopup) RenderCreateProjectPopup();
 	}
 
 	void LauncherSystem::OnDestroy(Scene& scene) {
@@ -131,6 +130,17 @@ namespace Bolt {
 			ImGui::SetCursorScreenPos(ImVec2(center.x - 120, center.y + 30));
 			ImGui::TextDisabled("%s", m_OpeningProjectName.c_str());
 
+			// L1: Dismiss after cooldown, then perform deferred re-sort
+			if (elapsed >= 1.5f) {
+				m_IsOpening = false;
+
+				if (!m_DeferredUpdatePath.empty()) {
+					m_Registry.UpdateLastOpened(m_DeferredUpdatePath);
+					m_Registry.Save();
+					m_DeferredUpdatePath.clear();
+				}
+			}
+
 			ImGui::End();
 			return; // Skip all other UI — blocks interaction completely
 		}
@@ -145,12 +155,13 @@ namespace Bolt {
 
 		ImGui::SameLine();
 
-		// Right column: actions
+		// Right column: actions (L4: removed selection-dependent buttons)
 		ImGui::BeginChild("##Actions", ImVec2(rightColWidth, 0));
 
 		if (ImGui::Button("Create New Project", ImVec2(-1, 0))) {
-			m_ShowCreatePopup = true;
+			m_OpenCreatePopup = true;
 			m_CreateError.clear();
+			m_IsCreating = false;
 			m_NewProjectName[0] = '\0';
 		}
 
@@ -164,26 +175,16 @@ namespace Bolt {
 			ImGui::TextColored(ImVec4(1, 0.3f, 0.3f, 1), "%s", m_BrowseError.c_str());
 		}
 
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-
-		bool hasSelection = m_SelectedIndex >= 0
-			&& m_SelectedIndex < static_cast<int>(m_Registry.GetProjects().size());
-
-		if (hasSelection) {
-			if (ImGui::Button("Open Selected", ImVec2(-1, 0))) {
-				OpenProject(m_Registry.GetProjects()[m_SelectedIndex]);
-			}
+		// L3: Show open error if any
+		if (!m_OpenError.empty()) {
 			ImGui::Spacing();
-			if (ImGui::Button("Remove from List", ImVec2(-1, 0))) {
-				m_Registry.RemoveProject(m_Registry.GetProjects()[m_SelectedIndex].path);
-				m_Registry.Save();
-				m_SelectedIndex = -1;
-			}
+			ImGui::TextColored(ImVec4(1, 0.3f, 0.3f, 1), "%s", m_OpenError.c_str());
 		}
 
 		ImGui::EndChild();
+
+		// L6: Render create popup modal inside the launcher window context
+		RenderCreateProjectPopup();
 
 		ImGui::End();
 	}
@@ -199,56 +200,91 @@ namespace Bolt {
 			return;
 		}
 
+		int removeIndex = -1;
+
 		for (int i = 0; i < static_cast<int>(projects.size()); i++) {
 			const auto& entry = projects[i];
-			bool selected = (m_SelectedIndex == i);
 
 			ImGui::PushID(i);
 
 			std::string timeStr = FormatRelativeTime(entry.lastOpened);
 
 			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-			ImVec2 availSize = ImVec2(ImGui::GetContentRegionAvail().x, 50.0f);
+			float rowWidth = ImGui::GetContentRegionAvail().x;
+			float buttonWidth = 60.0f;
+			float rowHeight = 50.0f;
 
-			if (ImGui::Selectable("##Entry", selected, 0, availSize)) {
-				m_SelectedIndex = i;
+			// Draw an invisible item spanning the row for layout + right-click context
+			ImGui::InvisibleButton("##Row", ImVec2(rowWidth - buttonWidth - 8, rowHeight));
+
+			// Right-click context menu per item
+			if (ImGui::BeginPopupContextItem("##RowCtx")) {
+				if (ImGui::MenuItem("Remove from List")) {
+					removeIndex = i;
+				}
+				ImGui::EndPopup();
 			}
 
-			if (!m_IsOpening && ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-				OpenProject(entry);
+			// Draw hover/active highlight
+			bool hovered = ImGui::IsItemHovered();
+			if (hovered) {
+				ImGui::GetWindowDrawList()->AddRectFilled(
+					cursorPos,
+					ImVec2(cursorPos.x + rowWidth, cursorPos.y + rowHeight),
+					ImGui::GetColorU32(ImGuiCol_HeaderHovered));
 			}
 
-			// Draw name and details over the selectable
+			// Draw name
 			ImGui::SetCursorScreenPos(ImVec2(cursorPos.x + 8, cursorPos.y + 4));
 			ImGui::TextUnformatted(entry.name.c_str());
 
+			// Draw path
 			ImGui::SetCursorScreenPos(ImVec2(cursorPos.x + 8, cursorPos.y + 24));
 			ImGui::TextDisabled("%s", entry.path.c_str());
 
+			// Draw relative time in upper-right (offset left to leave room for button)
 			if (!timeStr.empty()) {
 				float timeWidth = ImGui::CalcTextSize(timeStr.c_str()).x;
 				ImGui::SetCursorScreenPos(ImVec2(
-					cursorPos.x + availSize.x - timeWidth - 12,
+					cursorPos.x + rowWidth - buttonWidth - timeWidth - 20,
 					cursorPos.y + 4));
 				ImGui::TextDisabled("%s", timeStr.c_str());
 			}
 
-			ImGui::SetCursorScreenPos(ImVec2(cursorPos.x, cursorPos.y + availSize.y));
+			// Per-item Open button on the right side
+			ImGui::SetCursorScreenPos(ImVec2(
+				cursorPos.x + rowWidth - buttonWidth - 4,
+				cursorPos.y + (rowHeight - ImGui::GetFrameHeight()) * 0.5f));
+			if (ImGui::Button("Open", ImVec2(buttonWidth, 0))) {
+				OpenProject(entry);
+			}
+
+			// Advance cursor past the row
+			ImGui::SetCursorScreenPos(ImVec2(cursorPos.x, cursorPos.y + rowHeight));
 
 			ImGui::PopID();
+		}
+
+		// Deferred removal to avoid modifying the list during iteration
+		if (removeIndex >= 0) {
+			m_Registry.RemoveProject(projects[removeIndex].path);
+			m_Registry.Save();
 		}
 	}
 
 	// ── Create Project Popup ────────────────────────────────────────
 
 	void LauncherSystem::RenderCreateProjectPopup() {
-		ImGui::OpenPopup("Create New Project");
+		if (m_OpenCreatePopup) {
+			ImGui::OpenPopup("Create New Project");
+			m_OpenCreatePopup = false;
+		}
 
 		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 		ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 		ImGui::SetNextWindowSize(ImVec2(450, 0), ImGuiCond_Appearing);
 
-		if (ImGui::BeginPopupModal("Create New Project", &m_ShowCreatePopup, ImGuiWindowFlags_AlwaysAutoResize)) {
+		if (ImGui::BeginPopupModal("Create New Project", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
 			ImGui::Text("Project Name:");
 			ImGui::SetNextItemWidth(-1);
 			ImGui::InputText("##ProjName", m_NewProjectName, sizeof(m_NewProjectName));
@@ -271,34 +307,44 @@ namespace Bolt {
 			ImGui::Separator();
 			ImGui::Spacing();
 
-			bool canCreate = BoltProject::IsValidProjectName(m_NewProjectName);
+			bool canCreate = BoltProject::IsValidProjectName(m_NewProjectName) && !m_IsCreating;
 			if (!canCreate) ImGui::BeginDisabled();
 
 			if (ImGui::Button("Create", ImVec2(120, 0))) {
-				try {
-					std::string name(m_NewProjectName);
-					std::string location(m_NewProjectLocation);
-					std::string fullPath = Path::Combine(location, name);
+				// L2: Prevent double-click
+				if (m_IsCreating) {
+					// Already in progress
+				} else {
+					m_IsCreating = true;
+					try {
+						std::string name(m_NewProjectName);
+						std::string location(m_NewProjectLocation);
+						std::string fullPath = Path::Combine(location, name);
 
-					if (std::filesystem::exists(fullPath)) {
-						m_CreateError = "Directory already exists: " + fullPath;
-					} else {
-						auto project = BoltProject::Create(name, location);
-						m_Registry.AddProject(project.Name, project.RootDirectory);
-						m_Registry.Save();
+						if (std::filesystem::exists(fullPath)) {
+							m_CreateError = "Directory already exists: " + fullPath;
+							m_IsCreating = false;
+						} else {
+							auto project = BoltProject::Create(name, location);
+							m_Registry.AddProject(project.Name, project.RootDirectory);
+							m_Registry.Save();
 
-						m_ShowCreatePopup = false;
+							ImGui::CloseCurrentPopup();
 
-						std::string buildCmd = "dotnet build \"" + project.CsprojPath + "\" -c Release --nologo -v q -nowarn:CS8632";
-						std::system(buildCmd.c_str());
+							std::string buildCmd = "dotnet build \"" + project.CsprojPath + "\" -c Release --nologo -v q -nowarn:CS8632 -p:DefineConstants=BOLT_EDITOR";
+							std::system(buildCmd.c_str());
 
-						LauncherProjectEntry entry;
-						entry.name = project.Name;
-						entry.path = project.RootDirectory;
-						OpenProject(entry);
+							LauncherProjectEntry entry;
+							entry.name = project.Name;
+							entry.path = project.RootDirectory;
+
+							m_IsCreating = false;
+							OpenProject(entry);
+						}
+					} catch (const std::exception& e) {
+						m_CreateError = e.what();
+						m_IsCreating = false;
 					}
-				} catch (const std::exception& e) {
-					m_CreateError = e.what();
 				}
 			}
 
@@ -306,7 +352,8 @@ namespace Bolt {
 
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-				m_ShowCreatePopup = false;
+				m_IsCreating = false;
+				ImGui::CloseCurrentPopup();
 			}
 
 			ImGui::EndPopup();
@@ -317,16 +364,38 @@ namespace Bolt {
 	// Launches the editor process but keeps the launcher open.
 
 	void LauncherSystem::OpenProject(const LauncherProjectEntry& entry) {
-		if (m_IsOpening) return; // Already opening a project — ignore
+		if (m_IsOpening) return; // Already opening a project -- ignore
 
-		// Set loading state FIRST — before anything that could re-sort the list
+		m_OpenError.clear();
+
+#ifdef BT_PLATFORM_WINDOWS
+		// L3: Check if this project is already open in another editor instance
+		{
+			auto it = m_RunningProjects.find(entry.path);
+			if (it != m_RunningProjects.end()) {
+				HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, it->second);
+				if (hProc) {
+					DWORD exitCode = 0;
+					if (GetExitCodeProcess(hProc, &exitCode) && exitCode == STILL_ACTIVE) {
+						CloseHandle(hProc);
+						m_OpenError = "Project already open";
+						return;
+					}
+					CloseHandle(hProc);
+				}
+				// Process is no longer running -- remove stale entry
+				m_RunningProjects.erase(it);
+			}
+		}
+#endif
+
+		// Set loading state FIRST -- before anything that could re-sort the list
 		m_IsOpening = true;
 		m_OpenStartTime = std::chrono::steady_clock::now();
 		m_OpeningProjectName = entry.name;
 
-		// Now safe to update (even if it re-sorts, the loading screen blocks further clicks)
-		m_Registry.UpdateLastOpened(entry.path);
-		m_Registry.Save();
+		// L1: Defer the re-sort until the loading screen dismisses
+		m_DeferredUpdatePath = entry.path;
 
 #ifdef BT_PLATFORM_WINDOWS
 		auto exeDir = std::filesystem::path(Path::ExecutableDir());
@@ -339,30 +408,30 @@ namespace Bolt {
 			std::string canonical = std::filesystem::canonical(editorExe).string();
 			std::string cmdLine = "\"" + canonical + "\" --project=\"" + entry.path + "\"";
 
-			std::thread([this, cmdLine]() {
-				std::wstring wcmd(cmdLine.begin(), cmdLine.end());
-				std::vector<wchar_t> buf(wcmd.begin(), wcmd.end());
-				buf.push_back(L'\0');
+			std::wstring wcmd(cmdLine.begin(), cmdLine.end());
+			std::vector<wchar_t> buf(wcmd.begin(), wcmd.end());
+			buf.push_back(L'\0');
 
-				STARTUPINFOW si{};
-				si.cb = sizeof(si);
-				PROCESS_INFORMATION pi{};
+			STARTUPINFOW si{};
+			si.cb = sizeof(si);
+			PROCESS_INFORMATION pi{};
 
-				if (CreateProcessW(nullptr, buf.data(), nullptr, nullptr,
-					FALSE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi))
-				{
-					CloseHandle(pi.hProcess);
-					CloseHandle(pi.hThread);
-				}
+			if (CreateProcessW(nullptr, buf.data(), nullptr, nullptr,
+				FALSE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi))
+			{
+				// L3: Store PID for duplicate-open detection
+				m_RunningProjects[entry.path] = pi.dwProcessId;
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+			}
 
-				m_IsOpening = false;
-			}).detach();
-
+			// m_IsOpening stays true -- the loading screen timer will clear it
 			BT_INFO_TAG("Launcher", "Opened project: {} at {}", entry.name, entry.path);
 		}
 		else {
 			BT_ERROR_TAG("Launcher", "Bolt-Editor.exe not found");
 			m_IsOpening = false;
+			m_DeferredUpdatePath.clear();
 		}
 #endif
 	}

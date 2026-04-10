@@ -21,7 +21,7 @@ project "Bolt-Runtime"
 
     postbuildcommands
     {
-        "{COPYDIR} %{prj.location}/Assets %{cfg.targetdir}/Assets",
+        CopyBoltAssets,
         '{COPYFILE} "%{wks.location}External/dotnet/lib/nethost.dll" "%{cfg.targetdir}/nethost.dll"'
     }
 

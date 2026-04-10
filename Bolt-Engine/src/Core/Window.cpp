@@ -10,6 +10,11 @@
 
 #include <glad/glad.h>
 
+#ifdef BT_PLATFORM_WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
+
 namespace Bolt {
 	Window* Window::s_ActiveWindow = nullptr;
 	bool Window::s_IsVsync = true;
@@ -344,6 +349,61 @@ namespace Bolt {
 		img.pixels = imgData->Pixels;
 
 		glfwSetWindowIcon(m_GLFWwindow, 1, &img);
+	}
+
+	void Window::SetWindowIconFromResource() {
+#ifdef BT_PLATFORM_WINDOWS
+		HICON hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(1));
+		if (!hIcon) {
+			BT_WARN_TAG("Window", "No embedded icon resource found.");
+			return;
+		}
+
+		ICONINFO iconInfo{};
+		if (!GetIconInfo(hIcon, &iconInfo)) {
+			DestroyIcon(hIcon);
+			BT_WARN_TAG("Window", "Failed to get icon info.");
+			return;
+		}
+
+		BITMAP bm{};
+		GetObject(iconInfo.hbmColor, sizeof(bm), &bm);
+
+		int w = bm.bmWidth;
+		int h = bm.bmHeight;
+
+		std::vector<unsigned char> pixels(w * h * 4);
+
+		BITMAPINFOHEADER bi{};
+		bi.biSize = sizeof(bi);
+		bi.biWidth = w;
+		bi.biHeight = -h; // top-down
+		bi.biPlanes = 1;
+		bi.biBitCount = 32;
+		bi.biCompression = BI_RGB;
+
+		HDC hdc = GetDC(NULL);
+		GetDIBits(hdc, iconInfo.hbmColor, 0, h, pixels.data(),
+			reinterpret_cast<BITMAPINFO*>(&bi), DIB_RGB_COLORS);
+		ReleaseDC(NULL, hdc);
+
+		// Windows gives BGRA, GLFW expects RGBA
+		for (int i = 0; i < w * h * 4; i += 4)
+			std::swap(pixels[i], pixels[i + 2]);
+
+		DeleteObject(iconInfo.hbmColor);
+		DeleteObject(iconInfo.hbmMask);
+		DestroyIcon(hIcon);
+
+		GLFWimage img;
+		img.width = w;
+		img.height = h;
+		img.pixels = pixels.data();
+
+		glfwSetWindowIcon(m_GLFWwindow, 1, &img);
+#else
+		BT_WARN_TAG("Window", "SetWindowIconFromResource is only supported on Windows.");
+#endif
 	}
 
 	void Window::SetWindowResizedCallback(GLFWwindow* window, int width, int height) {

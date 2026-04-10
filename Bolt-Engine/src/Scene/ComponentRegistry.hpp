@@ -22,6 +22,7 @@ namespace Bolt {
         bool (*has)(Entity) = nullptr;
         void (*add)(Entity) = nullptr;
         void (*remove)(Entity) = nullptr;
+        void (*copyTo)(Entity src, Entity dst) = nullptr;
         void (*drawInspector)(Entity) = nullptr;
     };
 
@@ -34,6 +35,21 @@ namespace Bolt {
             info.has = [](Entity e) { return e.HasComponent<T>(); };
             info.add = [](Entity e) { e.AddComponent<T>(); };
             info.remove = [](Entity e) { e.RemoveComponent<T>(); };
+
+            if constexpr (!std::is_empty_v<T>) {
+                info.copyTo = [](Entity src, Entity dst) {
+                    if (!src.HasComponent<T>()) return;
+                    if (dst.HasComponent<T>())
+                        dst.GetComponent<T>() = src.GetComponent<T>();
+                    else
+                        dst.AddComponent<T>(src.GetComponent<T>());
+                };
+            } else {
+                info.copyTo = [](Entity src, Entity dst) {
+                    if (src.HasComponent<T>() && !dst.HasComponent<T>())
+                        dst.AddComponent<T>();
+                };
+            }
 
             m_map[id] = std::move(info);
         }

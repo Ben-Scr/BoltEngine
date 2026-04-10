@@ -4,10 +4,13 @@
 #include "Project/ProjectManager.hpp"
 #include "Serialization/SceneSerializer.hpp"
 #include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
+#include "Components/General/NameComponent.hpp"
 #include "Core/Log.hpp"
 #include "Editor/ExternalEditor.hpp"
 #include <imgui.h>
 #include <algorithm>
+#include "Gui/EditorIcons.hpp"
 #include <filesystem>
 #include <fstream>
 
@@ -19,6 +22,21 @@
 #endif
 
 namespace Bolt {
+	static const char* GetFileTypeIconName(const std::string& extension) {
+		std::string ext = extension;
+		std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+		if (ext == ".cs")                                                    return "asset_cs";
+		if (ext == ".cpp" || ext == ".c" || ext == ".h" || ext == ".hpp")    return "asset_cpp";
+		if (ext == ".scene" || ext == ".bolt")                               return "asset_scene";
+		if (ext == ".prefab")                                                return "asset_scene";
+		if (ext == ".txt" || ext == ".cfg" || ext == ".ini" ||
+			ext == ".yaml" || ext == ".toml" || ext == ".xml" ||
+			ext == ".json" || ext == ".lua")                                 return "asset_txt";
+
+		return nullptr;
+	}
+
 	void AssetBrowser::Initialize(const std::string& rootDirectory) {
 		m_RootDirectory = rootDirectory;
 		m_CurrentDirectory = rootDirectory;
@@ -278,11 +296,18 @@ namespace Bolt {
 		}
 
 		ImGui::SameLine(ImGui::GetContentRegionAvail().x + ImGui::GetCursorPosX() - 30.0f);
-		if (ImGui::SmallButton("R")) {
-			m_NeedsRefresh = true;
-		}
-		if (ImGui::IsItemHovered()) {
-			ImGui::SetTooltip("Refresh");
+		{
+			unsigned int refreshIcon = EditorIcons::Get("redo", 16);
+			bool clicked = false;
+			if (refreshIcon) {
+				clicked = ImGui::ImageButton("##Refresh",
+					static_cast<ImTextureID>(static_cast<intptr_t>(refreshIcon)),
+					ImVec2(14, 14), ImVec2(0, 1), ImVec2(1, 0));
+			} else {
+				clicked = ImGui::SmallButton("R");
+			}
+			if (clicked) m_NeedsRefresh = true;
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Refresh");
 		}
 	}
 
@@ -313,6 +338,26 @@ namespace Bolt {
 		}
 
 		RenderGridContextMenu();
+
+		// Accept entity drops from hierarchy panel to save as prefab
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
+				struct HierarchyDragData { int Index; uint32_t EntityHandle; };
+				auto* dragData = static_cast<const HierarchyDragData*>(payload->Data);
+				entt::entity entityHandle = static_cast<entt::entity>(dragData->EntityHandle);
+
+				Scene* activeScene = SceneManager::Get().GetActiveScene();
+				if (activeScene && activeScene->IsValid(entityHandle)) {
+					std::string entityName = "Entity";
+					if (activeScene->HasComponent<NameComponent>(entityHandle))
+						entityName = activeScene->GetComponent<NameComponent>(entityHandle).Name;
+					std::string prefabPath = (std::filesystem::path(m_CurrentDirectory) / (entityName + ".prefab")).string();
+					SceneSerializer::SaveEntityToFile(*activeScene, entityHandle, prefabPath);
+					m_NeedsRefresh = true;
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
 
 		ImGui::EndChild();
 	}
@@ -379,8 +424,37 @@ namespace Bolt {
 				? AssetType::Folder
 				: ThumbnailCache::GetAssetType(std::filesystem::path(entry.Path).extension().string());
 
-			ThumbnailCache::DrawAssetIcon(type, iconPos, m_TileSize);
-			ImGui::Dummy(ImVec2(m_TileSize, m_TileSize));
+			bool drewTexture = false;
+			const char* iconName = nullptr;
+
+			if (type == AssetType::Folder) {
+				iconName = "open_folder";
+			}
+			else if (!entry.IsDirectory) {
+				iconName = GetFileTypeIconName(std::filesystem::path(entry.Path).extension().string());
+				if (!iconName) iconName = "asset_bin";
+			}
+
+			if (iconName) {
+				unsigned int icon = EditorIcons::Get(iconName, (int)m_TileSize);
+				if (icon) {
+					const float pad = m_TileSize * 0.1f;
+					const float drawSize = m_TileSize - pad * 2.0f;
+					ImGui::SetCursorScreenPos(ImVec2(iconPos.x + pad, iconPos.y + pad));
+					ImGui::Image(
+						static_cast<ImTextureID>(static_cast<intptr_t>(icon)),
+						ImVec2(drawSize, drawSize),
+						ImVec2(0, 1), ImVec2(1, 0)
+					);
+					ImGui::SetCursorScreenPos(ImVec2(iconPos.x, iconPos.y + m_TileSize));
+					drewTexture = true;
+				}
+			}
+
+			if (!drewTexture) {
+				ThumbnailCache::DrawAssetIcon(type, iconPos, m_TileSize);
+				ImGui::Dummy(ImVec2(m_TileSize, m_TileSize));
+			}
 		}
 
 		if (IsRenamingEntry(entry.Path)) {
