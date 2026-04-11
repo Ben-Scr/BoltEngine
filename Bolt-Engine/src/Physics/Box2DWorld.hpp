@@ -27,7 +27,7 @@ namespace Bolt {
 
 
         b2BodyId CreateBody(EntityHandle nativeEntity, Scene& scene, BodyType bodyType);
-        b2ShapeId CreateShape(EntityHandle nativeEntity, Scene& scene, b2BodyId bodyId, ShapeType shapeType);
+        b2ShapeId CreateShape(EntityHandle nativeEntity, Scene& scene, b2BodyId bodyId, ShapeType shapeType, bool isSensor = false);
 
         CollisionDispatcher& GetDispatcher();
         b2WorldId GetWorldID() { return m_WorldId; }

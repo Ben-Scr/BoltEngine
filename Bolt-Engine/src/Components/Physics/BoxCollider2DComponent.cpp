@@ -34,7 +34,31 @@ namespace Bolt {
 			b2Body_Disable(m_BodyId);
 	}
 
-	Vec2 BoxCollider2DComponent::GetScale() {
+	void BoxCollider2DComponent::SetSensor(bool sensor, Scene& scene) {
+		if (!IsValid() || IsSensor() == sensor) {
+			return;
+		}
+
+		const Vec2 localScale = GetLocalScale(scene);
+		const Vec2 center = GetCenter();
+		const float friction = GetFriction();
+		const float bounciness = GetBounciness();
+		const uint64_t layer = GetLayer();
+		const bool enabled = IsEnabled();
+		const bool registerContacts = CanRegisterContacts();
+
+		DestroyShape(false);
+		m_ShapeId = PhysicsSystem2D::GetMainPhysicsWorld().CreateShape(m_EntityHandle, scene, m_BodyId, ShapeType::Square, sensor);
+		SetCenter(center, scene);
+		SetScale(localScale, scene);
+		SetFriction(friction);
+		SetBounciness(bounciness);
+		SetLayer(layer);
+		SetRegisterContacts(registerContacts);
+		SetEnabled(enabled);
+	}
+
+	Vec2 BoxCollider2DComponent::GetScale() const {
 		b2ShapeType shapeType = b2Shape_GetType(m_ShapeId);
 
 		BT_ASSERT(shapeType == b2_polygonShape, BoltErrorCode::Undefined, "This b2shape type isn't type of b2_polygonShape");
@@ -50,7 +74,7 @@ namespace Bolt {
 		return size;
 	}
 
-	Vec2 BoxCollider2DComponent::GetLocalScale(const Scene& scene) {
+	Vec2 BoxCollider2DComponent::GetLocalScale(const Scene& scene) const {
 		const Transform2DComponent* tr = TryGetTransform(scene, m_EntityHandle, "GetLocalScale");
 		if (!tr) {
 			return Vec2{ 1.0f, 1.0f };
@@ -94,7 +118,7 @@ namespace Bolt {
 		b2Shape_SetPolygon(m_ShapeId, &polygon);
 	}
 
-	Vec2 BoxCollider2DComponent::GetCenter() {
+	Vec2 BoxCollider2DComponent::GetCenter() const {
 		b2Polygon polygon = b2Shape_GetPolygon(m_ShapeId);
 		return Vec2(polygon.centroid.x, polygon.centroid.y);
 	}

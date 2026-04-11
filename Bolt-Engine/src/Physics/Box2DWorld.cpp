@@ -48,7 +48,7 @@ namespace Bolt {
 		return bodyId;
 	}
 
-	b2ShapeId Box2DWorld::CreateShape(EntityHandle nativeEntity, Scene& scene, b2BodyId bodyId, ShapeType shapeType) {
+	b2ShapeId Box2DWorld::CreateShape(EntityHandle nativeEntity, Scene& scene, b2BodyId bodyId, ShapeType shapeType, bool isSensor) {
 		Transform2DComponent transform{};
 		Transform2DComponent* transformPtr = &transform;
 		if (!scene.TryGetComponent(nativeEntity, transformPtr)) {
@@ -64,6 +64,8 @@ namespace Bolt {
 		shapeDef.density = 1.f;
 		shapeDef.material.friction = 0.3f;
 		shapeDef.material.restitution = 0.f;
+		shapeDef.isSensor = isSensor;
+		shapeDef.enableSensorEvents = isSensor;
 
 		if (shapeType == ShapeType::Square) {
 

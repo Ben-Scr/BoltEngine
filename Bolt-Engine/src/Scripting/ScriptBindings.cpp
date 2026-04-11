@@ -392,8 +392,7 @@ namespace Bolt {
 		if (!sm.HasSceneDefinition(name)) {
 			auto& def = sm.RegisterScene(name);
 			def.AddSystem<ScriptSystem>();
-			def.AddSystem<ParticleUpdateSystem>();
-		def.AddSystem<AudioUpdateSystem>();
+			def.AddSystem<AudioUpdateSystem>();
 		}
 
 		auto sceneWeak = sm.LoadSceneAdditive(name);
@@ -424,8 +423,7 @@ namespace Bolt {
 		if (!sm.HasSceneDefinition(name)) {
 			auto& def = sm.RegisterScene(name);
 			def.AddSystem<ScriptSystem>();
-			def.AddSystem<ParticleUpdateSystem>();
-		def.AddSystem<AudioUpdateSystem>();
+			def.AddSystem<AudioUpdateSystem>();
 		}
 
 		// Non-additive: uses LoadScene which unloads non-persistent scenes first

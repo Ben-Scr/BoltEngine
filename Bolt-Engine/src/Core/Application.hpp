@@ -7,8 +7,9 @@
 #include "Scene/SceneManager.hpp"
 #include "Gui/ImGuiRenderer.hpp"
 #include "Gui/GuiRenderer.hpp"
-#include "Utils/Event.hpp"
+#include "Core/Layer.hpp"
 #include "Events/BoltEvent.hpp"
+#include "Events/EventBus.hpp"
 
 #include "Input.hpp"
 #include "Time.hpp"
@@ -16,6 +17,8 @@
 #include "Export.hpp"
 
 #include <chrono>
+#include <type_traits>
+#include <utility>
 
 namespace Bolt {
 	struct ApplicationConfig {
@@ -54,6 +57,7 @@ namespace Bolt {
 
 		virtual ApplicationConfig GetConfiguration() const { return {}; }
 		virtual void ConfigureScenes() {}
+		virtual void ConfigureLayers() {}
 		virtual void Start() = 0;
 		virtual void Update() = 0;
 		virtual void FixedUpdate() = 0;
@@ -100,7 +104,35 @@ namespace Bolt {
 		static void CancelQuit() { if (s_Instance) s_Instance->m_QuitRequested = false; }
 		static void ConfirmQuit() { Quit(); }
 		void RenderOnceForRefresh();
-		void OnEvent(BoltEvent& event);
+
+		template<typename TLayer, typename... Args>
+		TLayer& PushLayer(Args&&... args) {
+			static_assert(std::is_base_of_v<Layer, TLayer>, "TLayer must derive from Layer");
+
+			auto layer = std::make_unique<TLayer>(std::forward<Args>(args)...);
+			TLayer& layerRef = *layer;
+			m_LayerStack.PushLayer(std::move(layer));
+			layerRef.OnAttach(*this);
+			return layerRef;
+		}
+
+		template<typename TLayer, typename... Args>
+		TLayer& PushOverlay(Args&&... args) {
+			static_assert(std::is_base_of_v<Layer, TLayer>, "TLayer must derive from Layer");
+
+			auto layer = std::make_unique<TLayer>(std::forward<Args>(args)...);
+			TLayer& layerRef = *layer;
+			m_LayerStack.PushOverlay(std::move(layer));
+			layerRef.OnAttach(*this);
+			return layerRef;
+		}
+
+		template<typename TEvent, typename F>
+		EventId SubscribeEvent(F&& callback) {
+			return m_EventBus.Subscribe<TEvent>(std::forward<F>(callback));
+		}
+
+		bool UnsubscribeEvent(EventId id) { return m_EventBus.Unsubscribe(id); }
 
 		std::vector<std::string> TakePendingFileDrops() {
 			std::vector<std::string> paths = std::move(m_PendingFileDrops);
@@ -140,11 +172,12 @@ namespace Bolt {
 		std::vector<std::string> m_PendingFileDrops;
 		double m_FixedUpdateAccumulator;
 		std::chrono::steady_clock::time_point m_LastFrameTime = Clock::now();
-
-		//std::vector<std::unique_ptr<ISystem>> m_GlobalSystems;
+		LayerStack m_LayerStack;
+		EventBus m_EventBus;
 
 		void Initialize();
 		void Shutdown();
+		void DispatchEvent(BoltEvent& event);
 		void CoreInput();
 		void ResetTimePoints();
 		void BeginFrame();

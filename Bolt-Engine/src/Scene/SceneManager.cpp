@@ -212,7 +212,7 @@ namespace Bolt {
 		{
 			ScenePreStartEvent e(name);
 			Application* app = Application::GetInstance();
-			if (app) app->OnEvent(e);
+			if (app) app->DispatchEvent(e);
 		}
 
 		newScene->m_IsLoaded = true;
@@ -229,7 +229,7 @@ namespace Bolt {
 		{
 			ScenePostStartEvent e(name);
 			Application* app = Application::GetInstance();
-			if (app) app->OnEvent(e);
+			if (app) app->DispatchEvent(e);
 		}
 
 		BT_CORE_ASSERT(m_ActiveScene, "Active Scene is null after loading");
@@ -276,7 +276,7 @@ namespace Bolt {
 		{
 			ScenePreStopEvent e(sceneName);
 			Application* app = Application::GetInstance();
-			if (app) app->OnEvent(e);
+			if (app) app->DispatchEvent(e);
 		}
 
 		if (scene.m_Definition) {
@@ -297,7 +297,7 @@ namespace Bolt {
 		{
 			ScenePostStopEvent e(sceneName);
 			Application* app = Application::GetInstance();
-			if (app) app->OnEvent(e);
+			if (app) app->DispatchEvent(e);
 		}
 	}
 

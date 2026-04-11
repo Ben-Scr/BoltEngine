@@ -1,11 +1,12 @@
 #pragma once
-#include  "Scene/ISystem.hpp"
+#include "Core/Layer.hpp"
 #include "Core/Export.hpp"
-#include "Scene/Entity.hpp"
 
 namespace Bolt {
-	class BOLT_API ImGuiDebugSystem : public ISystem {
+	class BOLT_API ImGuiDebugSystem : public Layer {
 	public:
-		virtual void OnGui(Scene& scene);
+		using Layer::Layer;
+
+		void OnImGuiRender(Application& app) override;
 	};
 }

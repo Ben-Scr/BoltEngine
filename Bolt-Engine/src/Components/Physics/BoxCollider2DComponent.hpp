@@ -15,14 +15,15 @@ namespace Bolt {
 
 		void SetScale(const Vec2& scale, const Scene& scene);
 		void SetEnabled(bool enabled);
-		Vec2 GetScale();
-		Vec2 GetLocalScale(const Scene& scene);
+		void SetSensor(bool sensor, Scene& scene);
+		Vec2 GetScale() const;
+		Vec2 GetLocalScale(const Scene& scene) const;
 
 		// Note: has to be called when the transforms scale has been changed.
 		void UpdateScale(const Scene& scene);
 
 		void SetCenter(const Vec2& center, const Scene& scene);
-		Vec2 GetCenter();
+		Vec2 GetCenter() const;
 	private:
 	};
 }

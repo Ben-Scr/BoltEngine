@@ -43,10 +43,15 @@ namespace Bolt {
 		static size_t GetMaxVertices() { return s_MaxVertices; }
 
 		static size_t GetRegisteredVertices() { return s_RegisteredVertices; }
+		static void SetViewportAABBOverride(const AABB& viewportAABB) { s_CamViewportAABB = viewportAABB; s_HasViewportOverride = true; }
+		static void ClearViewportAABBOverride() { s_HasViewportOverride = false; }
+		static bool HasViewportAABBOverride() { return s_HasViewportOverride; }
+		static const AABB& GetViewportAABBOverride() { return s_CamViewportAABB; }
 
 		static void Clear();
 		static AABB s_CamViewportAABB;
 	private:
+		static bool s_HasViewportOverride;
 		static bool s_IsEnabled;
 		static bool s_ShowInRuntime;
 

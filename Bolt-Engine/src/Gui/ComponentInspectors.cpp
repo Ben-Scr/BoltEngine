@@ -2,6 +2,7 @@
 #include "Assets/AssetRegistry.hpp"
 #include "Gui/ComponentInspectors.hpp"
 #include "Gui/ImGuiUtils.hpp"
+#include "Gui/ThumbnailCache.hpp"
 
 #include "Components/Components.hpp"
 #include "Graphics/TextureManager.hpp"
@@ -17,6 +18,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <algorithm>
+#include <unordered_set>
 
 namespace Bolt {
 
@@ -55,6 +57,43 @@ namespace Bolt {
 			audioSource.SetAudioHandle(AudioManager::LoadAudio(path), UUID(0));
 		}
 
+		static void DrawPickerHeaderControls(const char* searchId, char* searchBuffer, std::size_t searchBufferSize, bool& isOpen) {
+			const float closeButtonSize = ImGui::GetFrameHeight();
+			const float inputWidth = std::max(ImGui::GetContentRegionAvail().x - closeButtonSize - ImGui::GetStyle().ItemSpacing.x, 1.0f);
+
+			ImGui::SetNextItemWidth(inputWidth);
+			ImGui::InputTextWithHint(searchId, "Search...", searchBuffer, searchBufferSize);
+			ImGui::SameLine();
+			if (ImGui::Button("X", ImVec2(closeButtonSize, closeButtonSize))) {
+				isOpen = false;
+			}
+			ImGui::Separator();
+		}
+
+		static bool DrawAssetSelectionField(const char* label, const std::string& displayName, const std::string& tooltip = {}) {
+			ImGui::TextUnformatted(label);
+
+			const std::string resolvedDisplayName = displayName.empty() ? std::string("(None)") : displayName;
+			const float fieldWidth = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+			bool truncated = false;
+			const std::string buttonText = ImGuiUtils::Ellipsize(
+				resolvedDisplayName,
+				fieldWidth - ImGui::GetStyle().FramePadding.x * 2.0f,
+				&truncated);
+
+			const bool clicked = ImGui::Button(buttonText.c_str(), ImVec2(fieldWidth, 0.0f));
+			if (ImGui::IsItemHovered() && (truncated || !tooltip.empty())) {
+				ImGui::BeginTooltip();
+				ImGui::TextUnformatted(resolvedDisplayName.c_str());
+				if (!tooltip.empty()) {
+					ImGui::TextDisabled("%s", tooltip.c_str());
+				}
+				ImGui::EndTooltip();
+			}
+
+			return clicked;
+		}
+
 		struct TexturePickerEntry {
 			std::string RelativePath;
 			std::string DisplayName;
@@ -65,6 +104,9 @@ namespace Bolt {
 		static bool s_TexturePickerOpen = false;
 		static char s_TexturePickerSearch[128] = {};
 		static std::vector<TexturePickerEntry> s_TexturePickerEntries;
+		static ThumbnailCache s_TexturePickerThumbnails;
+		static bool s_TexturePickerThumbnailCacheInitialized = false;
+		static std::unordered_set<std::string> s_TexturePickerLoadedPaths;
 		// Store entity handle instead of raw component pointer to avoid
 		// dangling pointer if the entity is destroyed or components reallocate.
 		static EntityHandle s_TexturePickerTargetEntity = entt::null;
@@ -96,11 +138,49 @@ namespace Bolt {
 				});
 		}
 
+		static void EnsureTexturePickerThumbnailCache() {
+			if (!s_TexturePickerThumbnailCacheInitialized) {
+				s_TexturePickerThumbnails.Initialize();
+				s_TexturePickerThumbnailCacheInitialized = true;
+			}
+		}
+
+		static void ClearTexturePickerThumbnailCache() {
+			if (s_TexturePickerThumbnailCacheInitialized) {
+				s_TexturePickerThumbnails.Clear();
+			}
+			s_TexturePickerLoadedPaths.clear();
+		}
+
+		static void ApplyTexturePickerSelection(const TexturePickerEntry* entry) {
+			Scene* scene = SceneManager::Get().GetActiveScene();
+			if (scene && scene->IsValid(s_TexturePickerTargetEntity)
+				&& scene->HasComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity)) {
+				auto& sprite = scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity);
+				if (!entry) {
+					sprite.TextureHandle = TextureHandle();
+					sprite.TextureAssetId = UUID(0);
+				}
+				else if (entry->AssetId != 0 && AssetRegistry::IsTexture(entry->AssetId)) {
+					sprite.TextureHandle = TextureManager::LoadTextureByUUID(entry->AssetId);
+					sprite.TextureAssetId = UUID(entry->AssetId);
+				}
+				else {
+					sprite.TextureHandle = TextureManager::LoadTexture(entry->FullPath);
+					sprite.TextureAssetId = UUID(0);
+				}
+			}
+
+			s_TexturePickerOpen = false;
+		}
+
 		static void OpenTexturePicker(EntityHandle entity) {
 			s_TexturePickerOpen = true;
 			s_TexturePickerSearch[0] = '\0';
 			s_TexturePickerTargetEntity = entity;
 			s_TexturePickerEntries.clear();
+			EnsureTexturePickerThumbnailCache();
+			ClearTexturePickerThumbnailCache();
 
 			// Collect from BoltAssets/Textures (engine) and Assets/Textures (user project)
 			std::string boltTexDir = Path::ResolveBoltAssets("Textures");
@@ -118,67 +198,149 @@ namespace Bolt {
 		}
 
 		static void RenderTexturePicker() {
-			if (!s_TexturePickerOpen) return;
+			if (!s_TexturePickerOpen) {
+				ClearTexturePickerThumbnailCache();
+				return;
+			}
+
+			EnsureTexturePickerThumbnailCache();
 
 			ImGui::SetNextWindowSize(ImVec2(340, 420), ImGuiCond_FirstUseEver);
 			if (!ImGui::Begin("Select Texture", &s_TexturePickerOpen)) {
 				ImGui::End();
+				if (!s_TexturePickerOpen) {
+					ClearTexturePickerThumbnailCache();
+				}
 				return;
 			}
 
-			ImGui::SetNextItemWidth(-1);
-			ImGui::InputTextWithHint("##TexSearch", "Search...", s_TexturePickerSearch, sizeof(s_TexturePickerSearch));
-			ImGui::Separator();
+			DrawPickerHeaderControls("##TexSearch", s_TexturePickerSearch, sizeof(s_TexturePickerSearch), s_TexturePickerOpen);
 
 			ImGui::BeginChild("##TexList");
 
-			// Option to clear texture
 			if (ImGui::Selectable("(None)", false)) {
-				Scene* scene = SceneManager::Get().GetActiveScene();
-				if (scene && scene->IsValid(s_TexturePickerTargetEntity)
-					&& scene->HasComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity)) {
-					auto& sprite = scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity);
-					sprite.TextureHandle = TextureHandle();
-					sprite.TextureAssetId = UUID(0);
-				}
-				s_TexturePickerOpen = false;
+				ApplyTexturePickerSelection(nullptr);
 			}
 
 			std::string filter(s_TexturePickerSearch);
 			std::transform(filter.begin(), filter.end(), filter.begin(), ::tolower);
 
+			std::vector<const TexturePickerEntry*> filteredEntries;
+			filteredEntries.reserve(s_TexturePickerEntries.size());
 			for (const auto& entry : s_TexturePickerEntries) {
 				if (!filter.empty()) {
 					std::string lowerName = entry.DisplayName;
 					std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
-					if (lowerName.find(filter) == std::string::npos) continue;
+					std::string lowerPath = entry.RelativePath;
+					std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(), ::tolower);
+					if (lowerName.find(filter) == std::string::npos && lowerPath.find(filter) == std::string::npos) continue;
 				}
+				filteredEntries.push_back(&entry);
+			}
 
-				const std::string label = entry.DisplayName + "##" + entry.RelativePath;
-				if (ImGui::Selectable(label.c_str(), false)) {
-					Scene* scene = SceneManager::Get().GetActiveScene();
-					if (scene && scene->IsValid(s_TexturePickerTargetEntity)
-						&& scene->HasComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity)) {
-						auto& sprite = scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity);
-						if (entry.AssetId != 0 && AssetRegistry::IsTexture(entry.AssetId)) {
-							sprite.TextureHandle = TextureManager::LoadTextureByUUID(entry.AssetId);
-							sprite.TextureAssetId = UUID(entry.AssetId);
+			if (filteredEntries.empty()) {
+				ImGui::TextDisabled("No matching textures");
+			}
+			else {
+				const float thumbnailSize = 48.0f;
+				const float rowPadding = 6.0f;
+				const float lineHeight = ImGui::GetTextLineHeight();
+				const float rowHeight = std::max(thumbnailSize + rowPadding * 2.0f, lineHeight * 2.0f + rowPadding * 2.0f + 2.0f);
+				std::unordered_set<std::string> visiblePaths;
+				ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+				ImGuiListClipper clipper;
+				clipper.Begin(static_cast<int>(filteredEntries.size()), rowHeight);
+				while (clipper.Step()) {
+					for (int index = clipper.DisplayStart; index < clipper.DisplayEnd; ++index) {
+						const TexturePickerEntry& entry = *filteredEntries[static_cast<std::size_t>(index)];
+						visiblePaths.insert(entry.FullPath);
+						s_TexturePickerLoadedPaths.insert(entry.FullPath);
+
+						ImGui::PushID(entry.RelativePath.c_str());
+
+						const float rowWidth = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+						const ImVec2 rowMin = ImGui::GetCursorScreenPos();
+						const ImVec2 rowMax(rowMin.x + rowWidth, rowMin.y + rowHeight);
+
+						ImGui::InvisibleButton("##TextureRow", ImVec2(rowWidth, rowHeight));
+						const bool hovered = ImGui::IsItemHovered();
+						if (hovered) {
+							drawList->AddRectFilled(rowMin, rowMax, IM_COL32(70, 78, 92, 120), 4.0f);
+						}
+						if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+							ApplyTexturePickerSelection(&entry);
+						}
+
+						const ImVec2 thumbMin(rowMin.x + rowPadding, rowMin.y + rowPadding);
+						const ImVec2 thumbMax(thumbMin.x + thumbnailSize, thumbMin.y + thumbnailSize);
+						drawList->AddRectFilled(thumbMin, thumbMax, IM_COL32(35, 35, 35, 255), 4.0f);
+
+						const unsigned int thumbnail = s_TexturePickerThumbnails.GetThumbnail(entry.FullPath);
+						Texture2D* thumbnailTexture = s_TexturePickerThumbnails.GetCacheEntry(entry.FullPath);
+						if (thumbnail != 0 && thumbnailTexture && thumbnailTexture->IsValid()) {
+							float drawWidth = thumbnailSize;
+							float drawHeight = thumbnailSize;
+							const float texWidth = thumbnailTexture->GetWidth();
+							const float texHeight = thumbnailTexture->GetHeight();
+							if (texWidth > 0.0f && texHeight > 0.0f) {
+								const float aspect = texWidth / texHeight;
+								if (aspect > 1.0f) {
+									drawHeight = thumbnailSize / aspect;
+								}
+								else {
+									drawWidth = thumbnailSize * aspect;
+								}
+							}
+
+							const ImVec2 imageMin(
+								thumbMin.x + (thumbnailSize - drawWidth) * 0.5f,
+								thumbMin.y + (thumbnailSize - drawHeight) * 0.5f);
+							const ImVec2 imageMax(imageMin.x + drawWidth, imageMin.y + drawHeight);
+							drawList->AddImage(
+								static_cast<ImTextureID>(static_cast<intptr_t>(thumbnail)),
+								imageMin,
+								imageMax,
+								ImVec2(0.0f, 1.0f),
+								ImVec2(1.0f, 0.0f));
 						}
 						else {
-							sprite.TextureHandle = TextureManager::LoadTexture(entry.FullPath);
-							sprite.TextureAssetId = UUID(0);
+							ThumbnailCache::DrawAssetIcon(AssetType::Image, thumbMin, thumbnailSize);
 						}
+
+						const float textX = thumbMax.x + rowPadding * 1.5f;
+						const float textWidth = std::max(rowMax.x - textX - rowPadding, 1.0f);
+						bool nameTruncated = false;
+						bool pathTruncated = false;
+						const std::string displayName = ImGuiUtils::Ellipsize(entry.DisplayName, textWidth, &nameTruncated);
+						const std::string displayPath = ImGuiUtils::Ellipsize(entry.RelativePath, textWidth, &pathTruncated);
+						drawList->AddText(ImVec2(textX, rowMin.y + rowPadding), ImGui::GetColorU32(ImGuiCol_Text), displayName.c_str());
+						drawList->AddText(ImVec2(textX, rowMin.y + rowPadding + lineHeight), ImGui::GetColorU32(ImGuiCol_TextDisabled), displayPath.c_str());
+
+						if (hovered && (nameTruncated || pathTruncated)) {
+							ImGui::SetTooltip("%s", entry.RelativePath.c_str());
+						}
+
+						ImGui::PopID();
 					}
-					s_TexturePickerOpen = false;
 				}
 
-				if (ImGui::IsItemHovered()) {
-					ImGui::SetTooltip("%s", entry.RelativePath.c_str());
+				for (auto it = s_TexturePickerLoadedPaths.begin(); it != s_TexturePickerLoadedPaths.end();) {
+					if (visiblePaths.find(*it) == visiblePaths.end()) {
+						s_TexturePickerThumbnails.Invalidate(*it);
+						it = s_TexturePickerLoadedPaths.erase(it);
+					}
+					else {
+						++it;
+					}
 				}
 			}
 
 			ImGui::EndChild();
 			ImGui::End();
+			if (!s_TexturePickerOpen) {
+				ClearTexturePickerThumbnailCache();
+			}
 		}
 	}
 
@@ -233,14 +395,18 @@ namespace Bolt {
 		ImGui::DragScalar("Sorting Order", ImGuiDataType_S16, &sprite.SortingOrder, 1.0f);
 		ImGui::DragScalar("Sorting Layer", ImGuiDataType_U8, &sprite.SortingLayer, 1.0f);
 
-		
-		if (ImGui::Button(sprite.TextureHandle.IsValid() ? "Change Texture" : "Assign Texture",
-			ImVec2(ImGui::GetContentRegionAvail().x, 0)))
-		{
-			OpenTexturePicker(entity.GetHandle());
+		std::string textureDisplayName = "(None)";
+		std::string textureTooltip;
+		if (sprite.TextureHandle.IsValid()) {
+			textureTooltip = TextureManager::GetTextureName(sprite.TextureHandle);
+			if (!textureTooltip.empty()) {
+				textureDisplayName = std::filesystem::path(textureTooltip).filename().string();
+			}
 		}
 
-		RenderTexturePicker();
+		if (DrawAssetSelectionField("Texture", textureDisplayName, textureTooltip)) {
+			OpenTexturePicker(entity.GetHandle());
+		}
 
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
@@ -253,6 +419,8 @@ namespace Bolt {
 			}
 			ImGui::EndDragDropTarget();
 		}
+
+		RenderTexturePicker();
 
 		if (sprite.TextureHandle.IsValid()) {
 			if (Texture2D* texture = TextureManager::GetTexture(sprite.TextureHandle)) {
@@ -365,7 +533,7 @@ namespace Bolt {
 		if (ImGui::CollapsingHeader("Rendering")) {
 			ImGui::PushID("Rendering");
 			ps.RenderingSettings.Color = ImGuiUtils::DrawColorPick4("Color", ps.RenderingSettings.Color);
-			ImGui::DragInt("Max Particles", (int*)&ps.RenderingSettings.MaxParticles, 1.0f, 1.0f, 10000.0f);
+			ImGui::DragInt("Max Particles", (int*)&ps.RenderingSettings.MaxParticles, 1.0f, 1, 10000);
 			ImGui::InputInt("Sorting Order", (int*)&ps.RenderingSettings.SortingOrder);
 			ImGui::InputInt("Sorting Layer", (int*)&ps.RenderingSettings.SortingLayer);
 
@@ -378,8 +546,67 @@ namespace Bolt {
 
 	void DrawBoxCollider2DInspector(Entity entity)
 	{
-		(void)entity;
-		ImGui::TextDisabled("Box collider properties coming soon");
+		auto& collider = entity.GetComponent<BoxCollider2DComponent>();
+		Scene* scene = SceneManager::Get().GetActiveScene();
+		if (!scene || !scene->IsValid(entity.GetHandle()) || !scene->HasComponent<Transform2DComponent>(entity.GetHandle())) {
+			ImGui::TextDisabled("Box collider requires a valid Transform 2D");
+			return;
+		}
+
+		const auto& transform = scene->GetComponent<Transform2DComponent>(entity.GetHandle());
+		Vec2 localSize = collider.GetLocalScale(*scene);
+		Vec2 size = collider.GetScale();
+		Vec2 offset = collider.GetCenter();
+
+		if (ImGui::DragFloat2("Offset", &offset.x, 0.05f)) {
+			collider.SetCenter(offset, *scene);
+		}
+
+		if (ImGui::DragFloat2("Size", &size.x, 0.05f, 0.001f, 1000.0f)) {
+			size.x = std::max(size.x, 0.001f);
+			size.y = std::max(size.y, 0.001f);
+
+			if (std::fabs(transform.Scale.x) > 0.0001f) {
+				localSize.x = size.x / transform.Scale.x;
+			}
+			if (std::fabs(transform.Scale.y) > 0.0001f) {
+				localSize.y = size.y / transform.Scale.y;
+			}
+
+			collider.SetScale(localSize, *scene);
+		}
+
+		bool sensor = collider.IsSensor();
+		if (ImGui::Checkbox("Sensor", &sensor)) {
+			collider.SetSensor(sensor, *scene);
+		}
+
+		bool contactEvents = collider.CanRegisterContacts();
+		if (ImGui::Checkbox("Contact Events", &contactEvents)) {
+			collider.SetRegisterContacts(contactEvents);
+		}
+
+		bool enabled = collider.IsEnabled();
+		if (ImGui::Checkbox("Collider Enabled", &enabled)) {
+			collider.SetEnabled(enabled);
+		}
+
+		float friction = collider.GetFriction();
+		if (ImGui::DragFloat("Friction", &friction, 0.01f, 0.0f, 10.0f)) {
+			collider.SetFriction(friction);
+		}
+
+		float bounciness = collider.GetBounciness();
+		if (ImGui::DragFloat("Bounciness", &bounciness, 0.01f, 0.0f, 1.0f)) {
+			collider.SetBounciness(bounciness);
+		}
+
+		uint64_t layerMask = collider.GetLayer();
+		if (ImGui::InputScalar("Layer Mask", ImGuiDataType_U64, &layerMask)) {
+			collider.SetLayer(layerMask);
+		}
+
+		ImGuiUtils::DrawVec2ReadOnly("Local Size", localSize);
 	}
 
 	// ── Audio Picker (same pattern as Texture Picker) ──────────────
@@ -396,6 +623,25 @@ namespace Bolt {
 		static char s_AudioPickerSearch[128] = {};
 		static std::vector<AudioPickerEntry> s_AudioPickerEntries;
 		static EntityHandle s_AudioPickerTargetEntity = entt::null;
+
+		static void ApplyAudioPickerSelection(const AudioPickerEntry* entry) {
+			Scene* scene = SceneManager::Get().GetActiveScene();
+			if (scene && scene->IsValid(s_AudioPickerTargetEntity)
+				&& scene->HasComponent<AudioSourceComponent>(s_AudioPickerTargetEntity)) {
+				auto& audioSource = scene->GetComponent<AudioSourceComponent>(s_AudioPickerTargetEntity);
+				if (!entry) {
+					audioSource.SetAudioHandle(AudioHandle(), UUID(0));
+				}
+				else if (entry->AssetId != 0 && AssetRegistry::IsAudio(entry->AssetId)) {
+					audioSource.SetAudioHandle(AudioManager::LoadAudioByUUID(entry->AssetId), UUID(entry->AssetId));
+				}
+				else {
+					audioSource.SetAudioHandle(AudioManager::LoadAudio(entry->FullPath), UUID(0));
+				}
+			}
+
+			s_AudioPickerOpen = false;
+		}
 
 		static void CollectAudioFiles(const std::string& dir, const std::string& rootDir,
 			std::vector<AudioPickerEntry>& out)
@@ -445,37 +691,31 @@ namespace Bolt {
 				return;
 			}
 
-			ImGui::SetNextItemWidth(-1);
-			ImGui::InputTextWithHint("##AudioSearch", "Search...", s_AudioPickerSearch, sizeof(s_AudioPickerSearch));
-			ImGui::Separator();
+			DrawPickerHeaderControls("##AudioSearch", s_AudioPickerSearch, sizeof(s_AudioPickerSearch), s_AudioPickerOpen);
 
 			std::string filter(s_AudioPickerSearch);
 			std::transform(filter.begin(), filter.end(), filter.begin(), ::tolower);
 
 			ImGui::BeginChild("AudioList");
+			if (ImGui::Selectable("(None)", false)) {
+				ApplyAudioPickerSelection(nullptr);
+			}
+
 			for (const auto& entry : s_AudioPickerEntries) {
 				if (!filter.empty()) {
 					std::string lower = entry.DisplayName;
 					std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
-					if (lower.find(filter) == std::string::npos) continue;
+					std::string lowerPath = entry.RelativePath;
+					std::transform(lowerPath.begin(), lowerPath.end(), lowerPath.begin(), ::tolower);
+					if (lower.find(filter) == std::string::npos && lowerPath.find(filter) == std::string::npos) continue;
 				}
 
-				const std::string label = entry.DisplayName + "##" + entry.RelativePath;
+				bool truncated = false;
+				const std::string label = ImGuiUtils::Ellipsize(entry.DisplayName, ImGui::GetContentRegionAvail().x, &truncated) + "##" + entry.RelativePath;
 				if (ImGui::Selectable(label.c_str(), false)) {
-					Scene* scene = SceneManager::Get().GetActiveScene();
-					if (scene && scene->IsValid(s_AudioPickerTargetEntity)
-						&& scene->HasComponent<AudioSourceComponent>(s_AudioPickerTargetEntity)) {
-						auto& audioSource = scene->GetComponent<AudioSourceComponent>(s_AudioPickerTargetEntity);
-						if (entry.AssetId != 0 && AssetRegistry::IsAudio(entry.AssetId)) {
-							audioSource.SetAudioHandle(AudioManager::LoadAudioByUUID(entry.AssetId), UUID(entry.AssetId));
-						}
-						else {
-							audioSource.SetAudioHandle(AudioManager::LoadAudio(entry.FullPath), UUID(0));
-						}
-					}
-					s_AudioPickerOpen = false;
+					ApplyAudioPickerSelection(&entry);
 				}
-				if (ImGui::IsItemHovered()) {
+				if (ImGui::IsItemHovered() && (truncated || !entry.RelativePath.empty())) {
 					ImGui::SetTooltip("%s", entry.RelativePath.c_str());
 				}
 			}
@@ -510,21 +750,12 @@ namespace Bolt {
 
 		ImGui::Spacing();
 		bool hasClip = audio.GetAudioHandle().IsValid();
+		const std::string audioPath = hasClip ? AudioManager::GetAudioName(audio.GetAudioHandle()) : std::string();
+		const std::string audioDisplayName = hasClip && !audioPath.empty()
+			? std::filesystem::path(audioPath).filename().string()
+			: std::string("(None)");
 
-		if (hasClip) {
-			std::string audioPath = AudioManager::GetAudioName(audio.GetAudioHandle());
-			std::string displayName = audioPath.empty() ? "(unknown)"
-				: std::filesystem::path(audioPath).filename().string();
-			ImGui::Text("Clip: %s", displayName.c_str());
-			if (!audioPath.empty() && ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("%s", audioPath.c_str());
-			}
-		} else {
-			ImGui::TextDisabled("No audio clip assigned");
-		}
-
-		if (ImGui::Button(hasClip ? "Change Audio" : "Assign Audio",
-			ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+		if (DrawAssetSelectionField("Clip", audioDisplayName, audioPath)) {
 			OpenAudioPicker(entity.GetHandle());
 		}
 

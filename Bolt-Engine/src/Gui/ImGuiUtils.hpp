@@ -3,6 +3,7 @@
 #include "Collections/Color.hpp"
 #include "Collections/Vec2.hpp"
 #include <magic_enum/magic_enum.hpp>
+#include <string>
 #include <type_traits>
 
 namespace Bolt::ImGuiUtils {
@@ -118,6 +119,13 @@ namespace Bolt::ImGuiUtils {
 	}
 
 	void DrawTexturePreview(unsigned int rendererId, float texWidth, float texHeight, float previewSize = 96.0f);
+	std::string Ellipsize(const std::string& text, float maxWidth, bool* outTruncated = nullptr);
+	void TextEllipsis(const std::string& text, float maxWidth = -1.0f);
+	void TextDisabledEllipsis(const std::string& text, float maxWidth = -1.0f);
+	bool SelectableEllipsis(const std::string& text, const char* id, bool selected = false,
+		ImGuiSelectableFlags flags = 0, const ImVec2& size = ImVec2(0.0f, 0.0f), float maxWidth = -1.0f);
+	bool MenuItemEllipsis(const std::string& text, const char* id,
+		const char* shortcut = nullptr, bool selected = false, bool enabled = true, float maxWidth = -1.0f);
 
 	bool BeginComponentSection(const char* label, bool& removeRequested);
 

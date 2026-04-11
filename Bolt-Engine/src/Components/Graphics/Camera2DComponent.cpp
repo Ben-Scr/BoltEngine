@@ -32,8 +32,10 @@ namespace Bolt {
 		const float zNear = 0.0f;
 		const float zFar = 100.0f;
 
-
 		m_ProjMat = glm::ortho(-halfW, +halfW, -halfH, +halfH, zNear, zFar);
+		if (m_Transform) {
+			UpdateViewportAABB();
+		}
 	}
 
 	void Camera2DComponent::UpdateView() {
@@ -53,7 +55,7 @@ namespace Bolt {
 
 	Vec2 Camera2DComponent::WorldViewPort() const {
 		float aspect = m_Viewport->GetAspect();
-		float worldHeight = 2.0f * (m_OrthographicSize / m_Zoom);
+		float worldHeight = 2.0f * (m_OrthographicSize * m_Zoom);
 		float worldWidth = worldHeight * aspect;
 		return { worldWidth, worldHeight };
 	}

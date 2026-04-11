@@ -27,8 +27,11 @@ public:
 
 	void ConfigureScenes() override {
 		SceneDefinition& launcherScene = GetSceneManager()->RegisterScene("Launcher");
-		launcherScene.AddSystem<LauncherSystem>();
 		launcherScene.SetAsStartupScene();
+	}
+
+	void ConfigureLayers() override {
+		PushLayer<LauncherSystem>();
 	}
 
 	void Start() override {}

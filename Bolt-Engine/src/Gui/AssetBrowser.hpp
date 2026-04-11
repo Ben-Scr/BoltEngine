@@ -26,6 +26,11 @@ namespace Bolt {
 
 		/// Returns the currently selected asset path (empty if none).
 		const std::string& GetSelectedPath() const { return m_SelectedPath; }
+		bool TakeSelectionActivated() {
+			const bool activated = m_SelectionActivated;
+			m_SelectionActivated = false;
+			return activated;
+		}
 
 	private:
 		void NavigateTo(const std::string& directory);
@@ -60,6 +65,7 @@ namespace Bolt {
 		std::string m_CurrentDirectory;
 		std::vector<DirectoryEntry> m_Entries;
 		std::string m_SelectedPath;
+		bool m_SelectionActivated = false;
 		bool m_NeedsRefresh = true;
 
 		bool m_IsRenaming = false;

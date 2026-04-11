@@ -11,19 +11,19 @@
 #include "Graphics/Gizmos.hpp"
 #include "Graphics/OpenGL.hpp"
 #include "Scene/EntityHelper.hpp"
+#include "Scene/SceneManager.hpp"
 #include <Utils/StringHelper.hpp>
 
 #include <Core/Version.hpp>
 
 namespace Bolt {
 
-	void ImGuiDebugSystem::OnGui(Scene& scene) {
-		auto* app = Application::GetInstance();
-		if (!app) return;
-
-		auto* window = app->GetWindow();
-		auto* renderer2D = app->GetRenderer2D();
+	void ImGuiDebugSystem::OnImGuiRender(Application& app) {
+		auto* window = app.GetWindow();
+		auto* renderer2D = app.GetRenderer2D();
 		if (!window || !renderer2D) return;
+
+		Scene* activeScene = SceneManager::Get().GetActiveScene();
 
 		ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_MenuBar);
 
@@ -34,7 +34,7 @@ namespace Bolt {
 				}
 
 				if (ImGui::MenuItem("Quit")) {
-					Application::Quit();
+					Application::RequestQuit();
 				}
 
 				ImGui::EndMenu();
@@ -140,7 +140,9 @@ namespace Bolt {
 				ImGui::Separator();
 
 				if (ImGui::Button("Reload Scene", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-					SceneManager::Get().ReloadScene(scene.GetName());
+					if (activeScene) {
+						SceneManager::Get().ReloadScene(activeScene->GetName());
+					}
 					ImGui::End();
 					return;
 				}

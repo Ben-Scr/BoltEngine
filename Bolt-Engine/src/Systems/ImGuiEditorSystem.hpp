@@ -1,7 +1,7 @@
 #pragma once
-#include "Core/Application.hpp"
-#include  "Scene/ISystem.hpp"
+#include "Core/Layer.hpp"
 #include "Core/Export.hpp"
+#include "Collections/Color.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/Scene.hpp"
 #include "Collections/Ids.hpp"
@@ -18,11 +18,13 @@
 #include <chrono>
 
 namespace Bolt {
-	class BOLT_API ImGuiEditorSystem : public ISystem {
+	class BOLT_API ImGuiEditorSystem : public Layer {
 	public:
-		void Awake(Scene& scene) override;
-		void OnDestroy(Scene& scene) override;
-		void OnGui(Scene& scene) override;
+		using Layer::Layer;
+
+		void OnAttach(Application& app) override;
+		void OnDetach(Application& app) override;
+		void OnImGuiRender(Application& app) override;
 	private:
 		struct LogEntry {
 			std::string Message;

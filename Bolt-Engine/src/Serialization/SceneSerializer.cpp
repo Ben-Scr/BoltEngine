@@ -347,6 +347,11 @@ namespace Bolt {
 				colliderValue.AddMember("scaleY", Value(scale.y));
 				colliderValue.AddMember("centerX", Value(center.x));
 				colliderValue.AddMember("centerY", Value(center.y));
+				colliderValue.AddMember("friction", Value(collider.GetFriction()));
+				colliderValue.AddMember("bounciness", Value(collider.GetBounciness()));
+				colliderValue.AddMember("layer", Value(collider.GetLayer()));
+				colliderValue.AddMember("registerContacts", Value(collider.CanRegisterContacts()));
+				colliderValue.AddMember("sensor", Value(collider.IsSensor()));
 				entityValue.AddMember("BoxCollider2D", std::move(colliderValue));
 			}
 
@@ -717,6 +722,11 @@ namespace Bolt {
 				localScale.y = savedScale.y / transform.Scale.y;
 			}
 			boxCollider.SetScale(localScale, scene);
+			boxCollider.SetSensor(GetBoolMember(*colliderValue, "sensor", false), scene);
+			boxCollider.SetFriction(GetFloatMember(*colliderValue, "friction", boxCollider.GetFriction()));
+			boxCollider.SetBounciness(GetFloatMember(*colliderValue, "bounciness", boxCollider.GetBounciness()));
+			boxCollider.SetLayer(GetUInt64Member(*colliderValue, "layer", boxCollider.GetLayer()));
+			boxCollider.SetRegisterContacts(GetBoolMember(*colliderValue, "registerContacts", boxCollider.CanRegisterContacts()));
 		}
 
 		if (const Value* audioValue = GetObjectMember(entityValue, "AudioSource")) {

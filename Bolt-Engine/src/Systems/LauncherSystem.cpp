@@ -68,11 +68,9 @@ namespace Bolt {
 
 	// ── Lifecycle ───────────────────────────────────────────────────
 
-	void LauncherSystem::Awake(Scene& scene) {
-		(void)scene;
-		auto* app = Application::GetInstance();
-		if (app && app->GetRenderer2D()) {
-			app->GetRenderer2D()->SetSkipBeginFrameRender(true);
+	void LauncherSystem::OnAttach(Application& app) {
+		if (app.GetRenderer2D()) {
+			app.GetRenderer2D()->SetSkipBeginFrameRender(true);
 		}
 		Application::SetIsPlaying(false);
 
@@ -86,13 +84,13 @@ namespace Bolt {
 		BT_INFO_TAG("Launcher", "Bolt Launcher opened ({} project(s))", m_Registry.GetProjects().size());
 	}
 
-	void LauncherSystem::OnGui(Scene& scene) {
-		(void)scene;
+	void LauncherSystem::OnImGuiRender(Application& app) {
+		(void)app;
 		RenderLauncherPanel();
 	}
 
-	void LauncherSystem::OnDestroy(Scene& scene) {
-		(void)scene;
+	void LauncherSystem::OnDetach(Application& app) {
+		(void)app;
 	}
 
 	// ── Main Panel ──────────────────────────────────────────────────

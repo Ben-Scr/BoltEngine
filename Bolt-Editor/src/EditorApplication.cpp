@@ -13,6 +13,7 @@
 #include <Project/ProjectManager.hpp>
 #include <Project/BoltProject.hpp>
 #include <Serialization/SceneSerializer.hpp>
+#include <Serialization/File.hpp>
 #include <Systems/AudioUpdateSystem.hpp>
 #include <Core/Version.hpp>
 
@@ -40,13 +41,27 @@ public:
 
 	void ConfigureScenes() override {
 		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("SampleScene");
-		editorScene.AddSystem<ImGuiEditorSystem>();
-		editorScene.AddSystem<ImGuiDebugSystem>();
-		editorScene.AddSystem<GizmosDebugSystem>();
-		editorScene.AddSystem<ParticleUpdateSystem>();
 		editorScene.AddSystem<ScriptSystem>();
 		editorScene.AddSystem<AudioUpdateSystem>();
+		editorScene.OnLoad([](Scene& scene) {
+			BoltProject* project = ProjectManager::GetCurrentProject();
+			if (project) {
+				const std::string scenePath = project->GetSceneFilePath(project->LastOpenedScene);
+				if (File::Exists(scenePath)) {
+					SceneSerializer::LoadFromFile(scene, scenePath);
+					return;
+				}
+			}
+
+			EntityHelper::CreateCamera2DEntity();
+		});
 		editorScene.SetAsStartupScene();
+	}
+
+	void ConfigureLayers() override {
+		PushLayer<ImGuiEditorSystem>();
+		PushOverlay<ImGuiDebugSystem>();
+		PushOverlay<GizmosDebugSystem>();
 	}
 
 	void Start() override {}
@@ -56,18 +71,19 @@ public:
 
 	void OnQuit() override {
 		BoltProject* project = ProjectManager::GetCurrentProject();
-		if (project) {
-			auto* sceneManager = GetSceneManager();
-			if (sceneManager) {
-				Scene* active = sceneManager->GetActiveScene();
-				if (active) {
-					std::string scenePath = project->GetSceneFilePath(active->GetName());
-					SceneSerializer::SaveToFile(*active, scenePath);
-					project->LastOpenedScene = active->GetName();
-					project->Save();
-					BT_INFO_TAG("Editor", "Auto-saved scene on quit: {}", scenePath);
-				}
-			}
+		if (!project) {
+			return;
+		}
+
+		auto* sceneManager = GetSceneManager();
+		if (!sceneManager) {
+			return;
+		}
+
+		Scene* active = sceneManager->GetActiveScene();
+		if (active) {
+			project->LastOpenedScene = active->GetName();
+			project->Save();
 		}
 	}
 };

@@ -1,5 +1,5 @@
 #pragma once
-#include "Scene/ISystem.hpp"
+#include "Core/Layer.hpp"
 #include "Project/LauncherRegistry.hpp"
 #include "Core/Export.hpp"
 #include <chrono>
@@ -12,11 +12,13 @@
 
 namespace Bolt {
 
-	class BOLT_API LauncherSystem : public ISystem {
+	class BOLT_API LauncherSystem : public Layer {
 	public:
-		void Awake(Scene& scene) override;
-		void OnGui(Scene& scene) override;
-		void OnDestroy(Scene& scene) override;
+		using Layer::Layer;
+
+		void OnAttach(Application& app) override;
+		void OnImGuiRender(Application& app) override;
+		void OnDetach(Application& app) override;
 
 	private:
 		void RenderLauncherPanel();

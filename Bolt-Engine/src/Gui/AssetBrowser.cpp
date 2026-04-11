@@ -1,6 +1,7 @@
 #include <pch.hpp>
 #include "Assets/AssetRegistry.hpp"
 #include "Gui/AssetBrowser.hpp"
+#include "Gui/ImGuiUtils.hpp"
 #include "Serialization/Path.hpp"
 #include "Project/ProjectManager.hpp"
 #include "Serialization/SceneSerializer.hpp"
@@ -217,6 +218,8 @@ namespace Bolt {
 	}
 
 	void AssetBrowser::Render() {
+		m_SelectionActivated = false;
+
 		// Process pending OS file drops
 		if (!m_PendingExternalDrops.empty()) {
 			OnExternalFileDrop(m_PendingExternalDrops);
@@ -285,14 +288,22 @@ namespace Bolt {
 
 				std::string segStr = segment.string();
 				std::string accStr = accumulated.string();
+				bool truncated = false;
+				const std::string displaySegment = ImGuiUtils::Ellipsize(segStr, 140.0f, &truncated);
 
 				if (accStr == m_CurrentDirectory) {
-					ImGui::TextUnformatted(segStr.c_str());
+					ImGui::TextUnformatted(displaySegment.c_str());
+					if (truncated && ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("%s", segStr.c_str());
+					}
 				}
 				else {
-					if (ImGui::SmallButton(segStr.c_str())) {
+					if (ImGui::SmallButton((displaySegment + "##" + accStr).c_str())) {
 						NavigateTo(accStr);
 						return;
+					}
+					if (truncated && ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("%s", segStr.c_str());
 					}
 				}
 			}
@@ -487,31 +498,16 @@ namespace Bolt {
 		else {
 			const float maxWidth = m_TileSize;
 			const std::string& name = entry.Name;
-			ImVec2 textSize = ImGui::CalcTextSize(name.c_str());
-
-			if (textSize.x <= maxWidth) {
-				float offsetX = (maxWidth - textSize.x) * 0.5f;
+			bool truncated = false;
+			const std::string display = ImGuiUtils::Ellipsize(name, maxWidth, &truncated);
+			const float textWidth = ImGui::CalcTextSize(display.c_str()).x;
+			const float offsetX = (maxWidth - textWidth) * 0.5f;
+			if (offsetX > 0.0f) {
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offsetX);
-				ImGui::TextUnformatted(name.c_str());
 			}
-			else {
-				const char* ellipsis = "...";
-				float ellipsisWidth = ImGui::CalcTextSize(ellipsis).x;
-				float availWidth = maxWidth - ellipsisWidth;
-
-				int fitChars = 0;
-				for (int i = 1; i <= static_cast<int>(name.size()); i++) {
-					if (ImGui::CalcTextSize(name.c_str(), name.c_str() + i).x > availWidth)
-						break;
-					fitChars = i;
-				}
-
-				std::string display = name.substr(0, fitChars) + ellipsis;
-				ImGui::TextUnformatted(display.c_str());
-
-				if (ImGui::IsItemHovered()) {
-					ImGui::SetTooltip("%s", name.c_str());
-				}
+			ImGui::TextUnformatted(display.c_str());
+			if (truncated && ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("%s", name.c_str());
 			}
 		}
 
@@ -519,6 +515,7 @@ namespace Bolt {
 
 		if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
 			m_SelectedPath = entry.Path;
+			m_SelectionActivated = true;
 			if (!IsRenamingEntry(entry.Path)) {
 				CancelRename();
 			}

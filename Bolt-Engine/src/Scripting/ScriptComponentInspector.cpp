@@ -140,10 +140,6 @@ namespace Bolt {
 			return "Entity " + std::to_string(entityId);
 		}
 
-		static std::string MakeEntitySecondaryText(const std::string& sceneName, uint64_t entityId) {
-			return sceneName + "  •  " + std::to_string(entityId);
-		}
-
 		static bool TryGetHierarchyPayloadEntity(Scene*& outScene, EntityHandle& outHandle, uint64_t& outEntityId) {
 			struct HierarchyDragData { int Index; uint32_t EntityHandle; };
 
@@ -264,14 +260,14 @@ namespace Bolt {
 			}
 
 			if (secondaryText) {
-				*secondaryText = MakeEntitySecondaryText(resolved->SceneName, entityId);
+				secondaryText->clear();
 			}
 
 			if (!componentName.empty() && componentName != expectedType) {
 				missing = true;
 			}
 
-			return resolved->EntityName + "." + (componentName.empty() ? expectedType : componentName);
+			return resolved->EntityName + " (" + (componentName.empty() ? expectedType : componentName) + ")";
 		}
 
 		static void NormalizeAssetFieldValue(std::string& value, AssetKind expectedKind) {
@@ -287,6 +283,7 @@ namespace Bolt {
 
 		static std::vector<ReferencePickerEntry> CollectEntityPickerEntries() {
 			std::vector<ReferencePickerEntry> entries;
+			entries.push_back({ "(None)", "", "(none)", "0", "__none__" });
 
 			SceneManager::Get().ForeachLoadedScene([&](const Scene& scene) {
 				auto view = scene.GetRegistry().view<UUIDComponent>();
@@ -296,8 +293,7 @@ namespace Bolt {
 
 					ReferencePickerEntry entry;
 					entry.Label = GetEntityName(scene, entityHandle, entityId);
-					entry.Secondary = MakeEntitySecondaryText(scene.GetName(), entityId);
-					entry.SearchKey = ToLowerCopy(entry.Label + " " + entry.Secondary);
+					entry.SearchKey = ToLowerCopy(entry.Label);
 					entry.Value = std::to_string(entityId);
 					entry.UniqueId = entry.Value;
 					entries.push_back(std::move(entry));
@@ -316,6 +312,7 @@ namespace Bolt {
 
 		static std::vector<ReferencePickerEntry> CollectComponentPickerEntries(const std::string& componentTypeName) {
 			std::vector<ReferencePickerEntry> entries;
+			entries.push_back({ "(None)", "", "(none)", "", "__none__" });
 			const ComponentInfo* componentInfo = FindComponentByDisplayName(componentTypeName);
 			if (!componentInfo || !componentInfo->has) {
 				return entries;
@@ -334,9 +331,8 @@ namespace Bolt {
 					const std::string entityName = GetEntityName(scene, entityHandle, entityId);
 
 					ReferencePickerEntry entry;
-					entry.Label = entityName + "." + componentTypeName;
-					entry.Secondary = MakeEntitySecondaryText(scene.GetName(), entityId);
-					entry.SearchKey = ToLowerCopy(entityName + " " + componentTypeName + " " + entry.Secondary);
+					entry.Label = entityName + " (" + componentTypeName + ")";
+					entry.SearchKey = ToLowerCopy(entityName + " " + componentTypeName);
 					entry.Value = std::to_string(entityId) + ":" + componentTypeName;
 					entry.UniqueId = entry.Value;
 					entries.push_back(std::move(entry));
@@ -364,6 +360,13 @@ namespace Bolt {
 				entry.UniqueId = entry.Value;
 				entries.push_back(std::move(entry));
 			}
+			std::sort(entries.begin(), entries.end(), [](const ReferencePickerEntry& a, const ReferencePickerEntry& b) {
+				if (a.Label == b.Label) {
+					return a.Secondary < b.Secondary;
+				}
+				return a.Label < b.Label;
+			});
+			entries.insert(entries.begin(), { "(None)", "", "(none)", "", "__none__" });
 			return entries;
 		}
 
@@ -391,8 +394,6 @@ namespace Bolt {
 			const std::string& displayValue,
 			const std::string& secondaryText,
 			bool missing,
-			bool hasValue,
-			bool& clearRequested,
 			bool& hoveredAny)
 		{
 			constexpr float labelColumnWidth = 160.0f;
@@ -403,41 +404,34 @@ namespace Bolt {
 
 			ImGui::SameLine(labelColumnWidth);
 
-			const float pickerButtonWidth = 28.0f;
-			const float clearButtonWidth = hasValue ? 24.0f : 0.0f;
-			float buttonWidth = ImGui::GetContentRegionAvail().x - pickerButtonWidth;
-			if (hasValue) {
-				buttonWidth -= ImGui::GetStyle().ItemSpacing.x + clearButtonWidth;
-			}
-			buttonWidth = std::max(buttonWidth, 120.0f);
+			float buttonWidth = std::max(ImGui::GetContentRegionAvail().x, 120.0f);
+			const ImGuiStyle& style = ImGui::GetStyle();
 
 			if (missing) {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.30f, 0.12f, 0.12f, 1.0f));
 				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.38f, 0.16f, 0.16f, 1.0f));
 				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.26f, 0.10f, 0.10f, 1.0f));
 			}
+			else {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgHovered));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_FrameBgActive));
+			}
 
-			bool openPicker = ImGui::Button((displayValue + "##ReferenceValue").c_str(), ImVec2(buttonWidth, 0.0f));
+			bool truncated = false;
+			const std::string buttonText = ImGuiUtils::Ellipsize(displayValue, buttonWidth - style.FramePadding.x * 2.0f, &truncated);
+			bool openPicker = ImGui::Button((buttonText + "##ReferenceValue").c_str(), ImVec2(buttonWidth, 0.0f));
 			hoveredAny |= ImGui::IsItemHovered();
-			if (!secondaryText.empty() && ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("%s", secondaryText.c_str());
+			if (ImGui::IsItemHovered() && (truncated || !secondaryText.empty())) {
+				ImGui::BeginTooltip();
+				ImGui::TextUnformatted(displayValue.c_str());
+				if (!secondaryText.empty()) {
+					ImGui::Separator();
+					ImGui::TextDisabled("%s", secondaryText.c_str());
+				}
+				ImGui::EndTooltip();
 			}
-
-			if (missing) {
-				ImGui::PopStyleColor(3);
-			}
-
-			ImGui::SameLine();
-			if (ImGui::SmallButton("...##ReferencePicker")) {
-				openPicker = true;
-			}
-			hoveredAny |= ImGui::IsItemHovered();
-
-			if (hasValue) {
-				ImGui::SameLine();
-				clearRequested = ImGui::SmallButton("X##ReferenceClear");
-				hoveredAny |= ImGui::IsItemHovered();
-			}
+			ImGui::PopStyleColor(3);
 
 			return openPicker;
 		}
@@ -454,6 +448,11 @@ namespace Bolt {
 			}
 
 			ImGui::TextUnformatted(s_ReferencePicker.Title.c_str());
+			const float closeButtonSize = ImGui::GetFrameHeight();
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - closeButtonSize);
+			if (ImGui::Button("X##ReferencePickerClose", ImVec2(closeButtonSize, closeButtonSize))) {
+				ImGui::CloseCurrentPopup();
+			}
 			ImGui::Separator();
 			ImGui::SetNextItemWidth(-1.0f);
 			ImGui::InputTextWithHint("##ReferenceSearch", "Search...", s_ReferencePicker.Search, sizeof(s_ReferencePicker.Search));
@@ -471,18 +470,26 @@ namespace Bolt {
 
 				hasVisibleEntries = true;
 
-				if (ImGui::Selectable((entry.Label + "##" + entry.UniqueId).c_str(), false)) {
+				bool labelTruncated = false;
+				const std::string label = ImGuiUtils::Ellipsize(entry.Label, ImGui::GetContentRegionAvail().x, &labelTruncated);
+				if (ImGui::Selectable((label + "##" + entry.UniqueId).c_str(), false)) {
 					s_ReferencePicker.PendingFieldKey = s_ReferencePicker.TargetFieldKey;
 					s_ReferencePicker.PendingValue = entry.Value;
 					ImGui::CloseCurrentPopup();
 				}
+				if (ImGui::IsItemHovered() && (labelTruncated || !entry.Secondary.empty())) {
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted(entry.Label.c_str());
+					if (!entry.Secondary.empty()) {
+						ImGui::Separator();
+						ImGui::TextDisabled("%s", entry.Secondary.c_str());
+					}
+					ImGui::EndTooltip();
+				}
 
 				if (!entry.Secondary.empty()) {
 					ImGui::Indent(14.0f);
-					ImGui::TextDisabled("%s", entry.Secondary.c_str());
-					if (ImGui::IsItemHovered()) {
-						ImGui::SetTooltip("%s", entry.Secondary.c_str());
-					}
+					ImGuiUtils::TextDisabledEllipsis(entry.Secondary);
 					ImGui::Unindent(14.0f);
 				}
 			}
@@ -492,11 +499,6 @@ namespace Bolt {
 			}
 
 			ImGui::EndChild();
-			ImGui::Separator();
-			if (ImGui::Button("Close")) {
-				ImGui::CloseCurrentPopup();
-			}
-
 			ImGui::EndPopup();
 		}
 
@@ -652,7 +654,6 @@ namespace Bolt {
 					const auto resolved = ResolveEntityReference(entityId);
 					if (resolved.has_value()) {
 						displayName = resolved->EntityName;
-						secondaryText = MakeEntitySecondaryText(resolved->SceneName, entityId);
 					}
 					else {
 						missing = true;
@@ -660,13 +661,8 @@ namespace Bolt {
 					}
 				}
 
-				bool clearRequested = false;
-				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, entityId != 0, clearRequested, hoveredAny)) {
+				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, hoveredAny)) {
 					OpenReferencePicker(fieldKey, "Select Entity", CollectEntityPickerEntries());
-				}
-				if (clearRequested) {
-					changed = true;
-					newValue = "0";
 				}
 
 				if (ImGui::BeginDragDropTarget()) {
@@ -689,13 +685,8 @@ namespace Bolt {
 				std::string secondaryText;
 				const std::string displayName = GetAssetDisplayName(field.value, AssetKind::Texture, missing, &secondaryText);
 
-				bool clearRequested = false;
-				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, !field.value.empty(), clearRequested, hoveredAny)) {
+				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, hoveredAny)) {
 					OpenReferencePicker(fieldKey, "Select Texture", CollectAssetPickerEntries(AssetKind::Texture));
-				}
-				if (clearRequested) {
-					changed = true;
-					newValue.clear();
 				}
 
 				if (ImGui::BeginDragDropTarget()) {
@@ -717,13 +708,8 @@ namespace Bolt {
 				std::string secondaryText;
 				const std::string displayName = GetAssetDisplayName(field.value, AssetKind::Audio, missing, &secondaryText);
 
-				bool clearRequested = false;
-				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, !field.value.empty(), clearRequested, hoveredAny)) {
+				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, hoveredAny)) {
 					OpenReferencePicker(fieldKey, "Select Audio", CollectAssetPickerEntries(AssetKind::Audio));
-				}
-				if (clearRequested) {
-					changed = true;
-					newValue.clear();
 				}
 
 				if (ImGui::BeginDragDropTarget()) {
@@ -744,13 +730,8 @@ namespace Bolt {
 				std::string secondaryText;
 				const std::string displayName = GetComponentDisplayName(field.value, componentTypeName, missing, &secondaryText);
 
-				bool clearRequested = false;
-				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, !field.value.empty(), clearRequested, hoveredAny)) {
+				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, hoveredAny)) {
 					OpenReferencePicker(fieldKey, "Select " + componentTypeName, CollectComponentPickerEntries(componentTypeName));
-				}
-				if (clearRequested) {
-					changed = true;
-					newValue.clear();
 				}
 
 				if (ImGui::BeginDragDropTarget()) {
@@ -925,8 +906,14 @@ namespace Bolt {
 				return;
 			}
 
-			ImGui::SetNextItemWidth(-1);
+			const float closeButtonSize = ImGui::GetFrameHeight();
+			const float searchWidth = std::max(ImGui::GetContentRegionAvail().x - closeButtonSize - ImGui::GetStyle().ItemSpacing.x, 1.0f);
+			ImGui::SetNextItemWidth(searchWidth);
 			ImGui::InputTextWithHint("##ScriptSearch", "Search...", s_ScriptPickerSearch, sizeof(s_ScriptPickerSearch));
+			ImGui::SameLine();
+			if (ImGui::Button("X##ScriptPickerClose", ImVec2(closeButtonSize, closeButtonSize))) {
+				s_ScriptPickerOpen = false;
+			}
 			ImGui::Separator();
 
 			ImGui::BeginChild("##ScriptList");
@@ -936,10 +923,16 @@ namespace Bolt {
 			for (const auto& entry : s_ScriptPickerEntries) {
 				if (!filter.empty()) {
 					std::string lowerName = ToLowerCopy(entry.ClassName);
-					if (lowerName.find(filter) == std::string::npos) continue;
+					std::string lowerPath = ToLowerCopy(entry.RelativePath);
+					if (lowerName.find(filter) == std::string::npos && lowerPath.find(filter) == std::string::npos) continue;
 				}
 
-				std::string label = entry.ClassName + "  " + entry.Extension + "##" + entry.RelativePath;
+				bool truncated = false;
+				const std::string displayLabel = ImGuiUtils::Ellipsize(
+					entry.ClassName + "  " + entry.Extension,
+					ImGui::GetContentRegionAvail().x,
+					&truncated);
+				std::string label = displayLabel + "##" + entry.RelativePath;
 				if (ImGui::Selectable(label.c_str(), false)) {
 					Scene* scene = ScriptEngine::GetScene();
 					if (!scene) scene = SceneManager::Get().GetActiveScene();
@@ -953,7 +946,7 @@ namespace Bolt {
 					s_ScriptPickerOpen = false;
 				}
 
-				if (ImGui::IsItemHovered()) {
+				if (ImGui::IsItemHovered() && (truncated || !entry.RelativePath.empty())) {
 					ImGui::SetTooltip("%s", entry.RelativePath.c_str());
 				}
 			}

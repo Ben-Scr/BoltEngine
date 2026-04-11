@@ -1,11 +1,12 @@
 #pragma once
-#include  "Scene/ISystem.hpp"
+#include "Core/Layer.hpp"
 #include "Core/Export.hpp"
-#include "Scene/Entity.hpp"
 
 namespace Bolt {
-	class BOLT_API GizmosDebugSystem : public ISystem {
+	class BOLT_API GizmosDebugSystem : public Layer {
 	public:
-		virtual void Update(Scene& scene);
+		using Layer::Layer;
+
+		void OnUpdate(Application& app, float dt) override;
 	};
 }

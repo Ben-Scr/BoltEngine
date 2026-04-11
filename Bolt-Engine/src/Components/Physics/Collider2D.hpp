@@ -19,16 +19,21 @@ namespace Bolt {
 		explicit Collider2D(EntityHandle entity)
 			: m_EntityHandle(entity) {}
 
-		bool IsValid();
+		bool IsValid() const;
 		void SetFriction(float friction);
+		float GetFriction() const;
 		void SetBounciness(float bounciness);
+		float GetBounciness() const;
 		void SetLayer(uint64_t layer);
+		uint64_t GetLayer() const;
+		bool IsEnabled() const;
+		bool IsSensor() const;
 
-		Vec2 GetBodyPosition();
-		float GetRotationDegrees();
+		Vec2 GetBodyPosition() const;
+		float GetRotationDegrees() const;
 
 		void SetRegisterContacts(bool enabled);
-		bool CanRegisterContacts();
+		bool CanRegisterContacts() const;
 
 		template<typename F>
 		void OnCollisionEnter(F&& callback) {
@@ -62,7 +67,7 @@ namespace Bolt {
 		void EnableRotation(bool enabled);
 
 
-		float GetRotationRadiant();
+		float GetRotationRadiant() const;
 
 		void Destroy();
 		void DestroyShape(bool updateBodyMass = true);

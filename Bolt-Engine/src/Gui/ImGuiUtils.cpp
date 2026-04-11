@@ -3,6 +3,115 @@
 #include <imgui.h>
 
 namespace Bolt::ImGuiUtils {
+	std::string Ellipsize(const std::string& text, float maxWidth, bool* outTruncated)
+	{
+		if (outTruncated) {
+			*outTruncated = false;
+		}
+
+		if (text.empty() || maxWidth <= 0.0f) {
+			return text;
+		}
+
+		if (ImGui::CalcTextSize(text.c_str()).x <= maxWidth) {
+			return text;
+		}
+
+		constexpr const char* ellipsis = "...";
+		const float ellipsisWidth = ImGui::CalcTextSize(ellipsis).x;
+		if (ellipsisWidth >= maxWidth) {
+			if (outTruncated) {
+				*outTruncated = true;
+			}
+			return ellipsis;
+		}
+
+		const float availableWidth = maxWidth - ellipsisWidth;
+		int low = 0;
+		int high = static_cast<int>(text.size());
+		int bestFit = 0;
+
+		while (low <= high) {
+			const int mid = low + ((high - low) / 2);
+			const float currentWidth = ImGui::CalcTextSize(text.c_str(), text.c_str() + mid).x;
+			if (currentWidth <= availableWidth) {
+				bestFit = mid;
+				low = mid + 1;
+			}
+			else {
+				high = mid - 1;
+			}
+		}
+
+		if (outTruncated) {
+			*outTruncated = true;
+		}
+
+		return text.substr(0, static_cast<std::size_t>(bestFit)) + ellipsis;
+	}
+
+	void TextEllipsis(const std::string& text, float maxWidth)
+	{
+		if (maxWidth < 0.0f) {
+			maxWidth = ImGui::GetContentRegionAvail().x;
+		}
+
+		bool truncated = false;
+		const std::string displayText = Ellipsize(text, maxWidth, &truncated);
+		ImGui::TextUnformatted(displayText.c_str());
+		if (truncated && ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("%s", text.c_str());
+		}
+	}
+
+	void TextDisabledEllipsis(const std::string& text, float maxWidth)
+	{
+		if (maxWidth < 0.0f) {
+			maxWidth = ImGui::GetContentRegionAvail().x;
+		}
+
+		bool truncated = false;
+		const std::string displayText = Ellipsize(text, maxWidth, &truncated);
+		ImGui::TextDisabled("%s", displayText.c_str());
+		if (truncated && ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("%s", text.c_str());
+		}
+	}
+
+	bool SelectableEllipsis(const std::string& text, const char* id, bool selected,
+		ImGuiSelectableFlags flags, const ImVec2& size, float maxWidth)
+	{
+		if (maxWidth < 0.0f) {
+			maxWidth = size.x > 0.0f ? size.x : ImGui::GetContentRegionAvail().x;
+		}
+
+		bool truncated = false;
+		const std::string displayText = Ellipsize(text, maxWidth, &truncated);
+		const std::string label = displayText + "##" + (id ? std::string(id) : text);
+		const bool activated = ImGui::Selectable(label.c_str(), selected, flags, size);
+		if (truncated && ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("%s", text.c_str());
+		}
+		return activated;
+	}
+
+	bool MenuItemEllipsis(const std::string& text, const char* id,
+		const char* shortcut, bool selected, bool enabled, float maxWidth)
+	{
+		if (maxWidth < 0.0f) {
+			maxWidth = ImGui::GetContentRegionAvail().x;
+		}
+
+		bool truncated = false;
+		const std::string displayText = Ellipsize(text, maxWidth, &truncated);
+		const std::string label = displayText + "##" + (id ? std::string(id) : text);
+		const bool activated = ImGui::MenuItem(label.c_str(), shortcut, selected, enabled);
+		if (truncated && ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("%s", text.c_str());
+		}
+		return activated;
+	}
+
 	void DrawTexturePreview(unsigned int rendererId, float texWidth, float texHeight, float previewSize)
 	{
 		const ImVec2 previewMin = ImGui::GetCursorScreenPos();
@@ -64,7 +173,14 @@ namespace Bolt::ImGuiUtils {
 
 		ImGui::PushID(label);
 
-		bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap);
+		bool truncated = false;
+		const float headerWidth = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().FramePadding.x * 2.0f;
+		const std::string displayLabel = Ellipsize(label, headerWidth, &truncated);
+		const std::string headerLabel = displayLabel + "##" + label;
+		bool open = ImGui::CollapsingHeader(headerLabel.c_str(), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap);
+		if (truncated && ImGui::IsItemHovered()) {
+			ImGui::SetTooltip("%s", label);
+		}
 
 		if (ImGui::BeginPopupContextItem("ComponentContext")) {
 			if (ImGui::MenuItem("Remove Component")) {

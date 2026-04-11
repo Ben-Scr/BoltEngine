@@ -83,6 +83,9 @@ namespace Bolt {
 					try {
 						if (!m_IsPaused && !m_IsPlaymodePaused) {
 							BeginFixedFrame();
+							for (const auto& layer : m_LayerStack) {
+								layer->OnFixedUpdate(*this, m_Time.GetFixedDeltaTime());
+							}
 							EndFixedFrame();
 						}
 					}
@@ -119,7 +122,7 @@ namespace Bolt {
 		Window::Initialize();
 		m_Window = std::make_unique<Window>(m_Configuration.WindowSpecification);
 		m_Window->SetVsync(m_Configuration.Vsync);
-		m_Window->SetEventCallback([this](BoltEvent& e) { OnEvent(e); });
+		m_Window->SetEventCallback([this](BoltEvent& e) { DispatchEvent(e); });
 		BT_INFO_TAG("Window", "Initialization took " + StringHelper::ToString(timer));
 
 		timer.Reset();
@@ -185,6 +188,7 @@ namespace Bolt {
 		ConfigureScenes();
 		m_SceneManager->Initialize();
 		BT_INFO_TAG("SceneManager", "Initialization took " + StringHelper::ToString(timer));
+		ConfigureLayers();
 
 		if (m_Configuration.SetWindowIcon) {
 			m_Window->SetWindowIconFromResource();
@@ -210,12 +214,18 @@ namespace Bolt {
 
 			if (gameplayActive && m_Configuration.EnableAudio) AudioManager::Update();
 			Update();
+			for (const auto& layer : m_LayerStack) {
+				layer->OnUpdate(*this, m_Time.GetDeltaTime());
+			}
 
 			if (gameplayActive && m_SceneManager) m_SceneManager->UpdateScenes();
 
 			if (m_ImGuiRenderer) {
 				BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
 				if (m_SceneManager) m_SceneManager->OnGuiScenes();
+				for (const auto& layer : m_LayerStack) {
+					layer->OnImGuiRender(*this);
+				}
 			}
 
 			if (m_Renderer2D)
@@ -232,7 +242,7 @@ namespace Bolt {
 		}
 	}
 
-	void Application::OnEvent(BoltEvent& event) {
+	void Application::DispatchEvent(BoltEvent& event) {
 		EventDispatcher dispatcher(event);
 
 		dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) {
@@ -255,6 +265,17 @@ namespace Bolt {
 			m_PendingFileDrops = e.GetPaths();
 			return false;
 		});
+
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
+			if (event.Handled) {
+				break;
+			}
+			(*it)->OnEvent(*this, event);
+		}
+
+		if (!event.Handled) {
+			m_EventBus.Publish(event);
+		}
 	}
 
 	void Application::Quit() {
@@ -297,6 +318,9 @@ namespace Bolt {
 		if (m_ImGuiRenderer) {
 			BOLT_TRY_CATCH_LOG(m_ImGuiRenderer->BeginFrame());
 			if (m_SceneManager) BOLT_TRY_CATCH_LOG(m_SceneManager->OnGuiScenes());
+			for (const auto& layer : m_LayerStack) {
+				layer->OnImGuiRender(*this);
+			}
 		}
 
 		if (m_Renderer2D) {
@@ -358,6 +382,12 @@ namespace Bolt {
 		catch (...) {
 			BT_ERROR_TAG("Application", "OnQuit failed with unknown exception");
 		}
+
+		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
+			(*it)->OnDetach(*this);
+		}
+		m_EventBus.Clear();
+		m_LayerStack.Clear();
 
 		if (m_SceneManager) m_SceneManager->Shutdown();
 		TextureManager::Shutdown();

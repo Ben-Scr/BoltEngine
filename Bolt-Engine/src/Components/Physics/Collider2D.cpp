@@ -6,30 +6,35 @@
 
 
 namespace Bolt {
-	bool Collider2D::IsValid() { return b2Body_IsValid(m_BodyId) && b2Shape_IsValid(m_ShapeId); }
+	bool Collider2D::IsValid() const { return b2Body_IsValid(m_BodyId) && b2Shape_IsValid(m_ShapeId); }
 	void Collider2D::SetFriction(float friction) { b2Shape_SetFriction(m_ShapeId, friction); }
+	float Collider2D::GetFriction() const { return b2Shape_GetFriction(m_ShapeId); }
 	void Collider2D::SetBounciness(float bounciness) { b2Shape_SetRestitution(m_ShapeId, bounciness); }
+	float Collider2D::GetBounciness() const { return b2Shape_GetRestitution(m_ShapeId); }
 	void Collider2D::SetLayer(uint64_t layer) {
 		b2Filter filter = b2Shape_GetFilter(m_ShapeId);
 		filter.maskBits = layer;
 		b2Shape_SetFilter(m_ShapeId, filter);
 	}
+	uint64_t Collider2D::GetLayer() const { return b2Shape_GetFilter(m_ShapeId).maskBits; }
+	bool Collider2D::IsEnabled() const { return b2Body_IsEnabled(m_BodyId); }
+	bool Collider2D::IsSensor() const { return b2Shape_IsSensor(m_ShapeId); }
 
-	Vec2 Collider2D::GetBodyPosition() {
+	Vec2 Collider2D::GetBodyPosition() const {
 		b2Vec2 position = b2Body_GetPosition(m_BodyId);
 		return { position.x, position.y };
 	}
-	float Collider2D::GetRotationDegrees() {
+	float Collider2D::GetRotationDegrees() const {
 		return Degrees<float>(b2Rot_GetAngle(b2Body_GetRotation(m_BodyId)));
 	}
-	float Collider2D::GetRotationRadiant() {
+	float Collider2D::GetRotationRadiant() const {
 		return  b2Rot_GetAngle(b2Body_GetRotation(m_BodyId));
 	}
 
 	void Collider2D::SetRegisterContacts(bool enabled) {
 		b2Shape_EnableContactEvents(m_ShapeId, enabled);
 	}
-	bool Collider2D::CanRegisterContacts() { return b2Shape_AreContactEventsEnabled(m_ShapeId); }
+	bool Collider2D::CanRegisterContacts() const { return b2Shape_AreContactEventsEnabled(m_ShapeId); }
 
 
 	void Collider2D::EnableRotation(bool enabled) {
