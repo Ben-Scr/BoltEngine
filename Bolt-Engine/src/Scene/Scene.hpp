@@ -2,6 +2,7 @@
 #include "Scene/Entity.hpp"
 #include "Scene/ISystem.hpp"
 #include "Core/Export.hpp"
+#include "Core/UUID.hpp"
 
 namespace Bolt {
 	class SceneDefinition;
@@ -172,6 +173,9 @@ namespace Bolt {
 		void MarkDirty();
 		void ClearDirty() { m_Dirty = false; }
 
+		UUID GetSceneId() const { return m_SceneId; }
+		void SetSceneId(UUID id) { m_SceneId = id; }
+
 	private:
 		Scene(const std::string& name, const SceneDefinition* definition, bool IsPersistent);
 
@@ -226,6 +230,7 @@ namespace Bolt {
 
 		std::string m_Name;
 		const SceneDefinition* m_Definition;
+		UUID m_SceneId;
 
 		bool m_IsLoaded = false;
 		bool m_Persistent = false;

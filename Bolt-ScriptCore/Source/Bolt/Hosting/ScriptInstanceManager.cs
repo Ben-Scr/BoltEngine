@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Bolt;
 
 namespace Bolt.Hosting
 {
@@ -256,6 +257,327 @@ namespace Bolt.Hosting
                 s_UserAssembly = null;
             }
         }
+
+        // ── Field reflection for [ShowInEditor] ──────────────────────
+
+        private static byte[] s_FieldJsonBuffer = Array.Empty<byte>();
+
+        [UnmanagedCallersOnly]
+        public static unsafe byte* GetScriptFields(int handle)
+        {
+            try
+            {
+                if (!s_Instances.TryGetValue(handle, out var data))
+                    return NullTerminated("[]");
+
+                var instance = data.Instance;
+                var type = instance.GetType();
+                var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+                var sb = new System.Text.StringBuilder();
+                sb.Append('[');
+                bool first = true;
+
+                foreach (var field in fields)
+                {
+                    // Skip fields from BoltScript base class
+                    if (field.DeclaringType == typeof(BoltScript)) continue;
+
+                    var showAttr = field.GetCustomAttribute<ShowInEditorAttribute>();
+                    if (showAttr == null) continue;
+
+                    string fieldType = MapFieldType(field.FieldType);
+                    if (fieldType == "unsupported") continue;
+
+                    object? val = field.GetValue(instance);
+                    string valueStr = FormatFieldValue(field.FieldType, val);
+
+                    string displayName = string.IsNullOrEmpty(showAttr.DisplayName) ? field.Name : showAttr.DisplayName;
+                    bool readOnly = showAttr.ReadOnly;
+
+                    float clampMin = 0, clampMax = 0;
+                    bool hasClamp = false;
+                    var clampAttr = field.GetCustomAttribute<ClampValueAttribute>();
+                    if (clampAttr != null)
+                    {
+                        clampMin = clampAttr.Min;
+                        clampMax = clampAttr.Max;
+                        hasClamp = true;
+                    }
+
+                    string tooltip = "";
+                    var tooltipAttr = field.GetCustomAttribute<ToolTipAttribute>();
+                    if (tooltipAttr != null)
+                        tooltip = tooltipAttr.Text;
+
+                    if (!first) sb.Append(',');
+                    first = false;
+
+                    sb.Append("{\"name\":\"").Append(EscapeJson(field.Name))
+                      .Append("\",\"displayName\":\"").Append(EscapeJson(displayName))
+                      .Append("\",\"type\":\"").Append(fieldType)
+                      .Append("\",\"value\":\"").Append(EscapeJson(valueStr))
+                      .Append("\",\"readOnly\":").Append(readOnly ? "true" : "false")
+                      .Append(",\"hasClamp\":").Append(hasClamp ? "true" : "false")
+                      .Append(",\"clampMin\":").Append(clampMin.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                      .Append(",\"clampMax\":").Append(clampMax.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                      .Append(",\"tooltip\":\"").Append(EscapeJson(tooltip))
+                      .Append("\"}");
+                }
+
+                sb.Append(']');
+                return NullTerminated(sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GetScriptFields failed: {ex.Message}");
+                return NullTerminated("[]");
+            }
+        }
+
+        [UnmanagedCallersOnly]
+        public static unsafe void SetScriptField(int handle, byte* fieldNamePtr, byte* valuePtr)
+        {
+            try
+            {
+                if (!s_Instances.TryGetValue(handle, out var data)) return;
+
+                string fieldName = Marshal.PtrToStringUTF8((IntPtr)fieldNamePtr) ?? "";
+                string valueStr = Marshal.PtrToStringUTF8((IntPtr)valuePtr) ?? "";
+
+                var instance = data.Instance;
+                var field = instance.GetType().GetField(fieldName,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (field == null) return;
+
+                object? parsed = ParseFieldValue(field.FieldType, valueStr);
+                if (parsed != null)
+                    field.SetValue(instance, parsed);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"SetScriptField failed: {ex.Message}");
+            }
+        }
+
+        private static string MapFieldType(Type t)
+        {
+            if (t == typeof(float)) return "float";
+            if (t == typeof(double)) return "double";
+            if (t == typeof(int)) return "int";
+            if (t == typeof(short)) return "short";
+            if (t == typeof(byte)) return "byte";
+            if (t == typeof(long)) return "long";
+            if (t == typeof(uint)) return "uint";
+            if (t == typeof(ushort)) return "ushort";
+            if (t == typeof(sbyte)) return "sbyte";
+            if (t == typeof(ulong)) return "ulong";
+            if (t == typeof(bool)) return "bool";
+            if (t == typeof(string)) return "string";
+            if (t == typeof(Color)) return "color";
+            if (t == typeof(Entity)) return "entity";
+            if (t == typeof(TextureRef)) return "texture";
+            if (t == typeof(AudioRef)) return "audio";
+            if (t.IsSubclassOf(typeof(Component))) return "component:" + t.Name;
+            return "unsupported";
+        }
+
+        private static string FormatFieldValue(Type t, object? val)
+        {
+            if (val == null) return "";
+            var ic = System.Globalization.CultureInfo.InvariantCulture;
+            if (t == typeof(float)) return ((float)val).ToString(ic);
+            if (t == typeof(double)) return ((double)val).ToString(ic);
+            if (t == typeof(int)) return ((int)val).ToString(ic);
+            if (t == typeof(short)) return ((short)val).ToString(ic);
+            if (t == typeof(byte)) return ((byte)val).ToString(ic);
+            if (t == typeof(long)) return ((long)val).ToString(ic);
+            if (t == typeof(uint)) return ((uint)val).ToString(ic);
+            if (t == typeof(ushort)) return ((ushort)val).ToString(ic);
+            if (t == typeof(sbyte)) return ((sbyte)val).ToString(ic);
+            if (t == typeof(ulong)) return ((ulong)val).ToString(ic);
+            if (t == typeof(bool)) return (bool)val ? "true" : "false";
+            if (t == typeof(string)) return (string)val;
+            if (t == typeof(Color))
+            {
+                var c = (Color)val;
+                return $"{c.R.ToString(ic)},{c.G.ToString(ic)},{c.B.ToString(ic)},{c.A.ToString(ic)}";
+            }
+            if (t == typeof(Entity))
+            {
+                var entity = (Entity)val;
+                if (entity == null || entity == Entity.Invalid) return "0";
+                // Get UUID via native call
+                if (entity.HasComponent<Transform2DComponent>())
+                {
+                    // Entity is valid — serialize its ID (the C++ side stores UUID)
+                    return entity.ID.ToString(ic);
+                }
+                return entity.ID.ToString(ic);
+            }
+            if (t == typeof(TextureRef)) return ((TextureRef)val).Path ?? "";
+            if (t == typeof(AudioRef)) return ((AudioRef)val).Path ?? "";
+            if (t.IsSubclassOf(typeof(Component)))
+            {
+                var comp = (Component)val;
+                if (comp?.Entity == null || comp.Entity == Entity.Invalid) return "";
+                return comp.Entity.ID.ToString(ic) + ":" + t.Name;
+            }
+            return val.ToString() ?? "";
+        }
+
+        private static object? ParseFieldValue(Type t, string s)
+        {
+            var ic = System.Globalization.CultureInfo.InvariantCulture;
+            try
+            {
+                if (t == typeof(float)) return float.Parse(s, ic);
+                if (t == typeof(double)) return double.Parse(s, ic);
+                if (t == typeof(int)) return int.Parse(s, ic);
+                if (t == typeof(short)) return short.Parse(s, ic);
+                if (t == typeof(byte)) return byte.Parse(s, ic);
+                if (t == typeof(long)) return long.Parse(s, ic);
+                if (t == typeof(uint)) return uint.Parse(s, ic);
+                if (t == typeof(ushort)) return ushort.Parse(s, ic);
+                if (t == typeof(sbyte)) return sbyte.Parse(s, ic);
+                if (t == typeof(ulong)) return ulong.Parse(s, ic);
+                if (t == typeof(bool)) return s == "true" || s == "True" || s == "1";
+                if (t == typeof(string)) return s;
+                if (t == typeof(Color))
+                {
+                    var parts = s.Split(',');
+                    if (parts.Length >= 4)
+                        return new Color(
+                            float.Parse(parts[0], ic), float.Parse(parts[1], ic),
+                            float.Parse(parts[2], ic), float.Parse(parts[3], ic));
+                    return new Color(1, 1, 1, 1);
+                }
+                if (t == typeof(Entity))
+                {
+                    ulong id = ulong.Parse(s, ic);
+                    return id != 0 ? new Entity(id) : Entity.Invalid;
+                }
+                if (t == typeof(TextureRef)) return new TextureRef(s);
+                if (t == typeof(AudioRef)) return new AudioRef(s);
+                if (t.IsSubclassOf(typeof(Component)))
+                {
+                    // Format: "EntityID:ComponentName"
+                    var sep = s.IndexOf(':');
+                    if (sep > 0)
+                    {
+                        ulong entityId = ulong.Parse(s.Substring(0, sep), ic);
+                        if (entityId != 0)
+                        {
+                            var entity = new Entity(entityId);
+                            var comp = (Component)Activator.CreateInstance(t)!;
+                            comp.Entity = entity;
+                            return comp;
+                        }
+                    }
+                    return null;
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private static string EscapeJson(string s)
+        {
+            return s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", "\\n").Replace("\r", "\\r");
+        }
+
+        private static unsafe byte* NullTerminated(string s)
+        {
+            int byteCount = System.Text.Encoding.UTF8.GetByteCount(s);
+            if (s_FieldJsonBuffer.Length < byteCount + 1)
+                s_FieldJsonBuffer = new byte[byteCount + 1];
+            System.Text.Encoding.UTF8.GetBytes(s, s_FieldJsonBuffer);
+            s_FieldJsonBuffer[byteCount] = 0;
+            fixed (byte* ptr = s_FieldJsonBuffer) return ptr;
+        }
+
+        /// <summary>
+        /// Returns field definitions for a class WITHOUT needing a live instance.
+        /// Creates a temporary instance to read default values, then discards it.
+        /// Used by the editor in Edit Mode to show [ShowInEditor] fields.
+        /// </summary>
+        [UnmanagedCallersOnly]
+        public static unsafe byte* GetClassFieldDefs(byte* classNamePtr)
+        {
+            try
+            {
+                string className = Marshal.PtrToStringUTF8((IntPtr)classNamePtr) ?? "";
+                var classInfo = GetOrCacheClass(className);
+                if (classInfo == null) return NullTerminated("[]");
+
+                // Create a temporary instance just to read default values
+                BoltScript? tempInstance = null;
+                try { tempInstance = (BoltScript)Activator.CreateInstance(classInfo.Type)!; }
+                catch { return NullTerminated("[]"); }
+
+                var fields = classInfo.Type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+                var sb = new System.Text.StringBuilder();
+                sb.Append('[');
+                bool first = true;
+
+                foreach (var field in fields)
+                {
+                    if (field.DeclaringType == typeof(BoltScript)) continue;
+
+                    var showAttr = field.GetCustomAttribute<ShowInEditorAttribute>();
+                    if (showAttr == null) continue;
+
+                    string fieldType = MapFieldType(field.FieldType);
+                    if (fieldType == "unsupported") continue;
+
+                    object? val = field.GetValue(tempInstance);
+                    string valueStr = FormatFieldValue(field.FieldType, val);
+
+                    string displayName = string.IsNullOrEmpty(showAttr.DisplayName) ? field.Name : showAttr.DisplayName;
+                    bool readOnly = showAttr.ReadOnly;
+
+                    float clampMin = 0, clampMax = 0;
+                    bool hasClamp = false;
+                    var clampAttr = field.GetCustomAttribute<ClampValueAttribute>();
+                    if (clampAttr != null)
+                    {
+                        clampMin = clampAttr.Min;
+                        clampMax = clampAttr.Max;
+                        hasClamp = true;
+                    }
+
+                    string tooltip = "";
+                    var tooltipAttr = field.GetCustomAttribute<ToolTipAttribute>();
+                    if (tooltipAttr != null)
+                        tooltip = tooltipAttr.Text;
+
+                    if (!first) sb.Append(',');
+                    first = false;
+
+                    sb.Append("{\"name\":\"").Append(EscapeJson(field.Name))
+                      .Append("\",\"displayName\":\"").Append(EscapeJson(displayName))
+                      .Append("\",\"type\":\"").Append(fieldType)
+                      .Append("\",\"value\":\"").Append(EscapeJson(valueStr))
+                      .Append("\",\"readOnly\":").Append(readOnly ? "true" : "false")
+                      .Append(",\"hasClamp\":").Append(hasClamp ? "true" : "false")
+                      .Append(",\"clampMin\":").Append(clampMin.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                      .Append(",\"clampMax\":").Append(clampMax.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                      .Append(",\"tooltip\":\"").Append(EscapeJson(tooltip))
+                      .Append("\"}");
+                }
+
+                sb.Append(']');
+                return NullTerminated(sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"GetClassFieldDefs failed: {ex.Message}");
+                return NullTerminated("[]");
+            }
+        }
+
+        // ── Class cache ─────────────────────────────────────────────
 
         private static ScriptClassInfo? GetOrCacheClass(string className)
         {

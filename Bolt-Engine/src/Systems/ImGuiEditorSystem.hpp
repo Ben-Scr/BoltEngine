@@ -118,6 +118,8 @@ namespace Bolt {
 		std::string m_BuildOutputDir;
 		char m_BuildOutputDirBuffer[512]{};
 		int m_BuildState = 0; // 0=idle, 1=pending (render overlay), 2=execute
+		bool m_BuildAndPlay = false;
+		std::vector<entt::entity> m_EditorPausedAudioEntities; // AudioSources paused by editor, not by gameplay
 		std::chrono::steady_clock::time_point m_BuildStartTime;
 	};
 }

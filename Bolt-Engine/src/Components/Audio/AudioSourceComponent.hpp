@@ -45,5 +45,9 @@ namespace Bolt {
 		float m_Volume = 1.0f;
 		float m_Pitch = 1.0f;
 		bool m_Loop = false;
+		bool m_PlayOnAwake = false;
+	public:
+		bool GetPlayOnAwake() const { return m_PlayOnAwake; }
+		void SetPlayOnAwake(bool playOnAwake) { m_PlayOnAwake = playOnAwake; }
 	};
 }

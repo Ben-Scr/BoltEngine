@@ -17,6 +17,9 @@ namespace Bolt.Hosting
         public delegate* unmanaged<byte*, int> ClassExists;
         public delegate* unmanaged<byte*, int> LoadUserAssembly;
         public delegate* unmanaged<void> UnloadUserAssembly;
+        public delegate* unmanaged<int, byte*> GetScriptFields;
+        public delegate* unmanaged<int, byte*, byte*, void> SetScriptField;
+        public delegate* unmanaged<byte*, byte*> GetClassFieldDefs;
     }
 
     /// <summary>
@@ -42,6 +45,9 @@ namespace Bolt.Hosting
                 managedCallbacks->ClassExists = &ScriptInstanceManager.ClassExists;
                 managedCallbacks->LoadUserAssembly = &ScriptInstanceManager.LoadUserAssembly;
                 managedCallbacks->UnloadUserAssembly = &ScriptInstanceManager.UnloadUserAssembly;
+                managedCallbacks->GetScriptFields = &ScriptInstanceManager.GetScriptFields;
+                managedCallbacks->SetScriptField = &ScriptInstanceManager.SetScriptField;
+                managedCallbacks->GetClassFieldDefs = &ScriptInstanceManager.GetClassFieldDefs;
 
                 ScriptInstanceManager.SetCoreAssembly(typeof(ScriptHostBridge).Assembly);
                 return 0;

@@ -43,6 +43,8 @@ namespace Bolt {
 		static void InvokeOnDestroy(uint32_t handle);
 		static bool ClassExists(const std::string& className);
 
+		static const ManagedCallbacks& GetCallbacks() { return s_Callbacks; }
+
 	private:
 		static bool s_Initialized;
 		static Scene* s_CurrentScene;

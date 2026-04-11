@@ -16,6 +16,7 @@
 #include "Components/General/UUIDComponent.hpp"
 #include "Components/Tags.hpp"
 #include "Scripting/ScriptComponent.hpp"
+#include "Scripting/ScriptEngine.hpp"
 #include "Components/Physics/BoltBody2DComponent.hpp"
 #include "Components/Physics/BoltBoxCollider2DComponent.hpp"
 #include "Components/Physics/BoltCircleCollider2DComponent.hpp"
@@ -114,7 +115,24 @@ namespace Bolt {
 	}
 
 	static int ReadInt(const std::string& json, const std::string& key, int def = 0) {
-		return static_cast<int>(ReadFloat(json, key, static_cast<float>(def)));
+		std::string search = "\"" + key + "\"";
+		auto pos = json.find(search);
+		if (pos == std::string::npos) return def;
+
+		pos = json.find(':', pos + search.size());
+		if (pos == std::string::npos) return def;
+		pos++;
+
+		while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
+		if (pos >= json.size()) return def;
+
+		auto end = pos;
+		while (end < json.size() && json[end] != ',' && json[end] != '}' && json[end] != '\n' && json[end] != ' ')
+			end++;
+
+		std::string val = json.substr(pos, end - pos);
+		try { return std::stoi(val); }
+		catch (...) { return def; }
 	}
 
 	static uint64_t ReadUint64(const std::string& json, const std::string& key, uint64_t def = 0) {
@@ -189,6 +207,7 @@ namespace Bolt {
 			ss << "{\n";
 			ss << "  \"version\": " << SCENE_FORMAT_VERSION << ",\n";
 			ss << "  \"name\": \"" << Escape(scene.GetName()) << "\",\n";
+			ss << "  \"sceneId\": " << static_cast<uint64_t>(scene.GetSceneId()) << ",\n";
 			ss << "  \"entities\": [\n";
 
 			auto& registry = scene.GetRegistry();
@@ -277,7 +296,12 @@ namespace Bolt {
 					   << " \"volume\": " << audio.GetVolume()
 					   << ", \"pitch\": " << audio.GetPitch()
 					   << ", \"loop\": " << (audio.IsLooping() ? "true" : "false")
-					   << " }";
+					   << ", \"playOnAwake\": " << (audio.GetPlayOnAwake() ? "true" : "false");
+					std::string audioPath = AudioManager::GetAudioName(audio.GetAudioHandle());
+					if (!audioPath.empty()) {
+						ss << ", \"clip\": \"" << Escape(audioPath) << "\"";
+					}
+					ss << " }";
 				}
 
 				// Tags
@@ -401,6 +425,58 @@ namespace Bolt {
 							ss << "\"" << Escape(sc.Scripts[i].GetClassName()) << "\"";
 						}
 						ss << "]";
+
+						// Serialize [ShowInEditor] field values
+						auto& callbacks = ScriptEngine::GetCallbacks();
+						bool hasAnyFields = false;
+						std::stringstream fieldsSS;
+
+						for (const auto& inst : sc.Scripts) {
+							const char* json = nullptr;
+							bool isLiveInstance = inst.HasManagedInstance();
+
+							if (isLiveInstance && callbacks.GetScriptFields) {
+								json = callbacks.GetScriptFields(static_cast<int32_t>(inst.GetGCHandle()));
+							} else if (callbacks.GetClassFieldDefs) {
+								json = callbacks.GetClassFieldDefs(inst.GetClassName().c_str());
+							}
+
+							if (!json || (json[0] == '[' && json[1] == ']')) continue;
+
+							// In Edit Mode: overlay PendingFieldValues onto the defaults JSON
+							std::string finalJson(json);
+							if (!isLiveInstance && !sc.PendingFieldValues.empty()) {
+								std::string prefix = inst.GetClassName() + ".";
+								for (const auto& [key, val] : sc.PendingFieldValues) {
+									if (key.rfind(prefix, 0) != 0) continue;
+									std::string fieldName = key.substr(prefix.size());
+									// Find "name":"<fieldName>" and replace the adjacent "value":"<old>"
+									std::string nameKey = "\"name\":\"" + fieldName + "\"";
+									auto namePos = finalJson.find(nameKey);
+									if (namePos == std::string::npos) continue;
+									std::string valueKey = "\"value\":\"";
+									auto valuePos = finalJson.find(valueKey, namePos);
+									if (valuePos == std::string::npos) continue;
+									auto valueStart = valuePos + valueKey.size();
+									// Find closing quote (handle escaped quotes)
+									auto valueEnd = valueStart;
+									while (valueEnd < finalJson.size()) {
+										if (finalJson[valueEnd] == '"' && (valueEnd == 0 || finalJson[valueEnd - 1] != '\\')) break;
+										valueEnd++;
+									}
+									finalJson.replace(valueStart, valueEnd - valueStart, Escape(val));
+								}
+							}
+
+							if (!hasAnyFields) { fieldsSS << ",\n      \"ScriptFields\": {"; hasAnyFields = true; }
+							else fieldsSS << ",";
+							fieldsSS << "\n        \"" << Escape(inst.GetClassName()) << "\": " << finalJson;
+						}
+
+						if (hasAnyFields) {
+							fieldsSS << "\n      }";
+							ss << fieldsSS.str();
+						}
 					}
 				}
 
@@ -446,6 +522,10 @@ namespace Bolt {
 
 			// Update scene name from file path
 			scene.SetName(std::filesystem::path(path).stem().string());
+
+			// Restore scene GUID if saved
+			uint64_t sceneId = ReadUint64(json, "sceneId", 0);
+			if (sceneId != 0) scene.SetSceneId(UUID(sceneId));
 
 			// Clear existing entities
 			scene.GetRegistry().clear();
@@ -568,6 +648,14 @@ namespace Bolt {
 			audio.SetVolume(ReadFloat(audioBlock, "volume", 1.0f));
 			audio.SetPitch(ReadFloat(audioBlock, "pitch", 1.0f));
 			audio.SetLoop(ReadBool(audioBlock, "loop", false));
+			audio.SetPlayOnAwake(ReadBool(audioBlock, "playOnAwake", false));
+			std::string clipPath = ReadString(audioBlock, "clip");
+			if (!clipPath.empty()) {
+				AudioHandle handle = AudioManager::LoadAudio(clipPath);
+				if (handle.IsValid()) {
+					audio.SetAudioHandle(handle);
+				}
+			}
 		}
 
 		// Tags
@@ -702,6 +790,58 @@ namespace Bolt {
 			auto& sc = scene.AddComponent<ScriptComponent>(entity);
 			for (auto& className : scripts)
 				sc.AddScript(className);
+
+			// Load [ShowInEditor] field values
+			std::string fieldsBlock = ReadBlock(entityJson, "ScriptFields");
+			if (!fieldsBlock.empty()) {
+				for (const auto& className : scripts) {
+					// Find this class's field array in the ScriptFields block
+					std::string classKey = "\"" + className + "\"";
+					auto classPos = fieldsBlock.find(classKey);
+					if (classPos == std::string::npos) continue;
+
+					// Find the array start
+					auto arrStart = fieldsBlock.find('[', classPos);
+					if (arrStart == std::string::npos) continue;
+
+					// Find matching array end (handle nested objects)
+					int depth = 0;
+					size_t arrEnd = arrStart;
+					for (size_t i = arrStart; i < fieldsBlock.size(); i++) {
+						if (fieldsBlock[i] == '[') depth++;
+						else if (fieldsBlock[i] == ']') { depth--; if (depth == 0) { arrEnd = i; break; } }
+					}
+
+					std::string arr = fieldsBlock.substr(arrStart, arrEnd - arrStart + 1);
+
+					// Parse each field object: {"name":"X","value":"Y",...}
+					size_t pos = 0;
+					while ((pos = arr.find("\"name\"", pos)) != std::string::npos) {
+						// Extract name
+						auto nameValStart = arr.find(':', pos) + 1;
+						auto nameQuote1 = arr.find('"', nameValStart);
+						auto nameQuote2 = arr.find('"', nameQuote1 + 1);
+						std::string fieldName = arr.substr(nameQuote1 + 1, nameQuote2 - nameQuote1 - 1);
+
+						// Extract value
+						auto valueKey = arr.find("\"value\"", nameQuote2);
+						if (valueKey != std::string::npos) {
+							auto valColonPos = arr.find(':', valueKey + 7);
+							auto valQuote1 = arr.find('"', valColonPos);
+							auto valQuote2 = arr.find('"', valQuote1 + 1);
+							// Handle escaped quotes
+							while (valQuote2 != std::string::npos && valQuote2 > 0 && arr[valQuote2 - 1] == '\\')
+								valQuote2 = arr.find('"', valQuote2 + 1);
+							if (valQuote1 != std::string::npos && valQuote2 != std::string::npos) {
+								std::string fieldValue = arr.substr(valQuote1 + 1, valQuote2 - valQuote1 - 1);
+								sc.PendingFieldValues[className + "." + fieldName] = fieldValue;
+							}
+						}
+
+						pos = nameQuote2 + 1;
+					}
+				}
+			}
 		}
 	}
 
@@ -787,7 +927,12 @@ namespace Bolt {
 				   << " \"volume\": " << audio.GetVolume()
 				   << ", \"pitch\": " << audio.GetPitch()
 				   << ", \"loop\": " << (audio.IsLooping() ? "true" : "false")
-				   << " }";
+				   << ", \"playOnAwake\": " << (audio.GetPlayOnAwake() ? "true" : "false");
+				std::string prefabAudioPath = AudioManager::GetAudioName(audio.GetAudioHandle());
+				if (!prefabAudioPath.empty()) {
+					ss << ", \"clip\": \"" << Escape(prefabAudioPath) << "\"";
+				}
+				ss << " }";
 			}
 
 			if (registry.all_of<StaticTag>(entity))
@@ -909,6 +1054,56 @@ namespace Bolt {
 						ss << "\"" << Escape(sc.Scripts[i].GetClassName()) << "\"";
 					}
 					ss << "]";
+
+					// Serialize [ShowInEditor] field values for prefab
+					auto& callbacks = ScriptEngine::GetCallbacks();
+					bool hasAnyFields = false;
+					std::stringstream fieldsSS;
+
+					for (const auto& inst : sc.Scripts) {
+						const char* json = nullptr;
+						bool isLiveInstance = inst.HasManagedInstance();
+
+						if (isLiveInstance && callbacks.GetScriptFields) {
+							json = callbacks.GetScriptFields(static_cast<int32_t>(inst.GetGCHandle()));
+						} else if (callbacks.GetClassFieldDefs) {
+							json = callbacks.GetClassFieldDefs(inst.GetClassName().c_str());
+						}
+
+						if (!json || (json[0] == '[' && json[1] == ']')) continue;
+
+						// In Edit Mode: overlay PendingFieldValues onto the defaults JSON
+						std::string finalJson(json);
+						if (!isLiveInstance && !sc.PendingFieldValues.empty()) {
+							std::string prefix = inst.GetClassName() + ".";
+							for (const auto& [key, val] : sc.PendingFieldValues) {
+								if (key.rfind(prefix, 0) != 0) continue;
+								std::string fieldName = key.substr(prefix.size());
+								std::string nameKey = "\"name\":\"" + fieldName + "\"";
+								auto namePos = finalJson.find(nameKey);
+								if (namePos == std::string::npos) continue;
+								std::string valueKey = "\"value\":\"";
+								auto valuePos = finalJson.find(valueKey, namePos);
+								if (valuePos == std::string::npos) continue;
+								auto valueStart = valuePos + valueKey.size();
+								auto valueEnd = valueStart;
+								while (valueEnd < finalJson.size()) {
+									if (finalJson[valueEnd] == '"' && (valueEnd == 0 || finalJson[valueEnd - 1] != '\\')) break;
+									valueEnd++;
+								}
+								finalJson.replace(valueStart, valueEnd - valueStart, Escape(val));
+							}
+						}
+
+						if (!hasAnyFields) { fieldsSS << ",\n      \"ScriptFields\": {"; hasAnyFields = true; }
+						else fieldsSS << ",";
+						fieldsSS << "\n        \"" << Escape(inst.GetClassName()) << "\": " << finalJson;
+					}
+
+					if (hasAnyFields) {
+						fieldsSS << "\n      }";
+						ss << fieldsSS.str();
+					}
 				}
 			}
 

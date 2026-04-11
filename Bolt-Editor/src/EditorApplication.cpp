@@ -13,6 +13,7 @@
 #include <Project/ProjectManager.hpp>
 #include <Project/BoltProject.hpp>
 #include <Serialization/SceneSerializer.hpp>
+#include <Systems/AudioUpdateSystem.hpp>
 #include <Core/Version.hpp>
 
 using namespace Bolt;
@@ -28,7 +29,7 @@ public:
 		if (ProjectManager::HasProject())
 			title += " - " + ProjectManager::GetCurrentProject()->Name;
 		config.WindowSpecification = WindowSpecification(0, 0, title, true, true, true);
-		config.EnableAudio = false;
+		config.EnableAudio = true;
 		config.EnableGizmoRenderer = true;
 		config.EnableGuiRenderer = false;
 		config.EnablePhysics2D = true;
@@ -44,6 +45,7 @@ public:
 		editorScene.AddSystem<GizmosDebugSystem>();
 		editorScene.AddSystem<ParticleUpdateSystem>();
 		editorScene.AddSystem<ScriptSystem>();
+		editorScene.AddSystem<AudioUpdateSystem>();
 		editorScene.SetAsStartupScene();
 	}
 

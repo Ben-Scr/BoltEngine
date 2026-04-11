@@ -276,19 +276,51 @@ namespace Bolt {
 				}
 				Application::SetPlaymodePaused(false);
 				Application::SetIsPlaying(true);
+
+				// Trigger PlayOnAwake for all audio sources
+				if (active) {
+					auto audioView = active->GetRegistry().view<AudioSourceComponent>(entt::exclude<DisabledTag>);
+					for (auto [ent, audio] : audioView.each()) {
+						if (audio.GetPlayOnAwake() && audio.GetAudioHandle().IsValid()) {
+							audio.Play();
+						}
+					}
+				}
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Play (Enter playmode)");
 		}
 		else {
 			// ── Play mode: [Pause/Continue] [Step] [Stop] ──
 			if (isPaused) {
-				if (IconButton("##Continue", "play", iconSize, btnSize))
+				if (IconButton("##Continue", "play", iconSize, btnSize)) {
 					Application::SetPlaymodePaused(false);
+					Scene* active = SceneManager::Get().GetActiveScene();
+					if (active) {
+						for (auto ent : m_EditorPausedAudioEntities) {
+							if (active->IsValid(ent) && active->HasComponent<AudioSourceComponent>(ent)) {
+								auto& audio = active->GetComponent<AudioSourceComponent>(ent);
+								if (audio.IsPaused()) audio.Resume();
+							}
+						}
+					}
+					m_EditorPausedAudioEntities.clear();
+				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Continue");
 			}
 			else {
-				if (IconButton("##Pause", "pause", iconSize, btnSize))
+				if (IconButton("##Pause", "pause", iconSize, btnSize)) {
 					Application::SetPlaymodePaused(true);
+					m_EditorPausedAudioEntities.clear();
+					Scene* active = SceneManager::Get().GetActiveScene();
+					if (active) {
+						for (auto [ent, audio] : active->GetRegistry().view<AudioSourceComponent>().each()) {
+							if (audio.IsPlaying()) {
+								audio.Pause();
+								m_EditorPausedAudioEntities.push_back(ent);
+							}
+						}
+					}
+				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Pause");
 			}
 
@@ -301,6 +333,16 @@ namespace Bolt {
 
 			ImGui::SameLine();
 			if (IconButton("##Stop", "stop", iconSize, btnSize)) {
+				// Stop all playing audio before exiting play mode
+				{
+					Scene* act = SceneManager::Get().GetActiveScene();
+					if (act) {
+						for (auto [ent, audio] : act->GetRegistry().view<AudioSourceComponent>().each()) {
+							if (audio.IsPlaying() || audio.IsPaused()) audio.Stop();
+						}
+					}
+				}
+
 				// Remember selected entity UUID before reload (stable across save/load)
 				uint64_t selectedUUID = 0;
 				{
@@ -480,7 +522,7 @@ namespace Bolt {
 			if (!scenePtr) continue;
 			Scene& scene = *scenePtr;
 
-			ImGui::PushID(scene.GetName().c_str());
+			ImGui::PushID(static_cast<int>(static_cast<uint64_t>(scene.GetSceneId())));
 
 			ImGuiTreeNodeFlags sceneFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnArrow
 				| ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Framed;
@@ -806,8 +848,25 @@ namespace Bolt {
 			if (info.displayName == "Name") return; // Shown in entity header
 			if (!info.has(entity)) return;
 
+			// Scripts render their own per-script sections — skip the outer wrapper
+			if (info.displayName == "Scripts") {
+				if (info.drawInspector) info.drawInspector(entity);
+				return;
+			}
+
 			bool removeRequested = false;
 			bool open = ImGuiUtils::BeginComponentSection(info.displayName.c_str(), removeRequested);
+
+			// Component drag source on the header (attaches to the CollapsingHeader item)
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+				uint64_t entityUUID = 0;
+				if (entity.HasComponent<UUIDComponent>())
+					entityUUID = static_cast<uint64_t>(entity.GetComponent<UUIDComponent>().Id);
+				std::string refStr = std::to_string(entityUUID) + ":" + info.displayName;
+				ImGui::SetDragDropPayload("COMPONENT_REF", refStr.c_str(), refStr.size() + 1);
+				ImGui::Text("Ref: %s.%s", entity.GetName().c_str(), info.displayName.c_str());
+				ImGui::EndDragDropSource();
+			}
 
 			if (removeRequested) {
 				pendingRemoval = typeId;
@@ -849,22 +908,163 @@ namespace Bolt {
 			std::string filter(m_ComponentSearchBuffer);
 			std::transform(filter.begin(), filter.end(), filter.begin(), ::tolower);
 
-			registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
-				if (info.category != ComponentCategory::Component) return;
-				if (info.has(entity)) return;
+			bool hasFilter = !filter.empty();
 
-				if (!filter.empty()) {
+			if (hasFilter) {
+				// Flat filtered list when searching
+				registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
+					if (info.category != ComponentCategory::Component) return;
+					if (info.has(entity)) return;
+
 					std::string lowerName = info.displayName;
 					std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
 					if (lowerName.find(filter) == std::string::npos) return;
+
+					if (ImGui::MenuItem(info.displayName.c_str())) {
+						info.add(entity);
+						scene.MarkDirty();
+					}
+				});
+
+				// Also search scripts by name
+				{
+					std::vector<std::pair<std::string, std::string>> scriptFiles; // className, path
+					BoltProject* project = ProjectManager::GetCurrentProject();
+					if (project) {
+						std::filesystem::path scriptsDir(project->ScriptsDirectory);
+						if (std::filesystem::exists(scriptsDir)) {
+							for (const auto& entry : std::filesystem::recursive_directory_iterator(scriptsDir)) {
+								if (!entry.is_regular_file()) continue;
+								std::string ext = entry.path().extension().string();
+								std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+								if (ext != ".cs") continue;
+								std::string className = entry.path().stem().string();
+								std::string lowerClassName = className;
+								std::transform(lowerClassName.begin(), lowerClassName.end(), lowerClassName.begin(), ::tolower);
+								if (lowerClassName.find(filter) != std::string::npos) {
+									scriptFiles.emplace_back(className, entry.path().string());
+								}
+							}
+						}
+					}
+					for (const auto& [className, path] : scriptFiles) {
+						std::string label = className + "  .cs";
+						if (ImGui::MenuItem(label.c_str())) {
+							if (!entity.HasComponent<ScriptComponent>()) {
+								entity.AddComponent<ScriptComponent>();
+							}
+							auto& sc = entity.GetComponent<ScriptComponent>();
+							if (!sc.HasScript(className)) {
+								sc.AddScript(className);
+							}
+							scene.MarkDirty();
+						}
+					}
+				}
+			} else {
+				// Categorized tree view
+				// Collect components grouped by subcategory
+				std::vector<std::pair<std::string, std::vector<const ComponentInfo*>>> categories;
+				std::unordered_map<std::string, size_t> categoryIndex;
+
+				// Define subcategory ordering
+				const std::vector<std::string> subcategoryOrder = {
+					"General", "Rendering", "Physics", "Audio", "Scripting"
+				};
+				for (const auto& sub : subcategoryOrder) {
+					categoryIndex[sub] = categories.size();
+					categories.emplace_back(sub, std::vector<const ComponentInfo*>{});
 				}
 
-				if (ImGui::MenuItem(info.displayName.c_str())) {
-					info.add(entity);
+				registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
+					if (info.category != ComponentCategory::Component) return;
+					if (info.has(entity)) return;
+
+					std::string sub = info.subcategory.empty() ? "General" : info.subcategory;
+					auto it = categoryIndex.find(sub);
+					if (it == categoryIndex.end()) {
+						categoryIndex[sub] = categories.size();
+						categories.emplace_back(sub, std::vector<const ComponentInfo*>{});
+						it = categoryIndex.find(sub);
+					}
+					categories[it->second].second.push_back(&info);
+				});
+
+				for (const auto& [subcategory, components] : categories) {
+					if (components.empty() && subcategory != "Scripting") continue;
+
+					if (ImGui::TreeNode(subcategory.c_str())) {
+						for (const auto* info : components) {
+							if (ImGui::MenuItem(info->displayName.c_str())) {
+								info->add(entity);
+								scene.MarkDirty();
+							}
+						}
+						ImGui::TreePop();
+					}
+				}
+
+				// Scripts subcategory: individual .cs files as addable items
+				{
+					std::vector<std::pair<std::string, std::string>> scriptFiles; // className, path
+					BoltProject* project = ProjectManager::GetCurrentProject();
+					if (project) {
+						std::filesystem::path scriptsDir(project->ScriptsDirectory);
+						if (std::filesystem::exists(scriptsDir)) {
+							for (const auto& entry : std::filesystem::recursive_directory_iterator(scriptsDir)) {
+								if (!entry.is_regular_file()) continue;
+								std::string ext = entry.path().extension().string();
+								std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+								if (ext != ".cs") continue;
+								scriptFiles.emplace_back(entry.path().stem().string(), entry.path().string());
+							}
+						}
+					}
+					std::sort(scriptFiles.begin(), scriptFiles.end());
+
+					if (!scriptFiles.empty()) {
+						if (ImGui::TreeNode("Scripts")) {
+							for (const auto& [className, path] : scriptFiles) {
+								if (ImGui::MenuItem(className.c_str())) {
+									if (!entity.HasComponent<ScriptComponent>()) {
+										entity.AddComponent<ScriptComponent>();
+									}
+									auto& sc = entity.GetComponent<ScriptComponent>();
+									if (!sc.HasScript(className)) {
+										sc.AddScript(className);
+									}
+									scene.MarkDirty();
+								}
+							}
+							ImGui::TreePop();
+						}
+					}
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+
+		// Drag-drop target: accept .cs files dropped onto the Inspector panel
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
+				std::string droppedPath(static_cast<const char*>(payload->Data));
+				std::string ext = std::filesystem::path(droppedPath).extension().string();
+				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+
+				if (ext == ".cs") {
+					std::string className = std::filesystem::path(droppedPath).stem().string();
+					if (!entity.HasComponent<ScriptComponent>()) {
+						entity.AddComponent<ScriptComponent>();
+					}
+					auto& sc = entity.GetComponent<ScriptComponent>();
+					if (!sc.HasScript(className)) {
+						sc.AddScript(className);
+					}
 					scene.MarkDirty();
 				}
-			});
-			ImGui::EndPopup();
+			}
+			ImGui::EndDragDropTarget();
 		}
 
 		// Detect inspector property changes: when a widget finishes being edited, mark dirty
@@ -1305,7 +1505,7 @@ namespace Bolt {
 		// 1. Compile C# scripts
 		if (std::filesystem::exists(project->CsprojPath)) {
 			BT_INFO_TAG("Build", "Compiling C# scripts...");
-			std::string cmd = "dotnet build \"" + project->CsprojPath + "\" -c Release --nologo -v q -p:DefineConstants=BOLT_BUILD 2>&1";
+			std::string cmd = "dotnet build \"" + project->CsprojPath + "\" -c Release --nologo -v q -p:DefineConstants=BOLT_BUILD%3BBT_RELEASE 2>&1";
 			int result = std::system(cmd.c_str());
 			if (result != 0) {
 				BT_ERROR_TAG("Build", "C# script compilation failed (exit code {}).", result);
@@ -1485,7 +1685,8 @@ namespace Bolt {
 								if (srcIndex != i) {
 									std::string moved = m_BuildSceneList[srcIndex];
 									m_BuildSceneList.erase(m_BuildSceneList.begin() + srcIndex);
-									m_BuildSceneList.insert(m_BuildSceneList.begin() + i, moved);
+									int insertAt = (srcIndex < i) ? i - 1 : i;
+									m_BuildSceneList.insert(m_BuildSceneList.begin() + insertAt, moved);
 									// Update startup scene
 									if (!m_BuildSceneList.empty()) {
 										project->StartupScene = m_BuildSceneList[0];
@@ -1542,10 +1743,20 @@ namespace Bolt {
 
 		bool canBuild = project && !Application::GetIsPlaying() && m_BuildState == 0;
 		if (!canBuild) ImGui::BeginDisabled();
-		if (ImGui::Button("Build", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+
+		float halfWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+		if (ImGui::Button("Build", ImVec2(halfWidth, 0))) {
 			m_BuildState = 1;
+			m_BuildAndPlay = false;
 			m_BuildStartTime = std::chrono::steady_clock::now();
 		}
+		ImGui::SameLine();
+		if (ImGui::Button("Build and Play", ImVec2(-1, 0))) {
+			m_BuildState = 1;
+			m_BuildAndPlay = true;
+			m_BuildStartTime = std::chrono::steady_clock::now();
+		}
+
 		if (!canBuild) ImGui::EndDisabled();
 
 		ImGui::End();
@@ -1658,6 +1869,35 @@ namespace Bolt {
 		} else if (m_BuildState == 2) {
 			ExecuteBuild();
 			m_BuildState = 0;
+
+			// Launch the built game if "Build and Play" was clicked
+			if (m_BuildAndPlay) {
+				m_BuildAndPlay = false;
+				BoltProject* project = ProjectManager::GetCurrentProject();
+				if (project) {
+					std::string outputDir = m_BuildOutputDirBuffer;
+					if (outputDir.empty())
+						outputDir = Path::Combine(project->RootDirectory, "Builds");
+#ifdef BT_PLATFORM_WINDOWS
+					auto exePath = std::filesystem::path(outputDir) / (project->Name + ".exe");
+					if (std::filesystem::exists(exePath)) {
+						std::string cmd = "\"" + std::filesystem::canonical(exePath).string() + "\"";
+						std::wstring wcmd(cmd.begin(), cmd.end());
+						std::vector<wchar_t> buf(wcmd.begin(), wcmd.end());
+						buf.push_back(L'\0');
+						STARTUPINFOW si{}; si.cb = sizeof(si);
+						PROCESS_INFORMATION pi{};
+						CreateProcessW(nullptr, buf.data(), nullptr, nullptr,
+							FALSE, CREATE_NEW_PROCESS_GROUP, nullptr, nullptr, &si, &pi);
+						CloseHandle(pi.hProcess);
+						CloseHandle(pi.hThread);
+						BT_INFO_TAG("Build", "Launched: {}", exePath.string());
+					} else {
+						BT_CORE_ERROR_TAG("Build", "Built executable not found: {}", exePath.string());
+					}
+#endif
+				}
+			}
 		}
 
 		// Process OS file drops — forward to AssetBrowser

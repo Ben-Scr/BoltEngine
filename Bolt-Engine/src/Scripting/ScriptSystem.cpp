@@ -134,7 +134,7 @@ namespace Bolt {
 		m_IsRebuilding = true;
 		m_RebuildStartTime = std::chrono::steady_clock::now();
 
-		std::string buildCmd = "dotnet build \"" + m_SandboxProjectPath + "\" -c Release --nologo -v q -p:DefineConstants=BOLT_EDITOR";
+		std::string buildCmd = "dotnet build \"" + m_SandboxProjectPath + "\" -c Release --nologo -v q -p:DefineConstants=BOLT_EDITOR%3BBT_RELEASE";
 		m_RebuildFuture = std::async(std::launch::async, [buildCmd]() {
 			return std::system(buildCmd.c_str());
 		});
@@ -304,6 +304,25 @@ namespace Bolt {
 
 					if (!instance.HasAnyInstance())
 						continue;
+
+					// Apply pending [ShowInEditor] field values from deserialization
+					if (instance.HasManagedInstance() && !scriptComp.PendingFieldValues.empty()) {
+						std::string prefix = instance.GetClassName() + ".";
+						auto& callbacks = ScriptEngine::GetCallbacks();
+						if (callbacks.SetScriptField) {
+							for (auto it = scriptComp.PendingFieldValues.begin(); it != scriptComp.PendingFieldValues.end(); ) {
+								if (it->first.rfind(prefix, 0) == 0) {
+									std::string fieldName = it->first.substr(prefix.size());
+									callbacks.SetScriptField(
+										static_cast<int32_t>(instance.GetGCHandle()),
+										fieldName.c_str(), it->second.c_str());
+									it = scriptComp.PendingFieldValues.erase(it);
+								} else {
+									++it;
+								}
+							}
+						}
+					}
 				}
 
 				// Dispatch lifecycle based on script type

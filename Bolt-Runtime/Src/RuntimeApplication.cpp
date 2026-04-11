@@ -4,6 +4,7 @@
 
 #include "Systems/ImGuiDebugSystem.hpp"
 #include <Systems/ParticleUpdateSystem.hpp>
+#include <Systems/AudioUpdateSystem.hpp>
 #include <Scripting/ScriptSystem.hpp>
 #include <Scene/EntityHelper.hpp>
 #include <Serialization/SceneSerializer.hpp>
@@ -35,40 +36,59 @@ public:
 		} else {
 			config.WindowSpecification = WindowSpecification(800, 800, title, true, true, false);
 		}
-		config.EnableAudio = false;
+		config.EnableAudio = true;
 		config.EnablePhysics2D = true;
 		return config;
 	}
 
 	void ConfigureScenes() override {
+		// Runtime is always in "playing" state — set before scenes load
+		// so that systems like AudioUpdateSystem know to trigger PlayOnAwake.
+		Application::SetIsPlaying(true);
+
 		BoltProject* project = ProjectManager::GetCurrentProject();
-		std::string sceneName = "SampleScene";
+		std::string startupScene = "SampleScene";
 		if (project) {
-			if (!project->StartupScene.empty())
-				sceneName = project->StartupScene;
-			else if (!project->LastOpenedScene.empty())
-				sceneName = project->LastOpenedScene;
+			if (!project->StartupScene.empty()) startupScene = project->StartupScene;
+			else if (!project->LastOpenedScene.empty()) startupScene = project->LastOpenedScene;
 		}
 
-		Bolt::SceneDefinition& def = GetSceneManager()->RegisterScene(sceneName);
-		def.AddSystem<ScriptSystem>();
-		def.AddSystem<ParticleUpdateSystem>();
-		def.SetAsStartupScene();
+		// Helper: registers a scene definition with standard systems + OnLoad deserializer
+		auto registerScene = [&](const std::string& sceneName) -> SceneDefinition& {
+			auto& def = GetSceneManager()->RegisterScene(sceneName);
+			def.AddSystem<ScriptSystem>();
+			def.AddSystem<ParticleUpdateSystem>();
+			def.AddSystem<AudioUpdateSystem>();
+
+			// Load scene file in OnLoad callback — runs BEFORE Awake/Start,
+			// so entities exist when systems initialize (e.g. PlayOnAwake).
+			if (project) {
+				std::string scenePath = project->GetSceneFilePath(sceneName);
+				def.OnLoad([scenePath](Scene& scene) {
+					if (File::Exists(scenePath))
+						SceneSerializer::LoadFromFile(scene, scenePath);
+				});
+			}
+			return def;
+		};
+
+		if (project && !project->BuildSceneList.empty()) {
+			for (const auto& sceneName : project->BuildSceneList) {
+				auto& def = registerScene(sceneName);
+				if (sceneName == startupScene) def.SetAsStartupScene();
+			}
+			if (!GetSceneManager()->HasSceneDefinition(startupScene)) {
+				registerScene(startupScene).SetAsStartupScene();
+			}
+		} else {
+			registerScene(startupScene).SetAsStartupScene();
+		}
 	}
 
 	~RuntimeApplication() override = default;
 
 	void Start() override {
-		BoltProject* project = ProjectManager::GetCurrentProject();
-		if (project) {
-			Scene* active = GetSceneManager()->GetActiveScene();
-			if (active) {
-				std::string scenePath = project->GetSceneFilePath(active->GetName());
-				if (File::Exists(scenePath)) {
-					SceneSerializer::LoadFromFile(*active, scenePath);
-				}
-			}
-		} else {
+		if (!ProjectManager::GetCurrentProject()) {
 			EntityHelper::CreateCamera2DEntity();
 		}
 	}

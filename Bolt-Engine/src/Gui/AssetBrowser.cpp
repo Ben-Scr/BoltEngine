@@ -33,6 +33,7 @@ namespace Bolt {
 		if (ext == ".txt" || ext == ".cfg" || ext == ".ini" ||
 			ext == ".yaml" || ext == ".toml" || ext == ".xml" ||
 			ext == ".json" || ext == ".lua")                                 return "asset_txt";
+		if (ext == ".wav" || ext == ".mp3" || ext == ".ogg" || ext == ".flac") return "asset_audio";
 
 		return nullptr;
 	}
@@ -793,14 +794,27 @@ namespace Bolt {
 	void AssetBrowser::CreateScene(const std::string& parentDir) {
 		std::string baseName = "NewScene";
 		std::string ext = ".scene";
-		std::string scenePath = (std::filesystem::path(parentDir) / (baseName + ext)).string();
-		int counter = 1;
-		while (std::filesystem::exists(scenePath)) {
-			scenePath = (std::filesystem::path(parentDir) / (baseName + std::to_string(counter) + ext)).string();
-			counter++;
-		}
 
-		std::string sceneName = std::filesystem::path(scenePath).stem().string();
+		// Check for duplicate scene names across the entire assets tree
+		auto sceneNameTaken = [&](const std::string& name) -> bool {
+			try {
+				for (auto& entry : std::filesystem::recursive_directory_iterator(
+					m_RootDirectory, std::filesystem::directory_options::skip_permission_denied)) {
+					if (entry.is_regular_file() && entry.path().extension() == ext
+						&& entry.path().stem().string() == name)
+						return true;
+				}
+			} catch (...) {}
+			return false;
+		};
+
+		std::string sceneName = baseName;
+		std::string scenePath = (std::filesystem::path(parentDir) / (sceneName + ext)).string();
+		int counter = 1;
+		while (sceneNameTaken(sceneName)) {
+			sceneName = baseName + std::to_string(counter++);
+			scenePath = (std::filesystem::path(parentDir) / (sceneName + ext)).string();
+		}
 
 		// Default scene with a Camera entity
 		std::string content =

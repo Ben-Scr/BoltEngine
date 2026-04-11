@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Export.hpp"
 #include <string>
+#include <vector>
 
 namespace Bolt {
 
@@ -29,6 +30,7 @@ namespace Bolt {
 		bool BuildFullscreen = false;
 		bool BuildResizable = true;
 		std::string AppIconPath;
+		std::vector<std::string> BuildSceneList;
 
 		std::string GetUserAssemblyOutputPath() const;
 		std::string GetNativeDllPath() const;

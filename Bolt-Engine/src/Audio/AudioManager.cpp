@@ -181,17 +181,23 @@ namespace Bolt {
 	}
 
 	AudioHandle AudioManager::LoadAudio(const std::string_view& path) {
-		const std::string fullpath = Path::Combine(s_RootPath, path);
-
 		if (!s_IsInitialized) {
 			BT_CORE_ERROR("[{}] AudioManager not initialized", ErrorCodeToString(BoltErrorCode::NotInitialized));
 			return AudioHandle();
 		}
 
+		// Accept path as-given first (absolute or already-correct relative)
+		std::string fullpath(path);
 		auto audio = std::make_unique<Audio>();
 		if (!audio->LoadFromFile(fullpath)) {
-			BT_CORE_ERROR("[{}] AudioManager: Failed to load audio from file: {}", ErrorCodeToString(BoltErrorCode::LoadFailed), fullpath);
-			return AudioHandle();
+			// Fallback: try relative to engine audio assets root
+			std::string rootPath = Path::Combine(s_RootPath, path);
+			audio = std::make_unique<Audio>();
+			if (!audio->LoadFromFile(rootPath)) {
+				BT_CORE_ERROR("[{}] AudioManager: Failed to load audio: {}", ErrorCodeToString(BoltErrorCode::LoadFailed), std::string(path));
+				return AudioHandle();
+			}
+			fullpath = rootPath;
 		}
 
 		AudioHandle::HandleType id = GenerateHandle();
@@ -360,6 +366,12 @@ namespace Bolt {
 
 		auto it = s_audioMap.find(audioHandle.GetHandle());
 		return (it != s_audioMap.end()) ? it->second.get() : nullptr;
+	}
+
+	std::string AudioManager::GetAudioName(const AudioHandle& audioHandle) {
+		const Audio* audio = GetAudio(audioHandle);
+		if (!audio) return "";
+		return audio->GetFilepath();
 	}
 
 	AudioHandle::HandleType AudioManager::GenerateHandle() {

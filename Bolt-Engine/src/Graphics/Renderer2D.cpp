@@ -43,7 +43,6 @@ namespace Bolt {
 			glViewport(0, 0, m_OutputWidth, m_OutputHeight);
 			Window::GetMainViewport()->SetSize(m_OutputWidth, m_OutputHeight);
 
-			// Apply main camera clear color to FBO render target
 			Camera2DComponent* cam = Camera2DComponent::Main();
 			if (cam) {
 				const auto& cc = cam->GetClearColor();
@@ -61,7 +60,6 @@ namespace Bolt {
 			m_OutputFboId = 0;
 		}
 		else {
-			// In runtime mode, use the main camera's clear color
 			Camera2DComponent* cam = Camera2DComponent::Main();
 			if (cam) {
 				const auto& cc = cam->GetClearColor();
@@ -124,12 +122,6 @@ namespace Bolt {
 		m_Instances.reserve(ptsView.size_hint() + srView.size_hint());
 
 		for (const auto& [ent, particleSystem] : ptsView.each()) {
-			glActiveTexture(GL_TEXTURE0);
-
-			Texture2D* texture = TextureManager::GetTexture(particleSystem.GetTextureHandle());
-			if (texture && texture->IsValid())
-				texture->Submit(0);
-
 			for (const auto& particle : particleSystem.GetParticles()) {
 				if (!AABB::Intersects(viewportAABB, AABB::FromTransform(particle.Transform)))
 					continue;
@@ -138,7 +130,7 @@ namespace Bolt {
 					particle.Transform.Position,
 					particle.Transform.Scale,
 					particle.Transform.Rotation,
-					particleSystem.RenderingSettings.Color,
+					particle.Color,
 					particleSystem.m_TextureHandle,
 					particleSystem.RenderingSettings.SortingOrder,
 					particleSystem.RenderingSettings.SortingLayer
@@ -165,27 +157,36 @@ namespace Bolt {
 			[](const Instance44& a, const Instance44& b) {
 				if (a.SortingLayer != b.SortingLayer)
 					return a.SortingLayer < b.SortingLayer;
-				return a.SortingOrder < b.SortingOrder;
+				if (a.SortingOrder != b.SortingOrder)
+					return a.SortingOrder < b.SortingOrder;
+
+				return true;
 			});
+
+		m_QuadMesh.Bind();
+		glActiveTexture(GL_TEXTURE0);
+
+		TextureHandle currentTexture{};
+		bool hasTextureBound = false;
 
 		for (const Instance44& instance : m_Instances) {
 			m_SpriteShader.SetSpritePosition(instance.Position);
 			m_SpriteShader.SetScale(instance.Scale);
 			m_SpriteShader.SetRotation(instance.Rotation);
-			m_SpriteShader.SetUV(glm::vec2(0.0f), glm::vec2(1.0f));
-
-			glActiveTexture(GL_TEXTURE0);
-
-			Texture2D* texture = TextureManager::GetTexture(instance.TextureHandle);
-			if (texture && texture->IsValid())
-				texture->Submit(0);
-
-			m_QuadMesh.Bind();
 			m_SpriteShader.SetVertexColor(instance.Color);
+
+			if (!hasTextureBound || !(instance.TextureHandle == currentTexture)) {
+				Texture2D* texture = TextureManager::GetTexture(instance.TextureHandle);
+				if (texture && texture->IsValid())
+					texture->Submit(0);
+				currentTexture = instance.TextureHandle;
+				hasTextureBound = true;
+			}
+
 			m_QuadMesh.Draw();
-			m_QuadMesh.Unbind();
 		}
 
+		m_QuadMesh.Unbind();
 		m_SpriteShader.Unbind();
 		m_RenderedInstancesCount = m_Instances.size();
 	}

@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 
 namespace Bolt
 {
+    public enum LoadSceneMode { Single, Additive }
+
     public static class SceneManager
     {
         /// <summary>
@@ -16,37 +18,32 @@ namespace Bolt
         }
 
         /// <summary>
-        /// Loads a scene by name. If additive is true, the scene is loaded
-        /// alongside existing scenes. If false, all non-persistent scenes
-        /// are unloaded first.
+        /// Loads a scene by name. In Single mode, all non-persistent scenes
+        /// are unloaded first. In Additive mode, the scene is loaded
+        /// alongside existing scenes.
         /// </summary>
-        public static Scene? LoadScene(string name, bool additive = false)
+        public static Scene? LoadScene(string name, LoadSceneMode mode = LoadSceneMode.Single)
         {
-            if (additive)
-            {
-                if (InternalCalls.Scene_LoadAdditive(name))
-                    return new Scene { Name = name };
-                return null;
-            }
+            bool success;
+            if (mode == LoadSceneMode.Additive)
+                success = InternalCalls.Scene_LoadAdditive(name);
+            else
+                success = InternalCalls.Scene_Load(name);
 
-            Log.Warn($"[SceneManager] Non-additive LoadScene('{name}') from scripts is not yet supported.");
-            return null;
+            return success ? new Scene { Name = name } : null;
         }
 
         /// <summary>
-        /// Loads a scene additively (shorthand for LoadScene(name, additive: true)).
+        /// Loads a scene additively (shorthand for LoadScene(name, LoadSceneMode.Additive)).
         /// </summary>
-        public static Scene? LoadSceneAdditive(string name)
-        {
-            return LoadScene(name, additive: true);
-        }
+        public static Scene? LoadSceneAdditive(string name) => LoadScene(name, LoadSceneMode.Additive);
 
         /// <summary>
         /// Async version of LoadScene.
         /// </summary>
-        public static async Task<Scene?> LoadSceneAsync(string name, bool additive = false)
+        public static async Task<Scene?> LoadSceneAsync(string name, LoadSceneMode mode = LoadSceneMode.Single)
         {
-            return await Task.FromResult(LoadScene(name, additive));
+            return await Task.FromResult(LoadScene(name, mode));
         }
 
         /// <summary>
@@ -107,11 +104,11 @@ namespace Bolt
         public static int LoadedSceneCount => InternalCalls.Scene_GetLoadedCount();
 
         /// <summary>
-        /// Reloads a scene by name.
+        /// Reloads a scene by name. Captures entity state, unloads, reloads, and restores.
         /// </summary>
-        public static void ReloadScene(string name)
+        public static bool ReloadScene(string name)
         {
-            Log.Warn($"[SceneManager] ReloadScene('{name}') from scripts is not yet supported.");
+            return InternalCalls.Scene_Reload(name);
         }
     }
 }

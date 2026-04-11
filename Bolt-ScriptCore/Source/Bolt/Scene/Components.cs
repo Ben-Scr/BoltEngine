@@ -50,6 +50,18 @@ namespace Bolt
             set => InternalCalls.SpriteRenderer_SetColor(Entity.ID, value.X, value.Y, value.Z, value.W);
         }
 
+        public Texture Texture
+        {
+            get;
+            set;
+           // get
+           // {
+           //     ulong texID = InternalCalls.SpriteRenderer_GetTexture(Entity.ID);
+           //     return texID != 0 ? new Texture(texID) : null;
+           // }
+            //set => InternalCalls.SpriteRenderer_SetTexture(Entity.ID, value != null ? value.ID : 0);
+        }
+
         public int SortingOrder
         {
             get => InternalCalls.SpriteRenderer_GetSortingOrder(Entity.ID);
@@ -181,6 +193,7 @@ namespace Bolt
         }
 
         public bool IsPlaying => InternalCalls.AudioSource_IsPlaying(Entity.ID);
+        public bool IsPaused => InternalCalls.AudioSource_IsPaused(Entity.ID);
 
         public void Play() => InternalCalls.AudioSource_Play(Entity.ID);
         public void Pause() => InternalCalls.AudioSource_Pause(Entity.ID);

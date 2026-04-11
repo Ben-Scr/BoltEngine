@@ -15,6 +15,7 @@ namespace Bolt.Hosting
         public delegate* unmanaged<int> Application_GetScreenHeight;
         public delegate* unmanaged<float> Application_GetTargetFrameRate;
         public delegate* unmanaged<float, void> Application_SetTargetFrameRate;
+        public delegate* unmanaged<void> Application_Quit;
         public delegate* unmanaged<float> Application_GetFixedDeltaTime;
         public delegate* unmanaged<float> Application_GetUnscaledDeltaTime;
         public delegate* unmanaged<float> Application_GetFixedUnscaledDeltaTime;
@@ -108,6 +109,7 @@ namespace Bolt.Hosting
         public delegate* unmanaged<ulong, int> AudioSource_GetLoop;
         public delegate* unmanaged<ulong, int, void> AudioSource_SetLoop;
         public delegate* unmanaged<ulong, int> AudioSource_IsPlaying;
+        public delegate* unmanaged<ulong, int> AudioSource_IsPaused;
 
         // ── Bolt-Physics ─────────────────────────────────────────────
         public delegate* unmanaged<ulong, int> BoltBody2D_GetBodyType;
@@ -126,12 +128,16 @@ namespace Bolt.Hosting
         // ── Scene Query ──────────────────────────────────────────────
         public delegate* unmanaged<byte*> Scene_GetActiveSceneName;
         public delegate* unmanaged<int> Scene_GetEntityCount;
+        public delegate* unmanaged<ulong, byte*> Scene_GetEntityNameByUUID;
         public delegate* unmanaged<byte*, int> Scene_LoadAdditive;
+        public delegate* unmanaged<byte*, int> Scene_Load;
         public delegate* unmanaged<byte*, void> Scene_Unload;
         public delegate* unmanaged<byte*, int> Scene_SetActive;
+        public delegate* unmanaged<byte*, int> Scene_Reload;
         public delegate* unmanaged<int> Scene_GetLoadedCount;
         public delegate* unmanaged<int, byte*> Scene_GetLoadedSceneNameAt;
         public delegate* unmanaged<byte*, ulong*, int, int> Scene_QueryEntities;
+        public delegate* unmanaged<byte*, byte*, byte*, int, ulong*, int, int> Scene_QueryEntitiesFiltered;
 
         // ── ParticleSystem2D ─────────────────────────────────────────
         public delegate* unmanaged<ulong, void> ParticleSystem2D_Play;

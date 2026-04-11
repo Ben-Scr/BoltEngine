@@ -16,7 +16,9 @@
 #include "Project/BoltProject.hpp"
 #include "Scripting/ScriptSystem.hpp"
 #include <Systems/ParticleUpdateSystem.hpp>
+#include <Systems/AudioUpdateSystem.hpp>
 #include "Scene/ComponentRegistry.hpp"
+#include "Components/General/UUIDComponent.hpp"
 #include "Components/General/Transform2DComponent.hpp"
 #include "Components/General/NameComponent.hpp"
 #include "Components/Graphics/SpriteRendererComponent.hpp"
@@ -28,6 +30,7 @@
 #include "Components/Physics/BoltCircleCollider2DComponent.hpp"
 #include "Components/Audio/AudioSourceComponent.hpp"
 #include "Components/Graphics/ParticleSystem2DComponent.hpp"
+#include "Components/Tags.hpp"
 #include "Audio/AudioManager.hpp"
 #include "Graphics/Gizmos.hpp"
 #include "Physics/Physics2D.hpp"
@@ -95,6 +98,12 @@ namespace Bolt {
 
 	static float Bolt_Application_GetTargetFrameRate() { return Application::GetTargetFramerate(); }
 	static void  Bolt_Application_SetTargetFrameRate(float fps) { Application::SetTargetFramerate(fps); }
+
+	static void Bolt_Application_Quit() {
+		// Only quit in build mode, not in the editor
+		if (!Application::GetIsPlaying() || Application::GetInstance() == nullptr) return;
+		Application::Quit();
+	}
 
 	static float Bolt_Application_GetFixedDeltaTime() {
 		auto* app = Application::GetInstance();
@@ -300,6 +309,20 @@ namespace Bolt {
 		return static_cast<int>(scene->GetRegistry().view<NameComponent>().size());
 	}
 
+	static const char* Bolt_Scene_GetEntityNameByUUID(uint64_t uuid) {
+		Scene* scene = GetScene();
+		if (!scene) { s_StringReturnBuffer.clear(); return s_StringReturnBuffer.c_str(); }
+		auto view = scene->GetRegistry().view<UUIDComponent, NameComponent>();
+		for (auto [ent, uuidComp, nameComp] : view.each()) {
+			if (static_cast<uint64_t>(uuidComp.Id) == uuid) {
+				s_StringReturnBuffer = nameComp.Name;
+				return s_StringReturnBuffer.c_str();
+			}
+		}
+		s_StringReturnBuffer.clear();
+		return s_StringReturnBuffer.c_str();
+	}
+
 	static int Bolt_Scene_LoadAdditive(const char* sceneName) {
 		auto& sm = SceneManager::Get();
 		std::string name(sceneName);
@@ -309,6 +332,7 @@ namespace Bolt {
 			auto& def = sm.RegisterScene(name);
 			def.AddSystem<ScriptSystem>();
 			def.AddSystem<ParticleUpdateSystem>();
+		def.AddSystem<AudioUpdateSystem>();
 		}
 
 		auto sceneWeak = sm.LoadSceneAdditive(name);
@@ -331,12 +355,50 @@ namespace Bolt {
 		return 1;
 	}
 
+	static int Bolt_Scene_Load(const char* sceneName) {
+		auto& sm = SceneManager::Get();
+		std::string name(sceneName);
+
+		// Auto-register if missing
+		if (!sm.HasSceneDefinition(name)) {
+			auto& def = sm.RegisterScene(name);
+			def.AddSystem<ScriptSystem>();
+			def.AddSystem<ParticleUpdateSystem>();
+		def.AddSystem<AudioUpdateSystem>();
+		}
+
+		// Non-additive: uses LoadScene which unloads non-persistent scenes first
+		auto sceneWeak = sm.LoadScene(name);
+		auto scenePtr = sceneWeak.lock();
+		if (!scenePtr) {
+			BT_CORE_ERROR_TAG("ScriptBindings", "Failed to load scene: {}", name);
+			return 0;
+		}
+
+		// Deserialize from scene file
+		BoltProject* project = ProjectManager::GetCurrentProject();
+		if (project) {
+			std::string scenePath = project->GetSceneFilePath(name);
+			if (File::Exists(scenePath)) {
+				SceneSerializer::LoadFromFile(*scenePtr, scenePath);
+			}
+		}
+
+		BT_INFO_TAG("ScriptBindings", "Loaded scene: {}", name);
+		return 1;
+	}
+
 	static void Bolt_Scene_Unload(const char* sceneName) {
 		SceneManager::Get().UnloadScene(sceneName);
 	}
 
 	static int Bolt_Scene_SetActive(const char* sceneName) {
 		return SceneManager::Get().SetActiveScene(sceneName) ? 1 : 0;
+	}
+
+	static int Bolt_Scene_Reload(const char* sceneName) {
+		auto result = SceneManager::Get().ReloadScene(sceneName);
+		return result.lock() ? 1 : 0;
 	}
 
 	static int Bolt_Scene_GetLoadedCount() {
@@ -389,6 +451,80 @@ namespace Bolt {
 					outEntityIDs[count] = FromEntityHandle(entityHandle);
 				count++;
 			}
+		}
+		return count;
+	}
+
+	// Helper: parse pipe-delimited names into ComponentInfo pointers
+	static bool ParseComponentNames(const char* names, std::vector<const ComponentInfo*>& out) {
+		if (!names || names[0] == '\0') return true; // empty is valid (no filter)
+		std::string str(names);
+		size_t start = 0;
+		while (start < str.size()) {
+			size_t end = str.find('|', start);
+			if (end == std::string::npos) end = str.size();
+			std::string name = str.substr(start, end - start);
+			if (!name.empty()) {
+				const ComponentInfo* info = FindComponentByName(name);
+				if (!info || !info->has) return false;
+				out.push_back(info);
+			}
+			start = end + 1;
+		}
+		return true;
+	}
+
+	static int Bolt_Scene_QueryEntitiesFiltered(
+		const char* withComponents,
+		const char* withoutComponents,
+		const char* mustHaveComponents,
+		int enableFilter,
+		uint64_t* outEntityIDs, int maxOut)
+	{
+		Scene* scene = GetScene();
+		if (!scene || !outEntityIDs || maxOut <= 0) return 0;
+
+		std::vector<const ComponentInfo*> withInfos, withoutInfos, mustHaveInfos;
+		if (!ParseComponentNames(withComponents, withInfos)) return 0;
+		if (!ParseComponentNames(withoutComponents, withoutInfos)) return 0;
+		if (!ParseComponentNames(mustHaveComponents, mustHaveInfos)) return 0;
+		if (withInfos.empty() && mustHaveInfos.empty()) return 0;
+
+		int count = 0;
+		auto& registry = scene->GetRegistry();
+		auto view = registry.view<entt::entity>();
+
+		for (auto entityHandle : view) {
+			if (!registry.valid(entityHandle)) continue;
+
+			Entity entity = scene->GetEntity(entityHandle);
+
+			// Enable filter: 1 = enabled only, 2 = disabled only
+			if (enableFilter == 1 && registry.all_of<DisabledTag>(entityHandle)) continue;
+			if (enableFilter == 2 && !registry.all_of<DisabledTag>(entityHandle)) continue;
+
+			// WITH: entity must have all these components
+			bool match = true;
+			for (auto* info : withInfos) {
+				if (!info->has(entity)) { match = false; break; }
+			}
+			if (!match) continue;
+
+			// MUST HAVE (With<>): entity must have these too
+			for (auto* info : mustHaveInfos) {
+				if (!info->has(entity)) { match = false; break; }
+			}
+			if (!match) continue;
+
+			// WITHOUT: entity must NOT have any of these
+			for (auto* info : withoutInfos) {
+				if (info->has(entity)) { match = false; break; }
+			}
+			if (!match) continue;
+
+			if (count < maxOut)
+				outEntityIDs[count] = FromEntityHandle(entityHandle);
+			count++;
 		}
 		return count;
 	}
@@ -657,6 +793,7 @@ namespace Bolt {
 	static int   Bolt_AudioSource_GetLoop(uint64_t entityID) { GET_COMPONENT(AudioSourceComponent, entityID, 0); return comp.IsLooping() ? 1 : 0; }
 	static void  Bolt_AudioSource_SetLoop(uint64_t entityID, int loop) { GET_COMPONENT(AudioSourceComponent, entityID, ); comp.SetLoop(loop != 0); }
 	static int   Bolt_AudioSource_IsPlaying(uint64_t entityID) { GET_COMPONENT(AudioSourceComponent, entityID, 0); return comp.IsPlaying() ? 1 : 0; }
+	static int   Bolt_AudioSource_IsPaused(uint64_t entityID) { GET_COMPONENT(AudioSourceComponent, entityID, 0); return comp.IsPaused() ? 1 : 0; }
 
 	// ── Bolt-Physics ────────────────────────────────────────────────────
 
@@ -787,6 +924,7 @@ namespace Bolt {
 		b.Application_GetScreenHeight = &Bolt_Application_GetScreenHeight;
 		b.Application_GetTargetFrameRate = &Bolt_Application_GetTargetFrameRate;
 		b.Application_SetTargetFrameRate = &Bolt_Application_SetTargetFrameRate;
+		b.Application_Quit = &Bolt_Application_Quit;
 		b.Application_GetFixedDeltaTime = &Bolt_Application_GetFixedDeltaTime;
 		b.Application_GetUnscaledDeltaTime = &Bolt_Application_GetUnscaledDeltaTime;
 		b.Application_GetFixedUnscaledDeltaTime = &Bolt_Application_GetFixedUnscaledDeltaTime;
@@ -870,6 +1008,7 @@ namespace Bolt {
 		b.AudioSource_GetLoop = &Bolt_AudioSource_GetLoop;
 		b.AudioSource_SetLoop = &Bolt_AudioSource_SetLoop;
 		b.AudioSource_IsPlaying = &Bolt_AudioSource_IsPlaying;
+		b.AudioSource_IsPaused = &Bolt_AudioSource_IsPaused;
 
 		b.BoltBody2D_GetBodyType = &Bolt_BoltBody2D_GetBodyType;
 		b.BoltBody2D_SetBodyType = &Bolt_BoltBody2D_SetBodyType;
@@ -886,12 +1025,16 @@ namespace Bolt {
 
 		b.Scene_GetActiveSceneName = &Bolt_Scene_GetActiveSceneName;
 		b.Scene_GetEntityCount = &Bolt_Scene_GetEntityCount;
+		b.Scene_GetEntityNameByUUID = &Bolt_Scene_GetEntityNameByUUID;
 		b.Scene_LoadAdditive = &Bolt_Scene_LoadAdditive;
+		b.Scene_Load = &Bolt_Scene_Load;
 		b.Scene_Unload = &Bolt_Scene_Unload;
 		b.Scene_SetActive = &Bolt_Scene_SetActive;
+		b.Scene_Reload = &Bolt_Scene_Reload;
 		b.Scene_GetLoadedCount = &Bolt_Scene_GetLoadedCount;
 		b.Scene_GetLoadedSceneNameAt = &Bolt_Scene_GetLoadedSceneNameAt;
 		b.Scene_QueryEntities = &Bolt_Scene_QueryEntities;
+		b.Scene_QueryEntitiesFiltered = &Bolt_Scene_QueryEntitiesFiltered;
 
 		b.ParticleSystem2D_Play = &Bolt_ParticleSystem2D_Play;
 		b.ParticleSystem2D_Pause = &Bolt_ParticleSystem2D_Pause;

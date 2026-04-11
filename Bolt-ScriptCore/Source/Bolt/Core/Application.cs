@@ -20,5 +20,10 @@ namespace Bolt
         public static int ScreenWidth => InternalCalls.Application_GetScreenWidth();
         public static int ScreenHeight => InternalCalls.Application_GetScreenHeight();
         public static float AspectRatio => ScreenHeight > 0 ? (float)ScreenWidth / ScreenHeight : 1.0f;
+
+        /// <summary>
+        /// Quits the application. Only works in build mode, ignored in the editor.
+        /// </summary>
+        public static void Quit() => InternalCalls.Application_Quit();
     }
 }

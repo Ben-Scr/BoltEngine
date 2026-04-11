@@ -61,22 +61,27 @@ namespace Bolt {
 	}
 
 	TextureHandle TextureManager::LoadTexture(const std::string_view& path, Filter filter, Wrap u, Wrap v) {
-		std::string fullpath = Path::Combine(s_RootPath, path);
-
 		if (!s_IsInitialized) {
 			BT_CORE_ERROR("[{}] TextureManager isn't initialized", ErrorCodeToString(BoltErrorCode::NotInitialized));
 			return TextureHandle::Invalid();
 		}
 
+		// Accept path as-given first (absolute or already-correct relative)
+		std::string fullpath(path);
 		if (!File::Exists(fullpath)) {
-			// Try user project Assets/Textures as fallback
-			std::string userPath = Path::Combine(Path::ExecutableDir(), "Assets", "Textures", path);
-			if (File::Exists(userPath)) {
-				fullpath = userPath;
-			}
-			else {
-				BT_CORE_ERROR("[{}] Texture '{}' not found", ErrorCodeToString(BoltErrorCode::FileNotFound), std::string(path));
-				return TextureHandle::Invalid();
+			// Fallback: try relative to engine assets root
+			std::string rootPath = Path::Combine(s_RootPath, path);
+			if (File::Exists(rootPath)) {
+				fullpath = rootPath;
+			} else {
+				// Fallback: try user project Assets/Textures
+				std::string userPath = Path::Combine(Path::ExecutableDir(), "Assets", "Textures", path);
+				if (File::Exists(userPath)) {
+					fullpath = userPath;
+				} else {
+					BT_CORE_ERROR("[{}] Texture '{}' not found", ErrorCodeToString(BoltErrorCode::FileNotFound), std::string(path));
+					return TextureHandle::Invalid();
+				}
 			}
 		}
 

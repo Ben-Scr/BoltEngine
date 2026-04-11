@@ -15,6 +15,7 @@ namespace Bolt
         internal static int Application_GetScreenHeight() => NativeCallbacks.Bindings.Application_GetScreenHeight();
         internal static float Application_GetTargetFrameRate() => NativeCallbacks.Bindings.Application_GetTargetFrameRate();
         internal static void Application_SetTargetFrameRate(float fps) => NativeCallbacks.Bindings.Application_SetTargetFrameRate(fps);
+        internal static void Application_Quit() => NativeCallbacks.Bindings.Application_Quit();
         internal static float Application_GetFixedDeltaTime() => NativeCallbacks.Bindings.Application_GetFixedDeltaTime();
         internal static float Application_GetUnscaledDeltaTime() => NativeCallbacks.Bindings.Application_GetUnscaledDeltaTime();
         internal static float Application_GetFixedUnscaledDeltaTime() => NativeCallbacks.Bindings.Application_GetFixedUnscaledDeltaTime();
@@ -63,6 +64,12 @@ namespace Bolt
         }
         internal static int Scene_GetEntityCount() => NativeCallbacks.Bindings.Scene_GetEntityCount();
 
+        internal static string Scene_GetEntityNameByUUID(ulong uuid)
+        {
+            byte* ptr = NativeCallbacks.Bindings.Scene_GetEntityNameByUUID(uuid);
+            return Marshal.PtrToStringUTF8((IntPtr)ptr) ?? "";
+        }
+
         internal static bool Scene_LoadAdditive(string sceneName)
         {
             int len = Encoding.UTF8.GetByteCount(sceneName);
@@ -70,6 +77,15 @@ namespace Bolt
             Encoding.UTF8.GetBytes(sceneName, buf);
             buf[len] = 0;
             fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Scene_LoadAdditive(ptr) != 0;
+        }
+
+        internal static bool Scene_Load(string sceneName)
+        {
+            int len = Encoding.UTF8.GetByteCount(sceneName);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(sceneName, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Scene_Load(ptr) != 0;
         }
 
         internal static void Scene_Unload(string sceneName)
@@ -88,6 +104,15 @@ namespace Bolt
             Encoding.UTF8.GetBytes(sceneName, buf);
             buf[len] = 0;
             fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Scene_SetActive(ptr) != 0;
+        }
+
+        internal static bool Scene_Reload(string sceneName)
+        {
+            int len = Encoding.UTF8.GetByteCount(sceneName);
+            Span<byte> buf = len <= 256 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(sceneName, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Scene_Reload(ptr) != 0;
         }
 
         internal static int Scene_GetLoadedCount() => NativeCallbacks.Bindings.Scene_GetLoadedCount();
@@ -233,6 +258,7 @@ namespace Bolt
         internal static bool AudioSource_GetLoop(ulong id) => NativeCallbacks.Bindings.AudioSource_GetLoop(id) != 0;
         internal static void AudioSource_SetLoop(ulong id, bool loop) => NativeCallbacks.Bindings.AudioSource_SetLoop(id, loop ? 1 : 0);
         internal static bool AudioSource_IsPlaying(ulong id) => NativeCallbacks.Bindings.AudioSource_IsPlaying(id) != 0;
+        internal static bool AudioSource_IsPaused(ulong id) => NativeCallbacks.Bindings.AudioSource_IsPaused(id) != 0;
 
         // ── Bolt-Physics ────────────────────────────────────────────────
 
@@ -261,6 +287,34 @@ namespace Bolt
             fixed (ulong* idPtr = outEntityIDs)
             {
                 return NativeCallbacks.Bindings.Scene_QueryEntities(namePtr, idPtr, outEntityIDs.Length);
+            }
+        }
+
+        internal static int Scene_QueryEntitiesFiltered(
+            string withComponents, string withoutComponents, string mustHaveComponents,
+            int enableFilter, Span<ulong> outEntityIDs)
+        {
+            static byte[] EncodeUtf8(string s)
+            {
+                if (string.IsNullOrEmpty(s)) return new byte[] { 0 };
+                int len = Encoding.UTF8.GetByteCount(s);
+                byte[] buf = new byte[len + 1];
+                Encoding.UTF8.GetBytes(s, buf);
+                buf[len] = 0;
+                return buf;
+            }
+
+            byte[] withBuf = EncodeUtf8(withComponents);
+            byte[] withoutBuf = EncodeUtf8(withoutComponents);
+            byte[] mustHaveBuf = EncodeUtf8(mustHaveComponents);
+
+            fixed (byte* withPtr = withBuf)
+            fixed (byte* withoutPtr = withoutBuf)
+            fixed (byte* mustHavePtr = mustHaveBuf)
+            fixed (ulong* idPtr = outEntityIDs)
+            {
+                return NativeCallbacks.Bindings.Scene_QueryEntitiesFiltered(
+                    withPtr, withoutPtr, mustHavePtr, enableFilter, idPtr, outEntityIDs.Length);
             }
         }
 

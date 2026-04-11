@@ -331,7 +331,7 @@ namespace Bolt {
 
 							ImGui::CloseCurrentPopup();
 
-							std::string buildCmd = "dotnet build \"" + project.CsprojPath + "\" -c Release --nologo -v q -nowarn:CS8632 -p:DefineConstants=BOLT_EDITOR";
+							std::string buildCmd = "dotnet build \"" + project.CsprojPath + "\" -c Release --nologo -v q -nowarn:CS8632 -p:DefineConstants=BOLT_EDITOR%3BBT_RELEASE";
 							std::system(buildCmd.c_str());
 
 							LauncherProjectEntry entry;

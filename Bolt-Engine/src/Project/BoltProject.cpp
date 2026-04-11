@@ -140,6 +140,12 @@ namespace Bolt {
 		if (!AppIconPath.empty()) {
 			ss << ",\n  \"appIcon\": \"" << EscapeJSON(AppIconPath) << "\"";
 		}
+		ss << ",\n  \"buildScenes\": [";
+		for (size_t i = 0; i < BuildSceneList.size(); i++) {
+			if (i > 0) ss << ", ";
+			ss << "\"" << EscapeJSON(BuildSceneList[i]) << "\"";
+		}
+		ss << "]";
 		ss << "\n}\n";
 		File::WriteAllText(ProjectFilePath, ss.str());
 	}
@@ -186,6 +192,25 @@ namespace Bolt {
 			project.BuildFullscreen = ExtractBool(json, "buildFullscreen", false);
 			project.BuildResizable = ExtractBool(json, "buildResizable", true);
 			project.AppIconPath = ExtractValue(json, "appIcon");
+
+			// Parse buildScenes array
+			project.BuildSceneList.clear();
+			auto scenesPos = json.find("\"buildScenes\"");
+			if (scenesPos != std::string::npos) {
+				auto arrStart = json.find('[', scenesPos);
+				auto arrEnd = json.find(']', arrStart);
+				if (arrStart != std::string::npos && arrEnd != std::string::npos) {
+					std::string arr = json.substr(arrStart + 1, arrEnd - arrStart - 1);
+					// Parse comma-separated quoted strings
+					size_t pos = 0;
+					while ((pos = arr.find('"', pos)) != std::string::npos) {
+						size_t end = arr.find('"', pos + 1);
+						if (end == std::string::npos) break;
+						project.BuildSceneList.push_back(arr.substr(pos + 1, end - pos - 1));
+						pos = end + 1;
+					}
+				}
+			}
 		}
 
 		if (project.Name.empty())

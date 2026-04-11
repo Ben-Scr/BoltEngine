@@ -13,6 +13,7 @@ namespace Bolt {
 		int    (*Application_GetScreenHeight)();
 		float  (*Application_GetTargetFrameRate)();
 		void   (*Application_SetTargetFrameRate)(float fps);
+		void   (*Application_Quit)();
 		float  (*Application_GetFixedDeltaTime)();
 		float  (*Application_GetUnscaledDeltaTime)();
 		float  (*Application_GetFixedUnscaledDeltaTime)();
@@ -106,6 +107,7 @@ namespace Bolt {
 		int   (*AudioSource_GetLoop)(uint64_t entityID);
 		void  (*AudioSource_SetLoop)(uint64_t entityID, int loop);
 		int   (*AudioSource_IsPlaying)(uint64_t entityID);
+		int   (*AudioSource_IsPaused)(uint64_t entityID);
 
 		// ── Bolt-Physics ─────────────────────────────────────────────
 		int   (*BoltBody2D_GetBodyType)(uint64_t entityID);
@@ -125,11 +127,15 @@ namespace Bolt {
 		const char* (*Scene_GetActiveSceneName)();
 		int         (*Scene_GetEntityCount)();
 		int         (*Scene_LoadAdditive)(const char* sceneName);
+		int         (*Scene_Load)(const char* sceneName);
 		void        (*Scene_Unload)(const char* sceneName);
 		int         (*Scene_SetActive)(const char* sceneName);
+		int         (*Scene_Reload)(const char* sceneName);
 		int         (*Scene_GetLoadedCount)();
 		const char* (*Scene_GetLoadedSceneNameAt)(int index);
+		const char* (*Scene_GetEntityNameByUUID)(uint64_t uuid);
 		int         (*Scene_QueryEntities)(const char* componentNames, uint64_t* outEntityIDs, int maxOut);
+		int         (*Scene_QueryEntitiesFiltered)(const char* withComponents, const char* withoutComponents, const char* mustHaveComponents, int enableFilter, uint64_t* outEntityIDs, int maxOut);
 
 		// ── ParticleSystem2D ─────────────────────────────────────────
 		void  (*ParticleSystem2D_Play)(uint64_t entityID);
@@ -175,6 +181,9 @@ namespace Bolt {
 		int     (*ClassExists)(const char* className);
 		int     (*LoadUserAssembly)(const char* path);
 		void    (*UnloadUserAssembly)();
+		const char* (*GetScriptFields)(int32_t handle);
+		void    (*SetScriptField)(int32_t handle, const char* fieldName, const char* value);
+		const char* (*GetClassFieldDefs)(const char* className);
 	};
 
 } // namespace Bolt

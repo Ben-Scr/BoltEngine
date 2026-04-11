@@ -12,36 +12,43 @@ namespace Bolt {
 		template<typename T>
 		void RegisterComponent(SceneManager& sceneManager, const std::string& displayName,
 			void (*inspector)(Entity) = nullptr,
-			ComponentCategory category = ComponentCategory::Component)
+			ComponentCategory category = ComponentCategory::Component,
+			const std::string& subcategory = "")
 		{
-			ComponentInfo info{ displayName, category };
+			ComponentInfo info{ displayName, subcategory, category };
 			info.drawInspector = inspector;
 			sceneManager.RegisterComponentType<T>(info);
 		}
 	}
 
 	void RegisterBuiltInComponents(SceneManager& sceneManager) {
-		RegisterComponent<Transform2DComponent>(sceneManager, "Transform 2D", DrawTransform2DInspector);
-		RegisterComponent<RectTransformComponent>(sceneManager, "Rect Transform");
-		RegisterComponent<NameComponent>(sceneManager, "Name", DrawNameComponentInspector);
+		// General
+		RegisterComponent<Transform2DComponent>(sceneManager, "Transform 2D", DrawTransform2DInspector, ComponentCategory::Component, "General");
+		RegisterComponent<RectTransformComponent>(sceneManager, "Rect Transform", nullptr, ComponentCategory::Component, "General");
+		RegisterComponent<NameComponent>(sceneManager, "Name", DrawNameComponentInspector, ComponentCategory::Component, "General");
 
-		RegisterComponent<SpriteRendererComponent>(sceneManager, "Sprite Renderer", DrawSpriteRendererInspector);
-		RegisterComponent<ImageComponent>(sceneManager, "Image");
-		RegisterComponent<Camera2DComponent>(sceneManager, "Camera 2D", DrawCamera2DInspector);
-		RegisterComponent<ParticleSystem2DComponent>(sceneManager, "Particle System 2D", DrawParticleSystem2DInspector);
+		// Rendering
+		RegisterComponent<SpriteRendererComponent>(sceneManager, "Sprite Renderer", DrawSpriteRendererInspector, ComponentCategory::Component, "Rendering");
+		RegisterComponent<ImageComponent>(sceneManager, "Image", nullptr, ComponentCategory::Component, "Rendering");
+		RegisterComponent<Camera2DComponent>(sceneManager, "Camera 2D", DrawCamera2DInspector, ComponentCategory::Component, "Rendering");
+		RegisterComponent<ParticleSystem2DComponent>(sceneManager, "Particle System 2D", DrawParticleSystem2DInspector, ComponentCategory::Component, "Rendering");
 
-		RegisterComponent<BoxCollider2DComponent>(sceneManager, "Box Collider 2D", DrawBoxCollider2DInspector);
-		RegisterComponent<Rigidbody2DComponent>(sceneManager, "Rigidbody 2D", DrawRigidbody2DInspector);
+		// Physics
+		RegisterComponent<BoxCollider2DComponent>(sceneManager, "Box Collider 2D", DrawBoxCollider2DInspector, ComponentCategory::Component, "Physics");
+		RegisterComponent<Rigidbody2DComponent>(sceneManager, "Rigidbody 2D", DrawRigidbody2DInspector, ComponentCategory::Component, "Physics");
 
 		// Bolt-Physics components (lightweight AABB physics)
-		RegisterComponent<BoltBody2DComponent>(sceneManager, "Bolt Body 2D", DrawBoltBody2DInspector);
-		RegisterComponent<BoltBoxCollider2DComponent>(sceneManager, "Bolt Box Collider 2D", DrawBoltBoxCollider2DInspector);
-		RegisterComponent<BoltCircleCollider2DComponent>(sceneManager, "Bolt Circle Collider 2D", DrawBoltCircleCollider2DInspector);
+		RegisterComponent<BoltBody2DComponent>(sceneManager, "Bolt Body 2D", DrawBoltBody2DInspector, ComponentCategory::Component, "Physics");
+		RegisterComponent<BoltBoxCollider2DComponent>(sceneManager, "Bolt Box Collider 2D", DrawBoltBoxCollider2DInspector, ComponentCategory::Component, "Physics");
+		RegisterComponent<BoltCircleCollider2DComponent>(sceneManager, "Bolt Circle Collider 2D", DrawBoltCircleCollider2DInspector, ComponentCategory::Component, "Physics");
 
-		RegisterComponent<AudioSourceComponent>(sceneManager, "Audio Source", DrawAudioSourceInspector);
+		// Audio
+		RegisterComponent<AudioSourceComponent>(sceneManager, "Audio Source", DrawAudioSourceInspector, ComponentCategory::Component, "Audio");
 
-		RegisterComponent<ScriptComponent>(sceneManager, "Scripts", DrawScriptComponentInspector);
+		// Scripting
+		RegisterComponent<ScriptComponent>(sceneManager, "Scripts", DrawScriptComponentInspector, ComponentCategory::Component, "Scripting");
 
+		// Tags (not user-addable)
 		RegisterComponent<IdTag>(sceneManager, "Id", nullptr, ComponentCategory::Tag);
 		RegisterComponent<StaticTag>(sceneManager, "Static", nullptr, ComponentCategory::Tag);
 		RegisterComponent<DisabledTag>(sceneManager, "Disabled", nullptr, ComponentCategory::Tag);

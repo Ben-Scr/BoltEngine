@@ -46,6 +46,7 @@ namespace Bolt {
 		static bool IsInitialized() { return s_IsInitialized; }
 		static bool IsAudioLoaded(const AudioHandle& audioHandle);
 		static const Audio* GetAudio(const AudioHandle& audioHandle);
+		static std::string GetAudioName(const AudioHandle& audioHandle);
 
 
 		struct SoundInstance {

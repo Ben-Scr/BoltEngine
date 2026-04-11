@@ -7,6 +7,10 @@
 #include "Graphics/Texture2D.hpp"
 #include "Audio/AudioManager.hpp"
 #include "Physics/PhysicsTypes.hpp"
+#include <Project/ProjectManager.hpp>
+#include <Project/BoltProject.hpp>
+#include "Scene/SceneManager.hpp"
+#include "Scene/Scene.hpp"
 
 #include <imgui.h>
 #include <cstdio>
@@ -26,7 +30,9 @@ namespace Bolt {
 		static bool s_TexturePickerOpen = false;
 		static char s_TexturePickerSearch[128] = {};
 		static std::vector<TexturePickerEntry> s_TexturePickerEntries;
-		static SpriteRendererComponent* s_TexturePickerTarget = nullptr;
+		// Store entity handle instead of raw component pointer to avoid
+		// dangling pointer if the entity is destroyed or components reallocate.
+		static EntityHandle s_TexturePickerTargetEntity = entt::null;
 
 		static bool IsImageExtension(const std::string& ext) {
 			return ext == ".png" || ext == ".jpg" || ext == ".jpeg"
@@ -52,10 +58,10 @@ namespace Bolt {
 				});
 		}
 
-		static void OpenTexturePicker(SpriteRendererComponent& target) {
+		static void OpenTexturePicker(EntityHandle entity) {
 			s_TexturePickerOpen = true;
 			s_TexturePickerSearch[0] = '\0';
-			s_TexturePickerTarget = &target;
+			s_TexturePickerTargetEntity = entity;
 			s_TexturePickerEntries.clear();
 
 			// Collect from BoltAssets/Textures (engine) and Assets/Textures (user project)
@@ -86,8 +92,11 @@ namespace Bolt {
 
 			// Option to clear texture
 			if (ImGui::Selectable("(None)", false)) {
-				if (s_TexturePickerTarget)
-					s_TexturePickerTarget->TextureHandle = TextureHandle();
+				Scene* scene = SceneManager::Get().GetActiveScene();
+				if (scene && scene->IsValid(s_TexturePickerTargetEntity)
+					&& scene->HasComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity)) {
+					scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity).TextureHandle = TextureHandle();
+				}
 				s_TexturePickerOpen = false;
 			}
 
@@ -102,8 +111,11 @@ namespace Bolt {
 				}
 
 				if (ImGui::Selectable(entry.DisplayName.c_str(), false)) {
-					if (s_TexturePickerTarget)
-						s_TexturePickerTarget->TextureHandle = TextureManager::LoadTexture(entry.RelativePath);
+					Scene* scene = SceneManager::Get().GetActiveScene();
+					if (scene && scene->IsValid(s_TexturePickerTargetEntity)
+						&& scene->HasComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity)) {
+						scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity).TextureHandle = TextureManager::LoadTexture(entry.RelativePath);
+					}
 					s_TexturePickerOpen = false;
 				}
 
@@ -172,7 +184,7 @@ namespace Bolt {
 		if (ImGui::Button(sprite.TextureHandle.IsValid() ? "Change Texture" : "Assign Texture",
 			ImVec2(ImGui::GetContentRegionAvail().x, 0)))
 		{
-			OpenTexturePicker(sprite);
+			OpenTexturePicker(entity.GetHandle());
 		}
 
 		RenderTexturePicker();
@@ -320,9 +332,102 @@ namespace Bolt {
 		ImGui::TextDisabled("Box collider properties coming soon");
 	}
 
+	// ── Audio Picker (same pattern as Texture Picker) ──────────────
+
+	namespace {
+		struct AudioPickerEntry {
+			std::string DisplayName;
+			std::string RelativePath;
+			std::string FullPath;
+		};
+
+		static bool s_AudioPickerOpen = false;
+		static char s_AudioPickerSearch[128] = {};
+		static std::vector<AudioPickerEntry> s_AudioPickerEntries;
+		static EntityHandle s_AudioPickerTargetEntity = entt::null;
+
+		static void CollectAudioFiles(const std::string& dir, const std::string& rootDir,
+			std::vector<AudioPickerEntry>& out)
+		{
+			if (!std::filesystem::exists(dir)) return;
+			for (auto& entry : std::filesystem::recursive_directory_iterator(dir,
+				std::filesystem::directory_options::skip_permission_denied))
+			{
+				if (!entry.is_regular_file()) continue;
+				std::string ext = entry.path().extension().string();
+				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+				if (ext == ".wav" || ext == ".mp3" || ext == ".ogg" || ext == ".flac") {
+					AudioPickerEntry e;
+					e.DisplayName = entry.path().stem().string();
+					e.FullPath = entry.path().string();
+					e.RelativePath = std::filesystem::relative(entry.path(), rootDir).string();
+					out.push_back(e);
+				}
+			}
+		}
+
+		static void OpenAudioPicker(EntityHandle entity) {
+			s_AudioPickerOpen = true;
+			s_AudioPickerSearch[0] = '\0';
+			s_AudioPickerTargetEntity = entity;
+			s_AudioPickerEntries.clear();
+
+			BoltProject* project = ProjectManager::GetCurrentProject();
+			if (project) {
+				CollectAudioFiles(project->AssetsDirectory, project->AssetsDirectory, s_AudioPickerEntries);
+			}
+		}
+
+		static void RenderAudioPicker() {
+			if (!s_AudioPickerOpen) return;
+
+			ImGui::SetNextWindowSize(ImVec2(320, 380), ImGuiCond_FirstUseEver);
+			if (!ImGui::Begin("Select Audio", &s_AudioPickerOpen)) {
+				ImGui::End();
+				return;
+			}
+
+			ImGui::SetNextItemWidth(-1);
+			ImGui::InputTextWithHint("##AudioSearch", "Search...", s_AudioPickerSearch, sizeof(s_AudioPickerSearch));
+			ImGui::Separator();
+
+			std::string filter(s_AudioPickerSearch);
+			std::transform(filter.begin(), filter.end(), filter.begin(), ::tolower);
+
+			ImGui::BeginChild("AudioList");
+			for (const auto& entry : s_AudioPickerEntries) {
+				if (!filter.empty()) {
+					std::string lower = entry.DisplayName;
+					std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+					if (lower.find(filter) == std::string::npos) continue;
+				}
+
+				if (ImGui::Selectable(entry.DisplayName.c_str(), false)) {
+					Scene* scene = SceneManager::Get().GetActiveScene();
+					if (scene && scene->IsValid(s_AudioPickerTargetEntity)
+						&& scene->HasComponent<AudioSourceComponent>(s_AudioPickerTargetEntity)) {
+						AudioHandle handle = AudioManager::LoadAudio(entry.FullPath);
+						scene->GetComponent<AudioSourceComponent>(s_AudioPickerTargetEntity).SetAudioHandle(handle);
+					}
+					s_AudioPickerOpen = false;
+				}
+				if (ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("%s", entry.RelativePath.c_str());
+				}
+			}
+			ImGui::EndChild();
+			ImGui::End();
+		}
+	}
+
 	void DrawAudioSourceInspector(Entity entity)
 	{
 		auto& audio = entity.GetComponent<AudioSourceComponent>();
+
+		bool playOnAwake = audio.GetPlayOnAwake();
+		if (ImGui::Checkbox("Play On Awake", &playOnAwake)) {
+			audio.SetPlayOnAwake(playOnAwake);
+		}
 
 		float volume = audio.GetVolume();
 		if (ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f)) {
@@ -339,8 +444,26 @@ namespace Bolt {
 			audio.SetLoop(loop);
 		}
 
-		// Audio file drag-drop
-		ImGui::Text("Audio Clip");
+		ImGui::Spacing();
+		bool hasClip = audio.GetAudioHandle().IsValid();
+
+		if (hasClip) {
+			std::string audioPath = AudioManager::GetAudioName(audio.GetAudioHandle());
+			std::string displayName = audioPath.empty() ? "(unknown)"
+				: std::filesystem::path(audioPath).filename().string();
+			ImGui::Text("Clip: %s", displayName.c_str());
+			if (!audioPath.empty() && ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("%s", audioPath.c_str());
+			}
+		} else {
+			ImGui::TextDisabled("No audio clip assigned");
+		}
+
+		if (ImGui::Button(hasClip ? "Change Audio" : "Assign Audio",
+			ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+			OpenAudioPicker(entity.GetHandle());
+		}
+
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
 				std::string droppedPath(static_cast<const char*>(payload->Data));
@@ -353,6 +476,8 @@ namespace Bolt {
 			}
 			ImGui::EndDragDropTarget();
 		}
+
+		RenderAudioPicker();
 	}
 
 	// ── Bolt-Physics Inspectors ─────────────────────────────────────
@@ -361,7 +486,6 @@ namespace Bolt {
 	{
 		auto& body = entity.GetComponent<BoltBody2DComponent>();
 
-		// Body type selector
 		const char* bodyTypeNames[] = { "Static", "Dynamic", "Kinematic" };
 		int currentType = static_cast<int>(body.Type);
 		if (ImGui::Combo("Body Type", &currentType, bodyTypeNames, 3)) {
@@ -381,7 +505,6 @@ namespace Bolt {
 			if (body.m_Body) body.m_Body->SetBoundaryCheckEnabled(body.BoundaryCheck);
 		}
 
-		// Runtime info
 		if (body.IsValid()) {
 			ImGui::Separator();
 			ImGui::TextDisabled("Runtime");
