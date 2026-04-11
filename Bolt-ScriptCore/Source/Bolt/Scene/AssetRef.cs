@@ -1,32 +1,104 @@
 namespace Bolt
 {
-    /// <summary>
-    /// Lightweight reference to a texture asset by file path.
-    /// Use with [ShowInEditor] to allow drag-drop assignment in the Inspector.
-    /// </summary>
     public struct TextureRef
     {
-        public string Path;
+        public ulong UUID;
 
-        public bool IsValid => !string.IsNullOrEmpty(Path);
+        public bool IsValid => UUID != 0 && InternalCalls.Texture_LoadAsset(UUID);
 
-        public TextureRef(string path) { Path = path; }
+        public string Path
+        {
+            get => UUID != 0 ? InternalCalls.Asset_GetPath(UUID) : "";
+            set => UUID = string.IsNullOrEmpty(value) ? 0UL : InternalCalls.Asset_GetOrCreateUUIDFromPath(value);
+        }
 
-        public override string ToString() => Path ?? "(None)";
+        public string Name
+        {
+            get
+            {
+                if (UUID == 0)
+                    return "(None)";
+
+                string name = InternalCalls.Asset_GetDisplayName(UUID);
+                return string.IsNullOrEmpty(name) ? "(Missing Asset)" : name;
+            }
+        }
+
+        public Texture? Resource => Texture.FromAssetUUID(UUID);
+        public Texture? Texture => Resource;
+
+        public TextureRef(ulong uuid)
+        {
+            UUID = uuid;
+        }
+
+        public TextureRef(string path)
+        {
+            UUID = string.IsNullOrEmpty(path) ? 0UL : InternalCalls.Asset_GetOrCreateUUIDFromPath(path);
+        }
+
+        public override string ToString()
+        {
+            if (UUID == 0)
+                return "(None)";
+
+            string name = InternalCalls.Asset_GetDisplayName(UUID);
+            if (!string.IsNullOrEmpty(name))
+                return name;
+
+            string path = InternalCalls.Asset_GetPath(UUID);
+            return string.IsNullOrEmpty(path) ? "(Missing Asset)" : path;
+        }
     }
 
-    /// <summary>
-    /// Lightweight reference to an audio asset by file path.
-    /// Use with [ShowInEditor] to allow drag-drop assignment in the Inspector.
-    /// </summary>
     public struct AudioRef
     {
-        public string Path;
+        public ulong UUID;
 
-        public bool IsValid => !string.IsNullOrEmpty(Path);
+        public bool IsValid => UUID != 0 && InternalCalls.Audio_LoadAsset(UUID);
 
-        public AudioRef(string path) { Path = path; }
+        public string Path
+        {
+            get => UUID != 0 ? InternalCalls.Asset_GetPath(UUID) : "";
+            set => UUID = string.IsNullOrEmpty(value) ? 0UL : InternalCalls.Asset_GetOrCreateUUIDFromPath(value);
+        }
 
-        public override string ToString() => Path ?? "(None)";
+        public string Name
+        {
+            get
+            {
+                if (UUID == 0)
+                    return "(None)";
+
+                string name = InternalCalls.Asset_GetDisplayName(UUID);
+                return string.IsNullOrEmpty(name) ? "(Missing Asset)" : name;
+            }
+        }
+
+        public Audio? Resource => Audio.FromAssetUUID(UUID);
+        public Audio? Audio => Resource;
+
+        public AudioRef(ulong uuid)
+        {
+            UUID = uuid;
+        }
+
+        public AudioRef(string path)
+        {
+            UUID = string.IsNullOrEmpty(path) ? 0UL : InternalCalls.Asset_GetOrCreateUUIDFromPath(path);
+        }
+
+        public override string ToString()
+        {
+            if (UUID == 0)
+                return "(None)";
+
+            string name = InternalCalls.Asset_GetDisplayName(UUID);
+            if (!string.IsNullOrEmpty(name))
+                return name;
+
+            string path = InternalCalls.Asset_GetPath(UUID);
+            return string.IsNullOrEmpty(path) ? "(Missing Asset)" : path;
+        }
     }
 }

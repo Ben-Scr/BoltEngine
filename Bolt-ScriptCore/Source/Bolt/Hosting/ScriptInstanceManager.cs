@@ -378,7 +378,12 @@ namespace Bolt.Hosting
             if (t == typeof(Entity)) return "entity";
             if (t == typeof(TextureRef)) return "texture";
             if (t == typeof(AudioRef)) return "audio";
-            if (t.IsSubclassOf(typeof(Component))) return "component:" + t.Name;
+            if (t.IsSubclassOf(typeof(Component)))
+            {
+                return Entity.TryGetNativeComponentName(t, out string? nativeName)
+                    ? "component:" + nativeName
+                    : "unsupported";
+            }
             return "unsupported";
         }
 
@@ -415,15 +420,51 @@ namespace Bolt.Hosting
                 }
                 return entity.ID.ToString(ic);
             }
-            if (t == typeof(TextureRef)) return ((TextureRef)val).Path ?? "";
-            if (t == typeof(AudioRef)) return ((AudioRef)val).Path ?? "";
+            if (t == typeof(TextureRef))
+            {
+                TextureRef assetRef = (TextureRef)val;
+                return assetRef.UUID != 0 ? assetRef.UUID.ToString(ic) : "";
+            }
+            if (t == typeof(AudioRef))
+            {
+                AudioRef assetRef = (AudioRef)val;
+                return assetRef.UUID != 0 ? assetRef.UUID.ToString(ic) : "";
+            }
             if (t.IsSubclassOf(typeof(Component)))
             {
                 var comp = (Component)val;
                 if (comp?.Entity == null || comp.Entity == Entity.Invalid) return "";
-                return comp.Entity.ID.ToString(ic) + ":" + t.Name;
+                string typeName = Entity.TryGetNativeComponentName(t, out string? nativeName)
+                    ? nativeName!
+                    : t.Name;
+                return comp.Entity.ID.ToString(ic) + ":" + typeName;
             }
             return val.ToString() ?? "";
+        }
+
+        private static ulong ParseAssetUUID(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return 0;
+
+            if (ulong.TryParse(value, System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out ulong assetId))
+            {
+                return assetId;
+            }
+
+            return InternalCalls.Asset_GetOrCreateUUIDFromPath(value);
+        }
+
+        private static bool MatchesComponentReferenceType(Type componentType, string serializedTypeName)
+        {
+            if (Entity.TryGetNativeComponentName(componentType, out string? nativeName)
+                && string.Equals(nativeName, serializedTypeName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            return string.Equals(componentType.Name, serializedTypeName, StringComparison.Ordinal);
         }
 
         private static object? ParseFieldValue(Type t, string s)
@@ -457,8 +498,8 @@ namespace Bolt.Hosting
                     ulong id = ulong.Parse(s, ic);
                     return id != 0 ? new Entity(id) : Entity.Invalid;
                 }
-                if (t == typeof(TextureRef)) return new TextureRef(s);
-                if (t == typeof(AudioRef)) return new AudioRef(s);
+                if (t == typeof(TextureRef)) return new TextureRef(ParseAssetUUID(s));
+                if (t == typeof(AudioRef)) return new AudioRef(ParseAssetUUID(s));
                 if (t.IsSubclassOf(typeof(Component)))
                 {
                     // Format: "EntityID:ComponentName"
@@ -466,6 +507,10 @@ namespace Bolt.Hosting
                     if (sep > 0)
                     {
                         ulong entityId = ulong.Parse(s.Substring(0, sep), ic);
+                        string componentTypeName = s.Substring(sep + 1);
+                        if (!MatchesComponentReferenceType(t, componentTypeName))
+                            return null;
+
                         if (entityId != 0)
                         {
                             var entity = new Entity(entityId);

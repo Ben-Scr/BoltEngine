@@ -1,4 +1,5 @@
 #include <pch.hpp>
+#include "Assets/AssetRegistry.hpp"
 #include "Gui/ComponentInspectors.hpp"
 #include "Gui/ImGuiUtils.hpp"
 
@@ -22,9 +23,43 @@ namespace Bolt {
 	// ── Texture Picker State (for SpriteRenderer inspector) ─────────
 
 	namespace {
+		static TextureHandle LoadTextureFromAssetPath(const std::string& path, UUID* outAssetId = nullptr) {
+			const uint64_t assetId = AssetRegistry::GetOrCreateAssetUUID(path);
+			if (outAssetId) {
+				*outAssetId = UUID(assetId);
+			}
+
+			if (assetId != 0 && AssetRegistry::IsTexture(assetId)) {
+				TextureHandle handle = TextureManager::LoadTextureByUUID(assetId);
+				if (handle.IsValid()) {
+					return handle;
+				}
+			}
+
+			return TextureManager::LoadTexture(path);
+		}
+
+		static void AssignSpriteTexture(SpriteRendererComponent& sprite, const std::string& path) {
+			UUID assetId = UUID(0);
+			sprite.TextureHandle = LoadTextureFromAssetPath(path, &assetId);
+			sprite.TextureAssetId = assetId;
+		}
+
+		static void AssignAudioClip(AudioSourceComponent& audioSource, const std::string& path) {
+			const uint64_t assetId = AssetRegistry::GetOrCreateAssetUUID(path);
+			if (assetId != 0 && AssetRegistry::IsAudio(assetId)) {
+				audioSource.SetAudioHandle(AudioManager::LoadAudioByUUID(assetId), UUID(assetId));
+				return;
+			}
+
+			audioSource.SetAudioHandle(AudioManager::LoadAudio(path), UUID(0));
+		}
+
 		struct TexturePickerEntry {
 			std::string RelativePath;
 			std::string DisplayName;
+			std::string FullPath;
+			uint64_t AssetId = 0;
 		};
 
 		static bool s_TexturePickerOpen = false;
@@ -50,10 +85,13 @@ namespace Bolt {
 
 				std::string rel = std::filesystem::relative(entry.path(), root).string();
 				std::string name = entry.path().filename().string();
-				entries.push_back({ rel, name });
+				entries.push_back({ rel, name, entry.path().string(), AssetRegistry::GetOrCreateAssetUUID(entry.path().string()) });
 			}
 			std::sort(entries.begin(), entries.end(),
 				[](const TexturePickerEntry& a, const TexturePickerEntry& b) {
+					if (a.DisplayName == b.DisplayName) {
+						return a.RelativePath < b.RelativePath;
+					}
 					return a.DisplayName < b.DisplayName;
 				});
 		}
@@ -70,9 +108,13 @@ namespace Bolt {
 				auto boltTexPath = std::filesystem::path(boltTexDir);
 				CollectTextureFiles(boltTexPath, boltTexPath, s_TexturePickerEntries);
 			}
-			std::string base = Path::ExecutableDir();
-			auto userTexDir = std::filesystem::path(base) / "Assets" / "Textures";
-			CollectTextureFiles(userTexDir, userTexDir, s_TexturePickerEntries);
+			if (BoltProject* project = ProjectManager::GetCurrentProject()) {
+				CollectTextureFiles(project->AssetsDirectory, project->AssetsDirectory, s_TexturePickerEntries);
+			}
+			else {
+				auto userAssetsDir = std::filesystem::path(Path::ExecutableDir()) / "Assets";
+				CollectTextureFiles(userAssetsDir, userAssetsDir, s_TexturePickerEntries);
+			}
 		}
 
 		static void RenderTexturePicker() {
@@ -95,7 +137,9 @@ namespace Bolt {
 				Scene* scene = SceneManager::Get().GetActiveScene();
 				if (scene && scene->IsValid(s_TexturePickerTargetEntity)
 					&& scene->HasComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity)) {
-					scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity).TextureHandle = TextureHandle();
+					auto& sprite = scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity);
+					sprite.TextureHandle = TextureHandle();
+					sprite.TextureAssetId = UUID(0);
 				}
 				s_TexturePickerOpen = false;
 			}
@@ -110,11 +154,20 @@ namespace Bolt {
 					if (lowerName.find(filter) == std::string::npos) continue;
 				}
 
-				if (ImGui::Selectable(entry.DisplayName.c_str(), false)) {
+				const std::string label = entry.DisplayName + "##" + entry.RelativePath;
+				if (ImGui::Selectable(label.c_str(), false)) {
 					Scene* scene = SceneManager::Get().GetActiveScene();
 					if (scene && scene->IsValid(s_TexturePickerTargetEntity)
 						&& scene->HasComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity)) {
-						scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity).TextureHandle = TextureManager::LoadTexture(entry.RelativePath);
+						auto& sprite = scene->GetComponent<SpriteRendererComponent>(s_TexturePickerTargetEntity);
+						if (entry.AssetId != 0 && AssetRegistry::IsTexture(entry.AssetId)) {
+							sprite.TextureHandle = TextureManager::LoadTextureByUUID(entry.AssetId);
+							sprite.TextureAssetId = UUID(entry.AssetId);
+						}
+						else {
+							sprite.TextureHandle = TextureManager::LoadTexture(entry.FullPath);
+							sprite.TextureAssetId = UUID(0);
+						}
 					}
 					s_TexturePickerOpen = false;
 				}
@@ -192,13 +245,10 @@ namespace Bolt {
 		if (ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
 				std::string droppedPath(static_cast<const char*>(payload->Data));
-
-				
 				std::string ext = std::filesystem::path(droppedPath).extension().string();
 				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 				if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga") {
-					std::string filename = std::filesystem::path(droppedPath).filename().string();
-					sprite.TextureHandle = TextureManager::LoadTexture(droppedPath.c_str());
+					AssignSpriteTexture(sprite, droppedPath);
 				}
 			}
 			ImGui::EndDragDropTarget();
@@ -339,6 +389,7 @@ namespace Bolt {
 			std::string DisplayName;
 			std::string RelativePath;
 			std::string FullPath;
+			uint64_t AssetId = 0;
 		};
 
 		static bool s_AudioPickerOpen = false;
@@ -361,9 +412,16 @@ namespace Bolt {
 					e.DisplayName = entry.path().stem().string();
 					e.FullPath = entry.path().string();
 					e.RelativePath = std::filesystem::relative(entry.path(), rootDir).string();
+					e.AssetId = AssetRegistry::GetOrCreateAssetUUID(entry.path().string());
 					out.push_back(e);
 				}
 			}
+			std::sort(out.begin(), out.end(), [](const AudioPickerEntry& a, const AudioPickerEntry& b) {
+				if (a.DisplayName == b.DisplayName) {
+					return a.RelativePath < b.RelativePath;
+				}
+				return a.DisplayName < b.DisplayName;
+			});
 		}
 
 		static void OpenAudioPicker(EntityHandle entity) {
@@ -402,12 +460,18 @@ namespace Bolt {
 					if (lower.find(filter) == std::string::npos) continue;
 				}
 
-				if (ImGui::Selectable(entry.DisplayName.c_str(), false)) {
+				const std::string label = entry.DisplayName + "##" + entry.RelativePath;
+				if (ImGui::Selectable(label.c_str(), false)) {
 					Scene* scene = SceneManager::Get().GetActiveScene();
 					if (scene && scene->IsValid(s_AudioPickerTargetEntity)
 						&& scene->HasComponent<AudioSourceComponent>(s_AudioPickerTargetEntity)) {
-						AudioHandle handle = AudioManager::LoadAudio(entry.FullPath);
-						scene->GetComponent<AudioSourceComponent>(s_AudioPickerTargetEntity).SetAudioHandle(handle);
+						auto& audioSource = scene->GetComponent<AudioSourceComponent>(s_AudioPickerTargetEntity);
+						if (entry.AssetId != 0 && AssetRegistry::IsAudio(entry.AssetId)) {
+							audioSource.SetAudioHandle(AudioManager::LoadAudioByUUID(entry.AssetId), UUID(entry.AssetId));
+						}
+						else {
+							audioSource.SetAudioHandle(AudioManager::LoadAudio(entry.FullPath), UUID(0));
+						}
 					}
 					s_AudioPickerOpen = false;
 				}
@@ -470,8 +534,7 @@ namespace Bolt {
 				std::string ext = std::filesystem::path(droppedPath).extension().string();
 				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 				if (ext == ".wav" || ext == ".mp3" || ext == ".ogg" || ext == ".flac") {
-					AudioHandle handle = AudioManager::LoadAudio(droppedPath);
-					audio.SetAudioHandle(handle);
+					AssignAudioClip(audio, droppedPath);
 				}
 			}
 			ImGui::EndDragDropTarget();

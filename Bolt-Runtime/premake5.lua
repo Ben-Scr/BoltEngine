@@ -11,9 +11,9 @@ project "Bolt-Runtime"
 
     files
     {
-        "Src/**.cpp",
-        "Src/**.h",
-        "Src/**.hpp",
+        "src/**.cpp",
+        "src/**.h",
+        "src/**.hpp",
         "icon.rc"
     }
 

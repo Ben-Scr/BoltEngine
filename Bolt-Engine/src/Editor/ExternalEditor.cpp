@@ -1,11 +1,12 @@
 #include "pch.hpp"
 #include "Editor/ExternalEditor.hpp"
+#include "Serialization/File.hpp"
+#include "Serialization/Json.hpp"
 #include "Serialization/Path.hpp"
 #include "Project/ProjectManager.hpp"
 #include "Project/BoltProject.hpp"
 
 #include <filesystem>
-#include <fstream>
 
 #ifdef BT_PLATFORM_WINDOWS
 #include <windows.h>
@@ -133,29 +134,27 @@ namespace Bolt {
 		const auto& selected = (s_SelectedIndex >= 0 && s_SelectedIndex < static_cast<int>(s_Editors.size()))
 			? s_Editors[s_SelectedIndex].DisplayName : "";
 
-		std::ofstream out(path);
-		if (out.is_open()) {
-			out << "{ \"selectedEditor\": \"" << selected << "\" }\n";
-		}
+		Json::Value root = Json::Value::MakeObject();
+		root.AddMember("selectedEditor", selected);
+		File::WriteAllText(path, Json::Stringify(root, true));
 	}
 
 	void ExternalEditor::LoadPreferences() {
 		std::string path = GetPreferencesPath();
 		if (!std::filesystem::exists(path)) return;
 
-		std::ifstream in(path);
-		if (!in.is_open()) return;
-		std::string json((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-		in.close();
+		Json::Value root;
+		std::string parseError;
+		if (!Json::TryParse(File::ReadAllText(path), root, &parseError) || !root.IsObject()) {
+			BT_CORE_WARN_TAG("ExternalEditor", "Failed to parse editor preferences '{}': {}", path, parseError);
+			return;
+		}
 
-		// Extract "selectedEditor" value
-		auto pos = json.find("\"selectedEditor\"");
-		if (pos == std::string::npos) return;
-		pos = json.find('"', pos + 17);
-		if (pos == std::string::npos) return;
-		auto end = json.find('"', pos + 1);
-		if (end == std::string::npos) return;
-		std::string savedName = json.substr(pos + 1, end - pos - 1);
+		const Json::Value* selectedEditorValue = root.FindMember("selectedEditor");
+		if (!selectedEditorValue) {
+			return;
+		}
+		std::string savedName = selectedEditorValue->AsStringOr();
 
 		for (int i = 0; i < static_cast<int>(s_Editors.size()); i++) {
 			if (s_Editors[i].DisplayName == savedName) {

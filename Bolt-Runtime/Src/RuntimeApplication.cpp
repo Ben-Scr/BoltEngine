@@ -96,10 +96,7 @@ public:
 	void Update() override {}
 	void FixedUpdate() override {}
 	void OnPaused() override {}
-
-	void OnQuit() override {
-		BT_INFO("Quit");
-	}
+	void OnQuit() override {}
 };
 
 

@@ -96,6 +96,11 @@ namespace Bolt {
 
 	void Scene::OnRigidBody2DComponentConstruct(entt::registry& registry, EntityHandle entity)
 	{
+		if (!registry.all_of<Transform2DComponent>(entity)) {
+			BT_CORE_WARN_TAG("Scene", "Adding missing Transform2DComponent before creating Rigidbody2D for entity {}", static_cast<uint32_t>(entity));
+			registry.emplace<Transform2DComponent>(entity);
+		}
+
 		bool isEnabled = !registry.all_of<DisabledTag>(entity);
 		Rigidbody2DComponent& rb2D = registry.get<Rigidbody2DComponent>(entity);
 
@@ -124,8 +129,14 @@ namespace Bolt {
 	}
 
 	void Scene::OnBoxCollider2DComponentConstruct(entt::registry& registry, EntityHandle entity) {
+		if (!registry.all_of<Transform2DComponent>(entity)) {
+			BT_CORE_WARN_TAG("Scene", "Adding missing Transform2DComponent before creating BoxCollider2D for entity {}", static_cast<uint32_t>(entity));
+			registry.emplace<Transform2DComponent>(entity);
+		}
+
 		bool isEnabled = !registry.all_of<DisabledTag>(entity);
 		BoxCollider2DComponent& boxCollider = GetComponent<BoxCollider2DComponent>(entity);
+		boxCollider.m_EntityHandle = entity;
 
 		// Note: Check if the collider already has the Rigidbody2D component
 		// Get the body and assign it to the boxCollider

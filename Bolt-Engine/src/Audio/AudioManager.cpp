@@ -1,5 +1,6 @@
 #include "pch.hpp"
 
+#include "Assets/AssetRegistry.hpp"
 #include "AudioManager.hpp"
 #include "Audio.hpp"
 #include  <Math/Common.hpp>
@@ -71,6 +72,10 @@ namespace Bolt {
 		}
 		s_soundInstances.clear();
 		s_freeInstanceIndices.clear();
+		s_soundLimits.clear();
+		s_activeSoundCount = 0;
+		s_soundsPlayedThisFrame = 0;
+		s_soundQueue = {};
 
 		UnloadAllAudio();
 
@@ -200,9 +205,26 @@ namespace Bolt {
 			fullpath = rootPath;
 		}
 
+		if (const AudioHandle existing = FindAudioByPath(fullpath); existing.IsValid()) {
+			return existing;
+		}
+
 		AudioHandle::HandleType id = GenerateHandle();
 		s_audioMap[id] = std::move(audio);
 		return AudioHandle(id);
+	}
+
+	AudioHandle AudioManager::LoadAudioByUUID(uint64_t assetId) {
+		if (assetId == 0 || !AssetRegistry::IsAudio(assetId)) {
+			return AudioHandle();
+		}
+
+		const std::string path = AssetRegistry::ResolvePath(assetId);
+		if (path.empty()) {
+			return AudioHandle();
+		}
+
+		return LoadAudio(path);
 	}
 
 	void AudioManager::UnloadAudio(const AudioHandle& audioHandle) {
@@ -215,13 +237,12 @@ namespace Bolt {
 
 			for (auto& instance : s_soundInstances) {
 				if (instance.IsValid && instance.AudioHandle == audioHandle) {
-					ma_sound_stop(&instance.Sound);
-					ma_sound_uninit(&instance.Sound);
-					instance.IsValid = false;
+					RecycleSoundInstance(static_cast<uint32_t>(&instance - s_soundInstances.data()));
 				}
 			}
 
 			s_audioMap.erase(it);
+			s_soundLimits.erase(audioHandle.GetHandle());
 		}
 	}
 
@@ -229,14 +250,15 @@ namespace Bolt {
 
 		for (auto& instance : s_soundInstances) {
 			if (instance.IsValid) {
-				ma_sound_stop(&instance.Sound);
-				ma_sound_uninit(&instance.Sound);
-				instance.IsValid = false;
+				RecycleSoundInstance(static_cast<uint32_t>(&instance - s_soundInstances.data()));
 			}
 		}
 
 		s_audioMap.clear();
 		s_nextHandle = 1;
+		s_soundLimits.clear();
+		s_soundQueue = {};
+		s_activeSoundCount = 0;
 	}
 
 	void AudioManager::PlayAudioSource(AudioSourceComponent& source) {
@@ -374,8 +396,27 @@ namespace Bolt {
 		return audio->GetFilepath();
 	}
 
+	uint64_t AudioManager::GetAudioAssetUUID(const AudioHandle& audioHandle) {
+		const Audio* audio = GetAudio(audioHandle);
+		if (!audio) {
+			return 0;
+		}
+
+		return AssetRegistry::GetOrCreateAssetUUID(audio->GetFilepath());
+	}
+
 	AudioHandle::HandleType AudioManager::GenerateHandle() {
 		return s_nextHandle++;
+	}
+
+	AudioHandle AudioManager::FindAudioByPath(const std::string& path) {
+		for (const auto& [id, audio] : s_audioMap) {
+			if (audio && audio->GetFilepath() == path) {
+				return AudioHandle(id);
+			}
+		}
+
+		return AudioHandle();
 	}
 
 	uint32_t AudioManager::CreateSoundInstance(const AudioHandle& audioHandle) {
@@ -431,15 +472,7 @@ namespace Bolt {
 			return;
 		}
 
-		SoundInstance& instance = s_soundInstances[index];
-		if (instance.IsValid) {
-			ma_sound_stop(&instance.Sound);
-			ma_sound_uninit(&instance.Sound);
-			instance.IsValid = false;
-			instance.AudioHandle = AudioHandle();
-
-			s_freeInstanceIndices.push_back(index);
-		}
+		RecycleSoundInstance(index);
 	}
 
 	AudioManager::SoundInstance* AudioManager::GetSoundInstance(uint32_t instanceId) {
@@ -460,15 +493,29 @@ namespace Bolt {
 		return  &instance;
 	}
 
+	void AudioManager::RecycleSoundInstance(uint32_t index) {
+		if (index >= s_soundInstances.size()) {
+			return;
+		}
+
+		SoundInstance& instance = s_soundInstances[index];
+		if (!instance.IsValid) {
+			return;
+		}
+
+		ma_sound_stop(&instance.Sound);
+		ma_sound_uninit(&instance.Sound);
+		instance.IsValid = false;
+		instance.AudioHandle = AudioHandle();
+		s_freeInstanceIndices.push_back(index);
+	}
+
 	void AudioManager::CleanupFinishedSounds() {
 		for (size_t i = 0; i < s_soundInstances.size(); ++i) {
 			SoundInstance& instance = s_soundInstances[i];
 
 			if (instance.IsValid && !ma_sound_is_playing(&instance.Sound) && !ma_sound_is_looping(&instance.Sound)) {
-				ma_sound_uninit(&instance.Sound);
-				instance.IsValid = false;
-				instance.AudioHandle = AudioHandle();
-				s_freeInstanceIndices.push_back(static_cast<uint32_t>(i));
+				RecycleSoundInstance(static_cast<uint32_t>(i));
 			}
 		}
 	}

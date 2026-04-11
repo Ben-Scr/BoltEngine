@@ -3,6 +3,7 @@
 #include "Serialization/Path.hpp"
 #include "Serialization/Directory.hpp"
 #include "Serialization/File.hpp"
+#include "Serialization/Json.hpp"
 #include "Core/Log.hpp"
 #include "Core/Version.hpp"
 
@@ -14,67 +15,6 @@
 #include <random>
 
 namespace Bolt {
-
-	static std::string EscapeJSON(const std::string& s) {
-		std::string out;
-		for (char c : s) {
-			if (c == '\\') out += "\\\\";
-			else if (c == '"') out += "\\\"";
-			else out += c;
-		}
-		return out;
-	}
-
-	static std::string UnescapeJSON(const std::string& s) {
-		std::string out;
-		for (size_t i = 0; i < s.size(); i++) {
-			if (s[i] == '\\' && i + 1 < s.size()) {
-				char next = s[i + 1];
-				if (next == '\\') { out += '\\'; i++; }
-				else if (next == '"') { out += '"'; i++; }
-				else if (next == 'n') { out += '\n'; i++; }
-				else out += s[i];
-			} else {
-				out += s[i];
-			}
-		}
-		return out;
-	}
-
-	static std::string ExtractValue(const std::string& json, const std::string& key) {
-		std::string search = "\"" + key + "\"";
-		auto pos = json.find(search);
-		if (pos == std::string::npos) return "";
-		pos = json.find('"', pos + search.size() + 1);
-		if (pos == std::string::npos) return "";
-		auto end = json.find('"', pos + 1);
-		if (end == std::string::npos) return "";
-		return UnescapeJSON(json.substr(pos + 1, end - pos - 1));
-	}
-
-	static int ExtractInt(const std::string& json, const std::string& key, int def = 0) {
-		std::string search = "\"" + key + "\"";
-		auto pos = json.find(search);
-		if (pos == std::string::npos) return def;
-		pos = json.find(':', pos + search.size());
-		if (pos == std::string::npos) return def;
-		pos++;
-		while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t')) pos++;
-		try { return std::stoi(json.substr(pos)); }
-		catch (...) { return def; }
-	}
-
-	static bool ExtractBool(const std::string& json, const std::string& key, bool def = false) {
-		std::string search = "\"" + key + "\"";
-		auto pos = json.find(search);
-		if (pos == std::string::npos) return def;
-		pos = json.find(':', pos + search.size());
-		if (pos == std::string::npos) return def;
-		auto rest = json.substr(pos + 1);
-		if (rest.find("true") < rest.find_first_of(",}")) return true;
-		if (rest.find("false") < rest.find_first_of(",}")) return false;
-		return def;
-	}
 
 	static std::string GenerateGUID() {
 		std::random_device rd;
@@ -114,6 +54,28 @@ namespace Bolt {
 		p.ProjectFilePath = Path::Combine(p.RootDirectory, "bolt-project.json");
 	}
 
+	static Json::Value BuildProjectJson(const BoltProject& project) {
+		Json::Value root = Json::Value::MakeObject();
+		root.AddMember("name", project.Name);
+		root.AddMember("engineVersion", project.EngineVersion);
+		root.AddMember("startupScene", project.StartupScene);
+		root.AddMember("lastOpenedScene", project.LastOpenedScene);
+		root.AddMember("buildWidth", project.BuildWidth);
+		root.AddMember("buildHeight", project.BuildHeight);
+		root.AddMember("buildFullscreen", project.BuildFullscreen);
+		root.AddMember("buildResizable", project.BuildResizable);
+		if (!project.AppIconPath.empty()) {
+			root.AddMember("appIcon", project.AppIconPath);
+		}
+
+		Json::Value buildScenes = Json::Value::MakeArray();
+		for (const std::string& sceneName : project.BuildSceneList) {
+			buildScenes.Append(sceneName);
+		}
+		root.AddMember("buildScenes", std::move(buildScenes));
+		return root;
+	}
+
 	std::string BoltProject::GetUserAssemblyOutputPath() const {
 		return Path::Combine(RootDirectory, "bin", "Release", Name + ".dll");
 	}
@@ -127,27 +89,7 @@ namespace Bolt {
 	}
 
 	void BoltProject::Save() const {
-		std::stringstream ss;
-		ss << "{\n"
-		   << "  \"name\": \"" << EscapeJSON(Name) << "\",\n"
-		   << "  \"engineVersion\": \"" << EngineVersion << "\",\n"
-		   << "  \"startupScene\": \"" << EscapeJSON(StartupScene) << "\",\n"
-		   << "  \"lastOpenedScene\": \"" << EscapeJSON(LastOpenedScene) << "\",\n"
-		   << "  \"buildWidth\": " << BuildWidth << ",\n"
-		   << "  \"buildHeight\": " << BuildHeight << ",\n"
-		   << "  \"buildFullscreen\": " << (BuildFullscreen ? "true" : "false") << ",\n"
-		   << "  \"buildResizable\": " << (BuildResizable ? "true" : "false");
-		if (!AppIconPath.empty()) {
-			ss << ",\n  \"appIcon\": \"" << EscapeJSON(AppIconPath) << "\"";
-		}
-		ss << ",\n  \"buildScenes\": [";
-		for (size_t i = 0; i < BuildSceneList.size(); i++) {
-			if (i > 0) ss << ", ";
-			ss << "\"" << EscapeJSON(BuildSceneList[i]) << "\"";
-		}
-		ss << "]";
-		ss << "\n}\n";
-		File::WriteAllText(ProjectFilePath, ss.str());
+		File::WriteAllText(ProjectFilePath, Json::Stringify(BuildProjectJson(*this), true));
 	}
 
 	std::string BoltProject::GetDefaultProjectsDir() {
@@ -174,42 +116,55 @@ namespace Bolt {
 
 		std::string configPath = Path::Combine(rootDir, "bolt-project.json");
 		if (File::Exists(configPath)) {
-			std::ifstream in(configPath);
-			std::string json((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-			in.close();
-
-			project.Name = ExtractValue(json, "name");
-			project.EngineVersion = ExtractValue(json, "engineVersion");
-
-			std::string startup = ExtractValue(json, "startupScene");
-			if (!startup.empty()) project.StartupScene = startup;
-
-			std::string lastScene = ExtractValue(json, "lastOpenedScene");
-			if (!lastScene.empty()) project.LastOpenedScene = lastScene;
-
-			project.BuildWidth = ExtractInt(json, "buildWidth", 1280);
-			project.BuildHeight = ExtractInt(json, "buildHeight", 720);
-			project.BuildFullscreen = ExtractBool(json, "buildFullscreen", false);
-			project.BuildResizable = ExtractBool(json, "buildResizable", true);
-			project.AppIconPath = ExtractValue(json, "appIcon");
-
-			// Parse buildScenes array
-			project.BuildSceneList.clear();
-			auto scenesPos = json.find("\"buildScenes\"");
-			if (scenesPos != std::string::npos) {
-				auto arrStart = json.find('[', scenesPos);
-				auto arrEnd = json.find(']', arrStart);
-				if (arrStart != std::string::npos && arrEnd != std::string::npos) {
-					std::string arr = json.substr(arrStart + 1, arrEnd - arrStart - 1);
-					// Parse comma-separated quoted strings
-					size_t pos = 0;
-					while ((pos = arr.find('"', pos)) != std::string::npos) {
-						size_t end = arr.find('"', pos + 1);
-						if (end == std::string::npos) break;
-						project.BuildSceneList.push_back(arr.substr(pos + 1, end - pos - 1));
-						pos = end + 1;
+			std::string jsonText = File::ReadAllText(configPath);
+			Json::Value root;
+			std::string parseError;
+			if (!jsonText.empty() && Json::TryParse(jsonText, root, &parseError) && root.IsObject()) {
+				if (const Json::Value* nameValue = root.FindMember("name")) {
+					project.Name = nameValue->AsStringOr();
+				}
+				if (const Json::Value* versionValue = root.FindMember("engineVersion")) {
+					project.EngineVersion = versionValue->AsStringOr();
+				}
+				if (const Json::Value* startupValue = root.FindMember("startupScene")) {
+					const std::string startupScene = startupValue->AsStringOr();
+					if (!startupScene.empty()) {
+						project.StartupScene = startupScene;
 					}
 				}
+				if (const Json::Value* lastSceneValue = root.FindMember("lastOpenedScene")) {
+					const std::string lastScene = lastSceneValue->AsStringOr();
+					if (!lastScene.empty()) {
+						project.LastOpenedScene = lastScene;
+					}
+				}
+				if (const Json::Value* buildWidthValue = root.FindMember("buildWidth")) {
+					project.BuildWidth = buildWidthValue->AsIntOr(1280);
+				}
+				if (const Json::Value* buildHeightValue = root.FindMember("buildHeight")) {
+					project.BuildHeight = buildHeightValue->AsIntOr(720);
+				}
+				if (const Json::Value* fullscreenValue = root.FindMember("buildFullscreen")) {
+					project.BuildFullscreen = fullscreenValue->AsBoolOr(false);
+				}
+				if (const Json::Value* resizableValue = root.FindMember("buildResizable")) {
+					project.BuildResizable = resizableValue->AsBoolOr(true);
+				}
+				if (const Json::Value* iconValue = root.FindMember("appIcon")) {
+					project.AppIconPath = iconValue->AsStringOr();
+				}
+				if (const Json::Value* buildScenesValue = root.FindMember("buildScenes")) {
+					project.BuildSceneList.clear();
+					for (const Json::Value& sceneValue : buildScenesValue->GetArray()) {
+						const std::string sceneName = sceneValue.AsStringOr();
+						if (!sceneName.empty()) {
+							project.BuildSceneList.push_back(sceneName);
+						}
+					}
+				}
+			}
+			else if (!jsonText.empty()) {
+				BT_CORE_WARN_TAG("BoltProject", "Failed to parse '{}': {}", configPath, parseError);
 			}
 		}
 
@@ -252,13 +207,11 @@ namespace Bolt {
 
 		// Write bolt-project.json
 		{
-			std::stringstream ss;
-			ss << "{\n"
-			   << "  \"name\": \"" << EscapeJSON(name) << "\",\n"
-			   << "  \"engineVersion\": \"" << BT_VERSION << "\",\n"
-			   << "  \"createdAt\": \"" << NowISO8601() << "\"\n"
-			   << "}\n";
-			File::WriteAllText(project.ProjectFilePath, ss.str());
+			Json::Value root = Json::Value::MakeObject();
+			root.AddMember("name", name);
+			root.AddMember("engineVersion", std::string(BT_VERSION));
+			root.AddMember("createdAt", NowISO8601());
+			File::WriteAllText(project.ProjectFilePath, Json::Stringify(root, true));
 		}
 
 		// Resolve path to Bolt-ScriptCore for ProjectReference

@@ -1,29 +1,32 @@
 #include "pch.hpp"
+#include "Assets/AssetRegistry.hpp"
 #include "Scripting/ScriptComponentInspector.hpp"
 #include "Scripting/ScriptComponent.hpp"
 #include "Gui/ImGuiUtils.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Core/Application.hpp"
+#include "Serialization/Json.hpp"
 #include "Serialization/Path.hpp"
 #include "Project/ProjectManager.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
+#include "Scene/ComponentRegistry.hpp"
 #include "Components/General/UUIDComponent.hpp"
 #include "Components/General/NameComponent.hpp"
 
 #include <imgui.h>
+#include <algorithm>
+#include <cctype>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-#include <algorithm>
-#include <vector>
+#include <optional>
 #include <string>
-#include <climits>
+#include <vector>
 
 namespace Bolt {
-
-	// ── Editor Field Info & Minimal JSON Parsing ────────────────────
 
 	namespace {
 
@@ -39,109 +42,478 @@ namespace Bolt {
 			float clampMax = 0.0f;
 		};
 
-		// ── Minimal JSON helpers ──────────────────────────────────────
-		// The C# side returns a JSON array of field objects. We parse it
-		// with simple string scanning — no external dependency needed.
+		struct SceneEntityReference {
+			uint64_t EntityId = 0;
+			std::string EntityName;
+			std::string SceneName;
+		};
 
-		static void SkipWhitespace(const char*& p) {
-			while (*p == ' ' || *p == '\t' || *p == '\n' || *p == '\r') ++p;
-		}
+		struct ReferencePickerEntry {
+			std::string Label;
+			std::string Secondary;
+			std::string SearchKey;
+			std::string Value;
+			std::string UniqueId;
+		};
 
-		static std::string ParseJsonString(const char*& p) {
-			SkipWhitespace(p);
-			if (*p != '"') return {};
-			++p; // skip opening quote
-			std::string result;
-			while (*p && *p != '"') {
-				if (*p == '\\' && *(p + 1)) {
-					++p;
-					switch (*p) {
-						case '"': result += '"'; break;
-						case '\\': result += '\\'; break;
-						case '/': result += '/'; break;
-						case 'n': result += '\n'; break;
-						case 't': result += '\t'; break;
-						case 'r': result += '\r'; break;
-						default: result += *p; break;
-					}
-				} else {
-					result += *p;
-				}
-				++p;
-			}
-			if (*p == '"') ++p; // skip closing quote
-			return result;
-		}
+		struct ReferencePickerState {
+			bool RequestOpen = false;
+			char Search[128] = {};
+			std::string Title;
+			std::string TargetFieldKey;
+			std::vector<ReferencePickerEntry> Entries;
+			std::string PendingFieldKey;
+			std::string PendingValue;
+		};
 
-		static std::string ParseJsonValue(const char*& p) {
-			SkipWhitespace(p);
-			if (*p == '"') return ParseJsonString(p);
-			// Parse a bare value (number, bool, null) as string
-			std::string result;
-			while (*p && *p != ',' && *p != '}' && *p != ']'
-				&& *p != ' ' && *p != '\t' && *p != '\n' && *p != '\r') {
-				result += *p;
-				++p;
-			}
-			return result;
-		}
+		static ReferencePickerState s_ReferencePicker;
 
 		static std::vector<EditorFieldInfo> ParseEditorFields(const char* json) {
 			std::vector<EditorFieldInfo> fields;
 			if (!json || !*json) return fields;
 
-			const char* p = json;
-			SkipWhitespace(p);
-			if (*p != '[') return fields;
-			++p; // skip '['
+			Json::Value root;
+			std::string parseError;
+			if (!Json::TryParse(json, root, &parseError) || !root.IsArray()) {
+				BT_CORE_WARN_TAG("ScriptInspector", "Failed to parse editor field metadata: {}", parseError);
+				return fields;
+			}
 
-			while (*p) {
-				SkipWhitespace(p);
-				if (*p == ']') break;
-				if (*p == ',') { ++p; continue; }
-				if (*p != '{') break;
-				++p; // skip '{'
+			for (const Json::Value& item : root.GetArray()) {
+				if (!item.IsObject()) {
+					continue;
+				}
 
 				EditorFieldInfo field;
-
-				while (*p) {
-					SkipWhitespace(p);
-					if (*p == '}') { ++p; break; }
-					if (*p == ',') { ++p; continue; }
-
-					std::string key = ParseJsonString(p);
-					SkipWhitespace(p);
-					if (*p == ':') ++p; // skip ':'
-
-					if (key == "name")             field.name        = ParseJsonValue(p);
-					else if (key == "displayName") field.displayName = ParseJsonValue(p);
-					else if (key == "type")        field.type        = ParseJsonValue(p);
-					else if (key == "value")       field.value       = ParseJsonValue(p);
-					else if (key == "readOnly")    field.readOnly    = (ParseJsonValue(p) == "true");
-					else if (key == "hasClamp")    field.hasClamp    = (ParseJsonValue(p) == "true");
-					else if (key == "clampMin")    field.clampMin    = static_cast<float>(std::atof(ParseJsonValue(p).c_str()));
-					else if (key == "clampMax")    field.clampMax    = static_cast<float>(std::atof(ParseJsonValue(p).c_str()));
-					else if (key == "tooltip")     field.tooltip     = ParseJsonValue(p);
-					else                           ParseJsonValue(p); // skip unknown keys
-				}
+				if (const Json::Value* nameValue = item.FindMember("name")) field.name = nameValue->AsStringOr();
+				if (const Json::Value* displayNameValue = item.FindMember("displayName")) field.displayName = displayNameValue->AsStringOr();
+				if (const Json::Value* typeValue = item.FindMember("type")) field.type = typeValue->AsStringOr();
+				if (const Json::Value* valueValue = item.FindMember("value")) field.value = valueValue->AsStringOr();
+				if (const Json::Value* readOnlyValue = item.FindMember("readOnly")) field.readOnly = readOnlyValue->AsBoolOr(false);
+				if (const Json::Value* hasClampValue = item.FindMember("hasClamp")) field.hasClamp = hasClampValue->AsBoolOr(false);
+				if (const Json::Value* clampMinValue = item.FindMember("clampMin")) field.clampMin = static_cast<float>(clampMinValue->AsDoubleOr(0.0));
+				if (const Json::Value* clampMaxValue = item.FindMember("clampMax")) field.clampMax = static_cast<float>(clampMaxValue->AsDoubleOr(0.0));
+				if (const Json::Value* tooltipValue = item.FindMember("tooltip")) field.tooltip = tooltipValue->AsStringOr();
 
 				if (field.displayName.empty()) field.displayName = field.name;
 				fields.push_back(std::move(field));
 			}
-
 			return fields;
 		}
 
-		// ── Render a single editor field ──────────────────────────────
+		static std::string ToLowerCopy(std::string value) {
+			std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+				return static_cast<char>(std::tolower(ch));
+			});
+			return value;
+		}
 
-		static void RenderEditorField(int32_t gcHandle, EditorFieldInfo& field) {
+		static bool IsUnsignedIntegerString(const std::string& value) {
+			if (value.empty()) {
+				return false;
+			}
+
+			return std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+				return std::isdigit(ch) != 0;
+			});
+		}
+
+		static const ComponentInfo* FindComponentByDisplayName(const std::string& displayName) {
+			const ComponentInfo* found = nullptr;
+			SceneManager::Get().GetComponentRegistry().ForEachComponentInfo(
+				[&](const std::type_index&, const ComponentInfo& info) {
+					if (!found && info.category == ComponentCategory::Component && info.displayName == displayName) {
+						found = &info;
+					}
+				});
+			return found;
+		}
+
+		static std::string GetEntityName(const Scene& scene, EntityHandle entityHandle, uint64_t entityId) {
+			if (scene.HasComponent<NameComponent>(entityHandle)) {
+				const std::string& name = scene.GetComponent<NameComponent>(entityHandle).Name;
+				if (!name.empty()) {
+					return name;
+				}
+			}
+
+			return "Entity " + std::to_string(entityId);
+		}
+
+		static std::string MakeEntitySecondaryText(const std::string& sceneName, uint64_t entityId) {
+			return sceneName + "  •  " + std::to_string(entityId);
+		}
+
+		static bool TryGetHierarchyPayloadEntity(Scene*& outScene, EntityHandle& outHandle, uint64_t& outEntityId) {
+			struct HierarchyDragData { int Index; uint32_t EntityHandle; };
+
+			outScene = ScriptEngine::GetScene();
+			if (!outScene) {
+				outScene = SceneManager::Get().GetActiveScene();
+			}
+			if (!outScene) {
+				return false;
+			}
+
+			const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+			if (!payload || payload->DataSize != sizeof(HierarchyDragData)) {
+				return false;
+			}
+
+			const auto* data = static_cast<const HierarchyDragData*>(payload->Data);
+			outHandle = static_cast<EntityHandle>(data->EntityHandle);
+			if (!outScene->IsValid(outHandle) || !outScene->HasComponent<UUIDComponent>(outHandle)) {
+				return false;
+			}
+
+			outEntityId = static_cast<uint64_t>(outScene->GetComponent<UUIDComponent>(outHandle).Id);
+			return true;
+		}
+
+		static std::optional<SceneEntityReference> ResolveEntityReference(uint64_t entityId) {
+			if (entityId == 0) {
+				return std::nullopt;
+			}
+
+			std::optional<SceneEntityReference> resolved;
+			SceneManager::Get().ForeachLoadedScene([&](const Scene& scene) {
+				if (resolved.has_value()) {
+					return;
+				}
+
+				auto view = scene.GetRegistry().view<UUIDComponent>();
+				for (EntityHandle entityHandle : view) {
+					const auto& uuidComponent = view.get<UUIDComponent>(entityHandle);
+					if (static_cast<uint64_t>(uuidComponent.Id) != entityId) {
+						continue;
+					}
+
+					resolved = SceneEntityReference{
+						entityId,
+						GetEntityName(scene, entityHandle, entityId),
+						scene.GetName()
+					};
+					return;
+				}
+			});
+
+			return resolved;
+		}
+
+		static std::string GetAssetDisplayName(const std::string& value, AssetKind expectedKind, bool& missing, std::string* secondaryText = nullptr) {
+			missing = false;
+			if (secondaryText) {
+				secondaryText->clear();
+			}
+
+			if (value.empty()) {
+				return "(None)";
+			}
+
+			if (IsUnsignedIntegerString(value)) {
+				const uint64_t assetId = std::strtoull(value.c_str(), nullptr, 10);
+				if (AssetRegistry::GetKind(assetId) == expectedKind) {
+					if (secondaryText) {
+						*secondaryText = AssetRegistry::ResolvePath(assetId);
+					}
+
+					const std::string name = AssetRegistry::GetDisplayName(assetId);
+					if (!name.empty()) {
+						return name;
+					}
+				}
+
+				missing = true;
+				return "(Missing Asset)";
+			}
+
+			const std::filesystem::path path(value);
+			if (std::filesystem::exists(path)) {
+				if (secondaryText) {
+					*secondaryText = value;
+				}
+				return path.filename().string();
+			}
+
+			missing = true;
+			return "(Missing Asset)";
+		}
+
+		static std::string GetComponentDisplayName(const std::string& value, const std::string& expectedType, bool& missing, std::string* secondaryText = nullptr) {
+			missing = false;
+			if (secondaryText) {
+				secondaryText->clear();
+			}
+
+			if (value.empty()) {
+				return "(None)";
+			}
+
+			const std::size_t separator = value.find(':');
+			if (separator == std::string::npos) {
+				missing = true;
+				return "(Invalid Component)";
+			}
+
+			const uint64_t entityId = std::strtoull(value.substr(0, separator).c_str(), nullptr, 10);
+			const std::string componentName = value.substr(separator + 1);
+			const auto resolved = ResolveEntityReference(entityId);
+			if (!resolved.has_value()) {
+				missing = true;
+				return "(Missing)." + componentName;
+			}
+
+			if (secondaryText) {
+				*secondaryText = MakeEntitySecondaryText(resolved->SceneName, entityId);
+			}
+
+			if (!componentName.empty() && componentName != expectedType) {
+				missing = true;
+			}
+
+			return resolved->EntityName + "." + (componentName.empty() ? expectedType : componentName);
+		}
+
+		static void NormalizeAssetFieldValue(std::string& value, AssetKind expectedKind) {
+			if (value.empty() || IsUnsignedIntegerString(value)) {
+				return;
+			}
+
+			const uint64_t assetId = AssetRegistry::GetOrCreateAssetUUID(value);
+			if (assetId != 0 && AssetRegistry::GetKind(assetId) == expectedKind) {
+				value = std::to_string(assetId);
+			}
+		}
+
+		static std::vector<ReferencePickerEntry> CollectEntityPickerEntries() {
+			std::vector<ReferencePickerEntry> entries;
+
+			SceneManager::Get().ForeachLoadedScene([&](const Scene& scene) {
+				auto view = scene.GetRegistry().view<UUIDComponent>();
+				for (EntityHandle entityHandle : view) {
+					const auto& uuidComponent = view.get<UUIDComponent>(entityHandle);
+					const uint64_t entityId = static_cast<uint64_t>(uuidComponent.Id);
+
+					ReferencePickerEntry entry;
+					entry.Label = GetEntityName(scene, entityHandle, entityId);
+					entry.Secondary = MakeEntitySecondaryText(scene.GetName(), entityId);
+					entry.SearchKey = ToLowerCopy(entry.Label + " " + entry.Secondary);
+					entry.Value = std::to_string(entityId);
+					entry.UniqueId = entry.Value;
+					entries.push_back(std::move(entry));
+				}
+			});
+
+			std::sort(entries.begin(), entries.end(), [](const ReferencePickerEntry& a, const ReferencePickerEntry& b) {
+				if (a.Label == b.Label) {
+					return a.Secondary < b.Secondary;
+				}
+				return a.Label < b.Label;
+			});
+
+			return entries;
+		}
+
+		static std::vector<ReferencePickerEntry> CollectComponentPickerEntries(const std::string& componentTypeName) {
+			std::vector<ReferencePickerEntry> entries;
+			const ComponentInfo* componentInfo = FindComponentByDisplayName(componentTypeName);
+			if (!componentInfo || !componentInfo->has) {
+				return entries;
+			}
+
+			SceneManager::Get().ForeachLoadedScene([&](const Scene& scene) {
+				auto view = scene.GetRegistry().view<UUIDComponent>();
+				for (EntityHandle entityHandle : view) {
+					const auto& uuidComponent = view.get<UUIDComponent>(entityHandle);
+					const uint64_t entityId = static_cast<uint64_t>(uuidComponent.Id);
+					Entity entity = scene.GetEntity(entityHandle);
+					if (!componentInfo->has(entity)) {
+						continue;
+					}
+
+					const std::string entityName = GetEntityName(scene, entityHandle, entityId);
+
+					ReferencePickerEntry entry;
+					entry.Label = entityName + "." + componentTypeName;
+					entry.Secondary = MakeEntitySecondaryText(scene.GetName(), entityId);
+					entry.SearchKey = ToLowerCopy(entityName + " " + componentTypeName + " " + entry.Secondary);
+					entry.Value = std::to_string(entityId) + ":" + componentTypeName;
+					entry.UniqueId = entry.Value;
+					entries.push_back(std::move(entry));
+				}
+			});
+
+			std::sort(entries.begin(), entries.end(), [](const ReferencePickerEntry& a, const ReferencePickerEntry& b) {
+				if (a.Label == b.Label) {
+					return a.Secondary < b.Secondary;
+				}
+				return a.Label < b.Label;
+			});
+
+			return entries;
+		}
+
+		static std::vector<ReferencePickerEntry> CollectAssetPickerEntries(AssetKind kind) {
+			std::vector<ReferencePickerEntry> entries;
+			for (const AssetRegistry::Record& record : AssetRegistry::GetAssetsByKind(kind)) {
+				ReferencePickerEntry entry;
+				entry.Label = std::filesystem::path(record.Path).filename().string();
+				entry.Secondary = record.Path;
+				entry.SearchKey = ToLowerCopy(entry.Label + " " + entry.Secondary);
+				entry.Value = std::to_string(record.Id);
+				entry.UniqueId = entry.Value;
+				entries.push_back(std::move(entry));
+			}
+			return entries;
+		}
+
+		static void OpenReferencePicker(const std::string& fieldKey, const std::string& title, std::vector<ReferencePickerEntry> entries) {
+			s_ReferencePicker.RequestOpen = true;
+			s_ReferencePicker.Title = title;
+			s_ReferencePicker.TargetFieldKey = fieldKey;
+			s_ReferencePicker.Entries = std::move(entries);
+			s_ReferencePicker.Search[0] = '\0';
+		}
+
+		static std::optional<std::string> ConsumeReferencePickerSelection(const std::string& fieldKey) {
+			if (s_ReferencePicker.PendingFieldKey != fieldKey) {
+				return std::nullopt;
+			}
+
+			std::string value = s_ReferencePicker.PendingValue;
+			s_ReferencePicker.PendingFieldKey.clear();
+			s_ReferencePicker.PendingValue.clear();
+			return value;
+		}
+
+		static bool DrawReferenceFieldControls(
+			const char* label,
+			const std::string& displayValue,
+			const std::string& secondaryText,
+			bool missing,
+			bool hasValue,
+			bool& clearRequested,
+			bool& hoveredAny)
+		{
+			constexpr float labelColumnWidth = 160.0f;
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::TextUnformatted(label);
+			hoveredAny |= ImGui::IsItemHovered();
+
+			ImGui::SameLine(labelColumnWidth);
+
+			const float pickerButtonWidth = 28.0f;
+			const float clearButtonWidth = hasValue ? 24.0f : 0.0f;
+			float buttonWidth = ImGui::GetContentRegionAvail().x - pickerButtonWidth;
+			if (hasValue) {
+				buttonWidth -= ImGui::GetStyle().ItemSpacing.x + clearButtonWidth;
+			}
+			buttonWidth = std::max(buttonWidth, 120.0f);
+
+			if (missing) {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.30f, 0.12f, 0.12f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.38f, 0.16f, 0.16f, 1.0f));
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.26f, 0.10f, 0.10f, 1.0f));
+			}
+
+			bool openPicker = ImGui::Button((displayValue + "##ReferenceValue").c_str(), ImVec2(buttonWidth, 0.0f));
+			hoveredAny |= ImGui::IsItemHovered();
+			if (!secondaryText.empty() && ImGui::IsItemHovered()) {
+				ImGui::SetTooltip("%s", secondaryText.c_str());
+			}
+
+			if (missing) {
+				ImGui::PopStyleColor(3);
+			}
+
+			ImGui::SameLine();
+			if (ImGui::SmallButton("...##ReferencePicker")) {
+				openPicker = true;
+			}
+			hoveredAny |= ImGui::IsItemHovered();
+
+			if (hasValue) {
+				ImGui::SameLine();
+				clearRequested = ImGui::SmallButton("X##ReferenceClear");
+				hoveredAny |= ImGui::IsItemHovered();
+			}
+
+			return openPicker;
+		}
+
+		static void RenderReferencePickerPopup() {
+			if (s_ReferencePicker.RequestOpen) {
+				ImGui::OpenPopup("Reference Picker##ScriptInspector");
+				s_ReferencePicker.RequestOpen = false;
+			}
+
+			ImGui::SetNextWindowSize(ImVec2(440.0f, 430.0f), ImGuiCond_Appearing);
+			if (!ImGui::BeginPopupModal("Reference Picker##ScriptInspector", nullptr, ImGuiWindowFlags_NoSavedSettings)) {
+				return;
+			}
+
+			ImGui::TextUnformatted(s_ReferencePicker.Title.c_str());
+			ImGui::Separator();
+			ImGui::SetNextItemWidth(-1.0f);
+			ImGui::InputTextWithHint("##ReferenceSearch", "Search...", s_ReferencePicker.Search, sizeof(s_ReferencePicker.Search));
+			ImGui::Separator();
+
+			ImGui::BeginChild("##ReferencePickerList");
+
+			const std::string filter = ToLowerCopy(std::string(s_ReferencePicker.Search));
+			bool hasVisibleEntries = false;
+
+			for (const ReferencePickerEntry& entry : s_ReferencePicker.Entries) {
+				if (!filter.empty() && entry.SearchKey.find(filter) == std::string::npos) {
+					continue;
+				}
+
+				hasVisibleEntries = true;
+
+				if (ImGui::Selectable((entry.Label + "##" + entry.UniqueId).c_str(), false)) {
+					s_ReferencePicker.PendingFieldKey = s_ReferencePicker.TargetFieldKey;
+					s_ReferencePicker.PendingValue = entry.Value;
+					ImGui::CloseCurrentPopup();
+				}
+
+				if (!entry.Secondary.empty()) {
+					ImGui::Indent(14.0f);
+					ImGui::TextDisabled("%s", entry.Secondary.c_str());
+					if (ImGui::IsItemHovered()) {
+						ImGui::SetTooltip("%s", entry.Secondary.c_str());
+					}
+					ImGui::Unindent(14.0f);
+				}
+			}
+
+			if (!hasVisibleEntries) {
+				ImGui::TextDisabled("No matching items");
+			}
+
+			ImGui::EndChild();
+			ImGui::Separator();
+			if (ImGui::Button("Close")) {
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		static void RenderEditorField(const std::string& fieldKey, int32_t gcHandle, EditorFieldInfo& field) {
+			(void)gcHandle;
 			ImGui::PushID(field.name.c_str());
+
+			if (const auto pickerValue = ConsumeReferencePickerSelection(fieldKey)) {
+				field.value = *pickerValue;
+			}
 
 			if (field.readOnly)
 				ImGui::BeginDisabled();
 
 			bool changed = false;
 			std::string newValue;
+			bool hoveredAny = false;
 
 			const std::string& type = field.type;
 			const char* label = field.displayName.c_str();
@@ -156,6 +528,7 @@ namespace Bolt {
 					std::snprintf(buf, sizeof(buf), "%g", val);
 					newValue = buf;
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "int") {
 				int val = std::atoi(field.value.c_str());
@@ -165,6 +538,7 @@ namespace Bolt {
 					changed = true;
 					newValue = std::to_string(val);
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "short") {
 				int val = std::atoi(field.value.c_str());
@@ -176,6 +550,7 @@ namespace Bolt {
 					changed = true;
 					newValue = std::to_string(val);
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "byte") {
 				int val = std::atoi(field.value.c_str());
@@ -187,6 +562,7 @@ namespace Bolt {
 					changed = true;
 					newValue = std::to_string(val);
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "sbyte") {
 				int val = std::atoi(field.value.c_str());
@@ -198,6 +574,7 @@ namespace Bolt {
 					changed = true;
 					newValue = std::to_string(val);
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "uint") {
 				int val = std::atoi(field.value.c_str());
@@ -208,6 +585,7 @@ namespace Bolt {
 					changed = true;
 					newValue = std::to_string(val);
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "ushort") {
 				int val = std::atoi(field.value.c_str());
@@ -219,6 +597,7 @@ namespace Bolt {
 					changed = true;
 					newValue = std::to_string(val);
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "long" || type == "ulong") {
 				char buf[64];
@@ -228,6 +607,7 @@ namespace Bolt {
 					changed = true;
 					newValue = buf;
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "bool") {
 				bool val = (field.value == "true" || field.value == "True" || field.value == "1");
@@ -235,6 +615,7 @@ namespace Bolt {
 					changed = true;
 					newValue = val ? "true" : "false";
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "string") {
 				char buf[256];
@@ -244,9 +625,9 @@ namespace Bolt {
 					changed = true;
 					newValue = buf;
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "color") {
-				// Parse "r,g,b,a" format
 				float col[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 				if (!field.value.empty()) {
 					std::sscanf(field.value.c_str(), "%f,%f,%f,%f",
@@ -259,44 +640,42 @@ namespace Bolt {
 						col[0], col[1], col[2], col[3]);
 					newValue = buf;
 				}
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 			else if (type == "entity") {
-				uint64_t uuid = std::strtoull(field.value.c_str(), nullptr, 10);
-
+				const uint64_t entityId = std::strtoull(field.value.c_str(), nullptr, 10);
+				bool missing = false;
+				std::string secondaryText;
 				std::string displayName = "(None)";
-				if (uuid != 0) {
-					Scene* scene = ScriptEngine::GetScene();
-					if (scene) {
-						auto view = scene->GetRegistry().view<UUIDComponent, NameComponent>();
-						for (auto [ent, uuidComp, nameComp] : view.each()) {
-							if (static_cast<uint64_t>(uuidComp.Id) == uuid) {
-								displayName = nameComp.Name;
-								break;
-							}
-						}
-						if (displayName == "(None)") displayName = "(Missing Entity)";
+
+				if (entityId != 0) {
+					const auto resolved = ResolveEntityReference(entityId);
+					if (resolved.has_value()) {
+						displayName = resolved->EntityName;
+						secondaryText = MakeEntitySecondaryText(resolved->SceneName, entityId);
+					}
+					else {
+						missing = true;
+						displayName = "(Missing Entity)";
 					}
 				}
 
-				ImGui::Text("%s: %s", label, displayName.c_str());
-
-				if (uuid != 0) {
-					ImGui::SameLine();
-					if (ImGui::SmallButton("X##ClearEntity")) {
-						newValue = "0";
-						changed = true;
-					}
+				bool clearRequested = false;
+				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, entityId != 0, clearRequested, hoveredAny)) {
+					OpenReferencePicker(fieldKey, "Select Entity", CollectEntityPickerEntries());
+				}
+				if (clearRequested) {
+					changed = true;
+					newValue = "0";
 				}
 
 				if (ImGui::BeginDragDropTarget()) {
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
-						struct HierarchyDragData { int Index; uint32_t EntityHandle; };
-						auto* data = static_cast<const HierarchyDragData*>(payload->Data);
-						EntityHandle handle = static_cast<EntityHandle>(data->EntityHandle);
-						Scene* scene = ScriptEngine::GetScene();
-						if (scene && scene->IsValid(handle) && scene->HasComponent<UUIDComponent>(handle)) {
-							uint64_t droppedUUID = static_cast<uint64_t>(scene->GetComponent<UUIDComponent>(handle).Id);
-							newValue = std::to_string(droppedUUID);
+					if (ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
+						Scene* scene = nullptr;
+						EntityHandle handle = entt::null;
+						uint64_t droppedEntityId = 0;
+						if (TryGetHierarchyPayloadEntity(scene, handle, droppedEntityId)) {
+							newValue = std::to_string(droppedEntityId);
 							changed = true;
 						}
 					}
@@ -304,28 +683,27 @@ namespace Bolt {
 				}
 			}
 			else if (type == "texture") {
-				std::string path = field.value;
-				std::string displayName = path.empty() ? "(None)" : std::filesystem::path(path).filename().string();
+				NormalizeAssetFieldValue(field.value, AssetKind::Texture);
 
-				bool exists = path.empty() || std::filesystem::exists(path);
-				if (!path.empty() && !exists) {
-					ImGui::TextColored(ImVec4(1, 0.3f, 0.3f, 1), "%s: (Missing: %s)", label, displayName.c_str());
-				} else {
-					ImGui::Text("%s: %s", label, displayName.c_str());
+				bool missing = false;
+				std::string secondaryText;
+				const std::string displayName = GetAssetDisplayName(field.value, AssetKind::Texture, missing, &secondaryText);
+
+				bool clearRequested = false;
+				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, !field.value.empty(), clearRequested, hoveredAny)) {
+					OpenReferencePicker(fieldKey, "Select Texture", CollectAssetPickerEntries(AssetKind::Texture));
 				}
-
-				if (!path.empty()) {
-					ImGui::SameLine();
-					if (ImGui::SmallButton("X##ClearTex")) { newValue = ""; changed = true; }
+				if (clearRequested) {
+					changed = true;
+					newValue.clear();
 				}
 
 				if (ImGui::BeginDragDropTarget()) {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
 						std::string droppedPath(static_cast<const char*>(payload->Data));
-						std::string ext = std::filesystem::path(droppedPath).extension().string();
-						std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-						if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".tga") {
-							newValue = droppedPath;
+						const uint64_t assetId = AssetRegistry::GetOrCreateAssetUUID(droppedPath);
+						if (assetId != 0 && AssetRegistry::GetKind(assetId) == AssetKind::Texture) {
+							newValue = std::to_string(assetId);
 							changed = true;
 						}
 					}
@@ -333,28 +711,27 @@ namespace Bolt {
 				}
 			}
 			else if (type == "audio") {
-				std::string path = field.value;
-				std::string displayName = path.empty() ? "(None)" : std::filesystem::path(path).filename().string();
+				NormalizeAssetFieldValue(field.value, AssetKind::Audio);
 
-				bool exists = path.empty() || std::filesystem::exists(path);
-				if (!path.empty() && !exists) {
-					ImGui::TextColored(ImVec4(1, 0.3f, 0.3f, 1), "%s: (Missing: %s)", label, displayName.c_str());
-				} else {
-					ImGui::Text("%s: %s", label, displayName.c_str());
+				bool missing = false;
+				std::string secondaryText;
+				const std::string displayName = GetAssetDisplayName(field.value, AssetKind::Audio, missing, &secondaryText);
+
+				bool clearRequested = false;
+				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, !field.value.empty(), clearRequested, hoveredAny)) {
+					OpenReferencePicker(fieldKey, "Select Audio", CollectAssetPickerEntries(AssetKind::Audio));
 				}
-
-				if (!path.empty()) {
-					ImGui::SameLine();
-					if (ImGui::SmallButton("X##ClearAudio")) { newValue = ""; changed = true; }
+				if (clearRequested) {
+					changed = true;
+					newValue.clear();
 				}
 
 				if (ImGui::BeginDragDropTarget()) {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_BROWSER_ITEM")) {
 						std::string droppedPath(static_cast<const char*>(payload->Data));
-						std::string ext = std::filesystem::path(droppedPath).extension().string();
-						std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
-						if (ext == ".wav" || ext == ".mp3" || ext == ".ogg" || ext == ".flac") {
-							newValue = droppedPath;
+						const uint64_t assetId = AssetRegistry::GetOrCreateAssetUUID(droppedPath);
+						if (assetId != 0 && AssetRegistry::GetKind(assetId) == AssetKind::Audio) {
+							newValue = std::to_string(assetId);
 							changed = true;
 						}
 					}
@@ -362,56 +739,58 @@ namespace Bolt {
 				}
 			}
 			else if (type.rfind("component:", 0) == 0) {
-				std::string compTypeName = type.substr(10);
-				std::string val = field.value;
-				std::string displayName = "(None)";
+				const std::string componentTypeName = type.substr(10);
+				bool missing = false;
+				std::string secondaryText;
+				const std::string displayName = GetComponentDisplayName(field.value, componentTypeName, missing, &secondaryText);
 
-				if (!val.empty()) {
-					auto sep = val.find(':');
-					if (sep != std::string::npos) {
-						uint64_t entityId = std::strtoull(val.substr(0, sep).c_str(), nullptr, 10);
-						std::string compName = val.substr(sep + 1);
-						Scene* scene = ScriptEngine::GetScene();
-						if (scene && entityId != 0) {
-							auto view = scene->GetRegistry().view<UUIDComponent, NameComponent>();
-							bool found = false;
-							for (auto [ent, uuidComp, nameComp] : view.each()) {
-								if (static_cast<uint64_t>(uuidComp.Id) == entityId) {
-									displayName = nameComp.Name + "." + compName;
-									found = true;
-									break;
-								}
-							}
-							if (!found) displayName = "(Missing)." + compName;
-						}
-					}
+				bool clearRequested = false;
+				if (DrawReferenceFieldControls(label, displayName, secondaryText, missing, !field.value.empty(), clearRequested, hoveredAny)) {
+					OpenReferencePicker(fieldKey, "Select " + componentTypeName, CollectComponentPickerEntries(componentTypeName));
 				}
-
-				ImGui::Text("%s: %s", label, displayName.c_str());
-
-				if (!val.empty()) {
-					ImGui::SameLine();
-					if (ImGui::SmallButton("X##ClearComp")) { newValue = ""; changed = true; }
+				if (clearRequested) {
+					changed = true;
+					newValue.clear();
 				}
 
 				if (ImGui::BeginDragDropTarget()) {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("COMPONENT_REF")) {
 						std::string refStr(static_cast<const char*>(payload->Data));
-						newValue = refStr;
-						changed = true;
+						const std::size_t separator = refStr.find(':');
+						if (separator != std::string::npos) {
+							const std::string droppedTypeName = refStr.substr(separator + 1);
+							if (droppedTypeName == componentTypeName) {
+								newValue = refStr;
+								changed = true;
+							}
+						}
 					}
+
+					if (ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
+						Scene* scene = nullptr;
+						EntityHandle handle = entt::null;
+						uint64_t droppedEntityId = 0;
+						const ComponentInfo* componentInfo = FindComponentByDisplayName(componentTypeName);
+						if (componentInfo && componentInfo->has
+							&& TryGetHierarchyPayloadEntity(scene, handle, droppedEntityId)
+							&& componentInfo->has(scene->GetEntity(handle))) {
+							newValue = std::to_string(droppedEntityId) + ":" + componentTypeName;
+							changed = true;
+						}
+					}
+
 					ImGui::EndDragDropTarget();
 				}
 			}
 			else {
-				// Unknown type: show read-only text
 				ImGui::TextDisabled("%s: %s (%s)", label, field.value.c_str(), type.c_str());
+				hoveredAny |= ImGui::IsItemHovered();
 			}
 
 			if (field.readOnly)
 				ImGui::EndDisabled();
 
-			if (!field.tooltip.empty() && ImGui::IsItemHovered()) {
+			if (!field.tooltip.empty() && hoveredAny) {
 				ImGui::SetTooltip("%s", field.tooltip.c_str());
 			}
 
@@ -422,10 +801,11 @@ namespace Bolt {
 			ImGui::PopID();
 		}
 
-		// ── Render all fields for a script ────────────────────────────
-		// Works in both Edit Mode (no instance) and Play Mode (live instance).
+		static std::string MakeFieldKey(std::size_t scriptIndex, const std::string& className, const std::string& fieldName) {
+			return className + "#" + std::to_string(scriptIndex) + "." + fieldName;
+		}
 
-		static void RenderScriptFieldsForInstance(ScriptComponent& sc, const ScriptInstance& instance) {
+		static void RenderScriptFieldsForInstance(ScriptComponent& sc, const ScriptInstance& instance, std::size_t scriptIndex) {
 			auto& callbacks = ScriptEngine::GetCallbacks();
 			bool isPlaying = Application::GetIsPlaying();
 			bool hasLiveInstance = instance.HasManagedInstance();
@@ -433,10 +813,9 @@ namespace Bolt {
 			const char* json = nullptr;
 
 			if (hasLiveInstance && callbacks.GetScriptFields) {
-				// Play mode: get live field values from the running instance
 				json = callbacks.GetScriptFields(static_cast<int32_t>(instance.GetGCHandle()));
-			} else if (callbacks.GetClassFieldDefs) {
-				// Edit mode: get field definitions (with defaults) from the class
+			}
+			else if (callbacks.GetClassFieldDefs) {
 				json = callbacks.GetClassFieldDefs(instance.GetClassName().c_str());
 			}
 
@@ -445,7 +824,6 @@ namespace Bolt {
 			auto fields = ParseEditorFields(json);
 			if (fields.empty()) return;
 
-			// In edit mode, overlay saved values from PendingFieldValues
 			if (!hasLiveInstance) {
 				for (auto& field : fields) {
 					std::string key = instance.GetClassName() + "." + field.name;
@@ -458,15 +836,10 @@ namespace Bolt {
 			ImGui::Indent(8.0f);
 			for (auto& field : fields) {
 				std::string oldValue = field.value;
+				const std::string fieldKey = MakeFieldKey(scriptIndex, instance.GetClassName(), field.name);
 
-				if (hasLiveInstance) {
-					RenderEditorField(static_cast<int32_t>(instance.GetGCHandle()), field);
-				} else {
-					// Edit mode: render with a dummy handle (changes go to PendingFieldValues)
-					RenderEditorField(0, field);
-				}
+				RenderEditorField(fieldKey, hasLiveInstance ? static_cast<int32_t>(instance.GetGCHandle()) : 0, field);
 
-				// Detect value change
 				if (field.value != oldValue) {
 					if (hasLiveInstance && callbacks.SetScriptField) {
 						callbacks.SetScriptField(
@@ -475,32 +848,26 @@ namespace Bolt {
 					}
 
 					if (!isPlaying) {
-						// Edit mode: persist to PendingFieldValues and mark dirty
 						std::string key = instance.GetClassName() + "." + field.name;
 						sc.PendingFieldValues[key] = field.value;
 					}
-					// Play mode: transient change — do NOT mark dirty
 				}
 			}
 			ImGui::Unindent(8.0f);
 		}
 
-	} // end anonymous namespace forward declarations
-
-	// ── Script Picker (same pattern as Texture Picker in ComponentInspectors.cpp) ──
+	} // namespace
 
 	namespace {
 		struct ScriptPickerEntry {
-			std::string ClassName;   // stem without extension
+			std::string ClassName;
 			std::string RelativePath;
-			std::string Extension;   // ".cs" or ".cpp"
+			std::string Extension;
 		};
 
 		static bool s_ScriptPickerOpen = false;
 		static char s_ScriptPickerSearch[128] = {};
 		static std::vector<ScriptPickerEntry> s_ScriptPickerEntries;
-		// Store entity handle instead of raw component pointer to avoid
-		// dangling pointer if the entity is destroyed or components reallocate.
 		static EntityHandle s_ScriptPickerTargetEntity = entt::null;
 
 		static bool IsScriptExtension(const std::string& ext) {
@@ -524,6 +891,9 @@ namespace Bolt {
 			}
 			std::sort(entries.begin(), entries.end(),
 				[](const ScriptPickerEntry& a, const ScriptPickerEntry& b) {
+					if (a.ClassName == b.ClassName) {
+						return a.RelativePath < b.RelativePath;
+					}
 					return a.ClassName < b.ClassName;
 				});
 		}
@@ -536,13 +906,10 @@ namespace Bolt {
 
 			BoltProject* project = ProjectManager::GetCurrentProject();
 			if (project) {
-				// C# scripts in Assets/Scripts/
 				CollectScriptFiles(std::filesystem::path(project->ScriptsDirectory), s_ScriptPickerEntries);
-				// C++ native scripts
 				CollectScriptFiles(std::filesystem::path(project->NativeSourceDir), s_ScriptPickerEntries);
 			}
 			else {
-				// Dev/sandbox fallback
 				std::string base = Path::ExecutableDir();
 				CollectScriptFiles(std::filesystem::path(base) / ".." / ".." / ".." / "Bolt-Sandbox" / "Source", s_ScriptPickerEntries);
 				CollectScriptFiles(std::filesystem::path(base) / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source", s_ScriptPickerEntries);
@@ -564,18 +931,15 @@ namespace Bolt {
 
 			ImGui::BeginChild("##ScriptList");
 
-			std::string filter(s_ScriptPickerSearch);
-			std::transform(filter.begin(), filter.end(), filter.begin(), ::tolower);
+			std::string filter = ToLowerCopy(std::string(s_ScriptPickerSearch));
 
 			for (const auto& entry : s_ScriptPickerEntries) {
 				if (!filter.empty()) {
-					std::string lowerName = entry.ClassName;
-					std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+					std::string lowerName = ToLowerCopy(entry.ClassName);
 					if (lowerName.find(filter) == std::string::npos) continue;
 				}
 
-				// Show class name with extension tag
-				std::string label = entry.ClassName + "  " + entry.Extension;
+				std::string label = entry.ClassName + "  " + entry.Extension + "##" + entry.RelativePath;
 				if (ImGui::Selectable(label.c_str(), false)) {
 					Scene* scene = ScriptEngine::GetScene();
 					if (!scene) scene = SceneManager::Get().GetActiveScene();
@@ -599,15 +963,12 @@ namespace Bolt {
 		}
 	}
 
-	// ── Inspector ───────────────────────────────────────────────────
-
 	void DrawScriptComponentInspector(Entity entity)
 	{
 		auto& scriptComp = entity.GetComponent<ScriptComponent>();
 
 		size_t removeIndex = SIZE_MAX;
 
-		// Each script rendered as its own component section
 		for (size_t i = 0; i < scriptComp.Scripts.size(); i++) {
 			auto& instance = scriptComp.Scripts[i];
 			std::string label = instance.GetClassName().empty() ? "Script" : instance.GetClassName();
@@ -626,9 +987,8 @@ namespace Bolt {
 					ImGui::TextDisabled("Bound | %s", instance.HasStarted() ? "Started" : "Pending Start");
 				}
 
-				// Show [ShowInEditor] fields in both Edit and Play mode
 				if (ScriptEngine::IsInitialized()) {
-					RenderScriptFieldsForInstance(scriptComp, instance);
+					RenderScriptFieldsForInstance(scriptComp, instance, i);
 				}
 
 				ImGuiUtils::EndComponentSection();
@@ -642,6 +1002,7 @@ namespace Bolt {
 		}
 
 		RenderScriptPicker();
+		RenderReferencePickerPopup();
 	}
 
-}
+} // namespace Bolt

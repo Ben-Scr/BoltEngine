@@ -9,6 +9,10 @@ namespace Bolt {
 
 	class Entity;
 
+	namespace Json {
+		class Value;
+	}
+
 	class BOLT_API SceneSerializer {
 	public:
 		static bool SaveToFile(Scene& scene, const std::string& path);
@@ -19,7 +23,7 @@ namespace Bolt {
 		static EntityHandle LoadEntityFromFile(Scene& scene, const std::string& path);
 
 	private:
-		static void DeserializeEntity(Scene& scene, const std::string& entityJson);
+		static EntityHandle DeserializeEntity(Scene& scene, const Json::Value& entityValue);
 	};
 
 } // namespace Bolt

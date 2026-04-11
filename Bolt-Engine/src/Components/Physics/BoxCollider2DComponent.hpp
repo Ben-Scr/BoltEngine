@@ -10,6 +10,8 @@ namespace Bolt {
 		friend class PhysicsSystem2D;
 	public:
 		BoxCollider2DComponent() = default;
+		explicit BoxCollider2DComponent(EntityHandle entity)
+			: Collider2D(entity) {}
 
 		void SetScale(const Vec2& scale, const Scene& scene);
 		void SetEnabled(bool enabled);

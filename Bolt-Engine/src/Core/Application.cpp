@@ -16,14 +16,13 @@
 
 namespace Bolt {
 	const float Application::k_PausedTargetFrameRate = 10;
-	std::string Application::s_Name = "App";
 
 	Application* Application::s_Instance = nullptr;
 
 	void Application::Run()
 	{
 		if (m_ForceSingleInstance) {
-			static SingleInstance instance(s_Name);
+			static SingleInstance instance(m_Name);
 			BT_ASSERT(!instance.IsAlreadyRunning(), BoltErrorCode::Undefined, "An Instance of this app is already running!");
 		}
 
@@ -50,14 +49,15 @@ namespace Bolt {
 			m_LastFrameTime = Clock::now();
 
 			while (m_Window && !m_Window->ShouldClose() && !m_ShouldQuit) {
-				const float targetFps = Max(GetTargetFramerate(), 1.0f);
+				const float targetFps = Max(GetTargetFramerate(), 0.0f);
 				DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / targetFps));
 				auto now = Clock::now();
 
 				// Info: CPU idling for fps cap if vsync is disabled, or for paused frame cap.
-				if (!m_Window->IsVsync() || m_IsPaused)
+				if (targetFps > 0.0f && (!m_Window->IsVsync() || m_IsPaused))
 				{
 					auto const nextFrameTime = m_LastFrameTime + targetFrameTime;
+					auto const idleStart = Clock::now();
 
 					if (now + std::chrono::milliseconds(10) < nextFrameTime)
 						std::this_thread::sleep_until(nextFrameTime - std::chrono::milliseconds(10));
@@ -67,9 +67,9 @@ namespace Bolt {
 					}
 				}
 
+
 				auto frameStart = Clock::now();
 				float deltaTime = std::chrono::duration<float>(frameStart - m_LastFrameTime).count();
-				m_MaxPossibleFPS = deltaTime > 0.0f ? 1.0f / deltaTime : 0.0f;
 
 				if (deltaTime >= 0.25f) {
 					ResetTimePoints();
@@ -113,6 +113,7 @@ namespace Bolt {
 
 	void Application::Initialize() {
 		m_Configuration = GetConfiguration();
+		SetName(m_Configuration.WindowSpecification.Title);
 
 		Timer timer = Timer();
 		Window::Initialize();
@@ -200,12 +201,13 @@ namespace Bolt {
 		}
 	}
 
-
 	void Application::BeginFrame() {
 		CoreInput();
 
 		if (!m_IsPaused) {
+			// TODO(Ben-Scr): The playmode pause state should be derived from the editor.
 			bool gameplayActive = m_IsPlaying && !m_IsPlaymodePaused;
+
 			if (gameplayActive && m_Configuration.EnableAudio) AudioManager::Update();
 			Update();
 
@@ -242,6 +244,9 @@ namespace Bolt {
 		dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
 			if (e.GetWidth() == 0 || e.GetHeight() == 0) {
 				m_IsPaused = true;
+			}
+			else {
+				m_IsPaused = false;
 			}
 			return false;
 		});
@@ -321,6 +326,14 @@ namespace Bolt {
 	}
 
 	void Application::CoreInput() {
+		if (m_Input.GetKey(KeyCode::LeftControl) && m_Input.GetKeyDown(KeyCode::I))
+		{
+
+			BT_INFO_TAG("Debug", "From: " + m_Name);
+			BT_INFO_TAG("Debug", "Current FPS: " + StringHelper::ToString(m_Time.GetFrameRate()));
+			BT_INFO_TAG("Debug", "Time Elapsed: " + StringHelper::ToString(m_Time.GetElapsedTime(), " s"));
+		}
+
 		if (m_Input.GetKeyDown(KeyCode::Esc)) {
 			if (m_Window) m_Window->MinimizeWindow();
 		}
@@ -336,12 +349,21 @@ namespace Bolt {
 
 
 	void Application::Shutdown() {
-		OnQuit();
+		try {
+			OnQuit();
+		}
+		catch (const std::exception& e) {
+			BT_ERROR_TAG("Application", std::string("OnQuit failed: ") + e.what());
+		}
+		catch (...) {
+			BT_ERROR_TAG("Application", "OnQuit failed with unknown exception");
+		}
 
 		if (m_SceneManager) m_SceneManager->Shutdown();
 		TextureManager::Shutdown();
 
 		if (m_PhysicsSystem2D) m_PhysicsSystem2D->Shutdown();
+		if (m_GuiRenderer) m_GuiRenderer->Shutdown();
 		if (m_GizmoRenderer2D) m_GizmoRenderer2D->Shutdown();
 		if (m_Renderer2D) m_Renderer2D->Shutdown();
 		if (m_ImGuiRenderer) m_ImGuiRenderer->Shutdown();
@@ -352,6 +374,18 @@ namespace Bolt {
 		if (m_Window) m_Window->Destroy();
 		Window::Shutdown();
 
+		m_ImGuiRenderer.reset();
+		m_GuiRenderer.reset();
+		m_GizmoRenderer2D.reset();
+		m_Renderer2D.reset();
+		m_PhysicsSystem2D.reset();
+		m_Window.reset();
+
 		m_ShouldQuit = false;
+		m_QuitRequested = false;
+		m_IsPaused = false;
+		m_IsPlaymodePaused = false;
+		m_FixedUpdateAccumulator = 0.0;
+		m_PendingFileDrops.clear();
 	}
 }

@@ -207,6 +207,8 @@ namespace Bolt
 
         internal static void SpriteRenderer_GetColor(ulong id, out float r, out float g, out float b, out float a) { float cr, cg, cb, ca; NativeCallbacks.Bindings.SpriteRenderer_GetColor(id, &cr, &cg, &cb, &ca); r = cr; g = cg; b = cb; a = ca; }
         internal static void SpriteRenderer_SetColor(ulong id, float r, float g, float b, float a) => NativeCallbacks.Bindings.SpriteRenderer_SetColor(id, r, g, b, a);
+        internal static ulong SpriteRenderer_GetTexture(ulong id) => NativeCallbacks.Bindings.SpriteRenderer_GetTexture(id);
+        internal static void SpriteRenderer_SetTexture(ulong id, ulong assetId) => NativeCallbacks.Bindings.SpriteRenderer_SetTexture(id, assetId);
         internal static int SpriteRenderer_GetSortingOrder(ulong id) => NativeCallbacks.Bindings.SpriteRenderer_GetSortingOrder(id);
         internal static void SpriteRenderer_SetSortingOrder(ulong id, int order) => NativeCallbacks.Bindings.SpriteRenderer_SetSortingOrder(id, order);
         internal static int SpriteRenderer_GetSortingLayer(ulong id) => NativeCallbacks.Bindings.SpriteRenderer_GetSortingLayer(id);
@@ -319,6 +321,39 @@ namespace Bolt
         }
 
         // ── ParticleSystem2D ────────────────────────────────────────
+
+        internal static bool Asset_IsValid(ulong assetId) => assetId != 0 && NativeCallbacks.Bindings.Asset_IsValid(assetId) != 0;
+
+        internal static ulong Asset_GetOrCreateUUIDFromPath(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+                return 0;
+
+            int len = Encoding.UTF8.GetByteCount(path);
+            Span<byte> buf = len <= 512 ? stackalloc byte[len + 1] : new byte[len + 1];
+            Encoding.UTF8.GetBytes(path, buf);
+            buf[len] = 0;
+            fixed (byte* ptr = buf) return NativeCallbacks.Bindings.Asset_GetOrCreateUUIDFromPath(ptr);
+        }
+
+        internal static string Asset_GetPath(ulong assetId)
+        {
+            byte* ptr = NativeCallbacks.Bindings.Asset_GetPath(assetId);
+            return Marshal.PtrToStringUTF8((IntPtr)ptr) ?? "";
+        }
+
+        internal static string Asset_GetDisplayName(ulong assetId)
+        {
+            byte* ptr = NativeCallbacks.Bindings.Asset_GetDisplayName(assetId);
+            return Marshal.PtrToStringUTF8((IntPtr)ptr) ?? "";
+        }
+
+        internal static bool Texture_LoadAsset(ulong assetId) => assetId != 0 && NativeCallbacks.Bindings.Texture_LoadAsset(assetId) != 0;
+        internal static int Texture_GetWidth(ulong assetId) => NativeCallbacks.Bindings.Texture_GetWidth(assetId);
+        internal static int Texture_GetHeight(ulong assetId) => NativeCallbacks.Bindings.Texture_GetHeight(assetId);
+
+        internal static bool Audio_LoadAsset(ulong assetId) => assetId != 0 && NativeCallbacks.Bindings.Audio_LoadAsset(assetId) != 0;
+        internal static void Audio_PlayOneShotAsset(ulong assetId, float volume) => NativeCallbacks.Bindings.Audio_PlayOneShotAsset(assetId, volume);
 
         internal static void ParticleSystem2D_Play(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_Play(id);
         internal static void ParticleSystem2D_Pause(ulong id) => NativeCallbacks.Bindings.ParticleSystem2D_Pause(id);

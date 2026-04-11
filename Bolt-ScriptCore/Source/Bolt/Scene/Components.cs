@@ -52,14 +52,12 @@ namespace Bolt
 
         public Texture Texture
         {
-            get;
-            set;
-           // get
-           // {
-           //     ulong texID = InternalCalls.SpriteRenderer_GetTexture(Entity.ID);
-           //     return texID != 0 ? new Texture(texID) : null;
-           // }
-            //set => InternalCalls.SpriteRenderer_SetTexture(Entity.ID, value != null ? value.ID : 0);
+            get
+            {
+                ulong assetId = InternalCalls.SpriteRenderer_GetTexture(Entity.ID);
+                return global::Bolt.Texture.FromAssetUUID(assetId)!;
+            }
+            set => InternalCalls.SpriteRenderer_SetTexture(Entity.ID, value?.UUID ?? 0);
         }
 
         public int SortingOrder

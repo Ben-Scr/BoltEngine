@@ -8,6 +8,7 @@ namespace Bolt {
 	class BOLT_API Time {
 	public:
 		float GetDeltaTime() const { return m_DeltaTime * m_TimeScale; }
+		float GetFrameRate() const { return m_DeltaTime > 0.0f ? 1.0f / m_DeltaTime : 0.0f; }
 		float GetDeltaTimeUnscaled() const { return m_DeltaTime; }
 		void SetTargetFramerate(float fps);
 

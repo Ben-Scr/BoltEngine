@@ -1,6 +1,8 @@
 #include "pch.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Scripting/ScriptBindings.hpp"
+#include "Scene/Scene.hpp"
+#include "Components/General/UUIDComponent.hpp"
 #include "Core/Log.hpp"
 
 #include <filesystem>
@@ -178,6 +180,10 @@ namespace Bolt {
 		}
 
 		uint64_t entityID = static_cast<uint64_t>(static_cast<uint32_t>(entity));
+		if (s_CurrentScene && s_CurrentScene->IsValid(entity) && s_CurrentScene->HasComponent<UUIDComponent>(entity)) {
+			entityID = static_cast<uint64_t>(s_CurrentScene->GetComponent<UUIDComponent>(entity).Id);
+		}
+
 		return static_cast<uint32_t>(s_Callbacks.CreateScriptInstance(className.c_str(), entityID));
 	}
 

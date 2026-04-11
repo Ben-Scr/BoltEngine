@@ -22,6 +22,7 @@ namespace Bolt {
 
 
 		static AudioHandle LoadAudio(const std::string_view& path);
+		static AudioHandle LoadAudioByUUID(uint64_t assetId);
 		static void UnloadAudio(const AudioHandle& audioHandle);
 		static void UnloadAllAudio();
 
@@ -47,6 +48,7 @@ namespace Bolt {
 		static bool IsAudioLoaded(const AudioHandle& audioHandle);
 		static const Audio* GetAudio(const AudioHandle& audioHandle);
 		static std::string GetAudioName(const AudioHandle& audioHandle);
+		static uint64_t GetAudioAssetUUID(const AudioHandle& audioHandle);
 
 
 		struct SoundInstance {
@@ -113,8 +115,10 @@ namespace Bolt {
 
 
 		static AudioHandle::HandleType GenerateHandle();
+		static AudioHandle FindAudioByPath(const std::string& path);
 		static uint32_t CreateSoundInstance(const AudioHandle& audioHandle);
 		static void DestroySoundInstance(uint32_t instanceId);
+		static void RecycleSoundInstance(uint32_t index);
 		static void CleanupFinishedSounds();
 
 		static void UpdateListener();

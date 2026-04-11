@@ -36,6 +36,7 @@ namespace Bolt
             s_NativeComponentNames.TryGetValue(typeof(T), out string? name) ? name : null;
 
         internal static string? GetNativeComponentName<T>() where T : Component, new() => GetNativeName<T>();
+        internal static bool TryGetNativeComponentName(Type type, out string? name) => s_NativeComponentNames.TryGetValue(type, out name);
 
         public string Name => GetComponent<NameComponent>()?.Name ?? "";
 

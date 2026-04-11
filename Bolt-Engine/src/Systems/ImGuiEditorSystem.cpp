@@ -24,8 +24,9 @@
 #include "Project/ProjectManager.hpp"
 #include "Serialization/SceneSerializer.hpp"
 #include "Serialization/File.hpp"
-//#include "Packages/NuGetSource.hpp"
-//#include "Packages/GitHubSource.hpp"
+#include "Utils/Process.hpp"
+#include "Packages/NuGetSource.hpp"
+#include "Packages/GitHubSource.hpp"
 #include "Editor/ExternalEditor.hpp"
 #include "Gui/EditorIcons.hpp"
 #include "Scripting/ScriptEngine.hpp"
@@ -146,8 +147,8 @@ namespace Bolt {
 		DestroyFBO(m_GameViewFBO);
 		EditorIcons::Shutdown();
 		m_AssetBrowser.Shutdown();
-		//m_PackageManagerPanel.Shutdown();
-		//m_PackageManager.Shutdown();
+		m_PackageManagerPanel.Shutdown();
+		m_PackageManager.Shutdown();
 	}
 
 	// ──────────────────────────────────────────────
@@ -180,6 +181,17 @@ namespace Bolt {
 			return;
 		}
 
+
+		if (ImGui::BeginMenu("Application")) {
+			if (ImGui::MenuItem("Reload App")) {
+				Application::Reload();
+			}
+			if (ImGui::MenuItem("Quit")) {
+				Application::Quit();
+			}
+			ImGui::EndMenu();
+		}
+
 		if (ImGui::BeginMenu("File")) {
 			if (ImGui::MenuItem("Save Scene", "Ctrl+S", false, !Application::GetIsPlaying())) {
 				BoltProject* project = ProjectManager::GetCurrentProject();
@@ -190,20 +202,8 @@ namespace Bolt {
 					project->Save();
 				}
 			}
-			if (ImGui::MenuItem("Reload Scene")) {
-				SceneManager::Get().ReloadScene(scene.GetName());
-			}
 			ImGui::Separator();
-			if (ImGui::MenuItem("Quit")) {
-				Application::Quit();
-			}
-			ImGui::EndMenu();
-		}
 
-		if (ImGui::BeginMenu("Application")) {
-			if (ImGui::MenuItem("Reload App")) {
-				Application::Reload();
-			}
 			ImGui::EndMenu();
 		}
 
@@ -224,7 +224,6 @@ namespace Bolt {
 				m_ShowPackageManager = true;
 			}
 
-			// External editor selector
 			ExternalEditor::DetectEditors();
 			const auto& editors = ExternalEditor::GetAvailableEditors();
 			if (!editors.empty() && ImGui::BeginMenu("Script Editor")) {
@@ -247,7 +246,7 @@ namespace Bolt {
 		unsigned int tex = EditorIcons::Get(iconName, (int)iconSize);
 		if (tex)
 			return ImGui::ImageButton(id, (ImTextureID)(intptr_t)tex, btnSize, ImVec2(0, 1), ImVec2(1, 0));
-		return ImGui::Button(id + 2); // skip "##"
+		return ImGui::Button(id + 2);
 	}
 
 	void ImGuiEditorSystem::RenderToolbar() {
@@ -261,7 +260,6 @@ namespace Bolt {
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
 		if (!isPlaying) {
-			// ── Editor mode: [Play] ──
 			if (IconButton("##Play", "play", iconSize, btnSize)) {
 				Scene* active = SceneManager::Get().GetActiveScene();
 				BoltProject* project = ProjectManager::GetCurrentProject();
@@ -277,7 +275,6 @@ namespace Bolt {
 				Application::SetPlaymodePaused(false);
 				Application::SetIsPlaying(true);
 
-				// Trigger PlayOnAwake for all audio sources
 				if (active) {
 					auto audioView = active->GetRegistry().view<AudioSourceComponent>(entt::exclude<DisabledTag>);
 					for (auto [ent, audio] : audioView.each()) {
@@ -290,7 +287,6 @@ namespace Bolt {
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Play (Enter playmode)");
 		}
 		else {
-			// ── Play mode: [Pause/Continue] [Step] [Stop] ──
 			if (isPaused) {
 				if (IconButton("##Continue", "play", iconSize, btnSize)) {
 					Application::SetPlaymodePaused(false);
@@ -327,13 +323,12 @@ namespace Bolt {
 			ImGui::SameLine();
 			if (IconButton("##Step", "step_forward", iconSize, btnSize)) {
 				Application::SetPlaymodePaused(false);
-				m_StepFrames = 2; // 1 frame to unpause, 1 frame for gameplay to run
+				m_StepFrames = 2;
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Step (advance one frame)");
 
 			ImGui::SameLine();
 			if (IconButton("##Stop", "stop", iconSize, btnSize)) {
-				// Stop all playing audio before exiting play mode
 				{
 					Scene* act = SceneManager::Get().GetActiveScene();
 					if (act) {
@@ -343,42 +338,7 @@ namespace Bolt {
 					}
 				}
 
-				// Remember selected entity UUID before reload (stable across save/load)
-				uint64_t selectedUUID = 0;
-				{
-					Scene* active = SceneManager::Get().GetActiveScene();
-					if (active && m_SelectedEntity != entt::null && active->IsValid(m_SelectedEntity)
-						&& active->HasComponent<UUIDComponent>(m_SelectedEntity)) {
-						selectedUUID = static_cast<uint64_t>(active->GetComponent<UUIDComponent>(m_SelectedEntity).Id);
-					}
-				}
-
-				Application::SetPlaymodePaused(false);
-				Application::SetIsPlaying(false);
-				if (!m_PlayModeScenePath.empty()) {
-					Scene* active = SceneManager::Get().GetActiveScene();
-					if (active) {
-						SceneSerializer::LoadFromFile(*active, m_PlayModeScenePath);
-						m_EntityOrder.clear();
-					}
-					m_PlayModeScenePath.clear();
-				}
-
-				// Restore selection by UUID
-				m_SelectedEntity = entt::null;
-				m_RenamingEntity = entt::null;
-				if (selectedUUID != 0) {
-					Scene* active = SceneManager::Get().GetActiveScene();
-					if (active) {
-						auto view = active->GetRegistry().view<UUIDComponent>();
-						for (auto [ent, uuid] : view.each()) {
-							if (static_cast<uint64_t>(uuid.Id) == selectedUUID) {
-								m_SelectedEntity = ent;
-								break;
-							}
-						}
-					}
-				}
+				RestoreEditorSceneAfterPlaymode();
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Stop (exit playmode)");
 		}
@@ -394,6 +354,47 @@ namespace Bolt {
 			m_StepFrames--;
 			if (m_StepFrames == 0)
 				Application::SetPlaymodePaused(true);
+		}
+	}
+
+	void ImGuiEditorSystem::RestoreEditorSceneAfterPlaymode() {
+		uint64_t selectedUUID = 0;
+		Scene* active = SceneManager::Get().GetActiveScene();
+		if (active && m_SelectedEntity != entt::null && active->IsValid(m_SelectedEntity)
+			&& active->HasComponent<UUIDComponent>(m_SelectedEntity)) {
+			selectedUUID = static_cast<uint64_t>(active->GetComponent<UUIDComponent>(m_SelectedEntity).Id);
+		}
+
+		m_SelectedEntity = entt::null;
+		m_RenamingEntity = entt::null;
+		m_EntityOrder.clear();
+
+		Application::SetPlaymodePaused(false);
+		Application::SetIsPlaying(false);
+
+		if (!m_PlayModeScenePath.empty()) {
+			active = SceneManager::Get().GetActiveScene();
+			if (active) {
+				SceneSerializer::LoadFromFile(*active, m_PlayModeScenePath);
+			}
+			m_PlayModeScenePath.clear();
+		}
+
+		if (selectedUUID == 0) {
+			return;
+		}
+
+		active = SceneManager::Get().GetActiveScene();
+		if (!active) {
+			return;
+		}
+
+		auto view = active->GetRegistry().view<UUIDComponent>();
+		for (auto [ent, uuid] : view.each()) {
+			if (static_cast<uint64_t>(uuid.Id) == selectedUUID) {
+				m_SelectedEntity = ent;
+				break;
+			}
 		}
 	}
 
@@ -1505,10 +1506,20 @@ namespace Bolt {
 		// 1. Compile C# scripts
 		if (std::filesystem::exists(project->CsprojPath)) {
 			BT_INFO_TAG("Build", "Compiling C# scripts...");
-			std::string cmd = "dotnet build \"" + project->CsprojPath + "\" -c Release --nologo -v q -p:DefineConstants=BOLT_BUILD%3BBT_RELEASE 2>&1";
-			int result = std::system(cmd.c_str());
-			if (result != 0) {
-				BT_ERROR_TAG("Build", "C# script compilation failed (exit code {}).", result);
+			Process::Result buildResult = Process::Run({
+				"dotnet",
+				"build",
+				project->CsprojPath,
+				"-c", "Release",
+				"--nologo",
+				"-v", "q",
+				"-p:DefineConstants=BOLT_BUILD%3BBT_RELEASE"
+			});
+			if (!buildResult.Succeeded()) {
+				BT_ERROR_TAG("Build", "C# script compilation failed (exit code {}).", buildResult.ExitCode);
+				if (!buildResult.Output.empty()) {
+					BT_ERROR_TAG("Build", "{}", buildResult.Output);
+				}
 				return;
 			}
 			BT_INFO_TAG("Build", "C# scripts compiled.");
@@ -1976,37 +1987,7 @@ namespace Bolt {
 		if (Application::IsQuitRequested()) {
 			// Exit playmode and restore scene first
 			if (Application::GetIsPlaying()) {
-				uint64_t selectedUUID = 0;
-				{
-					Scene* active = SceneManager::Get().GetActiveScene();
-					if (active && m_SelectedEntity != entt::null && active->IsValid(m_SelectedEntity)
-						&& active->HasComponent<UUIDComponent>(m_SelectedEntity)) {
-						selectedUUID = static_cast<uint64_t>(active->GetComponent<UUIDComponent>(m_SelectedEntity).Id);
-					}
-				}
-
-				Application::SetPlaymodePaused(false);
-				Application::SetIsPlaying(false);
-				if (!m_PlayModeScenePath.empty()) {
-					Scene* active = SceneManager::Get().GetActiveScene();
-					if (active) {
-						SceneSerializer::LoadFromFile(*active, m_PlayModeScenePath);
-						m_EntityOrder.clear();
-					}
-					m_PlayModeScenePath.clear();
-				}
-
-				m_SelectedEntity = entt::null;
-				m_RenamingEntity = entt::null;
-				if (selectedUUID != 0) {
-					Scene* active = SceneManager::Get().GetActiveScene();
-					if (active) {
-						auto view = active->GetRegistry().view<UUIDComponent>();
-						for (auto [ent, uuid] : view.each()) {
-							if (static_cast<uint64_t>(uuid.Id) == selectedUUID) { m_SelectedEntity = ent; break; }
-						}
-					}
-				}
+				RestoreEditorSceneAfterPlaymode();
 			}
 
 			Scene* active = SceneManager::Get().GetActiveScene();
@@ -2198,26 +2179,25 @@ namespace Bolt {
 	void ImGuiEditorSystem::RenderPackageManagerPanel() {
 		if (!m_ShowPackageManager) return;
 
-		//if (!m_PackageManagerInitialized) {
-		//	auto exeDir = std::filesystem::path(Path::ExecutableDir());
-		//	auto toolPath = exeDir / ".." / ".." / ".." / "Bolt-PackageTool" / "bin" / "Release" / "net9.0" / "Bolt-PackageTool.exe";
-		//	m_PackageManager.Initialize(toolPath.string());
+		if (!m_PackageManagerInitialized) {
+			auto exeDir = std::filesystem::path(Path::ExecutableDir());
+			auto toolPath = exeDir / ".." / ".." / ".." / "Bolt-PackageTool" / "bin" / "Release" / "net9.0" / "Bolt-PackageTool.exe";
+			m_PackageManager.Initialize(toolPath.string());
 
-		//	// Add default sources
-		//	if (m_PackageManager.IsReady()) {
-		//		m_PackageManager.AddSource(std::make_unique<NuGetSource>(m_PackageManager.GetToolPath()));
-		//		m_PackageManager.AddSource(std::make_unique<GitHubSource>(
-		//			m_PackageManager.GetToolPath(),
-		//			"https://raw.githubusercontent.com/Ben-Scr/bolt-packages/main/index.json",
-		//			"Engine Packages"));
-		//	}
+			if (m_PackageManager.IsReady()) {
+				m_PackageManager.AddSource(std::make_unique<NuGetSource>(m_PackageManager.GetToolPath()));
+				m_PackageManager.AddSource(std::make_unique<GitHubSource>(
+					m_PackageManager.GetToolPath(),
+					"https://raw.githubusercontent.com/Ben-Scr/bolt-packages/main/index.json",
+					"Engine Packages"));
+			}
 
-		//	//m_PackageManagerPanel.Initialize(&m_PackageManager);
-		//	m_PackageManagerInitialized = true;
-		//}
+			m_PackageManagerPanel.Initialize(&m_PackageManager);
+			m_PackageManagerInitialized = true;
+		}
 
 		ImGui::Begin("Package Manager", &m_ShowPackageManager);
-		//m_PackageManagerPanel.Render();
+		m_PackageManagerPanel.Render();
 		ImGui::End();
 	}
 }

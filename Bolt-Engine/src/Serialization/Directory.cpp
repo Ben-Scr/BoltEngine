@@ -1,4 +1,5 @@
 #include <pch.hpp>
+#include "Assets/AssetRegistry.hpp"
 #include "Directory.hpp"
 #include <filesystem>
 
@@ -24,7 +25,11 @@ namespace Bolt {
 		if (std::filesystem::is_directory(path, ec))
 			return std::filesystem::remove_all(path, ec) > 0 && !ec;
 
-		return std::filesystem::remove(path, ec) && !ec;
+		const bool removed = std::filesystem::remove(path, ec) && !ec;
+		if (removed) {
+			AssetRegistry::DeleteCompanionMetadata(path);
+		}
+		return removed;
 	}
 
 	bool Directory::Move(const std::string& from, const std::string& to) {
@@ -38,6 +43,9 @@ namespace Bolt {
 		}
 
 		std::filesystem::rename(from, dest, ec);
+		if (!ec && std::filesystem::is_regular_file(dest, ec)) {
+			AssetRegistry::MoveCompanionMetadata(from, dest.string());
+		}
 		return !ec;
 	}
 
@@ -49,6 +57,9 @@ namespace Bolt {
 		std::filesystem::path p(path);
 		std::filesystem::path target = p.parent_path() / newName;
 		std::filesystem::rename(p, target, ec);
+		if (!ec && std::filesystem::is_regular_file(target, ec)) {
+			AssetRegistry::MoveCompanionMetadata(path, target.string());
+		}
 		return !ec;
 	}
 
@@ -64,6 +75,9 @@ namespace Bolt {
 			const std::filesystem::directory_entry& entry = *it;
 			std::error_code ec2;
 			if (entry.is_regular_file(ec2) && !ec2) {
+				if (AssetRegistry::IsMetaFilePath(entry.path().string())) {
+					continue;
+				}
 				files.push_back(entry.path().string());
 			}
 		}
@@ -88,6 +102,9 @@ namespace Bolt {
 			e.Path = entry.path().string();
 			e.Name = entry.path().filename().string();
 			e.IsDirectory = entry.is_directory(ec2) && !ec2;
+			if (!e.IsDirectory && AssetRegistry::IsMetaFilePath(e.Path)) {
+				continue;
+			}
 
 			entries.push_back(std::move(e));
 		}

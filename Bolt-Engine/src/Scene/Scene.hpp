@@ -191,7 +191,6 @@ namespace Bolt {
 		void OnParticleSystem2DComponentConstruct(entt::registry& registry, EntityHandle entity);
 		void OnParticleSystem2DComponentDestruct(entt::registry& registry, EntityHandle entity);
 
-		// Bolt-Physics component hooks
 		void OnBoltBody2DConstruct(entt::registry& registry, EntityHandle entity);
 		void OnBoltBody2DDestroy(entt::registry& registry, EntityHandle entity);
 		void OnBoltBoxCollider2DConstruct(entt::registry& registry, EntityHandle entity);
@@ -208,11 +207,11 @@ namespace Bolt {
 
 		void ForeachEnabledSystem(const std::function<void(ISystem&)>& func) {
 			for (size_t i = 0; i < m_Systems.size(); ++i) {
-				ISystem& s = *m_Systems[i];
-				if (s.IsEnabled())
+				ISystem& system = *m_Systems[i];
+				if (system.IsEnabled())
 				{
 					try {
-						func(s);
+						func(system);
 					}
 					catch (const std::exception& e) {
 						BT_CORE_ERROR_TAG("Scene", "System error: {}", e.what());

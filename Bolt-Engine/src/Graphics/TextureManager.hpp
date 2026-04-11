@@ -48,12 +48,14 @@ namespace Bolt {
             static void Shutdown();
 
             static TextureHandle LoadTexture(const std::string_view& path, Filter filter = Filter::Point, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
+            static TextureHandle LoadTextureByUUID(uint64_t assetId, Filter filter = Filter::Point, Wrap u = Wrap::Clamp, Wrap v = Wrap::Clamp);
             static TextureHandle GetDefaultTexture(DefaultTexture type);
             static void UnloadTexture(TextureHandle handle);
             static TextureHandle GetTextureHandle(const std::string& name);
             static Texture2D* GetTexture(TextureHandle handle);
             static std::vector<TextureHandle> GetLoadedHandles();
             static void UnloadAll(bool defaultTextures = false);
+            static uint64_t GetTextureAssetUUID(TextureHandle handle);
 
             /// Returns the texture path relative to a texture root directory.
             /// This is the same format accepted by LoadTexture().

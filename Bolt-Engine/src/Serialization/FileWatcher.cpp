@@ -2,7 +2,12 @@
 #include "Serialization/FileWatcher.hpp"
 #include "Core/Log.hpp"
 
-namespace Bolt {
+	namespace Bolt {
+
+	namespace {
+		constexpr std::filesystem::directory_options kDirectoryOptions =
+			std::filesystem::directory_options::skip_permission_denied;
+	}
 
 	void FileWatcher::Watch(const std::string& directory, const std::string& extension, Callback callback)
 	{
@@ -39,7 +44,7 @@ namespace Bolt {
 		// Check for modified or new files
 		try
 		{
-			for (auto& dirEntry : std::filesystem::recursive_directory_iterator(m_Directory))
+			for (auto& dirEntry : std::filesystem::recursive_directory_iterator(m_Directory, kDirectoryOptions))
 			{
 				if (!dirEntry.is_regular_file()) continue;
 
@@ -97,7 +102,7 @@ namespace Bolt {
 
 		try
 		{
-			for (auto& dirEntry : std::filesystem::recursive_directory_iterator(m_Directory))
+			for (auto& dirEntry : std::filesystem::recursive_directory_iterator(m_Directory, kDirectoryOptions))
 			{
 				if (!dirEntry.is_regular_file()) continue;
 

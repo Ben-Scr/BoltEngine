@@ -50,6 +50,9 @@ namespace Bolt {
 
 	void Window::Shutdown() {
 		s_MainViewport.reset();
+		s_ActiveWindow = nullptr;
+		k_Videomode = nullptr;
+		s_IsInitialized = false;
 		glfwTerminate();
 	}
 

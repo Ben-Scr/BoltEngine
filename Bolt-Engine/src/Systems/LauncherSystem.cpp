@@ -8,6 +8,7 @@
 #include <Core/Log.hpp>
 #include "Serialization/Path.hpp"
 #include "Serialization/Directory.hpp"
+#include "Utils/Process.hpp"
 #include "Graphics/Renderer2D.hpp"
 #include <imgui.h>
 #include <filesystem>
@@ -331,8 +332,19 @@ namespace Bolt {
 
 							ImGui::CloseCurrentPopup();
 
-							std::string buildCmd = "dotnet build \"" + project.CsprojPath + "\" -c Release --nologo -v q -nowarn:CS8632 -p:DefineConstants=BOLT_EDITOR%3BBT_RELEASE";
-							std::system(buildCmd.c_str());
+							Process::Result buildResult = Process::Run({
+								"dotnet",
+								"build",
+								project.CsprojPath,
+								"-c", "Release",
+								"--nologo",
+								"-v", "q",
+								"-nowarn:CS8632",
+								"-p:DefineConstants=BOLT_EDITOR%3BBT_RELEASE"
+							});
+							if (!buildResult.Succeeded()) {
+								BT_WARN_TAG("Launcher", "Project created, but the initial script build failed (exit code {}).", buildResult.ExitCode);
+							}
 
 							LauncherProjectEntry entry;
 							entry.name = project.Name;

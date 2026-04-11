@@ -60,6 +60,8 @@ namespace Bolt {
 		// ── SpriteRenderer ───────────────────────────────────────────
 		void (*SpriteRenderer_GetColor)(uint64_t entityID, float* r, float* g, float* b, float* a);
 		void (*SpriteRenderer_SetColor)(uint64_t entityID, float r, float g, float b, float a);
+		uint64_t (*SpriteRenderer_GetTexture)(uint64_t entityID);
+		void (*SpriteRenderer_SetTexture)(uint64_t entityID, uint64_t assetId);
 		int  (*SpriteRenderer_GetSortingOrder)(uint64_t entityID);
 		void (*SpriteRenderer_SetSortingOrder)(uint64_t entityID, int order);
 		int  (*SpriteRenderer_GetSortingLayer)(uint64_t entityID);
@@ -136,6 +138,15 @@ namespace Bolt {
 		const char* (*Scene_GetEntityNameByUUID)(uint64_t uuid);
 		int         (*Scene_QueryEntities)(const char* componentNames, uint64_t* outEntityIDs, int maxOut);
 		int         (*Scene_QueryEntitiesFiltered)(const char* withComponents, const char* withoutComponents, const char* mustHaveComponents, int enableFilter, uint64_t* outEntityIDs, int maxOut);
+		int         (*Asset_IsValid)(uint64_t assetId);
+		uint64_t    (*Asset_GetOrCreateUUIDFromPath)(const char* path);
+		const char* (*Asset_GetPath)(uint64_t assetId);
+		const char* (*Asset_GetDisplayName)(uint64_t assetId);
+		int         (*Texture_LoadAsset)(uint64_t assetId);
+		int         (*Texture_GetWidth)(uint64_t assetId);
+		int         (*Texture_GetHeight)(uint64_t assetId);
+		int         (*Audio_LoadAsset)(uint64_t assetId);
+		void        (*Audio_PlayOneShotAsset)(uint64_t assetId, float volume);
 
 		// ── ParticleSystem2D ─────────────────────────────────────────
 		void  (*ParticleSystem2D_Play)(uint64_t entityID);

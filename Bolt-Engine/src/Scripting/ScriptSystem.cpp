@@ -90,6 +90,9 @@ namespace Bolt {
 		// Native C++ scripting — project-aware
 		if (project)
 		{
+			if (std::filesystem::exists(project->NativeScriptsDir)) {
+				m_NativeProjectDirectory = std::filesystem::canonical(project->NativeScriptsDir).string();
+			}
 			auto nativeDll = std::filesystem::path(project->GetNativeDllPath());
 			if (std::filesystem::exists(nativeDll))
 			{
@@ -106,6 +109,10 @@ namespace Bolt {
 		}
 		else
 		{
+			auto nativeProjectDir = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts";
+			if (std::filesystem::exists(nativeProjectDir)) {
+				m_NativeProjectDirectory = std::filesystem::canonical(nativeProjectDir).string();
+			}
 			auto nativeDll = exeDir / ".." / "Bolt-NativeScripts" / "Bolt-NativeScripts.dll";
 			if (std::filesystem::exists(nativeDll))
 			{
@@ -134,9 +141,17 @@ namespace Bolt {
 		m_IsRebuilding = true;
 		m_RebuildStartTime = std::chrono::steady_clock::now();
 
-		std::string buildCmd = "dotnet build \"" + m_SandboxProjectPath + "\" -c Release --nologo -v q -p:DefineConstants=BOLT_EDITOR%3BBT_RELEASE";
-		m_RebuildFuture = std::async(std::launch::async, [buildCmd]() {
-			return std::system(buildCmd.c_str());
+		const std::string sandboxProjectPath = m_SandboxProjectPath;
+		m_RebuildFuture = std::async(std::launch::async, [sandboxProjectPath]() {
+			return Process::Run({
+				"dotnet",
+				"build",
+				sandboxProjectPath,
+				"-c", "Release",
+				"--nologo",
+				"-v", "q",
+				"-p:DefineConstants=BOLT_EDITOR%3BBT_RELEASE"
+			});
 		});
 	}
 
@@ -144,7 +159,7 @@ namespace Bolt {
 
 	void ScriptSystem::RebuildAndReloadNativeScripts()
 	{
-		if (m_IsRebuildingNative || m_NativeDLLPath.empty()) return;
+		if (m_IsRebuildingNative || m_NativeDLLPath.empty() || m_NativeProjectDirectory.empty()) return;
 
 		BT_INFO_TAG("ScriptSystem", "Rebuilding native scripts...");
 		m_IsRebuildingNative = true;
@@ -153,16 +168,29 @@ namespace Bolt {
 		// Unload DLL before recompile so the file isn't locked
 		m_NativeHost.UnloadDLL();
 
-		auto exeDir = std::filesystem::path(Path::ExecutableDir());
-		auto projectDir = std::filesystem::canonical(exeDir / ".." / ".." / ".." / "Bolt-NativeScripts").string();
-
 		// Reconfigure first (picks up new/renamed files via GLOB_RECURSE), then build
-		std::string configCmd = "cmake -B \"" + projectDir + "/build\" -S \"" + projectDir + "\" -G \"Visual Studio 17 2022\" -A x64";
-		std::string buildCmd = "cmake --build \"" + projectDir + "/build\" --config Release";
-		m_NativeRebuildFuture = std::async(std::launch::async, [configCmd, buildCmd]() {
-			int rc = std::system(configCmd.c_str());
-			if (rc != 0) return rc;
-			return std::system(buildCmd.c_str());
+		const std::string nativeProjectDirectory = m_NativeProjectDirectory;
+		m_NativeRebuildFuture = std::async(std::launch::async, [nativeProjectDirectory]() {
+			Process::Result configureResult = Process::Run({
+				"cmake",
+				"-B", std::filesystem::path(nativeProjectDirectory).append("build").string(),
+				"-S", nativeProjectDirectory,
+				"-G", "Visual Studio 17 2022",
+				"-A", "x64"
+			});
+			if (!configureResult.Succeeded()) {
+				return configureResult;
+			}
+
+			Process::Result buildResult = Process::Run({
+				"cmake",
+				"--build", std::filesystem::path(nativeProjectDirectory).append("build").string(),
+				"--config", "Release"
+			});
+			if (!configureResult.Output.empty()) {
+				buildResult.Output = configureResult.Output + buildResult.Output;
+			}
+			return buildResult;
 		});
 	}
 
@@ -185,10 +213,10 @@ namespace Bolt {
 		{
 			if (m_RebuildFuture.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
 			{
-				int result = m_RebuildFuture.get();
+				Process::Result result = m_RebuildFuture.get();
 				m_IsRebuilding = false;
 
-				if (result == 0)
+				if (result.Succeeded())
 				{
 					ScriptEngine::ReloadAssemblies();
 					if (m_LastScene)
@@ -202,7 +230,12 @@ namespace Bolt {
 					BT_INFO_TAG("ScriptSystem", "C# scripts rebuilt and reloaded");
 				}
 				else
-					BT_ERROR_TAG("ScriptSystem", "C# build failed (exit code {})", result);
+				{
+					BT_ERROR_TAG("ScriptSystem", "C# build failed (exit code {})", result.ExitCode);
+					if (!result.Output.empty()) {
+						BT_ERROR_TAG("ScriptSystem", "{}", result.Output);
+					}
+				}
 			}
 		}
 
@@ -211,10 +244,10 @@ namespace Bolt {
 		{
 			if (m_NativeRebuildFuture.wait_for(std::chrono::milliseconds(0)) == std::future_status::ready)
 			{
-				int result = m_NativeRebuildFuture.get();
+				Process::Result result = m_NativeRebuildFuture.get();
 				m_IsRebuildingNative = false;
 
-				if (result == 0)
+				if (result.Succeeded())
 				{
 					m_NativeHost.LoadDLL(m_NativeDLLPath);
 					if (m_LastScene)
@@ -228,7 +261,12 @@ namespace Bolt {
 					BT_INFO_TAG("ScriptSystem", "Native scripts rebuilt and reloaded");
 				}
 				else
-					BT_ERROR_TAG("ScriptSystem", "Native build failed (exit code {})", result);
+				{
+					BT_ERROR_TAG("ScriptSystem", "Native build failed (exit code {})", result.ExitCode);
+					if (!result.Output.empty()) {
+						BT_ERROR_TAG("ScriptSystem", "{}", result.Output);
+					}
+				}
 			}
 		}
 
@@ -350,30 +388,46 @@ namespace Bolt {
 
 	void ScriptSystem::OnDestroy(Scene& scene)
 	{
-		if (!ScriptEngine::IsInitialized()) return;
-		ScriptEngine::SetScene(&scene);
+		m_ScriptWatcher.Stop();
+		m_NativeWatcher.Stop();
 
-		auto view = scene.GetRegistry().view<ScriptComponent>();
-		for (auto [entity, scriptComp] : view.each())
-		{
-			for (auto& instance : scriptComp.Scripts)
+		if (m_IsRebuilding && m_RebuildFuture.valid()) {
+			(void)m_RebuildFuture.get();
+			m_IsRebuilding = false;
+		}
+		if (m_IsRebuildingNative && m_NativeRebuildFuture.valid()) {
+			(void)m_NativeRebuildFuture.get();
+			m_IsRebuildingNative = false;
+		}
+
+		if (ScriptEngine::IsInitialized()) {
+			ScriptEngine::SetScene(&scene);
+
+			auto view = scene.GetRegistry().view<ScriptComponent>();
+			for (auto [entity, scriptComp] : view.each())
 			{
-				if (instance.HasManagedInstance())
+				for (auto& instance : scriptComp.Scripts)
 				{
-					ScriptEngine::InvokeOnDestroy(instance.GetGCHandle());
-					ScriptEngine::DestroyScriptInstance(instance.GetGCHandle());
-					instance.SetGCHandle(0);
-				}
-				if (instance.HasNativeInstance())
-				{
-					m_NativeHost.DestroyInstance(instance.GetNativePtr());
-					instance.SetNativePtr(nullptr);
+					if (instance.HasManagedInstance())
+					{
+						ScriptEngine::InvokeOnDestroy(instance.GetGCHandle());
+						ScriptEngine::DestroyScriptInstance(instance.GetGCHandle());
+						instance.SetGCHandle(0);
+					}
+					if (instance.HasNativeInstance())
+					{
+						m_NativeHost.DestroyInstance(instance.GetNativePtr());
+						instance.SetNativePtr(nullptr);
+					}
 				}
 			}
+
+			ScriptEngine::Shutdown();
 		}
 
 		m_NativeHost.UnloadDLL();
-		ScriptEngine::Shutdown();
+		m_LastScene = nullptr;
+		m_NativeProjectDirectory.clear();
 	}
 
 } // namespace Bolt

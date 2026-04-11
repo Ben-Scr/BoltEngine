@@ -3,6 +3,7 @@
 #include "Scripting/NativeScriptHost.hpp"
 #include "Serialization/FileWatcher.hpp"
 #include "Core/Export.hpp"
+#include "Utils/Process.hpp"
 #include <string>
 #include <future>
 #include <chrono>
@@ -32,12 +33,13 @@ namespace Bolt {
 		std::string m_CoreAssemblyPath;
 		std::string m_UserAssemblyPath;
 		std::string m_SandboxProjectPath;
+		std::string m_NativeProjectDirectory;
 		Scene* m_LastScene = nullptr;
 
 		// C# hot-reload
 		FileWatcher m_ScriptWatcher;
 		bool m_IsRebuilding = false;
-		std::future<int> m_RebuildFuture;
+		std::future<Process::Result> m_RebuildFuture;
 		std::chrono::steady_clock::time_point m_RebuildStartTime;
 
 		// C++ native scripts
@@ -45,7 +47,7 @@ namespace Bolt {
 		FileWatcher m_NativeWatcher;
 		std::string m_NativeDLLPath;
 		bool m_IsRebuildingNative = false;
-		std::future<int> m_NativeRebuildFuture;
+		std::future<Process::Result> m_NativeRebuildFuture;
 		std::chrono::steady_clock::time_point m_NativeRebuildStartTime;
 	};
 

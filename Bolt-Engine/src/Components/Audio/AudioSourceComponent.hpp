@@ -1,6 +1,7 @@
 #pragma once
 #include "Audio/AudioHandle.hpp"
 #include "Core/Export.hpp"
+#include "Core/UUID.hpp"
 
 namespace Bolt {
 
@@ -20,7 +21,7 @@ namespace Bolt {
 		void SetVolume(float volume);
 		void SetPitch(float pitch);
 		void SetLoop(bool loop);
-		void SetAudioHandle(const AudioHandle& audioHandle);
+		void SetAudioHandle(const AudioHandle& audioHandle, UUID assetId = UUID(0));
 
 		void PlayOneShot();
 
@@ -33,12 +34,15 @@ namespace Bolt {
 		bool IsValid() const;
 
 		const AudioHandle& GetAudioHandle() const { return m_audioHandle; }
+		UUID GetAudioAssetId() const { return m_AudioAssetId; }
+		void SetAudioAssetId(UUID assetId) { m_AudioAssetId = assetId; }
 
 		uint32_t GetInstanceId() const { return m_instanceId; }
 		void SetInstanceId(uint32_t id) { m_instanceId = id; }
 
 	private:
 		AudioHandle m_audioHandle;
+		UUID m_AudioAssetId{ 0 };
 		uint32_t m_instanceId = 0;
 
 

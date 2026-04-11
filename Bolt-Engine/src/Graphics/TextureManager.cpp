@@ -1,4 +1,5 @@
 #include "pch.hpp"
+#include "Assets/AssetRegistry.hpp"
 #include "TextureManager.hpp"
 #include <Serialization/File.hpp>
 
@@ -129,6 +130,19 @@ namespace Bolt {
 		return { index, s_Textures[index].Generation };
 	}
 
+	TextureHandle TextureManager::LoadTextureByUUID(uint64_t assetId, Filter filter, Wrap u, Wrap v) {
+		if (assetId == 0 || !AssetRegistry::IsTexture(assetId)) {
+			return TextureHandle::Invalid();
+		}
+
+		const std::string path = AssetRegistry::ResolvePath(assetId);
+		if (path.empty()) {
+			return TextureHandle::Invalid();
+		}
+
+		return LoadTexture(path, filter, u, v);
+	}
+
 	TextureHandle TextureManager::GetDefaultTexture(DefaultTexture type) {
 		if (!s_IsInitialized) {
 			BT_CORE_ERROR("[{}] TextureManager isn't initialized", ErrorCodeToString(BoltErrorCode::NotInitialized));
@@ -232,6 +246,14 @@ namespace Bolt {
 		}
 
 		return &entry.Texture;
+	}
+
+	uint64_t TextureManager::GetTextureAssetUUID(TextureHandle handle) {
+		if (!IsValid(handle)) {
+			return 0;
+		}
+
+		return AssetRegistry::GetOrCreateAssetUUID(s_Textures[handle.index].Name);
 	}
 
 	void TextureManager::LoadDefaultTextures() {

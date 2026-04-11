@@ -16,6 +16,8 @@ namespace Bolt {
 	class BOLT_API Collider2D {
 	public:
 		Collider2D() = default;
+		explicit Collider2D(EntityHandle entity)
+			: m_EntityHandle(entity) {}
 
 		bool IsValid();
 		void SetFriction(float friction);
@@ -68,7 +70,7 @@ namespace Bolt {
 		b2BodyId m_BodyId{ b2_nullBodyId };
 		b2ShapeId m_ShapeId{ b2_nullShapeId };
 
-		EntityHandle m_EntityHandle;
+		EntityHandle m_EntityHandle{ entt::null };
 	private:
 		void SetRotation(float radiant);
 		void SetPositionRotation(const Vec2& position, float radiant);

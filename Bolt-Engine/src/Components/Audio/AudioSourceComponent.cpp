@@ -108,12 +108,13 @@ namespace Bolt {
 	}
 
 
-	void AudioSourceComponent::SetAudioHandle(const AudioHandle& audioHandle) {
+	void AudioSourceComponent::SetAudioHandle(const AudioHandle& audioHandle, UUID assetId) {
 		if (IsPlaying()) {
 			Stop();
 		}
 
 		m_audioHandle = audioHandle;
+		m_AudioAssetId = assetId;
 	}
 
 	void AudioSourceComponent::PlayOneShot() {

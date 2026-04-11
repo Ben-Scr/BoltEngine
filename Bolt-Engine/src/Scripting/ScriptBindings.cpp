@@ -1,4 +1,5 @@
 #include "pch.hpp"
+#include "Assets/AssetRegistry.hpp"
 #include "Scripting/ScriptBindings.hpp"
 #include "Scripting/ScriptEngine.hpp"
 #include "Core/Application.hpp"
@@ -32,6 +33,7 @@
 #include "Components/Graphics/ParticleSystem2DComponent.hpp"
 #include "Components/Tags.hpp"
 #include "Audio/AudioManager.hpp"
+#include "Graphics/TextureManager.hpp"
 #include "Graphics/Gizmos.hpp"
 #include "Physics/Physics2D.hpp"
 
@@ -49,6 +51,67 @@ namespace Bolt {
 		return static_cast<uint64_t>(static_cast<uint32_t>(handle));
 	}
 
+	static uint64_t GetEntityScriptId(const Scene& scene, EntityHandle handle)
+	{
+		if (scene.IsValid(handle) && scene.HasComponent<UUIDComponent>(handle)) {
+			return static_cast<uint64_t>(scene.GetComponent<UUIDComponent>(handle).Id);
+		}
+
+		return FromEntityHandle(handle);
+	}
+
+	static bool TryResolveEntityByUUID(const Scene& scene, uint64_t entityID, EntityHandle& outHandle)
+	{
+		auto view = scene.GetRegistry().view<UUIDComponent>();
+		for (EntityHandle handle : view) {
+			if (static_cast<uint64_t>(view.get<UUIDComponent>(handle).Id) == entityID) {
+				outHandle = handle;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	static bool ResolveEntityReference(uint64_t entityID, Scene*& outScene, EntityHandle& outHandle)
+	{
+		outScene = nullptr;
+		outHandle = entt::null;
+
+		if (entityID == 0) {
+			return false;
+		}
+
+		Scene* currentScene = ScriptEngine::GetScene();
+		if (currentScene) {
+			if (TryResolveEntityByUUID(*currentScene, entityID, outHandle)) {
+				outScene = currentScene;
+				return true;
+			}
+
+			const EntityHandle rawHandle = ToEntityHandle(entityID);
+			if (currentScene->IsValid(rawHandle)) {
+				outScene = currentScene;
+				outHandle = rawHandle;
+				return true;
+			}
+		}
+
+		SceneManager::Get().ForeachLoadedScene([&](const Scene& scene) {
+			if (outScene || &scene == currentScene) {
+				return;
+			}
+
+			EntityHandle resolvedHandle = entt::null;
+			if (TryResolveEntityByUUID(scene, entityID, resolvedHandle)) {
+				outScene = const_cast<Scene*>(&scene);
+				outHandle = resolvedHandle;
+			}
+		});
+
+		return outScene != nullptr;
+	}
+
 	static Scene* GetScene()
 	{
 		Scene* scene = ScriptEngine::GetScene();
@@ -64,9 +127,9 @@ namespace Bolt {
 
 	// Component getter macro to reduce boilerplate
 	#define GET_COMPONENT(Type, entityID, failReturn) \
-		Scene* scene = GetScene(); \
-		if (!scene) return failReturn; \
-		EntityHandle handle = ToEntityHandle(entityID); \
+		Scene* scene = nullptr; \
+		EntityHandle handle = entt::null; \
+		if (!ResolveEntityReference(entityID, scene, handle)) return failReturn; \
 		if (!scene->HasComponent<Type>(handle)) return failReturn; \
 		auto& comp = scene->GetComponent<Type>(handle)
 
@@ -183,9 +246,9 @@ namespace Bolt {
 
 	static int Bolt_Entity_IsValid(uint64_t entityID)
 	{
-		Scene* scene = GetScene();
-		if (!scene) return 0;
-		return scene->IsValid(ToEntityHandle(entityID)) ? 1 : 0;
+		Scene* scene = nullptr;
+		EntityHandle handle = entt::null;
+		return ResolveEntityReference(entityID, scene, handle) ? 1 : 0;
 	}
 
 	static uint64_t Bolt_Entity_FindByName(const char* name)
@@ -196,24 +259,24 @@ namespace Bolt {
 		auto& registry = scene->GetRegistry();
 		auto view = registry.view<NameComponent>();
 		for (auto [entity, nameComp] : view.each())
-			if (nameComp.Name == targetName) return FromEntityHandle(entity);
+			if (nameComp.Name == targetName) return GetEntityScriptId(*scene, entity);
 		return 0;
 	}
 
 	static void Bolt_Entity_Destroy(uint64_t entityID)
 	{
-		Scene* scene = GetScene();
-		if (!scene) return;
-		EntityHandle handle = ToEntityHandle(entityID);
-		if (scene->IsValid(handle)) scene->DestroyEntity(handle);
+		Scene* scene = nullptr;
+		EntityHandle handle = entt::null;
+		if (!ResolveEntityReference(entityID, scene, handle)) return;
+		scene->DestroyEntity(handle);
 	}
 
 	static uint64_t Bolt_Entity_Create(const char* name)
 	{
 		Scene* scene = GetScene();
 		if (!scene) return 0;
-		EntityHandle handle = scene->CreateEntity(name ? name : "Entity").GetHandle();
-		return FromEntityHandle(handle);
+		Entity entity = scene->CreateEntity(name ? name : "Entity");
+		return GetEntityScriptId(*scene, entity.GetHandle());
 	}
 
 	// Helper: find ComponentInfo by display name
@@ -229,10 +292,9 @@ namespace Bolt {
 
 	static int Bolt_Entity_HasComponent(uint64_t entityID, const char* componentName)
 	{
-		Scene* scene = GetScene();
-		if (!scene) return 0;
-		EntityHandle handle = ToEntityHandle(entityID);
-		if (!scene->IsValid(handle)) return 0;
+		Scene* scene = nullptr;
+		EntityHandle handle = entt::null;
+		if (!ResolveEntityReference(entityID, scene, handle)) return 0;
 
 		const ComponentInfo* info = FindComponentByName(componentName);
 		if (!info || !info->has) return 0;
@@ -241,10 +303,9 @@ namespace Bolt {
 
 	static int Bolt_Entity_AddComponent(uint64_t entityID, const char* componentName)
 	{
-		Scene* scene = GetScene();
-		if (!scene) return 0;
-		EntityHandle handle = ToEntityHandle(entityID);
-		if (!scene->IsValid(handle)) return 0;
+		Scene* scene = nullptr;
+		EntityHandle handle = entt::null;
+		if (!ResolveEntityReference(entityID, scene, handle)) return 0;
 
 		const ComponentInfo* info = FindComponentByName(componentName);
 		if (!info || !info->add) return 0;
@@ -257,10 +318,9 @@ namespace Bolt {
 
 	static int Bolt_Entity_RemoveComponent(uint64_t entityID, const char* componentName)
 	{
-		Scene* scene = GetScene();
-		if (!scene) return 0;
-		EntityHandle handle = ToEntityHandle(entityID);
-		if (!scene->IsValid(handle)) return 0;
+		Scene* scene = nullptr;
+		EntityHandle handle = entt::null;
+		if (!ResolveEntityReference(entityID, scene, handle)) return 0;
 
 		const ComponentInfo* info = FindComponentByName(componentName);
 		if (!info || !info->remove) return 0;
@@ -273,16 +333,17 @@ namespace Bolt {
 
 	static uint64_t Bolt_Entity_Clone(uint64_t sourceEntityID)
 	{
-		Scene* scene = GetScene();
-		if (!scene) return 0;
+		Scene* targetScene = GetScene();
+		if (!targetScene) return 0;
 
-		EntityHandle sourceHandle = ToEntityHandle(sourceEntityID);
-		if (!scene->IsValid(sourceHandle)) return 0;
+		Scene* sourceScene = nullptr;
+		EntityHandle sourceHandle = entt::null;
+		if (!ResolveEntityReference(sourceEntityID, sourceScene, sourceHandle)) return 0;
 
-		Entity source = scene->GetEntity(sourceHandle);
+		Entity source = sourceScene->GetEntity(sourceHandle);
 		std::string name = source.GetName();
 
-		Entity clone = scene->CreateEntity(name + " (Clone)");
+		Entity clone = targetScene->CreateEntity(name + " (Clone)");
 
 		const auto& registry = SceneManager::Get().GetComponentRegistry();
 		registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
@@ -292,7 +353,7 @@ namespace Bolt {
 				info.copyTo(source, clone);
 		});
 
-		return FromEntityHandle(clone.GetHandle());
+		return GetEntityScriptId(*targetScene, clone.GetHandle());
 	}
 
 	// ── Scene ───────────────────────────────────────────────────────────
@@ -448,11 +509,69 @@ namespace Bolt {
 			}
 			if (match) {
 				if (count < maxOut)
-					outEntityIDs[count] = FromEntityHandle(entityHandle);
+					outEntityIDs[count] = GetEntityScriptId(*scene, entityHandle);
 				count++;
 			}
 		}
 		return count;
+	}
+
+	static int Bolt_Asset_IsValid(uint64_t assetId)
+	{
+		return AssetRegistry::Exists(assetId) ? 1 : 0;
+	}
+
+	static uint64_t Bolt_Asset_GetOrCreateUUIDFromPath(const char* path)
+	{
+		if (!path || path[0] == '\0') {
+			return 0;
+		}
+
+		return AssetRegistry::GetOrCreateAssetUUID(path);
+	}
+
+	static const char* Bolt_Asset_GetPath(uint64_t assetId)
+	{
+		s_StringReturnBuffer = AssetRegistry::ResolvePath(assetId);
+		return s_StringReturnBuffer.c_str();
+	}
+
+	static const char* Bolt_Asset_GetDisplayName(uint64_t assetId)
+	{
+		s_StringReturnBuffer = AssetRegistry::GetDisplayName(assetId);
+		return s_StringReturnBuffer.c_str();
+	}
+
+	static int Bolt_Texture_LoadAsset(uint64_t assetId)
+	{
+		return TextureManager::LoadTextureByUUID(assetId).IsValid() ? 1 : 0;
+	}
+
+	static int Bolt_Texture_GetWidth(uint64_t assetId)
+	{
+		TextureHandle handle = TextureManager::LoadTextureByUUID(assetId);
+		Texture2D* texture = TextureManager::GetTexture(handle);
+		return texture ? static_cast<int>(texture->GetWidth()) : 0;
+	}
+
+	static int Bolt_Texture_GetHeight(uint64_t assetId)
+	{
+		TextureHandle handle = TextureManager::LoadTextureByUUID(assetId);
+		Texture2D* texture = TextureManager::GetTexture(handle);
+		return texture ? static_cast<int>(texture->GetHeight()) : 0;
+	}
+
+	static int Bolt_Audio_LoadAsset(uint64_t assetId)
+	{
+		return AudioManager::LoadAudioByUUID(assetId).IsValid() ? 1 : 0;
+	}
+
+	static void Bolt_Audio_PlayOneShotAsset(uint64_t assetId, float volume)
+	{
+		AudioHandle handle = AudioManager::LoadAudioByUUID(assetId);
+		if (handle.IsValid()) {
+			AudioManager::PlayOneShot(handle, volume);
+		}
 	}
 
 	// Helper: parse pipe-delimited names into ComponentInfo pointers
@@ -523,7 +642,7 @@ namespace Bolt {
 			if (!match) continue;
 
 			if (count < maxOut)
-				outEntityIDs[count] = FromEntityHandle(entityHandle);
+				outEntityIDs[count] = GetEntityScriptId(*scene, entityHandle);
 			count++;
 		}
 		return count;
@@ -533,19 +652,22 @@ namespace Bolt {
 
 	static const char* Bolt_NameComponent_GetName(uint64_t entityID)
 	{
-		Scene* scene = GetScene();
-		if (!scene) { s_StringReturnBuffer.clear(); return s_StringReturnBuffer.c_str(); }
-		EntityHandle handle = ToEntityHandle(entityID);
-		if (!scene->HasComponent<NameComponent>(handle)) { s_StringReturnBuffer.clear(); return s_StringReturnBuffer.c_str(); }
+		Scene* scene = nullptr;
+		EntityHandle handle = entt::null;
+		if (!ResolveEntityReference(entityID, scene, handle) || !scene->HasComponent<NameComponent>(handle)) {
+			s_StringReturnBuffer.clear();
+			return s_StringReturnBuffer.c_str();
+		}
+
 		s_StringReturnBuffer = scene->GetComponent<NameComponent>(handle).Name;
 		return s_StringReturnBuffer.c_str();
 	}
 
 	static void Bolt_NameComponent_SetName(uint64_t entityID, const char* name)
 	{
-		Scene* scene = GetScene(); if (!scene) return;
-		EntityHandle handle = ToEntityHandle(entityID);
-		if (!scene->HasComponent<NameComponent>(handle)) return;
+		Scene* scene = nullptr;
+		EntityHandle handle = entt::null;
+		if (!ResolveEntityReference(entityID, scene, handle) || !scene->HasComponent<NameComponent>(handle)) return;
 		scene->GetComponent<NameComponent>(handle).Name = name;
 	}
 
@@ -599,6 +721,35 @@ namespace Bolt {
 	{
 		GET_COMPONENT(SpriteRendererComponent, entityID, );
 		comp.Color = { r, g, b, a };
+	}
+
+	static uint64_t Bolt_SpriteRenderer_GetTexture(uint64_t entityID)
+	{
+		GET_COMPONENT(SpriteRendererComponent, entityID, 0);
+
+		uint64_t assetId = static_cast<uint64_t>(comp.TextureAssetId);
+		if (assetId == 0 && TextureManager::IsValid(comp.TextureHandle)) {
+			assetId = TextureManager::GetTextureAssetUUID(comp.TextureHandle);
+			if (assetId != 0) {
+				comp.TextureAssetId = UUID(assetId);
+			}
+		}
+
+		return assetId;
+	}
+
+	static void Bolt_SpriteRenderer_SetTexture(uint64_t entityID, uint64_t assetId)
+	{
+		GET_COMPONENT(SpriteRendererComponent, entityID, );
+
+		if (assetId == 0) {
+			comp.TextureHandle = TextureHandle::Invalid();
+			comp.TextureAssetId = UUID(0);
+			return;
+		}
+
+		comp.TextureAssetId = UUID(assetId);
+		comp.TextureHandle = TextureManager::LoadTextureByUUID(assetId);
 	}
 
 	static int Bolt_SpriteRenderer_GetSortingOrder(uint64_t entityID)
@@ -904,7 +1055,17 @@ namespace Bolt {
 
 		auto result = Physics2D::Raycast({ originX, originY }, { dirX, dirY }, distance);
 		if (result.has_value()) {
-			*hitEntityID = FromEntityHandle(result->entity);
+			Scene* scene = GetScene();
+			if (scene && scene->IsValid(result->entity)) {
+				*hitEntityID = GetEntityScriptId(*scene, result->entity);
+			}
+			else {
+				SceneManager::Get().ForeachLoadedScene([&](const Scene& loadedScene) {
+					if (*hitEntityID == 0 && loadedScene.IsValid(result->entity)) {
+						*hitEntityID = GetEntityScriptId(loadedScene, result->entity);
+					}
+				});
+			}
 			*hitX = result->point.x; *hitY = result->point.y;
 			*hitNormalX = result->normal.x; *hitNormalY = result->normal.y;
 			return 1;
@@ -965,6 +1126,8 @@ namespace Bolt {
 
 		b.SpriteRenderer_GetColor = &Bolt_SpriteRenderer_GetColor;
 		b.SpriteRenderer_SetColor = &Bolt_SpriteRenderer_SetColor;
+		b.SpriteRenderer_GetTexture = &Bolt_SpriteRenderer_GetTexture;
+		b.SpriteRenderer_SetTexture = &Bolt_SpriteRenderer_SetTexture;
 		b.SpriteRenderer_GetSortingOrder = &Bolt_SpriteRenderer_GetSortingOrder;
 		b.SpriteRenderer_SetSortingOrder = &Bolt_SpriteRenderer_SetSortingOrder;
 		b.SpriteRenderer_GetSortingLayer = &Bolt_SpriteRenderer_GetSortingLayer;
@@ -1035,6 +1198,15 @@ namespace Bolt {
 		b.Scene_GetLoadedSceneNameAt = &Bolt_Scene_GetLoadedSceneNameAt;
 		b.Scene_QueryEntities = &Bolt_Scene_QueryEntities;
 		b.Scene_QueryEntitiesFiltered = &Bolt_Scene_QueryEntitiesFiltered;
+		b.Asset_IsValid = &Bolt_Asset_IsValid;
+		b.Asset_GetOrCreateUUIDFromPath = &Bolt_Asset_GetOrCreateUUIDFromPath;
+		b.Asset_GetPath = &Bolt_Asset_GetPath;
+		b.Asset_GetDisplayName = &Bolt_Asset_GetDisplayName;
+		b.Texture_LoadAsset = &Bolt_Texture_LoadAsset;
+		b.Texture_GetWidth = &Bolt_Texture_GetWidth;
+		b.Texture_GetHeight = &Bolt_Texture_GetHeight;
+		b.Audio_LoadAsset = &Bolt_Audio_LoadAsset;
+		b.Audio_PlayOneShotAsset = &Bolt_Audio_PlayOneShotAsset;
 
 		b.ParticleSystem2D_Play = &Bolt_ParticleSystem2D_Play;
 		b.ParticleSystem2D_Pause = &Bolt_ParticleSystem2D_Pause;

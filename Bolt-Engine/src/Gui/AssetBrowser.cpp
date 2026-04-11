@@ -1,4 +1,5 @@
 #include <pch.hpp>
+#include "Assets/AssetRegistry.hpp"
 #include "Gui/AssetBrowser.hpp"
 #include "Serialization/Path.hpp"
 #include "Project/ProjectManager.hpp"
@@ -69,6 +70,7 @@ namespace Bolt {
 	}
 
 	void AssetBrowser::Refresh() {
+		AssetRegistry::Sync();
 		m_Entries = Directory::GetEntries(m_CurrentDirectory);
 		m_NeedsRefresh = false;
 	}

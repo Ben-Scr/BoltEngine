@@ -62,6 +62,8 @@ namespace Bolt.Hosting
         // ── SpriteRenderer ───────────────────────────────────────────
         public delegate* unmanaged<ulong, float*, float*, float*, float*, void> SpriteRenderer_GetColor;
         public delegate* unmanaged<ulong, float, float, float, float, void> SpriteRenderer_SetColor;
+        public delegate* unmanaged<ulong, ulong> SpriteRenderer_GetTexture;
+        public delegate* unmanaged<ulong, ulong, void> SpriteRenderer_SetTexture;
         public delegate* unmanaged<ulong, int> SpriteRenderer_GetSortingOrder;
         public delegate* unmanaged<ulong, int, void> SpriteRenderer_SetSortingOrder;
         public delegate* unmanaged<ulong, int> SpriteRenderer_GetSortingLayer;
@@ -138,6 +140,15 @@ namespace Bolt.Hosting
         public delegate* unmanaged<int, byte*> Scene_GetLoadedSceneNameAt;
         public delegate* unmanaged<byte*, ulong*, int, int> Scene_QueryEntities;
         public delegate* unmanaged<byte*, byte*, byte*, int, ulong*, int, int> Scene_QueryEntitiesFiltered;
+        public delegate* unmanaged<ulong, int> Asset_IsValid;
+        public delegate* unmanaged<byte*, ulong> Asset_GetOrCreateUUIDFromPath;
+        public delegate* unmanaged<ulong, byte*> Asset_GetPath;
+        public delegate* unmanaged<ulong, byte*> Asset_GetDisplayName;
+        public delegate* unmanaged<ulong, int> Texture_LoadAsset;
+        public delegate* unmanaged<ulong, int> Texture_GetWidth;
+        public delegate* unmanaged<ulong, int> Texture_GetHeight;
+        public delegate* unmanaged<ulong, int> Audio_LoadAsset;
+        public delegate* unmanaged<ulong, float, void> Audio_PlayOneShotAsset;
 
         // ── ParticleSystem2D ─────────────────────────────────────────
         public delegate* unmanaged<ulong, void> ParticleSystem2D_Play;

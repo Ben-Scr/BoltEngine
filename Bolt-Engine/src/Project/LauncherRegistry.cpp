@@ -4,6 +4,7 @@
 #include "Serialization/Path.hpp"
 #include "Serialization/Directory.hpp"
 #include "Serialization/File.hpp"
+#include "Serialization/Json.hpp"
 #include "Core/Log.hpp"
 
 #include <algorithm>
@@ -24,47 +25,6 @@ namespace Bolt {
 		return ss.str();
 	}
 
-	// Minimal JSON helpers — no external library needed for these simple structures
-	static std::string EscapeJSON(const std::string& s) {
-		std::string out;
-		for (char c : s) {
-			if (c == '\\') out += "\\\\";
-			else if (c == '"') out += "\\\"";
-			else out += c;
-		}
-		return out;
-	}
-
-	static std::string UnescapeJSON(const std::string& s) {
-		std::string out;
-		for (size_t i = 0; i < s.size(); i++) {
-			if (s[i] == '\\' && i + 1 < s.size()) {
-				char next = s[i + 1];
-				if (next == '\\') { out += '\\'; i++; }
-				else if (next == '"') { out += '"'; i++; }
-				else if (next == 'n') { out += '\n'; i++; }
-				else out += s[i];
-			} else {
-				out += s[i];
-			}
-		}
-		return out;
-	}
-
-	static std::string ExtractValue(const std::string& json, const std::string& key) {
-		std::string search = "\"" + key + "\"";
-		auto pos = json.find(search);
-		if (pos == std::string::npos) return "";
-
-		pos = json.find('"', pos + search.size() + 1);
-		if (pos == std::string::npos) return "";
-
-		auto end = json.find('"', pos + 1);
-		if (end == std::string::npos) return "";
-
-		return UnescapeJSON(json.substr(pos + 1, end - pos - 1));
-	}
-
 	std::string LauncherRegistry::GetRegistryPath() {
 		return Path::Combine(
 			Path::GetSpecialFolderPath(SpecialFolder::LocalAppData),
@@ -77,27 +37,33 @@ namespace Bolt {
 
 		if (!File::Exists(path)) return;
 
-		std::ifstream in(path);
-		std::string json((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
-		in.close();
+		Json::Value root;
+		std::string parseError;
+		const std::string jsonText = File::ReadAllText(path);
+		if (!Json::TryParse(jsonText, root, &parseError) || !root.IsArray()) {
+			BT_CORE_WARN_TAG("LauncherRegistry", "Failed to parse '{}': {}", path, parseError);
+			return;
+		}
 
-		// Parse simple JSON array of objects
-		size_t pos = 0;
-		while ((pos = json.find('{', pos)) != std::string::npos) {
-			auto end = json.find('}', pos);
-			if (end == std::string::npos) break;
-
-			std::string obj = json.substr(pos, end - pos + 1);
+		for (const Json::Value& item : root.GetArray()) {
+			if (!item.IsObject()) {
+				continue;
+			}
 
 			LauncherProjectEntry entry;
-			entry.name = ExtractValue(obj, "name");
-			entry.path = ExtractValue(obj, "path");
-			entry.lastOpened = ExtractValue(obj, "lastOpened");
+			if (const Json::Value* nameValue = item.FindMember("name")) {
+				entry.name = nameValue->AsStringOr();
+			}
+			if (const Json::Value* pathValue = item.FindMember("path")) {
+				entry.path = pathValue->AsStringOr();
+			}
+			if (const Json::Value* lastOpenedValue = item.FindMember("lastOpened")) {
+				entry.lastOpened = lastOpenedValue->AsStringOr();
+			}
 
-			if (!entry.name.empty() && !entry.path.empty())
-				m_Projects.push_back(entry);
-
-			pos = end + 1;
+			if (!entry.name.empty() && !entry.path.empty()) {
+				m_Projects.push_back(std::move(entry));
+			}
 		}
 
 		std::sort(m_Projects.begin(), m_Projects.end(),
@@ -112,19 +78,15 @@ namespace Bolt {
 		if (!std::filesystem::exists(parent))
 			std::filesystem::create_directories(parent);
 
-		std::stringstream ss;
-		ss << "[\n";
-		for (size_t i = 0; i < m_Projects.size(); i++) {
-			auto& p = m_Projects[i];
-			ss << "  { \"name\": \"" << EscapeJSON(p.name)
-			   << "\", \"path\": \"" << EscapeJSON(p.path)
-			   << "\", \"lastOpened\": \"" << p.lastOpened << "\" }";
-			if (i + 1 < m_Projects.size()) ss << ",";
-			ss << "\n";
+		Json::Value root = Json::Value::MakeArray();
+		for (const LauncherProjectEntry& project : m_Projects) {
+			Json::Value item = Json::Value::MakeObject();
+			item.AddMember("name", project.name);
+			item.AddMember("path", project.path);
+			item.AddMember("lastOpened", project.lastOpened);
+			root.Append(std::move(item));
 		}
-		ss << "]\n";
-
-		File::WriteAllText(path, ss.str());
+		File::WriteAllText(path, Json::Stringify(root, true));
 	}
 
 	void LauncherRegistry::AddProject(const std::string& name, const std::string& path) {

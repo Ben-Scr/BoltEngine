@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  windows-build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Generate Project Files
+        shell: pwsh
+        run: python scripts/Setup.py
+
+      - name: Build Solution
+        shell: pwsh
+        run: |
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) {
+            throw 'MSBuild.exe not found via vswhere.'
+          }
+          $pathValue = $env:PATH
+
+          @"
+          set "PATH=$pathValue"
+          "$msbuild" "Bolt.sln" /m /p:Configuration=Release /p:Platform=x64
+          if errorlevel 1 exit /b %errorlevel%
+          "@ | cmd /Q
+
+  linux-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          lfs: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Native Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorg-dev libglu1-mesa-dev
+
+      - name: Generate Makefiles
+        run: |
+          chmod +x scripts/Setup.sh
+          chmod +x vendor/bin/premake5 || true
+          ./scripts/Setup.sh
+
+      - name: Build Linux Targets
+        run: make config=release -j"$(nproc)" Bolt-Engine Bolt-Runtime Bolt-Editor

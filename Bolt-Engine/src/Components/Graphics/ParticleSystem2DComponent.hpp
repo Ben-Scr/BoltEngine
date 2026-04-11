@@ -1,6 +1,7 @@
 #pragma once
 #include "Components/General/Transform2DComponent.hpp"
 #include "Core/Export.hpp"
+#include "Core/UUID.hpp"
 #include "Graphics/TextureHandle.hpp"
 #include "Collections/Color.hpp"
 #include <variant>
@@ -72,8 +73,9 @@ namespace Bolt {
 
 
 		ParticleSystem2DComponent() = default;
-		void SetTexture(const TextureHandle& texture) { m_TextureHandle = texture; }
+		void SetTexture(const TextureHandle& texture, UUID assetId = UUID(0)) { m_TextureHandle = texture; m_TextureAssetId = assetId; }
 		const TextureHandle& GetTextureHandle() const { return m_TextureHandle; }
+		UUID GetTextureAssetId() const { return m_TextureAssetId; }
 		void Emit(size_t count);
 		void AddBurst(const Burst& burst) { m_Bursts.push_back(burst); }
 		std::span<const Particle> GetParticles() const noexcept { return m_Particles; }
@@ -113,5 +115,6 @@ namespace Bolt {
 		bool m_IsEmitting{ false };
 		bool m_IsSimulating{ false };
 		TextureHandle m_TextureHandle;
+		UUID m_TextureAssetId{ 0 };
 	};
 }

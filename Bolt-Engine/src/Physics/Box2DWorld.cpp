@@ -27,14 +27,19 @@ namespace Bolt {
 	}
 
 	b2BodyId Box2DWorld::CreateBody(EntityHandle nativeEntity, Scene& scene, BodyType bodyType) {
-		Transform2DComponent& tr = scene.GetComponent<Transform2DComponent>(nativeEntity);
+		Transform2DComponent defaultTransform{};
+		Transform2DComponent* tr = &defaultTransform;
+		if (!scene.TryGetComponent(nativeEntity, tr)) {
+			BT_CORE_WARN_TAG("PhysicsSystem", "CreateBody using default transform because entity {} has no Transform2DComponent", static_cast<uint32_t>(nativeEntity));
+			tr = &defaultTransform;
+		}
 
-		b2Vec2 box2dPos(tr.Position.x, tr.Position.y);
+		b2Vec2 box2dPos(tr->Position.x, tr->Position.y);
 		b2BodyDef bodyDef = b2DefaultBodyDef();
 		bodyDef.type = bodyType == BodyType::Dynamic ? b2_dynamicBody : (bodyType == BodyType::Static ? b2_staticBody : b2_kinematicBody);
 		bodyDef.gravityScale = 1.0f;
 		bodyDef.position = box2dPos;
-		bodyDef.rotation = tr.GetB2Rotation();
+		bodyDef.rotation = tr->GetB2Rotation();
 		bodyDef.isBullet = true;
 		bodyDef.userData = reinterpret_cast<void*>(static_cast<uintptr_t>(nativeEntity));
 		bodyDef.linearDamping = 0.1f;
@@ -44,7 +49,15 @@ namespace Bolt {
 	}
 
 	b2ShapeId Box2DWorld::CreateShape(EntityHandle nativeEntity, Scene& scene, b2BodyId bodyId, ShapeType shapeType) {
-		Transform2DComponent transform = scene.GetComponent<Transform2DComponent>(nativeEntity);
+		Transform2DComponent transform{};
+		Transform2DComponent* transformPtr = &transform;
+		if (!scene.TryGetComponent(nativeEntity, transformPtr)) {
+			BT_CORE_WARN_TAG("PhysicsSystem", "CreateShape using default transform because entity {} has no Transform2DComponent", static_cast<uint32_t>(nativeEntity));
+			transform = Transform2DComponent{};
+			transformPtr = &transform;
+		}
+
+		transform = *transformPtr;
 		b2ShapeId shapeId = b2_nullShapeId;
 
 		b2ShapeDef shapeDef = b2DefaultShapeDef();

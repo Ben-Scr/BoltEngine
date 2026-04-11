@@ -7,7 +7,7 @@ namespace Bolt {
 	}
 
 	void File::WriteAllText(const std::string& path, const std::string& text) {
-		std::ofstream file(path);
+		std::ofstream file(path, std::ios::binary);
 		if (!file.is_open()) {
 			BT_CORE_ERROR("File couldn't be opened for writing: {}", path);
 			return;
@@ -18,20 +18,13 @@ namespace Bolt {
 	}
 
 	std::string File::ReadAllText(const std::string& path) {
-		std::ifstream file(path, std::ios::ate);
+		std::ifstream file(path, std::ios::binary);
 		if (!file.is_open()) {
 			BT_CORE_ERROR("File couldn't be opened for reading: {}", path);
 			return {};
 		}
 
-		std::streamsize size = file.tellg();
-		file.seekg(0, std::ios::beg);
-
-		std::string buffer(size, '\0');
-		file.read(buffer.data(), size);
-
-		file.close();
-		return buffer;
+		return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	}
 
 	std::vector<std::uint8_t> File::ReadAllBytes(const std::string& path) {

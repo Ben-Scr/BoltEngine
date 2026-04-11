@@ -43,7 +43,11 @@ namespace Bolt {
 			Application::s_Instance = this;
 		};
 
-		virtual ~Application() {}
+		virtual ~Application() {
+			if (s_Instance == this) {
+				s_Instance = nullptr;
+			}
+		}
 
 
 		void Run();
@@ -59,16 +63,15 @@ namespace Bolt {
 		static void SetIsPlaying(bool enabled) { if (s_Instance) s_Instance->m_IsPlaying = enabled; }
 		static bool GetIsPlaying() { if (s_Instance) return s_Instance->m_IsPlaying; return false; }
 
-		static void SetName(const std::string& s) { s_Name = s; }
+		void SetName(const std::string& s) { m_Name = s; }
 		static void SetTargetFramerate(float framerate) { if (s_Instance) s_Instance->m_TargetFramerate = framerate; }
 		static void SetForceSingleInstance(bool value) { if (s_Instance) s_Instance->m_ForceSingleInstance = value; }
 		static void SetRunInBackground(bool value) { if (s_Instance) s_Instance->m_RunInBackground = value; }
 
-		static const std::string& GetName() { return s_Name; }
+		const std::string& GetName() { return m_Name; }
 		static float GetTargetFramerate() { return s_Instance ? (s_Instance->m_IsPaused ? k_PausedTargetFrameRate : s_Instance->m_TargetFramerate) : 0.0f; }
 		static bool GetForceSingleInstance() { return s_Instance ? s_Instance->m_ForceSingleInstance : false; }
 		static bool GetRunInBackground() { return s_Instance ? s_Instance->m_RunInBackground : false; }
-		static float GetMaxPossibleFPS() { return s_Instance ? s_Instance->m_MaxPossibleFPS : 0.0f; }
 		static Window* GetWindow() { return s_Instance ? s_Instance->m_Window.get() : nullptr; }
 
 
@@ -117,7 +120,7 @@ namespace Bolt {
 		Time m_Time;
 		ApplicationConfig m_Configuration;
 
-		static std::string s_Name;
+	    std::string m_Name;
 
 		bool m_ForceSingleInstance = false;
 		bool m_RunInBackground = false;
@@ -129,7 +132,6 @@ namespace Bolt {
 		bool m_QuitRequested = false;
 
 		float m_TargetFramerate = 144.0f;
-		float m_MaxPossibleFPS = 0.0f;
 		static const float k_PausedTargetFrameRate;
 
 		static Application* s_Instance;
@@ -138,6 +140,8 @@ namespace Bolt {
 		std::vector<std::string> m_PendingFileDrops;
 		double m_FixedUpdateAccumulator;
 		std::chrono::steady_clock::time_point m_LastFrameTime = Clock::now();
+
+		//std::vector<std::unique_ptr<ISystem>> m_GlobalSystems;
 
 		void Initialize();
 		void Shutdown();

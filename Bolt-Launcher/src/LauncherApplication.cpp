@@ -18,6 +18,10 @@ public:
 		config.EnableGizmoRenderer = false;
 		config.EnablePhysics2D = false;
 		config.SetWindowIcon = true;
+		config.Vsync = false;
+
+		SetTargetFramerate(144.f);
+
 		return config;
 	}
 
