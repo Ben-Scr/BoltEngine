@@ -937,6 +937,78 @@ namespace Bolt {
 		b.Entity_AddComponent = &Bolt_Entity_AddComponent;
 		b.Entity_RemoveComponent = &Bolt_Entity_RemoveComponent;
 
+		b.NameComponent_GetName = &Bolt_NameComponent_GetName;
+		b.NameComponent_SetName = &Bolt_NameComponent_SetName;
+
+		b.Transform2D_GetPosition = &Bolt_Transform2D_GetPosition;
+		b.Transform2D_SetPosition = &Bolt_Transform2D_SetPosition;
+		b.Transform2D_GetRotation = &Bolt_Transform2D_GetRotation;
+		b.Transform2D_SetRotation = &Bolt_Transform2D_SetRotation;
+		b.Transform2D_GetScale = &Bolt_Transform2D_GetScale;
+		b.Transform2D_SetScale = &Bolt_Transform2D_SetScale;
+
+		b.SpriteRenderer_GetColor = &Bolt_SpriteRenderer_GetColor;
+		b.SpriteRenderer_SetColor = &Bolt_SpriteRenderer_SetColor;
+		b.SpriteRenderer_GetTexture = &Bolt_SpriteRenderer_GetTexture;
+		b.SpriteRenderer_SetTexture = &Bolt_SpriteRenderer_SetTexture;
+		b.SpriteRenderer_GetSortingOrder = &Bolt_SpriteRenderer_GetSortingOrder;
+		b.SpriteRenderer_SetSortingOrder = &Bolt_SpriteRenderer_SetSortingOrder;
+		b.SpriteRenderer_GetSortingLayer = &Bolt_SpriteRenderer_GetSortingLayer;
+		b.SpriteRenderer_SetSortingLayer = &Bolt_SpriteRenderer_SetSortingLayer;
+
+		b.Camera2D_GetOrthographicSize = &Bolt_Camera2D_GetOrthographicSize;
+		b.Camera2D_SetOrthographicSize = &Bolt_Camera2D_SetOrthographicSize;
+		b.Camera2D_GetZoom = &Bolt_Camera2D_GetZoom;
+		b.Camera2D_SetZoom = &Bolt_Camera2D_SetZoom;
+		b.Camera2D_GetClearColor = &Bolt_Camera2D_GetClearColor;
+		b.Camera2D_SetClearColor = &Bolt_Camera2D_SetClearColor;
+		b.Camera2D_ScreenToWorld = &Bolt_Camera2D_ScreenToWorld;
+		b.Camera2D_GetViewportWidth = &Bolt_Camera2D_GetViewportWidth;
+		b.Camera2D_GetViewportHeight = &Bolt_Camera2D_GetViewportHeight;
+
+		b.Rigidbody2D_ApplyForce = &Bolt_Rigidbody2D_ApplyForce;
+		b.Rigidbody2D_ApplyImpulse = &Bolt_Rigidbody2D_ApplyImpulse;
+		b.Rigidbody2D_GetLinearVelocity = &Bolt_Rigidbody2D_GetLinearVelocity;
+		b.Rigidbody2D_SetLinearVelocity = &Bolt_Rigidbody2D_SetLinearVelocity;
+		b.Rigidbody2D_GetAngularVelocity = &Bolt_Rigidbody2D_GetAngularVelocity;
+		b.Rigidbody2D_SetAngularVelocity = &Bolt_Rigidbody2D_SetAngularVelocity;
+		b.Rigidbody2D_GetBodyType = &Bolt_Rigidbody2D_GetBodyType;
+		b.Rigidbody2D_SetBodyType = &Bolt_Rigidbody2D_SetBodyType;
+		b.Rigidbody2D_GetGravityScale = &Bolt_Rigidbody2D_GetGravityScale;
+		b.Rigidbody2D_SetGravityScale = &Bolt_Rigidbody2D_SetGravityScale;
+		b.Rigidbody2D_GetMass = &Bolt_Rigidbody2D_GetMass;
+		b.Rigidbody2D_SetMass = &Bolt_Rigidbody2D_SetMass;
+
+		b.BoxCollider2D_GetScale = &Bolt_BoxCollider2D_GetScale;
+		b.BoxCollider2D_GetCenter = &Bolt_BoxCollider2D_GetCenter;
+		b.BoxCollider2D_SetEnabled = &Bolt_BoxCollider2D_SetEnabled;
+
+		b.AudioSource_Play = &Bolt_AudioSource_Play;
+		b.AudioSource_Pause = &Bolt_AudioSource_Pause;
+		b.AudioSource_Stop = &Bolt_AudioSource_Stop;
+		b.AudioSource_Resume = &Bolt_AudioSource_Resume;
+		b.AudioSource_GetVolume = &Bolt_AudioSource_GetVolume;
+		b.AudioSource_SetVolume = &Bolt_AudioSource_SetVolume;
+		b.AudioSource_GetPitch = &Bolt_AudioSource_GetPitch;
+		b.AudioSource_SetPitch = &Bolt_AudioSource_SetPitch;
+		b.AudioSource_GetLoop = &Bolt_AudioSource_GetLoop;
+		b.AudioSource_SetLoop = &Bolt_AudioSource_SetLoop;
+		b.AudioSource_IsPlaying = &Bolt_AudioSource_IsPlaying;
+		b.AudioSource_IsPaused = &Bolt_AudioSource_IsPaused;
+
+		b.BoltBody2D_GetBodyType = &Bolt_BoltBody2D_GetBodyType;
+		b.BoltBody2D_SetBodyType = &Bolt_BoltBody2D_SetBodyType;
+		b.BoltBody2D_GetMass = &Bolt_BoltBody2D_GetMass;
+		b.BoltBody2D_SetMass = &Bolt_BoltBody2D_SetMass;
+		b.BoltBody2D_GetUseGravity = &Bolt_BoltBody2D_GetUseGravity;
+		b.BoltBody2D_SetUseGravity = &Bolt_BoltBody2D_SetUseGravity;
+		b.BoltBody2D_GetVelocity = &Bolt_BoltBody2D_GetVelocity;
+		b.BoltBody2D_SetVelocity = &Bolt_BoltBody2D_SetVelocity;
+		b.BoltBoxCollider2D_GetHalfExtents = &Bolt_BoltBoxCollider2D_GetHalfExtents;
+		b.BoltBoxCollider2D_SetHalfExtents = &Bolt_BoltBoxCollider2D_SetHalfExtents;
+		b.BoltCircleCollider2D_GetRadius = &Bolt_BoltCircleCollider2D_GetRadius;
+		b.BoltCircleCollider2D_SetRadius = &Bolt_BoltCircleCollider2D_SetRadius;
+
 		b.Scene_GetActiveSceneName = &Bolt_Scene_GetActiveSceneName;
 		b.Scene_GetEntityCount = &Bolt_Scene_GetEntityCount;
 		b.Scene_GetEntityNameByUUID = &Bolt_Scene_GetEntityNameByUUID;
