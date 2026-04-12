@@ -8,8 +8,10 @@
 #include "Scene/Scene.hpp"
 #include "Components/General/Transform2DComponent.hpp"
 
-#ifdef BT_PLATFORM_WINDOWS
+#if defined(BT_PLATFORM_WINDOWS)
 #include <windows.h>
+#elif defined(BT_PLATFORM_LINUX)
+#include <dlfcn.h>
 #endif
 
 namespace Bolt {
@@ -72,34 +74,60 @@ namespace Bolt {
 		if (m_DllHandle) UnloadDLL();
 		m_DllPath = dllPath;
 
-#ifdef BT_PLATFORM_WINDOWS
+#if defined(BT_PLATFORM_WINDOWS)
 		m_DllHandle = static_cast<void*>(LoadLibraryA(dllPath.c_str()));
 		if (!m_DllHandle)
 		{
 			BT_CORE_ERROR_TAG("NativeScriptHost", "Failed to load DLL: {}", dllPath);
 			return false;
 		}
+#elif defined(BT_PLATFORM_LINUX)
+		dlerror();
+		m_DllHandle = dlopen(dllPath.c_str(), RTLD_NOW);
+		if (!m_DllHandle)
+		{
+			const char* error = dlerror();
+			BT_CORE_ERROR_TAG("NativeScriptHost", "Failed to load shared library '{}': {}", dllPath, error ? error : "unknown error");
+			return false;
+		}
+#else
+		BT_CORE_ERROR_TAG("NativeScriptHost", "Native scripts are not supported on this platform");
+		return false;
+#endif
 
-		m_CreateFn = reinterpret_cast<CreateFn>(
-			GetProcAddress(static_cast<HMODULE>(m_DllHandle), "BoltCreateScript"));
-		m_DestroyFn = reinterpret_cast<DestroyFn>(
-			GetProcAddress(static_cast<HMODULE>(m_DllHandle), "BoltDestroyScript"));
+		auto getSymbol = [this](const char* name) -> void* {
+#if defined(BT_PLATFORM_WINDOWS)
+			return reinterpret_cast<void*>(GetProcAddress(static_cast<HMODULE>(m_DllHandle), name));
+#elif defined(BT_PLATFORM_LINUX)
+			dlerror();
+			return dlsym(m_DllHandle, name);
+#else
+			return nullptr;
+#endif
+		};
+
+		m_CreateFn = reinterpret_cast<CreateFn>(getSymbol("BoltCreateScript"));
+		m_DestroyFn = reinterpret_cast<DestroyFn>(getSymbol("BoltDestroyScript"));
 
 		if (!m_CreateFn || !m_DestroyFn)
 		{
 			BT_CORE_ERROR_TAG("NativeScriptHost",
 				"DLL missing BoltCreateScript/BoltDestroyScript: {}", dllPath);
+#if defined(BT_PLATFORM_WINDOWS)
 			FreeLibrary(static_cast<HMODULE>(m_DllHandle));
+#elif defined(BT_PLATFORM_LINUX)
+			dlclose(m_DllHandle);
+#endif
 			m_DllHandle = nullptr;
+			m_CreateFn = nullptr;
+			m_DestroyFn = nullptr;
 			return false;
 		}
 
 		// Pass engine API to the DLL so scripts can call engine functions
-		auto initFn = reinterpret_cast<InitFn>(
-			GetProcAddress(static_cast<HMODULE>(m_DllHandle), "BoltInitialize"));
+		auto initFn = reinterpret_cast<InitFn>(getSymbol("BoltInitialize"));
 		if (initFn)
 			initFn(&s_EngineAPI);
-#endif
 
 		BT_CORE_INFO_TAG("NativeScriptHost", "Loaded native script DLL: {}", dllPath);
 		return true;
@@ -109,10 +137,15 @@ namespace Bolt {
 	{
 		DestroyAllInstances();
 
-#ifdef BT_PLATFORM_WINDOWS
+#if defined(BT_PLATFORM_WINDOWS)
 		if (m_DllHandle)
 		{
 			FreeLibrary(static_cast<HMODULE>(m_DllHandle));
+		}
+#elif defined(BT_PLATFORM_LINUX)
+		if (m_DllHandle)
+		{
+			dlclose(m_DllHandle);
 		}
 #endif
 

@@ -14,6 +14,47 @@
 #include <filesystem>
 
 namespace Bolt {
+	namespace {
+		std::string GetNativeLibraryFilename(const std::string& targetName)
+		{
+#if defined(BT_PLATFORM_WINDOWS)
+			return targetName + ".dll";
+#elif defined(BT_PLATFORM_LINUX)
+			return "lib" + targetName + ".so";
+#else
+#error Unsupported platform for native scripts
+#endif
+		}
+
+		std::filesystem::path NormalizeNativePath(std::filesystem::path path)
+		{
+			std::error_code ec;
+			if (std::filesystem::exists(path)) {
+				const std::filesystem::path canonicalPath = std::filesystem::weakly_canonical(path, ec);
+				if (!ec) {
+					return canonicalPath;
+				}
+			}
+
+			return path.lexically_normal();
+		}
+
+		std::filesystem::path ResolveProjectNativeDLLPath(const BoltProject& project)
+		{
+			return NormalizeNativePath(std::filesystem::path(project.GetNativeDllPath()));
+		}
+
+		std::filesystem::path ResolveStandaloneNativeDLLPath(const std::filesystem::path& executableDirectory)
+		{
+			return NormalizeNativePath(
+				executableDirectory / ".." / "Bolt-NativeScripts" / GetNativeLibraryFilename("Bolt-NativeScripts"));
+		}
+
+		std::string GetActiveNativeBuildConfig()
+		{
+			return BT_BUILD_CONFIG_NAME;
+		}
+	}
 
 	void ScriptSystem::Awake(Scene& scene)
 	{
@@ -93,10 +134,10 @@ namespace Bolt {
 			if (std::filesystem::exists(project->NativeScriptsDir)) {
 				m_NativeProjectDirectory = std::filesystem::canonical(project->NativeScriptsDir).string();
 			}
-			auto nativeDll = std::filesystem::path(project->GetNativeDllPath());
+			const std::filesystem::path nativeDll = ResolveProjectNativeDLLPath(*project);
+			m_NativeDLLPath = nativeDll.string();
 			if (std::filesystem::exists(nativeDll))
 			{
-				m_NativeDLLPath = std::filesystem::canonical(nativeDll).string();
 				m_NativeHost.LoadDLL(m_NativeDLLPath);
 			}
 			auto nativeSourceDir = std::filesystem::path(project->NativeSourceDir);
@@ -113,10 +154,10 @@ namespace Bolt {
 			if (std::filesystem::exists(nativeProjectDir)) {
 				m_NativeProjectDirectory = std::filesystem::canonical(nativeProjectDir).string();
 			}
-			auto nativeDll = exeDir / ".." / "Bolt-NativeScripts" / "Bolt-NativeScripts.dll";
+			const std::filesystem::path nativeDll = ResolveStandaloneNativeDLLPath(exeDir);
+			m_NativeDLLPath = nativeDll.string();
 			if (std::filesystem::exists(nativeDll))
 			{
-				m_NativeDLLPath = std::filesystem::canonical(nativeDll).string();
 				m_NativeHost.LoadDLL(m_NativeDLLPath);
 			}
 			auto nativeSourceDir = exeDir / ".." / ".." / ".." / "Bolt-NativeScripts" / "Source";
@@ -159,34 +200,39 @@ namespace Bolt {
 
 	void ScriptSystem::RebuildAndReloadNativeScripts()
 	{
-		if (m_IsRebuildingNative || m_NativeDLLPath.empty() || m_NativeProjectDirectory.empty()) return;
+		if (m_IsRebuildingNative || m_NativeProjectDirectory.empty()) return;
 
 		BT_INFO_TAG("ScriptSystem", "Rebuilding native scripts...");
 		m_IsRebuildingNative = true;
 		m_NativeRebuildStartTime = std::chrono::steady_clock::now();
 
-		// Unload DLL before recompile so the file isn't locked
+		if (m_LastScene) {
+			TeardownNativeScripts(*m_LastScene);
+		}
+
+		// Unload after scene instances are unbound so no stale native pointers survive the frame.
 		m_NativeHost.UnloadDLL();
 
-		// Reconfigure first (picks up new/renamed files via GLOB_RECURSE), then build
 		const std::string nativeProjectDirectory = m_NativeProjectDirectory;
-		m_NativeRebuildFuture = std::async(std::launch::async, [nativeProjectDirectory]() {
+		const std::string buildConfig = GetActiveNativeBuildConfig();
+		m_NativeRebuildFuture = std::async(std::launch::async, [nativeProjectDirectory, buildConfig]() {
+			const std::filesystem::path buildDirectory = std::filesystem::path(nativeProjectDirectory) / "build";
+
 			Process::Result configureResult = Process::Run({
 				"cmake",
-				"-B", std::filesystem::path(nativeProjectDirectory).append("build").string(),
+				"-B", buildDirectory.string(),
 				"-S", nativeProjectDirectory,
-				"-G", "Visual Studio 17 2022",
-				"-A", "x64"
-			});
+				"-DCMAKE_BUILD_TYPE=" + buildConfig
+			}, nativeProjectDirectory);
 			if (!configureResult.Succeeded()) {
 				return configureResult;
 			}
 
 			Process::Result buildResult = Process::Run({
 				"cmake",
-				"--build", std::filesystem::path(nativeProjectDirectory).append("build").string(),
-				"--config", "Release"
-			});
+				"--build", buildDirectory.string(),
+				"--config", buildConfig
+			}, nativeProjectDirectory);
 			if (!configureResult.Output.empty()) {
 				buildResult.Output = configureResult.Output + buildResult.Output;
 			}
@@ -222,6 +268,9 @@ namespace Bolt {
 
 	void ScriptSystem::TeardownNativeScripts(Scene& scene)
 	{
+		ScriptEngine::SetScene(&scene);
+		const bool canDestroyNativeInstances = m_NativeHost.IsLoaded();
+
 		auto view = scene.GetRegistry().view<ScriptComponent>();
 		for (auto [entity, scriptComp] : view.each())
 		{
@@ -231,7 +280,9 @@ namespace Bolt {
 					continue;
 				}
 
-				m_NativeHost.DestroyInstance(instance.GetNativePtr());
+				if (canDestroyNativeInstances) {
+					m_NativeHost.DestroyInstance(instance.GetNativePtr());
+				}
 				instance.Unbind();
 			}
 		}
@@ -285,16 +336,20 @@ namespace Bolt {
 
 				if (result.Succeeded())
 				{
-					m_NativeHost.LoadDLL(m_NativeDLLPath);
-					if (m_LastScene)
-					{
-						auto view = m_LastScene->GetRegistry().view<ScriptComponent>();
-						for (auto [ent, sc] : view.each())
-							for (auto& inst : sc.Scripts)
-								if (inst.GetType() == ScriptType::Native)
-									inst.Unbind();
+					const std::filesystem::path exeDir = std::filesystem::path(Path::ExecutableDir());
+					if (BoltProject* project = ProjectManager::GetCurrentProject()) {
+						m_NativeDLLPath = ResolveProjectNativeDLLPath(*project).string();
 					}
-					BT_INFO_TAG("ScriptSystem", "Native scripts rebuilt and reloaded");
+					else {
+						m_NativeDLLPath = ResolveStandaloneNativeDLLPath(exeDir).string();
+					}
+
+					if (!std::filesystem::exists(m_NativeDLLPath) || !m_NativeHost.LoadDLL(m_NativeDLLPath)) {
+						BT_ERROR_TAG("ScriptSystem", "Native scripts built, but failed to load '{}'", m_NativeDLLPath);
+					}
+					else {
+						BT_INFO_TAG("ScriptSystem", "Native scripts rebuilt and reloaded");
+					}
 				}
 				else
 				{
@@ -368,7 +423,7 @@ namespace Bolt {
 							instance.SetGCHandle(handle);
 					}
 					// Then try native C++
-					else if (m_NativeHost.IsLoaded())
+					else if (!m_IsRebuildingNative && m_NativeHost.IsLoaded())
 					{
 						NativeScript* native = m_NativeHost.CreateInstance(
 							instance.GetClassName(), entity, &scene);
@@ -411,12 +466,22 @@ namespace Bolt {
 				}
 				else if (instance.GetType() == ScriptType::Native)
 				{
+					if (m_IsRebuildingNative || !instance.HasNativeInstance()) {
+						continue;
+					}
+
+					NativeScript* nativeInstance = instance.GetNativePtr();
+					if (!nativeInstance) {
+						instance.Unbind();
+						continue;
+					}
+
 					if (!instance.HasStarted())
 					{
 						instance.MarkStarted();
-						instance.GetNativePtr()->Start();
+						nativeInstance->Start();
 					}
-					instance.GetNativePtr()->Update(dt);
+					nativeInstance->Update(dt);
 				}
 			}
 		}

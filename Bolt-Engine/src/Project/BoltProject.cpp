@@ -84,6 +84,16 @@ namespace Bolt {
 			return "lib" + projectName + "-NativeScripts.so";
 #endif
 		}
+
+		std::string GetNativeBuildPlatformDirectory() {
+#if defined(BT_PLATFORM_WINDOWS)
+			return "windows-x86_64";
+#elif defined(BT_PLATFORM_LINUX)
+			return "linux-x86_64";
+#else
+			return {};
+#endif
+		}
 	}
 
 	static std::string GenerateGUID() {
@@ -154,10 +164,20 @@ namespace Bolt {
 
 	std::string BoltProject::GetNativeDllPath() const {
 		const std::string libraryFilename = GetNativeLibraryFilename(Name);
-		const std::vector<std::filesystem::path> candidates = {
-			std::filesystem::path(NativeScriptsDir) / "build" / "Release" / libraryFilename,
-			std::filesystem::path(NativeScriptsDir) / "build" / libraryFilename,
-		};
+		const std::string buildConfig = BT_BUILD_CONFIG_NAME;
+		const std::string targetName = Name + "-NativeScripts";
+		const std::string platformDirectory = GetNativeBuildPlatformDirectory();
+
+		std::vector<std::filesystem::path> candidates;
+		if (!platformDirectory.empty()) {
+			candidates.emplace_back(std::filesystem::path(RootDirectory) / "bin" / (buildConfig + "-" + platformDirectory) / targetName / libraryFilename);
+		}
+
+		candidates.emplace_back(std::filesystem::path(NativeScriptsDir) / "build" / buildConfig / libraryFilename);
+		candidates.emplace_back(std::filesystem::path(NativeScriptsDir) / "build" / libraryFilename);
+		candidates.emplace_back(std::filesystem::path(NativeScriptsDir) / "build" / "Release" / libraryFilename);
+		candidates.emplace_back(std::filesystem::path(NativeScriptsDir) / "build" / "Debug" / libraryFilename);
+		candidates.emplace_back(std::filesystem::path(NativeScriptsDir) / "build" / "Dist" / libraryFilename);
 
 		for (const auto& candidate : candidates) {
 			if (std::filesystem::exists(candidate)) {
@@ -457,6 +477,13 @@ endif()
 project()" + name + R"(-NativeScripts LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
+if(CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Dist" CACHE STRING "" FORCE)
+endif()
+
+set(CMAKE_CXX_FLAGS_DIST "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "Flags used by the C++ compiler for Dist builds." FORCE)
+set(CMAKE_SHARED_LINKER_FLAGS_DIST "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" CACHE STRING "Flags used by the shared linker for Dist builds." FORCE)
+
 )" + boltRootBootstrap + R"(
 file(GLOB_RECURSE NATIVE_SOURCES "Source/*.cpp" "Source/*.h" "Source/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${NATIVE_SOURCES})
@@ -465,13 +492,26 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     "${BOLT_DIR}/Bolt-Engine/src"
 )
 if(WIN32)
+    set(BT_NATIVE_PLATFORM "windows-x86_64")
     target_compile_definitions(${PROJECT_NAME} PRIVATE BT_PLATFORM_WINDOWS)
 elseif(UNIX AND NOT APPLE)
+    set(BT_NATIVE_PLATFORM "linux-x86_64")
     target_compile_definitions(${PROJECT_NAME} PRIVATE BT_PLATFORM_LINUX)
+else()
+    message(FATAL_ERROR "Unsupported platform for native scripts")
 endif()
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
 endif()
+
+set(NATIVE_OUTPUT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../bin")
+foreach(config Debug Release Dist)
+    string(TOUPPER "${config}" config_upper)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${NATIVE_OUTPUT_ROOT}/${config}-${BT_NATIVE_PLATFORM}/${PROJECT_NAME}"
+        LIBRARY_OUTPUT_DIRECTORY_${config_upper} "${NATIVE_OUTPUT_ROOT}/${config}-${BT_NATIVE_PLATFORM}/${PROJECT_NAME}"
+    )
+endforeach()
 )";
 		File::WriteAllText(Path::Combine(project.NativeScriptsDir, "CMakeLists.txt"), cmakeFile);
 

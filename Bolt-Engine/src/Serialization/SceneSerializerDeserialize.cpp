@@ -663,6 +663,16 @@ namespace Bolt {
 			transform.Scale.y = GetFloatMember(*transformValue, "scaleY", 1.0f);
 		}
 
+		if (GetBoolMember(entityValue, "static", false)) {
+			scene.AddComponent<StaticTag>(entity);
+		}
+		if (GetBoolMember(entityValue, "disabled", false)) {
+			scene.AddComponent<DisabledTag>(entity);
+		}
+		if (GetBoolMember(entityValue, "deadly", false)) {
+			scene.AddComponent<DeadlyTag>(entity);
+		}
+
 		if (const Value* spriteValue = GetObjectMember(entityValue, "SpriteRenderer")) {
 			auto& spriteRenderer = scene.AddComponent<SpriteRendererComponent>(entity);
 			spriteRenderer.Color.r = GetFloatMember(*spriteValue, "r", 1.0f);
@@ -729,16 +739,6 @@ namespace Bolt {
 			if (handle.IsValid()) {
 				audioSource.SetAudioHandle(handle, audioAssetId);
 			}
-		}
-
-		if (GetBoolMember(entityValue, "static", false)) {
-			scene.AddComponent<StaticTag>(entity);
-		}
-		if (GetBoolMember(entityValue, "disabled", false)) {
-			scene.AddComponent<DisabledTag>(entity);
-		}
-		if (GetBoolMember(entityValue, "deadly", false)) {
-			scene.AddComponent<DeadlyTag>(entity);
 		}
 
 		if (const Value* cameraValue = GetObjectMember(entityValue, "Camera2D")) {

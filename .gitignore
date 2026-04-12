@@ -8,6 +8,9 @@ build/
 bin-int/
 !vendor/bin/
 !vendor/bin/**
+!src/Packages/
+!src/Packages/*.hpp
+!src/Packages/*.cpp
 *.sln
 *.vcxproj
 *.vcxproj.filters

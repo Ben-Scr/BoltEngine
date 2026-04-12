@@ -190,9 +190,12 @@ namespace Bolt {
 		void OnRigidBody2DComponentDestroy(entt::registry& registry, EntityHandle entity);
 		void OnBoxCollider2DComponentConstruct(entt::registry& registry, EntityHandle entity);
 		void OnBoxCollider2DComponentDestroy(entt::registry& registry, EntityHandle entity);
+		void OnAudioSourceComponentDestroy(entt::registry& registry, EntityHandle entity);
 
 		void OnCamera2DComponentConstruct(entt::registry& registry, EntityHandle entity);
 		void OnCamera2DComponentDestruct(entt::registry& registry, EntityHandle entity);
+		void OnDisabledTagConstruct(entt::registry& registry, EntityHandle entity);
+		void OnDisabledTagDestroy(entt::registry& registry, EntityHandle entity);
 
 		void OnParticleSystem2DComponentConstruct(entt::registry& registry, EntityHandle entity);
 		void OnParticleSystem2DComponentDestruct(entt::registry& registry, EntityHandle entity);
@@ -207,6 +210,8 @@ namespace Bolt {
 		void TrackEntityDestruction(EntityHandle entity);
 		void UntrackEntityDestruction(EntityHandle entity);
 		bool IsEntityBeingDestroyed(EntityHandle entity) const;
+		void ApplyEntityEnabledState(entt::registry& registry, EntityHandle entity, bool enabled);
+		void RefreshMainCameraSelection(entt::registry& registry, EntityHandle preferred = entt::null, EntityHandle excluded = entt::null);
 
 		void AwakeSystems();
 		void StartSystems();

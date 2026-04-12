@@ -40,10 +40,10 @@ namespace Bolt {
 	}
 
 	void AudioSourceComponent::Destroy() {
-		if (m_instanceId == 0) {
-			return;
+		if (m_instanceId != 0) {
+			AudioManager::DestroySoundInstance(m_instanceId);
+			m_instanceId = 0;
 		}
-		AudioManager::DestroySoundInstance(m_instanceId);
 	}
 
 	void AudioSourceComponent::SetVolume(float volume) {
@@ -109,7 +109,7 @@ namespace Bolt {
 
 
 	void AudioSourceComponent::SetAudioHandle(const AudioHandle& audioHandle, UUID assetId) {
-		if (IsPlaying()) {
+		if (m_instanceId != 0) {
 			Stop();
 		}
 

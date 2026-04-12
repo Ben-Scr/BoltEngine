@@ -4,10 +4,13 @@
 #include "Core/UUID.hpp"
 #include "Graphics/TextureHandle.hpp"
 #include "Collections/Color.hpp"
+#include "Scene/EntityHandle.hpp"
 #include <variant>
 #include <span>
 
 namespace Bolt {
+	class Scene;
+
 	class BOLT_API ParticleSystem2DComponent {
 		friend class Scene;
 		friend class Renderer2D;
@@ -80,7 +83,8 @@ namespace Bolt {
 		void AddBurst(const Burst& burst) { m_Bursts.push_back(burst); }
 		std::span<const Particle> GetParticles() const noexcept { return m_Particles; }
 		bool IsPlaying() const { return m_IsEmitting; }
-		Transform2DComponent& GetTransform2D() { return *m_EmitterTransform; };
+		Transform2DComponent& GetTransform2D();
+		const Transform2DComponent& GetTransform2D() const;
 
 		// Info: Enables both emitting and simulating
 		void Play() { m_IsEmitting = true; m_IsSimulating = true; }
@@ -107,10 +111,12 @@ namespace Bolt {
 
 	private:
 		void Update();
+		const Transform2DComponent* TryGetEmitterTransform() const;
 		std::vector<Particle> m_Particles;
 		std::vector<Burst> m_Bursts;
 
-		Transform2DComponent* m_EmitterTransform{ nullptr };
+		Scene* m_EmitterScene{ nullptr };
+		EntityHandle m_EmitterEntity{ entt::null };
 		float m_EmitAccumulator{ 0.0f };
 		bool m_IsEmitting{ false };
 		bool m_IsSimulating{ false };

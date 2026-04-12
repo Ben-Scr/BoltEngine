@@ -2,11 +2,37 @@
 #include "Components/Graphics/ParticleSystem2DComponent.hpp"
 
 #include "Math/Random.hpp"
+#include "Scene/Scene.hpp"
 
 #include <Core/Time.hpp>
 #include <Core/Application.hpp>
 
 namespace Bolt {
+	Transform2DComponent& ParticleSystem2DComponent::GetTransform2D() {
+		Transform2DComponent* transform = const_cast<Transform2DComponent*>(TryGetEmitterTransform());
+		BT_ASSERT(transform != nullptr, BoltErrorCode::InvalidHandle, "Particle system emitter transform is no longer available");
+		return *transform;
+	}
+
+	const Transform2DComponent& ParticleSystem2DComponent::GetTransform2D() const {
+		const Transform2DComponent* transform = TryGetEmitterTransform();
+		BT_ASSERT(transform != nullptr, BoltErrorCode::InvalidHandle, "Particle system emitter transform is no longer available");
+		return *transform;
+	}
+
+	const Transform2DComponent* ParticleSystem2DComponent::TryGetEmitterTransform() const
+	{
+		if (!m_EmitterScene || m_EmitterEntity == entt::null || !m_EmitterScene->IsValid(m_EmitterEntity)) {
+			return nullptr;
+		}
+
+		if (!m_EmitterScene->HasComponent<Transform2DComponent>(m_EmitterEntity)) {
+			return nullptr;
+		}
+
+		return &m_EmitterScene->GetComponent<Transform2DComponent>(m_EmitterEntity);
+	}
+
 	void ParticleSystem2DComponent::Update() {
 		float deltaTime = Application::GetInstance()->GetTime().GetDeltaTime();
 		if (deltaTime == 0.f) return;
@@ -71,7 +97,9 @@ namespace Bolt {
 				}, Shape);
 
 			if (EmissionSettings.EmissionSpace == Space::World) {
-				position = m_EmitterTransform->TransformPoint(position);
+				if (const Transform2DComponent* emitterTransform = TryGetEmitterTransform()) {
+					position = emitterTransform->TransformPoint(position);
+				}
 			}
 
 			particle.Velocity = ParticleSettings.MoveDirection * ParticleSettings.Speed;

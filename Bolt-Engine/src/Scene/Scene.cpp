@@ -155,11 +155,14 @@ namespace Bolt {
 		m_Registry.on_construct<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentConstruct>(this);
 		m_Registry.on_construct<Camera2DComponent>().connect<&Scene::OnCamera2DComponentConstruct>(this);
 		m_Registry.on_construct<ParticleSystem2DComponent>().connect<&Scene::OnParticleSystem2DComponentConstruct>(this);
+		m_Registry.on_construct<DisabledTag>().connect<&Scene::OnDisabledTagConstruct>(this);
 
 		m_Registry.on_destroy<Rigidbody2DComponent>().connect<&Scene::OnRigidBody2DComponentDestroy>(this);
 		m_Registry.on_destroy<BoxCollider2DComponent>().connect<&Scene::OnBoxCollider2DComponentDestroy>(this);
+		m_Registry.on_destroy<AudioSourceComponent>().connect<&Scene::OnAudioSourceComponentDestroy>(this);
 		m_Registry.on_destroy<Camera2DComponent>().connect<&Scene::OnCamera2DComponentDestruct>(this);
 		m_Registry.on_destroy<ParticleSystem2DComponent>().connect<&Scene::OnParticleSystem2DComponentDestruct>(this);
+		m_Registry.on_destroy<DisabledTag>().connect<&Scene::OnDisabledTagDestroy>(this);
 
 		// Bolt-Physics component hooks
 		m_Registry.on_construct<BoltBody2DComponent>().connect<&Scene::OnBoltBody2DConstruct>(this);
@@ -242,16 +245,22 @@ namespace Bolt {
 		}
 	}
 
+	void Scene::OnAudioSourceComponentDestroy(entt::registry& registry, EntityHandle entity)
+	{
+		registry.get<AudioSourceComponent>(entity).Destroy();
+	}
+
 	void Scene::OnCamera2DComponentConstruct(entt::registry& registry, EntityHandle entity)
 	{
 		Camera2DComponent& camera2D = GetComponent<Camera2DComponent>(entity);
 		camera2D.Initialize(GetComponent<Transform2DComponent>(entity));
 		camera2D.UpdateViewport();
 
-		if (m_MainCameraEntity == entt::null
-			|| !registry.valid(m_MainCameraEntity)
-			|| registry.all_of<DisabledTag>(m_MainCameraEntity)) {
-			m_MainCameraEntity = entity;
+		if (!registry.all_of<DisabledTag>(entity)
+			&& (m_MainCameraEntity == entt::null
+				|| !registry.valid(m_MainCameraEntity)
+				|| registry.all_of<DisabledTag>(m_MainCameraEntity))) {
+			RefreshMainCameraSelection(registry, entity);
 		}
 	}
 
@@ -261,25 +270,38 @@ namespace Bolt {
 		camera2D.Destroy();
 
 		if (m_MainCameraEntity == entity) {
-			m_MainCameraEntity = entt::null;
-			auto view = registry.view<Camera2DComponent>(entt::exclude<DisabledTag>);
-			for (EntityHandle candidate : view) {
-				if (candidate != entity) {
-					m_MainCameraEntity = candidate;
-					break;
-				}
-			}
+			RefreshMainCameraSelection(registry, entt::null, entity);
 		}
+	}
+
+	void Scene::OnDisabledTagConstruct(entt::registry& registry, EntityHandle entity)
+	{
+		if (IsEntityBeingDestroyed(entity)) {
+			return;
+		}
+
+		ApplyEntityEnabledState(registry, entity, false);
+	}
+
+	void Scene::OnDisabledTagDestroy(entt::registry& registry, EntityHandle entity)
+	{
+		if (IsEntityBeingDestroyed(entity)) {
+			return;
+		}
+
+		ApplyEntityEnabledState(registry, entity, true);
 	}
 
 	void Scene::OnParticleSystem2DComponentConstruct(entt::registry& registry, EntityHandle entity) {
 		auto& ps = registry.get<ParticleSystem2DComponent>(entity);
-		ps.m_EmitterTransform = &GetComponent<Transform2DComponent>(entity);
+		ps.m_EmitterScene = this;
+		ps.m_EmitterEntity = entity;
 	}
 
 	void Scene::OnParticleSystem2DComponentDestruct(entt::registry& registry, EntityHandle entity) {
 		auto& ps = registry.get<ParticleSystem2DComponent>(entity);
-		ps.m_EmitterTransform = nullptr;
+		ps.m_EmitterScene = nullptr;
+		ps.m_EmitterEntity = entt::null;
 	}
 
 	// ── Bolt-Physics component hooks ────────────────────────────────
@@ -324,5 +346,60 @@ namespace Bolt {
 
 	void Scene::OnBoltCircleCollider2DDestroy(entt::registry& registry, EntityHandle entity) {
 		PhysicsSystem2D::GetBoltPhysicsWorld().DestroyCollider(entity);
+	}
+
+	void Scene::ApplyEntityEnabledState(entt::registry& registry, EntityHandle entity, bool enabled)
+	{
+		if (!registry.valid(entity)) {
+			return;
+		}
+
+		if (auto* rigidbody = registry.try_get<Rigidbody2DComponent>(entity); rigidbody && rigidbody->IsValid()) {
+			rigidbody->SetEnabled(enabled);
+		}
+
+		if (auto* collider = registry.try_get<BoxCollider2DComponent>(entity); collider && collider->IsValid()) {
+			collider->SetEnabled(enabled);
+		}
+
+		if (!registry.all_of<Camera2DComponent>(entity)) {
+			return;
+		}
+
+		if (!enabled && m_MainCameraEntity == entity) {
+			RefreshMainCameraSelection(registry, entt::null, entity);
+		}
+		else if (enabled
+			&& (m_MainCameraEntity == entt::null
+				|| !registry.valid(m_MainCameraEntity)
+				|| registry.all_of<DisabledTag>(m_MainCameraEntity))) {
+			RefreshMainCameraSelection(registry, entity);
+		}
+	}
+
+	void Scene::RefreshMainCameraSelection(entt::registry& registry, EntityHandle preferred, EntityHandle excluded)
+	{
+		const auto isUsableCamera = [&](EntityHandle entity) {
+			return entity != entt::null
+				&& entity != excluded
+				&& registry.valid(entity)
+				&& registry.all_of<Camera2DComponent>(entity)
+				&& !registry.all_of<DisabledTag>(entity);
+		};
+
+		if (isUsableCamera(preferred)) {
+			m_MainCameraEntity = preferred;
+			return;
+		}
+
+		auto view = registry.view<Camera2DComponent>(entt::exclude<DisabledTag>);
+		for (EntityHandle candidate : view) {
+			if (candidate != excluded) {
+				m_MainCameraEntity = candidate;
+				return;
+			}
+		}
+
+		m_MainCameraEntity = entt::null;
 	}
 }
