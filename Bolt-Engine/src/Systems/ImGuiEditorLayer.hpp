@@ -18,7 +18,7 @@
 #include <chrono>
 
 namespace Bolt {
-	class BOLT_API ImGuiEditorSystem : public Layer {
+	class BOLT_API ImGuiEditorLayer : public Layer {
 	public:
 		using Layer::Layer;
 

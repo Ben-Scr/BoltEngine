@@ -55,7 +55,7 @@ namespace Bolt
             get
             {
                 ulong assetId = InternalCalls.SpriteRenderer_GetTexture(Entity.ID);
-                return global::Bolt.Texture.FromAssetUUID(assetId)!;
+                return Texture.FromAssetUUID(assetId)!;
             }
             set => InternalCalls.SpriteRenderer_SetTexture(Entity.ID, value?.UUID ?? 0);
         }

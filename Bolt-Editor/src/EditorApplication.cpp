@@ -5,7 +5,7 @@
 #include "Scene/EntityHelper.hpp"
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
-#include <Systems/ImGuiEditorSystem.hpp>
+#include <Systems/ImGuiEditorLayer.hpp>
 #include <Systems/ImGuiDebugSystem.hpp>
 #include <Systems/GizmosDebugSystem.hpp>
 #include <Systems/ParticleUpdateSystem.hpp>
@@ -59,7 +59,7 @@ public:
 	}
 
 	void ConfigureLayers() override {
-		PushLayer<ImGuiEditorSystem>();
+		PushLayer<ImGuiEditorLayer>();
 		PushOverlay<ImGuiDebugSystem>();
 		PushOverlay<GizmosDebugSystem>();
 	}

@@ -1,5 +1,5 @@
 #include <pch.hpp>
-#include "ImGuiEditorSystem.hpp"
+#include "ImGuiEditorLayer.hpp"
 
 #include <imgui.h>
 #include <glad/glad.h>
@@ -38,7 +38,7 @@
 namespace Bolt {
 
 
-	void ImGuiEditorSystem::EnsureFBO(ViewportFBO& fbo, int width, int height) {
+	void ImGuiEditorLayer::EnsureFBO(ViewportFBO& fbo, int width, int height) {
 		if (width <= 0 || height <= 0) return;
 
 		const bool sizeChanged = fbo.ViewportSize.GetWidth() != width || fbo.ViewportSize.GetHeight() != height;
@@ -68,7 +68,7 @@ namespace Bolt {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void ImGuiEditorSystem::DestroyFBO(ViewportFBO& fbo) {
+	void ImGuiEditorLayer::DestroyFBO(ViewportFBO& fbo) {
 		if (fbo.DepthRenderbufferId != 0) {
 			glDeleteRenderbuffers(1, &fbo.DepthRenderbufferId);
 			fbo.DepthRenderbufferId = 0;
@@ -83,11 +83,11 @@ namespace Bolt {
 		}
 	}
 
-	void ImGuiEditorSystem::EnsureViewportFramebuffer(int width, int height) {
+	void ImGuiEditorLayer::EnsureViewportFramebuffer(int width, int height) {
 		EnsureFBO(m_EditorViewFBO, width, height);
 	}
 
-	void ImGuiEditorSystem::DestroyViewportFramebuffer() {
+	void ImGuiEditorLayer::DestroyViewportFramebuffer() {
 		DestroyFBO(m_EditorViewFBO);
 	}
 
@@ -95,7 +95,7 @@ namespace Bolt {
 	//  Lifecycle
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::OnAttach(Application& app) {
+	void ImGuiEditorLayer::OnAttach(Application& app) {
 		Application::SetIsPlaying(false);
 		if (app.GetRenderer2D()) {
 			app.GetRenderer2D()->SetSkipBeginFrameRender(true);
@@ -118,7 +118,7 @@ namespace Bolt {
 			});
 	}
 
-	void ImGuiEditorSystem::OnDetach(Application& app) {
+	void ImGuiEditorLayer::OnDetach(Application& app) {
 		(void)app;
 		if (m_LogSubscriptionId.value != 0) {
 			Log::OnLog.Remove(m_LogSubscriptionId);
@@ -137,7 +137,7 @@ namespace Bolt {
 	//  Dockspace & Menu
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderDockspaceRoot() {
+	void ImGuiEditorLayer::RenderDockspaceRoot() {
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
@@ -158,7 +158,7 @@ namespace Bolt {
 		ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 	}
 
-	void ImGuiEditorSystem::RenderMainMenu(Scene& scene) {
+	void ImGuiEditorLayer::RenderMainMenu(Scene& scene) {
 		if (!ImGui::BeginMenuBar()) {
 			return;
 		}
@@ -232,7 +232,7 @@ namespace Bolt {
 		return ImGui::Button(id + 2);
 	}
 
-	void ImGuiEditorSystem::RenderToolbar() {
+	void ImGuiEditorLayer::RenderToolbar() {
 		ImGui::Begin("Toolbar");
 
 		const float iconSize = ImGui::GetTextLineHeight();
@@ -341,7 +341,7 @@ namespace Bolt {
 		}
 	}
 
-	void ImGuiEditorSystem::RestoreEditorSceneAfterPlaymode() {
+	void ImGuiEditorLayer::RestoreEditorSceneAfterPlaymode() {
 		uint64_t selectedUUID = 0;
 		Scene* active = SceneManager::Get().GetActiveScene();
 		if (active && m_SelectedEntity != entt::null && active->IsValid(m_SelectedEntity)
@@ -388,7 +388,7 @@ namespace Bolt {
 	//  Entities Panel (with rename support)
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderEntitiesPanel() {
+	void ImGuiEditorLayer::RenderEntitiesPanel() {
 		ImGui::Begin("Entities");
 
 		Scene* activeScene = SceneManager::Get().GetActiveScene();
@@ -773,7 +773,7 @@ namespace Bolt {
 	//  Inspector Panel
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderInspectorPanel(Scene& scene) {
+	void ImGuiEditorLayer::RenderInspectorPanel(Scene& scene) {
 		ImGui::Begin("Inspector");
 
 		if (m_SelectedEntity == entt::null || !scene.IsValid(m_SelectedEntity)) {
@@ -1083,7 +1083,7 @@ namespace Bolt {
 	//  Render scene into an FBO with a given camera
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderSceneIntoFBO(ViewportFBO& fbo, Scene& scene,
+	void ImGuiEditorLayer::RenderSceneIntoFBO(ViewportFBO& fbo, Scene& scene,
 		const glm::mat4& vp, const AABB& viewportAABB,
 		bool withGizmos, const Color& clearColor)
 	{
@@ -1120,7 +1120,7 @@ namespace Bolt {
 	//  Editor View — free-move editor camera + gizmos
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderEditorView(Scene& scene) {
+	void ImGuiEditorLayer::RenderEditorView(Scene& scene) {
 		ImGui::Begin("Editor View");
 
 		const ImVec2 viewportSize = ImGui::GetContentRegionAvail();
@@ -1238,7 +1238,7 @@ namespace Bolt {
 	//  Game View — renders with the in-game camera
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderGameView(Scene& scene) {
+	void ImGuiEditorLayer::RenderGameView(Scene& scene) {
 		(void)scene;
 		ImGui::Begin("Game View");
 
@@ -1288,7 +1288,7 @@ namespace Bolt {
 	//  Log Panel
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderLogPanel() {
+	void ImGuiEditorLayer::RenderLogPanel() {
 		ImGui::Begin("Log");
 
 		// Toolbar: Clear + Level filters
@@ -1447,7 +1447,7 @@ namespace Bolt {
 	//  Project Panel (Asset Browser)
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderProjectPanel() {
+	void ImGuiEditorLayer::RenderProjectPanel() {
 		if (!m_AssetBrowserInitialized) {
 			std::string assetsRoot;
 			BoltProject* project = ProjectManager::GetCurrentProject();
@@ -1500,7 +1500,7 @@ namespace Bolt {
 		return copied;
 	}
 
-	void ImGuiEditorSystem::ExecuteBuild() {
+	void ImGuiEditorLayer::ExecuteBuild() {
 		m_BuildStartTime = std::chrono::steady_clock::now();
 
 		BoltProject* project = ProjectManager::GetCurrentProject();
@@ -1654,7 +1654,7 @@ namespace Bolt {
 #endif
 	}
 
-	void ImGuiEditorSystem::RenderBuildPanel() {
+	void ImGuiEditorLayer::RenderBuildPanel() {
 		if (!m_ShowBuildPanel) return;
 
 		ImGui::Begin("Build", &m_ShowBuildPanel);
@@ -1799,7 +1799,7 @@ namespace Bolt {
 	//  Player Settings (separate window)
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderPlayerSettingsPanel() {
+	void ImGuiEditorLayer::RenderPlayerSettingsPanel() {
 		if (!m_ShowPlayerSettings) return;
 
 		ImGui::Begin("Player Settings", &m_ShowPlayerSettings);
@@ -1901,7 +1901,7 @@ namespace Bolt {
 	//  Main OnGui entry point
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::OnImGuiRender(Application& app) {
+	void ImGuiEditorLayer::OnImGuiRender(Application& app) {
 		(void)app;
 		Scene* activeScene = SceneManager::Get().GetActiveScene();
 		if (!activeScene) {
@@ -2162,7 +2162,7 @@ namespace Bolt {
 	//  Asset Inspector (shows info about selected asset when no entity selected)
 	// ──────────────────────────────────────────────
 
-	void ImGuiEditorSystem::RenderAssetInspector() {
+	void ImGuiEditorLayer::RenderAssetInspector() {
 		const std::string& selectedPath = m_AssetBrowser.GetSelectedPath();
 		if (selectedPath.empty()) {
 			ImGui::TextDisabled("No entity or asset selected");
@@ -2215,7 +2215,7 @@ namespace Bolt {
 		}
 	}
 
-	void ImGuiEditorSystem::RenderPackageManagerPanel() {
+	void ImGuiEditorLayer::RenderPackageManagerPanel() {
 		if (!m_ShowPackageManager) return;
 
 		if (!m_PackageManagerInitialized) {

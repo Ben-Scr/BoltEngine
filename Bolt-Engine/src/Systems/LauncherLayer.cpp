@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Systems/LauncherSystem.hpp"
+#include "Systems/LauncherLayer.hpp"
 #include "Project/BoltProject.hpp"
 #include "Project/ProjectManager.hpp"
 #include "Scene/SceneManager.hpp"
@@ -68,7 +68,7 @@ namespace Bolt {
 
 	// ── Lifecycle ───────────────────────────────────────────────────
 
-	void LauncherSystem::OnAttach(Application& app) {
+	void LauncherLayer::OnAttach(Application& app) {
 		if (app.GetRenderer2D()) {
 			app.GetRenderer2D()->SetSkipBeginFrameRender(true);
 		}
@@ -84,18 +84,18 @@ namespace Bolt {
 		BT_INFO_TAG("Launcher", "Bolt Launcher opened ({} project(s))", m_Registry.GetProjects().size());
 	}
 
-	void LauncherSystem::OnImGuiRender(Application& app) {
+	void LauncherLayer::OnImGuiRender(Application& app) {
 		(void)app;
 		RenderLauncherPanel();
 	}
 
-	void LauncherSystem::OnDetach(Application& app) {
+	void LauncherLayer::OnDetach(Application& app) {
 		(void)app;
 	}
 
 	// ── Main Panel ──────────────────────────────────────────────────
 
-	void LauncherSystem::RenderLauncherPanel() {
+	void LauncherLayer::RenderLauncherPanel() {
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
 		ImGui::SetNextWindowPos(viewport->Pos);
 		ImGui::SetNextWindowSize(viewport->Size);
@@ -190,7 +190,7 @@ namespace Bolt {
 
 	// ── Project List ────────────────────────────────────────────────
 
-	void LauncherSystem::RenderProjectList() {
+	void LauncherLayer::RenderProjectList() {
 		const auto& projects = m_Registry.GetProjects();
 
 		if (projects.empty()) {
@@ -273,7 +273,7 @@ namespace Bolt {
 
 	// ── Create Project Popup ────────────────────────────────────────
 
-	void LauncherSystem::RenderCreateProjectPopup() {
+	void LauncherLayer::RenderCreateProjectPopup() {
 		if (m_OpenCreatePopup) {
 			ImGui::OpenPopup("Create New Project");
 			m_OpenCreatePopup = false;
@@ -373,7 +373,7 @@ namespace Bolt {
 	// ── Open Project ────────────────────────────────────────────────
 	// Launches the editor process but keeps the launcher open.
 
-	void LauncherSystem::OpenProject(const LauncherProjectEntry& entry) {
+	void LauncherLayer::OpenProject(const LauncherProjectEntry& entry) {
 		if (m_IsOpening) return; // Already opening a project -- ignore
 
 		m_OpenError.clear();
@@ -448,7 +448,7 @@ namespace Bolt {
 
 	// ── Browse for Existing Project ─────────────────────────────────
 
-	void LauncherSystem::BrowseForExistingProject() {
+	void LauncherLayer::BrowseForExistingProject() {
 		m_BrowseError.clear();
 
 #ifdef BT_PLATFORM_WINDOWS

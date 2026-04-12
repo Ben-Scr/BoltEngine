@@ -3,7 +3,7 @@
 #include "Core/Application.hpp"
 #include "Scene/SceneDefinition.hpp"
 #include "Scene/SceneManager.hpp"
-#include <Systems/LauncherSystem.hpp>
+#include <Systems/LauncherLayer.hpp>
 #include <Core/Version.hpp>
 
 using namespace Bolt;
@@ -31,7 +31,7 @@ public:
 	}
 
 	void ConfigureLayers() override {
-		PushLayer<LauncherSystem>();
+		PushLayer<LauncherLayer>();
 	}
 
 	void Start() override {}

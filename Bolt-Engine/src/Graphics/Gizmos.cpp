@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Gizmos.hpp"
 #include "Components/Graphics/Camera2DComponent.hpp"
+#include "Editor/EditorCamera.hpp"
 #include <optional>
 
 namespace Bolt {
@@ -19,9 +20,10 @@ namespace Bolt {
 
 	namespace {
 		static std::optional<AABB> ResolveViewportAABB() {
-			if (Gizmo::HasViewportAABBOverride()) {
-				return Gizmo::GetViewportAABBOverride();
+			if () {
+				return Editor::::GetViewportAABB();
 			}
+
 			if (Camera2DComponent::Main()) {
 				return Camera2DComponent::Main()->GetViewportAABB();
 			}
