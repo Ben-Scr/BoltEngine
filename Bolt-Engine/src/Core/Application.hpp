@@ -184,7 +184,7 @@ namespace Bolt {
 		EventBus m_EventBus;
 
 		void Initialize();
-		void Shutdown();
+		void Shutdown(bool invokeOnQuit = true);
 		void DispatchEvent(BoltEvent& event);
 		void CoreInput();
 		void ResetTimePoints();

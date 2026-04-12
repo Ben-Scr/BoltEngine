@@ -1,7 +1,28 @@
 param(
     [string]$DotNetVersion,
-    [string]$DotNetRoot = $env:DOTNET_ROOT
+    [string]$DotNetRoot = $env:DOTNET_ROOT,
+    [string]$DotNetArch = $env:BOLT_DOTNET_ARCH
 )
+
+function Resolve-HostArchitecture([string]$Architecture) {
+    if (-not $Architecture) {
+        $Architecture = $env:PROCESSOR_ARCHITECTURE
+    }
+
+    switch ($Architecture.ToLowerInvariant()) {
+        "amd64" { return "x64" }
+        "x86_64" { return "x64" }
+        "x64" { return "x64" }
+        "arm64" { return "arm64" }
+        "aarch64" { return "arm64" }
+        default {
+            Write-Error "Unsupported .NET host architecture: $Architecture"
+            exit 1
+        }
+    }
+}
+
+$DotNetArch = Resolve-HostArchitecture $DotNetArch
 
 # ── Resolve .NET root ────────────────────────────────────────────────────────
 if (-not $DotNetRoot) {
@@ -15,7 +36,7 @@ if (-not (Test-Path $DotNetRoot)) {
 }
 
 # ── Auto-detect version if not supplied ──────────────────────────────────────
-$HostPackBase = Join-Path $DotNetRoot "packs\Microsoft.NETCore.App.Host.win-x64"
+$HostPackBase = Join-Path $DotNetRoot ("packs\Microsoft.NETCore.App.Host.win-{0}" -f $DotNetArch)
 
 if (-not $DotNetVersion) {
     if (-not (Test-Path $HostPackBase)) {
@@ -38,7 +59,7 @@ if (-not $DotNetVersion) {
 }
 
 # ── Validate host pack path ─────────────────────────────────────────────────
-$HostPackPath = Join-Path $HostPackBase "$DotNetVersion\runtimes\win-x64\native"
+$HostPackPath = Join-Path $HostPackBase "$DotNetVersion\runtimes\win-$DotNetArch\native"
 
 if (-not (Test-Path $HostPackPath)) {
     Write-Error "Host pack not found at: $HostPackPath"
@@ -92,6 +113,6 @@ Copy-Item "$HostPackPath\coreclr_delegates.h"    -Destination $DestDir -Force
 Copy-Item "$HostPackPath\nethost.lib" -Destination $LibDir -Force
 Copy-Item "$HostPackPath\nethost.dll" -Destination $LibDir -Force
 
-Write-Host "[setup-dotnet] Copied .NET $DotNetVersion hosting files to External/dotnet/"
+Write-Host "[setup-dotnet] Copied .NET $DotNetVersion ($DotNetArch) hosting files to External/dotnet/"
 Write-Host "  Headers: nethost.h, hostfxr.h, coreclr_delegates.h"
 Write-Host "  Libs:    nethost.lib, nethost.dll"

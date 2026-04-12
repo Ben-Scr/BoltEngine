@@ -11,5 +11,5 @@ if errorlevel 1 (
     PAUSE
     exit /b 1
 )
-python Setup.py
+python Setup.py %*
 PAUSE

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import os
 import platform
 import shutil
@@ -73,9 +74,21 @@ def resolve_premake_executable(repo_root: Path):
     return shutil.which("premake5")
 
 
-def detect_dotnet_version(dotnet_root: Path) -> str | None:
+def normalize_host_architecture(raw_arch: str | None) -> str:
+    arch = (raw_arch or "").strip().lower()
+    mapping = {
+        "amd64": "x64",
+        "x86_64": "x64",
+        "x64": "x64",
+        "arm64": "arm64",
+        "aarch64": "arm64",
+    }
+    return mapping.get(arch, "")
+
+
+def detect_dotnet_version(dotnet_root: Path, host_arch: str) -> str | None:
     """Find the latest installed .NET host pack version."""
-    host_packs = dotnet_root / "packs" / "Microsoft.NETCore.App.Host.win-x64"
+    host_packs = dotnet_root / "packs" / f"Microsoft.NETCore.App.Host.win-{host_arch}"
     if not host_packs.is_dir():
         return None
     versions = sorted(
@@ -85,9 +98,25 @@ def detect_dotnet_version(dotnet_root: Path) -> str | None:
     return versions[0] if versions else None
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Set up Bolt dependencies and generate project files.")
+    parser.add_argument(
+        "--generator",
+        default=os.environ.get("BOLT_PREMAKE_ACTION"),
+        help="Premake action to generate (defaults to vs2022 on Windows, gmake2 elsewhere).",
+    )
+    parser.add_argument(
+        "--dotnet-arch",
+        default=os.environ.get("BOLT_DOTNET_ARCH"),
+        help="Windows .NET host-pack architecture to copy (for example: x64 or arm64).",
+    )
+    return parser.parse_args()
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
+    args = parse_args()
     script_dir = Path(__file__).resolve().parent
     repo_root = script_dir.parent
 
@@ -119,13 +148,22 @@ def main():
 
     if is_windows:
         dotnet_root = Path(os.environ.get("DOTNET_ROOT", r"C:\Program Files\dotnet"))
+        dotnet_arch = normalize_host_architecture(args.dotnet_arch or platform.machine())
         dotnet_exe = shutil.which("dotnet")
         if dotnet_exe:
             print(f"  [OK] dotnet found: {dotnet_exe}")
         else:
             print("  [!!] dotnet NOT found on PATH")
 
-        detected_ver = detect_dotnet_version(dotnet_root)
+        detected_ver = None
+        if not dotnet_arch:
+            print(f"  [!!] Unsupported Windows host architecture: {platform.machine()}")
+            if not dotnet_files_present(repo_root):
+                missing.append("dotnet-host-pack")
+        else:
+            print(f"  [OK] Using .NET host architecture: {dotnet_arch}")
+            os.environ["BOLT_DOTNET_ARCH"] = dotnet_arch
+            detected_ver = detect_dotnet_version(dotnet_root, dotnet_arch)
         if detected_ver:
             print(f"  [OK] .NET host pack found: {detected_ver}")
         else:
@@ -173,11 +211,13 @@ def main():
                 ps_args = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(ps_script)]
                 if detected_ver:
                     ps_args += ["-DotNetVersion", detected_ver]
+                if dotnet_arch:
+                    ps_args += ["-DotNetArch", dotnet_arch]
                 run_step(ps_args, script_dir, "Copying .NET hosting files", allow_failure=True)
 
     # ── 5. Premake ───────────────────────────────────────────────────────
     if premake_path:
-        action = "vs2022" if is_windows else "gmake2"
+        action = args.generator or ("vs2022" if is_windows else "gmake2")
         run_step([premake_path, action], repo_root, f"Generating {action} files via Premake")
     else:
         print("[Bolt Setup] Skipping project generation — premake5 not available.")

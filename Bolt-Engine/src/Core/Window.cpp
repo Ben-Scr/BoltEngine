@@ -40,6 +40,11 @@ namespace Bolt {
 	}
 
 	void Window::Initialize() {
+		if (s_IsInitialized) {
+			BT_CORE_WARN_TAG("Window", "GLFW is already initialized");
+			return;
+		}
+
 		int code = glfwInit();
 
 		BT_ASSERT(code == GLFW_TRUE, BoltErrorCode::Undefined, "GLFW library couldn't initialize, error code " + StringHelper::WrapWith(std::to_string(code), '\''));
@@ -49,6 +54,10 @@ namespace Bolt {
 	}
 
 	void Window::Shutdown() {
+		if (!s_IsInitialized) {
+			return;
+		}
+
 		s_MainViewport.reset();
 		s_ActiveWindow = nullptr;
 		k_Videomode = nullptr;
@@ -111,25 +120,32 @@ namespace Bolt {
 		glfwSetScrollCallback(m_GLFWwindow, SetScrollCallback);
 		glfwSetWindowFocusCallback(m_GLFWwindow, FocusCallback);
 
-		if (props.Resizeable) {
-			glfwSetFramebufferSizeCallback(m_GLFWwindow, SetWindowResizedCallback);
-		}
+		glfwSetFramebufferSizeCallback(m_GLFWwindow, SetWindowResizedCallback);
 
 		glfwSetDropCallback(m_GLFWwindow, SetDropCallback);
 		glfwSetWindowRefreshCallback(m_GLFWwindow, RefreshCallback);
 
 		glfwSwapInterval(s_IsVsync ? 1 : 0);
+		SyncViewportFromFramebuffer();
 
-		if (!s_ActiveWindow)
-			s_ActiveWindow = this;
+		s_ActiveWindow = this;
 	}
 	void Window::Destroy() {
+		if (!m_GLFWwindow) {
+			return;
+		}
+
 		if (m_Cursor) {
 			glfwDestroyCursor(m_Cursor);
 			m_Cursor = nullptr;
 		}
+		glfwSetWindowUserPointer(m_GLFWwindow, nullptr);
+		m_EventCallback = {};
 		glfwDestroyWindow(m_GLFWwindow);
 		m_GLFWwindow = nullptr;
+		if (s_ActiveWindow == this) {
+			s_ActiveWindow = nullptr;
+		}
 	}
 
 	void Window::CenterWindow() {
@@ -151,17 +167,16 @@ namespace Bolt {
 			glfwMaximizeWindow(m_GLFWwindow);
 		}
 
-		int w = 0, h = 0;
-		glfwGetWindowSize(m_GLFWwindow, &w, &h);
-
-		s_MainViewport->SetWidth(w);
-		s_MainViewport->SetHeight(h);
+		SyncViewportFromFramebuffer();
+		UpdateViewport();
 	}
 	void Window::MinimizeWindow() {
 		glfwIconifyWindow(m_GLFWwindow);
 	}
 	void Window::RestoreWindow() {
 		glfwRestoreWindow(m_GLFWwindow);
+		SyncViewportFromFramebuffer();
+		UpdateViewport();
 	}
 
 	void Window::SetKeyCallback(GLFWwindow* window, int key, int, int action, int mods) {
@@ -273,6 +288,8 @@ namespace Bolt {
 			enabled ? k_Videomode->height : m_RestoreSize.y,
 			k_Videomode->refreshRate
 		);
+		SyncViewportFromFramebuffer();
+		UpdateViewport();
 
 		if (!enabled) {
 			SetSize(m_RestoreSize);
@@ -413,8 +430,7 @@ namespace Bolt {
 		Window* win = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 		if (!win) return;
 
-		win->s_MainViewport->SetWidth(width);
-		win->s_MainViewport->SetHeight(height);
+		win->SyncViewportFromFramebuffer();
 		win->UpdateViewport();
 
 		if (win->m_EventCallback) {
@@ -481,5 +497,23 @@ namespace Bolt {
 		{
 			glViewport(0, 0, s_MainViewport->GetWidth(), s_MainViewport->GetHeight());
 		}
+	}
+
+	void Window::SyncViewportFromFramebuffer() {
+		if (!m_GLFWwindow) {
+			return;
+		}
+
+		int width = 0;
+		int height = 0;
+		glfwGetFramebufferSize(m_GLFWwindow, &width, &height);
+
+		if (!s_MainViewport) {
+			s_MainViewport = std::make_unique<Viewport>(width, height);
+			return;
+		}
+
+		s_MainViewport->SetWidth(width);
+		s_MainViewport->SetHeight(height);
 	}
 }

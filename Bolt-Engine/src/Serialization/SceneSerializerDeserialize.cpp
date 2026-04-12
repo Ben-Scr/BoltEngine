@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Assets/AssetRegistry.hpp"
 #include "Serialization/SceneSerializer.hpp"
+#include "Serialization/SceneSerializerShared.hpp"
 #include "Serialization/File.hpp"
 #include "Serialization/Json.hpp"
 #include "Scene/Scene.hpp"
@@ -36,164 +37,11 @@
 namespace Bolt {
 
 	using Json::Value;
+	using namespace SceneSerializerShared;
 
 	namespace {
 		static constexpr int SCENE_FORMAT_VERSION = 1;
 		static constexpr float k_MinScaleAxis = 0.0001f;
-
-		float GetFloatMember(const Value& object, std::string_view key, float fallback = 0.0f) {
-			const Value* value = object.FindMember(key);
-			return value ? static_cast<float>(value->AsDoubleOr(fallback)) : fallback;
-		}
-
-		int GetIntMember(const Value& object, std::string_view key, int fallback = 0) {
-			const Value* value = object.FindMember(key);
-			return value ? value->AsIntOr(fallback) : fallback;
-		}
-
-		uint64_t GetUInt64Member(const Value& object, std::string_view key, uint64_t fallback = 0) {
-			const Value* value = object.FindMember(key);
-			if (!value) {
-				return fallback;
-			}
-
-			if (value->IsString()) {
-				try {
-					return static_cast<uint64_t>(std::stoull(value->AsStringOr()));
-				}
-				catch (...) {
-					return fallback;
-				}
-			}
-
-			return value->AsUInt64Or(fallback);
-		}
-
-		bool GetBoolMember(const Value& object, std::string_view key, bool fallback = false) {
-			const Value* value = object.FindMember(key);
-			return value ? value->AsBoolOr(fallback) : fallback;
-		}
-
-		std::string GetStringMember(const Value& object, std::string_view key, const std::string& fallback = {}) {
-			const Value* value = object.FindMember(key);
-			return value ? value->AsStringOr(fallback) : fallback;
-		}
-
-		const Value* GetObjectMember(const Value& object, std::string_view key) {
-			const Value* value = object.FindMember(key);
-			return value && value->IsObject() ? value : nullptr;
-		}
-
-		const Value* GetArrayMember(const Value& object, std::string_view key) {
-			const Value* value = object.FindMember(key);
-			return value && value->IsArray() ? value : nullptr;
-		}
-
-		bool IsUnsignedIntegerString(const std::string& value) {
-			if (value.empty()) {
-				return false;
-			}
-
-			return std::all_of(value.begin(), value.end(), [](unsigned char ch) {
-				return std::isdigit(ch) != 0;
-			});
-		}
-
-		std::string NormalizeScriptAssetValue(std::string_view fieldType, const std::string& value) {
-			if ((fieldType != "texture" && fieldType != "audio") || value.empty() || IsUnsignedIntegerString(value)) {
-				return value;
-			}
-
-			const uint64_t assetId = AssetRegistry::GetOrCreateAssetUUID(value);
-			return assetId != 0 ? std::to_string(assetId) : value;
-		}
-
-		TextureHandle LoadTextureFromValue(const Value& object, std::string_view assetKey, std::string_view pathKey, UUID* outAssetId = nullptr) {
-			uint64_t assetId = GetUInt64Member(object, assetKey, 0);
-			if (assetId != 0) {
-				TextureHandle handle = TextureManager::LoadTextureByUUID(assetId);
-				if (handle.IsValid()) {
-					if (outAssetId) {
-						*outAssetId = UUID(assetId);
-					}
-					return handle;
-				}
-			}
-
-			const std::string path = GetStringMember(object, pathKey);
-			if (path.empty()) {
-				if (outAssetId) {
-					*outAssetId = UUID(0);
-				}
-				return TextureHandle::Invalid();
-			}
-
-			TextureHandle handle = TextureManager::LoadTexture(path);
-			if (handle.IsValid()) {
-				assetId = TextureManager::GetTextureAssetUUID(handle);
-				if (outAssetId) {
-					*outAssetId = UUID(assetId);
-				}
-			}
-			else if (outAssetId) {
-				*outAssetId = UUID(0);
-			}
-
-			return handle;
-		}
-
-		AudioHandle LoadAudioFromValue(const Value& object, std::string_view assetKey, std::string_view pathKey, UUID* outAssetId = nullptr) {
-			uint64_t assetId = GetUInt64Member(object, assetKey, 0);
-			if (assetId != 0) {
-				AudioHandle handle = AudioManager::LoadAudioByUUID(assetId);
-				if (handle.IsValid()) {
-					if (outAssetId) {
-						*outAssetId = UUID(assetId);
-					}
-					return handle;
-				}
-			}
-
-			const std::string path = GetStringMember(object, pathKey);
-			if (path.empty()) {
-				if (outAssetId) {
-					*outAssetId = UUID(0);
-				}
-				return AudioHandle();
-			}
-
-			AudioHandle handle = AudioManager::LoadAudio(path);
-			if (handle.IsValid()) {
-				assetId = AudioManager::GetAudioAssetUUID(handle);
-				if (outAssetId) {
-					*outAssetId = UUID(assetId);
-				}
-			}
-			else if (outAssetId) {
-				*outAssetId = UUID(0);
-			}
-
-			return handle;
-		}
-
-		std::string ValueToFieldString(const Value& value) {
-			if (value.IsString()) {
-				return value.AsStringOr();
-			}
-			if (value.IsBool()) {
-				return value.AsBoolOr(false) ? "true" : "false";
-			}
-			if (value.IsNumber()) {
-				std::ostringstream stream;
-				stream.precision(15);
-				stream << value.AsDoubleOr(0.0);
-				return stream.str();
-			}
-			if (value.IsNull()) {
-				return {};
-			}
-			return Json::Stringify(value, false);
-		}
 
 		Value SerializeScriptFields(const ScriptComponent& scriptComponent) {
 			Value fieldsByClass = Value::MakeObject();

@@ -6,10 +6,11 @@ namespace Bolt {
 
 	static Bolt::AllocationStats s_GlobalStats;
 	static bool s_InInit = false;
+	static bool s_IsShutdown = false;
 
 	void Allocator::Init()
 	{
-		if (s_Data)
+		if (s_Data || s_IsShutdown)
 			return;
 
 		s_InInit = true;
@@ -19,6 +20,19 @@ namespace Bolt {
 		s_InInit = false;
 	}
 
+	void Allocator::Shutdown()
+	{
+		if (!s_Data)
+			return;
+
+		s_InInit = true;
+		s_Data->~AllocatorData();
+		free(s_Data);
+		s_Data = nullptr;
+		s_InInit = false;
+		s_IsShutdown = true;
+	}
+
 	void* Allocator::AllocateRaw(size_t size)
 	{
 		return malloc(size);
@@ -26,7 +40,7 @@ namespace Bolt {
 
 	void* Allocator::Allocate(size_t size)
 	{
-		if (s_InInit)
+		if (s_InInit || s_IsShutdown)
 			return AllocateRaw(size);
 
 		if (!s_Data)
@@ -52,6 +66,9 @@ namespace Bolt {
 
 	void* Allocator::Allocate(size_t size, const char* desc)
 	{
+		if (s_InInit || s_IsShutdown)
+			return AllocateRaw(size);
+
 		if (!s_Data)
 			Init();
 
@@ -78,6 +95,9 @@ namespace Bolt {
 
 	void* Allocator::Allocate(size_t size, const char* file, int line)
 	{
+		if (s_InInit || s_IsShutdown)
+			return AllocateRaw(size);
+
 		if (!s_Data)
 			Init();
 
@@ -105,6 +125,11 @@ namespace Bolt {
 	{
 		if (memory == nullptr)
 			return;
+
+		if (!s_Data || s_IsShutdown) {
+			free(memory);
+			return;
+		}
 
 		{
 			bool found = false;

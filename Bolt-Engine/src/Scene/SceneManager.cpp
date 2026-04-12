@@ -145,6 +145,17 @@ namespace Bolt {
 		const bool wasDirty = scene->IsDirty();
 		Json::Value snapshotRoot = SceneSerializer::SerializeScene(*scene);
 
+		if (!scene->m_Definition) {
+			BT_CORE_ERROR_TAG("SceneManager", "ReloadScene: scene '{}' has no definition", name);
+			return {};
+		}
+
+		std::shared_ptr<Scene> validationScene = scene->m_Definition->Instantiate();
+		if (!validationScene || !SceneSerializer::DeserializeScene(*validationScene, snapshotRoot)) {
+			BT_CORE_ERROR_TAG("SceneManager", "ReloadScene: refusing to unload '{}' because the snapshot could not be restored", name);
+			return scene;
+		}
+
 		UnloadScene(name);
 		std::shared_ptr<Scene> reloaded = LoadSceneInternal(name, !wasActive, [&snapshotRoot, wasDirty](Scene& restoredScene) {
 			if (!SceneSerializer::DeserializeScene(restoredScene, snapshotRoot)) {

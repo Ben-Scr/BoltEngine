@@ -237,25 +237,23 @@ namespace Bolt {
 		return s_StringReturnBuffer.c_str();
 	}
 
-	static int Bolt_Scene_LoadAdditive(const char* sceneName) {
+	static int LoadSceneByName(const char* sceneName, bool additive) {
 		auto& sm = SceneManager::Get();
 		std::string name(sceneName);
 
-		// Auto-register a SceneDefinition if one doesn't exist yet
 		if (!sm.HasSceneDefinition(name)) {
 			auto& def = sm.RegisterScene(name);
 			def.AddSystem<ScriptSystem>();
 			def.AddSystem<AudioUpdateSystem>();
 		}
 
-		auto sceneWeak = sm.LoadSceneAdditive(name);
+		auto sceneWeak = additive ? sm.LoadSceneAdditive(name) : sm.LoadScene(name);
 		auto scenePtr = sceneWeak.lock();
 		if (!scenePtr) {
-			BT_CORE_ERROR_TAG("ScriptBindings", "Failed to load scene additively: {}", name);
+			BT_CORE_ERROR_TAG("ScriptBindings", "Failed to load scene{}: {}", additive ? " additively" : "", name);
 			return 0;
 		}
 
-		// Deserialize from scene file if a project is loaded
 		BoltProject* project = ProjectManager::GetCurrentProject();
 		if (project) {
 			std::string scenePath = project->GetSceneFilePath(name);
@@ -264,40 +262,16 @@ namespace Bolt {
 			}
 		}
 
-		BT_INFO_TAG("ScriptBindings", "Loaded scene additively: {}", name);
+		BT_INFO_TAG("ScriptBindings", "Loaded scene{}: {}", additive ? " additively" : "", name);
 		return 1;
 	}
 
+	static int Bolt_Scene_LoadAdditive(const char* sceneName) {
+		return LoadSceneByName(sceneName, true);
+	}
+
 	static int Bolt_Scene_Load(const char* sceneName) {
-		auto& sm = SceneManager::Get();
-		std::string name(sceneName);
-
-		// Auto-register if missing
-		if (!sm.HasSceneDefinition(name)) {
-			auto& def = sm.RegisterScene(name);
-			def.AddSystem<ScriptSystem>();
-			def.AddSystem<AudioUpdateSystem>();
-		}
-
-		// Non-additive: uses LoadScene which unloads non-persistent scenes first
-		auto sceneWeak = sm.LoadScene(name);
-		auto scenePtr = sceneWeak.lock();
-		if (!scenePtr) {
-			BT_CORE_ERROR_TAG("ScriptBindings", "Failed to load scene: {}", name);
-			return 0;
-		}
-
-		// Deserialize from scene file
-		BoltProject* project = ProjectManager::GetCurrentProject();
-		if (project) {
-			std::string scenePath = project->GetSceneFilePath(name);
-			if (File::Exists(scenePath)) {
-				SceneSerializer::LoadFromFile(*scenePtr, scenePath);
-			}
-		}
-
-		BT_INFO_TAG("ScriptBindings", "Loaded scene: {}", name);
-		return 1;
+		return LoadSceneByName(sceneName, false);
 	}
 
 	static void Bolt_Scene_Unload(const char* sceneName) {

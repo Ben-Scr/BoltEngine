@@ -36,6 +36,7 @@ namespace Bolt {
 			}
 			catch (const std::exception& e) {
 				BT_ERROR_TAG("Application", std::string("Initialization failed: ") + e.what());
+				Shutdown(false);
 				return;
 			}
 			BT_INFO_TAG("Application", "Full Initialization took " + StringHelper::ToString(timer));
@@ -52,7 +53,10 @@ namespace Bolt {
 
 			while (m_Window && !m_Window->ShouldClose() && !m_ShouldQuit) {
 				const float targetFps = Max(GetTargetFramerate(), 0.0f);
-				DurationChrono targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / targetFps));
+				DurationChrono targetFrameTime{};
+				if (targetFps > 0.0f) {
+					targetFrameTime = std::chrono::duration_cast<DurationChrono>(std::chrono::duration<double>(1.0 / targetFps));
+				}
 				auto now = Clock::now();
 
 				// Info: CPU idling for fps cap if vsync is disabled, or for paused frame cap.
@@ -412,15 +416,17 @@ namespace Bolt {
 		m_FixedUpdateAccumulator = 0;
 	}
 
-	void Application::Shutdown() {
-		try {
-			OnQuit();
-		}
-		catch (const std::exception& e) {
-			BT_ERROR_TAG("Application", std::string("OnQuit failed: ") + e.what());
-		}
-		catch (...) {
-			BT_ERROR_TAG("Application", "OnQuit failed with unknown exception");
+	void Application::Shutdown(bool invokeOnQuit) {
+		if (invokeOnQuit) {
+			try {
+				OnQuit();
+			}
+			catch (const std::exception& e) {
+				BT_ERROR_TAG("Application", std::string("OnQuit failed: ") + e.what());
+			}
+			catch (...) {
+				BT_ERROR_TAG("Application", "OnQuit failed with unknown exception");
+			}
 		}
 
 		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
@@ -441,8 +447,13 @@ namespace Bolt {
 		if (AudioManager::IsInitialized())
 			AudioManager::Shutdown();
 
-		if (m_Window) m_Window->Destroy();
-		Window::Shutdown();
+		if (m_Window) {
+			m_Window->SetEventCallback({});
+			m_Window->Destroy();
+		}
+		if (Window::IsInitialized()) {
+			Window::Shutdown();
+		}
 
 		m_ImGuiRenderer.reset();
 		m_GuiRenderer.reset();

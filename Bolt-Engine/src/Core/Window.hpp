@@ -24,6 +24,7 @@ namespace Bolt {
 		static void Initialize();
 		// Info: Terminates the GLFW library
 		static void Shutdown();
+		static bool IsInitialized() { return s_IsInitialized; }
 
 		static void SetVsync(bool enabled) { glfwSwapInterval(enabled); s_IsVsync = enabled; };
 
@@ -94,6 +95,7 @@ namespace Bolt {
 
 	private:
 		void Create(const WindowSpecification& props);
+		void SyncViewportFromFramebuffer();
 		void UpdateViewport();
 		void SwapBuffers() const { glfwSwapBuffers(m_GLFWwindow); }
 

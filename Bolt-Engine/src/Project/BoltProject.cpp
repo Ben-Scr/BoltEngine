@@ -85,11 +85,26 @@ namespace Bolt {
 #endif
 		}
 
+		std::string GetNativeBuildArchitectureDirectory() {
+#if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__)
+			return "x86_64";
+#elif defined(_M_ARM64) || defined(__aarch64__)
+			return "arm64";
+#else
+			return {};
+#endif
+		}
+
 		std::string GetNativeBuildPlatformDirectory() {
+			const std::string architectureDirectory = GetNativeBuildArchitectureDirectory();
+			if (architectureDirectory.empty()) {
+				return {};
+			}
+
 #if defined(BT_PLATFORM_WINDOWS)
-			return "windows-x86_64";
+			return "windows-" + architectureDirectory;
 #elif defined(BT_PLATFORM_LINUX)
-			return "linux-x86_64";
+			return "linux-" + architectureDirectory;
 #else
 			return {};
 #endif
@@ -484,6 +499,17 @@ endif()
 set(CMAKE_CXX_FLAGS_DIST "${CMAKE_CXX_FLAGS_RELEASE}" CACHE STRING "Flags used by the C++ compiler for Dist builds." FORCE)
 set(CMAKE_SHARED_LINKER_FLAGS_DIST "${CMAKE_SHARED_LINKER_FLAGS_RELEASE}" CACHE STRING "Flags used by the shared linker for Dist builds." FORCE)
 
+function(bt_normalize_native_arch out_var raw_arch)
+    string(TOLOWER "${raw_arch}" raw_arch_lower)
+    if(raw_arch_lower STREQUAL "amd64" OR raw_arch_lower STREQUAL "x86_64" OR raw_arch_lower STREQUAL "x64")
+        set(${out_var} "x86_64" PARENT_SCOPE)
+    elseif(raw_arch_lower STREQUAL "arm64" OR raw_arch_lower STREQUAL "aarch64")
+        set(${out_var} "arm64" PARENT_SCOPE)
+    else()
+        message(FATAL_ERROR "Unsupported native script architecture: ${raw_arch}")
+    endif()
+endfunction()
+
 )" + boltRootBootstrap + R"(
 file(GLOB_RECURSE NATIVE_SOURCES "Source/*.cpp" "Source/*.h" "Source/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${NATIVE_SOURCES})
@@ -492,10 +518,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     "${BOLT_DIR}/Bolt-Engine/src"
 )
 if(WIN32)
-    set(BT_NATIVE_PLATFORM "windows-x86_64")
+    bt_normalize_native_arch(BT_NATIVE_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+    set(BT_NATIVE_PLATFORM "windows-${BT_NATIVE_ARCH}")
     target_compile_definitions(${PROJECT_NAME} PRIVATE BT_PLATFORM_WINDOWS)
 elseif(UNIX AND NOT APPLE)
-    set(BT_NATIVE_PLATFORM "linux-x86_64")
+    bt_normalize_native_arch(BT_NATIVE_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+    set(BT_NATIVE_PLATFORM "linux-${BT_NATIVE_ARCH}")
     target_compile_definitions(${PROJECT_NAME} PRIVATE BT_PLATFORM_LINUX)
 else()
     message(FATAL_ERROR "Unsupported platform for native scripts")

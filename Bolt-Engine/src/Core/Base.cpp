@@ -2,6 +2,7 @@
 #include "Base.hpp"
 
 #include "Core/Log.hpp"
+#include "Core/Memory.hpp"
 
 namespace Bolt {
 
@@ -17,5 +18,6 @@ namespace Bolt {
 	{
 		BT_CORE_TRACE_TAG("Core", "Shutting down...");
 		Log::Shutdown();
+		Allocator::Shutdown();
 	}
 }

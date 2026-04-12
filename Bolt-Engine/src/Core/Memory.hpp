@@ -71,6 +71,7 @@ namespace Bolt {
 	{
 	public:
 		static void Init();
+		static void Shutdown();
 
 		static void* AllocateRaw(size_t size);
 

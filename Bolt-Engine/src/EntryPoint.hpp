@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Base.hpp"
 #include "Core/Application.hpp"
 
 extern Bolt::Application* CreateApplication();
@@ -8,14 +9,19 @@ namespace Bolt {
 
 	int Main(int argc, char** argv) {
 		InitializeCore();
+		struct CoreShutdownGuard {
+			~CoreShutdownGuard() {
+				ShutdownCore();
+			}
+		} shutdownGuard;
+
 		Application::SetCommandLineArgs(argc, argv);
 
 		try {
-			Application* app = Bolt::CreateApplication();
+			std::unique_ptr<Application> app(Bolt::CreateApplication());
 			BT_CORE_ASSERT(app, "Client app is null!");
 
 			app->Run();
-			delete app;
 			return 0;
 		}
 		catch (const std::exception& ex) {
@@ -26,8 +32,6 @@ namespace Bolt {
 			BT_CORE_ERROR("Unhandled non-std exception at app boundary");
 			return -1;
 		}
-
-		ShutdownCore();
 	}
 }
 
