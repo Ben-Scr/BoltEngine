@@ -57,6 +57,7 @@ namespace Bolt
             return result;
         }
 
+
         internal static ulong[] ExecuteFilteredQuery(
             string withComponents, string withoutComponents,
             string mustHaveComponents, int enableFilter)
