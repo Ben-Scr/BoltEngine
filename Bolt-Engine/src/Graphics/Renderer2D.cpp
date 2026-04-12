@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Renderer2D.hpp"
 
+#include "Core/Application.hpp"
 #include "Core/Window.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Components/Graphics/SpriteRendererComponent.hpp"
@@ -15,6 +16,18 @@
 #include <glad/glad.h>
 
 namespace Bolt {
+	namespace {
+		Camera2DComponent* ResolveClearCamera() {
+			Application* app = Application::GetInstance();
+			if (!app || !app->GetSceneManager()) {
+				return nullptr;
+			}
+
+			Scene* activeScene = app->GetSceneManager()->GetActiveScene();
+			return activeScene ? activeScene->GetMainCamera() : nullptr;
+		}
+	}
+
 	void Renderer2D::Initialize() {
 		m_QuadMesh.Initialize();
 		m_SpriteShader.Initialize();
@@ -43,7 +56,7 @@ namespace Bolt {
 			glViewport(0, 0, m_OutputWidth, m_OutputHeight);
 			Window::GetMainViewport()->SetSize(m_OutputWidth, m_OutputHeight);
 
-			Camera2DComponent* cam = Camera2DComponent::Main();
+			Camera2DComponent* cam = ResolveClearCamera();
 			if (cam) {
 				const auto& cc = cam->GetClearColor();
 				glClearColor(cc.r, cc.g, cc.b, cc.a);
@@ -60,7 +73,7 @@ namespace Bolt {
 			m_OutputFboId = 0;
 		}
 		else {
-			Camera2DComponent* cam = Camera2DComponent::Main();
+			Camera2DComponent* cam = ResolveClearCamera();
 			if (cam) {
 				const auto& cc = cam->GetClearColor();
 				glClearColor(cc.r, cc.g, cc.b, cc.a);
@@ -91,7 +104,7 @@ namespace Bolt {
 	}
 
 	void Renderer2D::RenderScene(const Scene& scene) {
-		Camera2DComponent* camera2D = Camera2DComponent::Main();
+		Camera2DComponent* camera2D = const_cast<Camera2DComponent*>(scene.GetMainCamera());
 		if (!camera2D) {
 			BT_WARN_TAG("Renderer2D", "No main camera found in the scene. Nothing will be rendered.");
 			return;
@@ -160,7 +173,7 @@ namespace Bolt {
 				if (a.SortingOrder != b.SortingOrder)
 					return a.SortingOrder < b.SortingOrder;
 
-				return true;
+				return false;
 			});
 
 		m_QuadMesh.Bind();

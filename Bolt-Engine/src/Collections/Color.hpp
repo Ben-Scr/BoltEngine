@@ -133,6 +133,6 @@ namespace Bolt {
 	};
 
 	inline std::ostream& operator<<(std::ostream& os, const Color& c) {
-		return os << "Color(" << c.r << ", " << c.g << ", " << c.b << ", " << c.a << ")";
+		return os << "RGBA(" << c.r << ", " << c.g << ", " << c.b << ", " << c.a << ")";
 	}
 }

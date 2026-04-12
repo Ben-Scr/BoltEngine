@@ -79,13 +79,16 @@ namespace Bolt {
 			return 0;
 		}
 
-		ma_uint64 frameCount = 0;
-		//ma_result result = ma_decoder_get_length_in_pcm_frames(m_Decoder, &frameCount); //MISSING
+		 ma_uint64 frameCount = 0;
+		 
+		 /* TODO(Ben-Scr): Fix the m_Decoder pointer error
+		 ma_result result = ma_decoder_get_length_in_pcm_frames(&m_Decoder, & frameCount);
 
-		// if (result != MA_SUCCESS) {
-	 //        std::cerr << "Audio: Failed to get frame count - Error: " << result << std::endl;
-	 //        return 0;
-	 //    }
+		 if (result != MA_SUCCESS) {
+	         std::cerr << "Audio: Failed to get frame count - Error: " << result << std::endl;
+	         return 0;
+	     }
+		 */
 
 		return frameCount;
 	}

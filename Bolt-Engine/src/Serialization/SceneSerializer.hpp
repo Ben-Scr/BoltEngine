@@ -2,6 +2,7 @@
 #include "Core/Export.hpp"
 #include "Scene/EntityHandle.hpp"
 #include <string>
+#include <string_view>
 
 namespace Bolt {
 
@@ -15,6 +16,9 @@ namespace Bolt {
 
 	class BOLT_API SceneSerializer {
 	public:
+		static Json::Value SerializeScene(Scene& scene);
+		static bool DeserializeScene(Scene& scene, const Json::Value& root, std::string_view source = {});
+
 		static bool SaveToFile(Scene& scene, const std::string& path);
 		static bool LoadFromFile(Scene& scene, const std::string& path);
 

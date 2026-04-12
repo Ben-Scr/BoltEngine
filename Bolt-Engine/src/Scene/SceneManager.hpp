@@ -70,6 +70,7 @@ namespace Bolt {
 	private:
 		using SceneDefinitionMap = std::unordered_map<std::string, std::unique_ptr<SceneDefinition>>;
 		using LoadedSceneList = std::vector<std::shared_ptr<Scene>>;
+		using SceneSetupCallback = std::function<void(Scene&)>;
 
 		void Initialize();
 		void RegisterCoreComponents();
@@ -79,7 +80,7 @@ namespace Bolt {
 		void OnGuiScenes();
 		void FixedUpdateScenes();
 		void InitializeStartupScenes();
-		std::shared_ptr<Scene> LoadSceneInternal(const std::string& name, bool additive);
+		std::shared_ptr<Scene> LoadSceneInternal(const std::string& name, bool additive, SceneSetupCallback setupCallback = {});
 		SceneDefinition* GetSceneDefinition(const std::string& name);
 		const SceneDefinition* GetSceneDefinition(const std::string& name) const;
 		LoadedSceneList::iterator FindLoadedSceneIterator(const std::string& name);

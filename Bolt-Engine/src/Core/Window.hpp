@@ -1,8 +1,8 @@
 #pragma once
 #include "Collections/Vec2.hpp"
-#include "Collections/Color.hpp"
 #include "Collections/Viewport.hpp"
 #include "Core/Export.hpp"
+#include "Core/WindowSpecification.hpp"
 #include "Events/BoltEvent.hpp"
 
 #include <GLFW/glfw3.h>
@@ -12,26 +12,6 @@
 
 namespace Bolt {
 	class Texture2D;
-
-	struct WindowSpecification {
-		int Width{ 800 }, Height{ 800 };
-		std::string Title{ "GLFW Window" };
-		bool Resizeable{ true };
-		bool Decorated{ true };
-		bool Fullscreen{ false };
-		Color Clearcolor;
-
-		WindowSpecification() = default;
-
-		WindowSpecification(int width, int height, const std::string& title)
-			: Width{ width }, Height{ height }, Title{ title }
-		{
-		}
-		WindowSpecification(int width, int height, const std::string& title, bool resizeable, bool decorated, bool fullscreen)
-			: Width{ width }, Height{ height }, Title{ title }, Resizeable{ resizeable }, Decorated{ decorated }, Fullscreen{ fullscreen }
-		{
-		}
-	};
 
 	class BOLT_API Window {
 		friend class Application;

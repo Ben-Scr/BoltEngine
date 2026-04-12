@@ -5,6 +5,7 @@
 #include "Graphics/OpenGL.hpp"
 #include "Core/SingleInstance.hpp"
 #include "Audio/AudioManager.hpp"
+#include "Events/EventDispatcher.hpp"
 #include "Events/WindowEvents.hpp"
 #include <Utils/Timer.hpp>
 #include <Utils/StringHelper.hpp>
@@ -18,6 +19,7 @@ namespace Bolt {
 	const float Application::k_PausedTargetFrameRate = 10;
 
 	Application* Application::s_Instance = nullptr;
+	Application::CommandLineArgs Application::s_CommandLineArgs{};
 
 	void Application::Run()
 	{
@@ -100,8 +102,10 @@ namespace Bolt {
 
 				BeginFrame();
 				EndFrame();
+				TryCompleteQuitRequest();
 
 				glfwPollEvents();
+				TryCompleteQuitRequest();
 
 				m_LastFrameTime = frameStart;
 				m_Time.AdvanceFrameCount();
@@ -136,7 +140,7 @@ namespace Bolt {
 			if (m_SceneManager) {
 				m_SceneManager->ForeachLoadedScene(fn);
 			}
-		});
+			});
 		BT_INFO_TAG("Renderer2D", "Initialization took " + StringHelper::ToString(timer));
 
 		if (m_Configuration.EnableGizmoRenderer) {
@@ -184,7 +188,6 @@ namespace Bolt {
 
 		timer.Reset();
 
-		// Info: Initialize as last since it calls Awake() + Start() on all systems which can use classes such as TextureManager
 		ConfigureScenes();
 		m_SceneManager->Initialize();
 		BT_INFO_TAG("SceneManager", "Initialization took " + StringHelper::ToString(timer));
@@ -193,7 +196,6 @@ namespace Bolt {
 		if (m_Configuration.SetWindowIcon) {
 			m_Window->SetWindowIconFromResource();
 
-			// Override with project-specific app icon if set
 			BoltProject* project = ProjectManager::GetCurrentProject();
 			if (project && !project->AppIconPath.empty()) {
 				TextureHandle h = TextureManager::LoadTexture(project->AppIconPath);
@@ -209,11 +211,13 @@ namespace Bolt {
 		CoreInput();
 
 		if (!m_IsPaused) {
-			// TODO(Ben-Scr): The playmode pause state should be derived from the editor.
 			bool gameplayActive = m_IsPlaying && !m_IsPlaymodePaused;
 
-			if (gameplayActive && m_Configuration.EnableAudio) AudioManager::Update();
+			if (gameplayActive && m_Configuration.EnableAudio) 
+				AudioManager::Update();
+
 			Update();
+
 			for (const auto& layer : m_LayerStack) {
 				layer->OnUpdate(*this, m_Time.GetDeltaTime());
 			}
@@ -242,14 +246,22 @@ namespace Bolt {
 		}
 	}
 
+	void Application::EndFrame() {
+		if (!m_IsPaused) {
+			RenderPipelineOnly();
+		}
+
+		m_Input.Update();
+	}
+
 	void Application::DispatchEvent(BoltEvent& event) {
 		EventDispatcher dispatcher(event);
 
 		dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent&) {
-			m_QuitRequested = true;
+			RequestQuit();
 			glfwSetWindowShouldClose(m_Window->GetGLFWWindow(), GLFW_FALSE);
-			return true;
-		});
+			return false;
+			});
 
 		dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) {
 			if (e.GetWidth() == 0 || e.GetHeight() == 0) {
@@ -259,12 +271,12 @@ namespace Bolt {
 				m_IsPaused = false;
 			}
 			return false;
-		});
+			});
 
 		dispatcher.Dispatch<FileDropEvent>([this](FileDropEvent& e) {
 			m_PendingFileDrops = e.GetPaths();
 			return false;
-		});
+			});
 
 		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it) {
 			if (event.Handled) {
@@ -279,7 +291,46 @@ namespace Bolt {
 	}
 
 	void Application::Quit() {
-		if (s_Instance) s_Instance->m_ShouldQuit = true;
+		if (!s_Instance) {
+			return;
+		}
+
+		s_Instance->m_QuitRequested = false;
+		s_Instance->m_QuitRequestFrame = -1;
+		s_Instance->m_ShouldQuit = true;
+	}
+	void Application::RequestQuit() {
+		if (!s_Instance) {
+			return;
+		}
+
+		s_Instance->m_QuitRequested = true;
+		s_Instance->m_QuitRequestFrame = s_Instance->m_Time.GetFrameCount();
+	}
+	bool Application::IsQuitRequested() {
+		return s_Instance ? s_Instance->m_QuitRequested : false;
+	}
+	void Application::CancelQuit() {
+		if (!s_Instance) {
+			return;
+		}
+
+		s_Instance->m_QuitRequested = false;
+		s_Instance->m_QuitRequestFrame = -1;
+	}
+	void Application::ConfirmQuit() {
+		Quit();
+	}
+	void Application::TryCompleteQuitRequest() {
+		if (!m_QuitRequested || m_ShouldQuit) {
+			return;
+		}
+
+		if (m_Time.GetFrameCount() <= m_QuitRequestFrame) {
+			return;
+		}
+
+		Quit();
 	}
 
 	void Application::BeginFixedFrame() {
@@ -291,13 +342,7 @@ namespace Bolt {
 		if (m_PhysicsSystem2D) m_PhysicsSystem2D->FixedUpdate(m_Time.GetFixedDeltaTime());
 	}
 
-	void Application::EndFrame() {
-		if (!m_IsPaused) {
-			RenderPipelineOnly();
-		}
-
-		m_Input.Update();
-	}
+	void Application::EndFixedFrame() { }
 
 	void Application::RenderPipelineOnly() {
 		if (m_Renderer2D)
@@ -345,17 +390,13 @@ namespace Bolt {
 		if (m_Window) m_Window->SwapBuffers();
 	}
 
-	void Application::EndFixedFrame() {
-
-	}
 
 	void Application::CoreInput() {
 		if (m_Input.GetKey(KeyCode::LeftControl) && m_Input.GetKeyDown(KeyCode::I))
 		{
-
 			BT_INFO_TAG("Debug", "From: " + m_Name);
 			BT_INFO_TAG("Debug", "Current FPS: " + StringHelper::ToString(m_Time.GetFrameRate()));
-			BT_INFO_TAG("Debug", "Time Elapsed: " + StringHelper::ToString(m_Time.GetElapsedTime(), " s"));
+			BT_INFO_TAG("Debug", "Time Elapsed Since Start: " + StringHelper::ToString(m_Time.GetElapsedTime(), " s"));
 		}
 
 		if (m_Input.GetKeyDown(KeyCode::Esc)) {
@@ -370,7 +411,6 @@ namespace Bolt {
 		m_LastFrameTime = Clock::now();
 		m_FixedUpdateAccumulator = 0;
 	}
-
 
 	void Application::Shutdown() {
 		try {
@@ -413,6 +453,7 @@ namespace Bolt {
 
 		m_ShouldQuit = false;
 		m_QuitRequested = false;
+		m_QuitRequestFrame = -1;
 		m_IsPaused = false;
 		m_IsPlaymodePaused = false;
 		m_FixedUpdateAccumulator = 0.0;

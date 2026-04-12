@@ -1,24 +1,11 @@
 #pragma once
 #include "Core/Export.hpp"
+#include "Editor/ExternalEditorInfo.hpp"
+
 #include <string>
 #include <vector>
 
 namespace Bolt {
-
-	enum class ExternalEditorType {
-		Auto,           // Auto-detect best available
-		VisualStudio,   // devenv.exe (2022/2019, any edition)
-		VSCode,         // code.exe
-		Rider,          // rider64.exe
-		Custom          // User-specified executable
-	};
-
-	struct ExternalEditorInfo {
-		ExternalEditorType Type = ExternalEditorType::Auto;
-		std::string DisplayName;
-		std::string ExecutablePath;
-		bool Available = false;
-	};
 
 	/// Detects and manages the external code editor used for opening scripts.
 	class BOLT_API ExternalEditor {

@@ -29,14 +29,28 @@ namespace Bolt {
 		return count;
 	}
 
+	Entity EntityHelper::CreateCamera2DEntity(Scene& scene) {
+		Entity entity = CreateWith<Transform2DComponent, Camera2DComponent>(scene);
+		entity.AddComponent<NameComponent>(NameComponent("Camera 2D"));
+		return entity;
+	}
+
 	Entity EntityHelper::CreateCamera2DEntity() {
 		Entity entity = CreateWith<Transform2DComponent, Camera2DComponent>();
 		entity.AddComponent<NameComponent>(NameComponent("Camera 2D"));
 		return entity;
 	}
 
+	Entity EntityHelper::CreateSpriteEntity(Scene& scene) {
+		return CreateWith<Transform2DComponent, SpriteRendererComponent>(scene);
+	}
+
 	Entity EntityHelper::CreateSpriteEntity() {
 		return CreateWith<Transform2DComponent, SpriteRendererComponent >();
+	}
+
+	Entity EntityHelper::CreateImageEntity(Scene& scene) {
+		return CreateWith<RectTransformComponent, ImageComponent>(scene);
 	}
 
 	Entity EntityHelper::CreateImageEntity() {

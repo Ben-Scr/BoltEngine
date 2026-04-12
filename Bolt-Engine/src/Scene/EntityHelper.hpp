@@ -11,6 +11,15 @@
 namespace Bolt {
     class BOLT_API EntityHelper {
     public:
+        template<typename... Components>
+        static Entity CreateWith(Scene& scene) {
+            Entity entity(scene.CreateEntityHandle(), scene.GetRegistry());
+
+            (entity.AddComponent<Components>(), ...);
+
+            return entity;
+        }
+
         // Info: Creates an entity with the entered Components
         template<typename... Components>
         static Entity CreateWith() {
@@ -24,6 +33,14 @@ namespace Bolt {
 
             (entity.AddComponent<Components>(), ...);
 
+            return entity;
+        }
+
+        template<typename... Components>
+        static EntityHandle CreateHandleWith(Scene& scene) {
+            EntityHandle entity = scene.CreateEntityHandle();
+
+            (scene.AddComponent<Components>(entity), ...);
             return entity;
         }
 
@@ -47,10 +64,13 @@ namespace Bolt {
         // Info: Gives you back the global entities count
         static std::size_t EntitiesCount();
 
+        static Entity CreateCamera2DEntity(Scene& scene);
         // Info: Basically calls CreateWith<Transform2D, Canera2D>();
         static Entity CreateCamera2DEntity();
+        static Entity CreateSpriteEntity(Scene& scene);
         // Info: Basically calls CreateWith<Transform2D, SpriteRenderer>();
         static Entity CreateSpriteEntity();
+        static Entity CreateImageEntity(Scene& scene);
         // Info: Basically calls CreateWith<RectTransform, Image>();
         static Entity CreateImageEntity();
     };

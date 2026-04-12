@@ -3,7 +3,6 @@
 #include "Scene/SceneManager.hpp"
 
 #include "Systems/ImGuiDebugSystem.hpp"
-#include <Systems/ParticleUpdateSystem.hpp>
 #include <Systems/AudioUpdateSystem.hpp>
 #include <Scripting/ScriptSystem.hpp>
 #include <Scene/EntityHelper.hpp>
@@ -57,7 +56,6 @@ public:
 		auto registerScene = [&](const std::string& sceneName) -> SceneDefinition& {
 			auto& def = GetSceneManager()->RegisterScene(sceneName);
 			def.AddSystem<ScriptSystem>();
-			def.AddSystem<ParticleUpdateSystem>();
 			def.AddSystem<AudioUpdateSystem>();
 
 			// Load scene file in OnLoad callback — runs BEFORE Awake/Start,

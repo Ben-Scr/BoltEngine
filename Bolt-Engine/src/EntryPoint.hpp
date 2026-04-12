@@ -8,6 +8,7 @@ namespace Bolt {
 
 	int Main(int argc, char** argv) {
 		InitializeCore();
+		Application::SetCommandLineArgs(argc, argv);
 
 		try {
 			Application* app = Bolt::CreateApplication();
@@ -25,6 +26,8 @@ namespace Bolt {
 			BT_CORE_ERROR("Unhandled non-std exception at app boundary");
 			return -1;
 		}
+
+		ShutdownCore();
 	}
 }
 

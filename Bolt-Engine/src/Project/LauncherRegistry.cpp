@@ -15,11 +15,22 @@
 #include <filesystem>
 
 namespace Bolt {
+	namespace {
+		bool ToLocalTime(std::time_t value, std::tm& outTime) {
+#if defined(_WIN32)
+			return localtime_s(&outTime, &value) == 0;
+#else
+			return localtime_r(&value, &outTime) != nullptr;
+#endif
+		}
+	}
 
 	static std::string NowISO8601() {
 		auto t = std::time(nullptr);
 		std::tm tm{};
-		localtime_s(&tm, &t);
+		if (!ToLocalTime(t, tm)) {
+			return {};
+		}
 		std::stringstream ss;
 		ss << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S");
 		return ss.str();

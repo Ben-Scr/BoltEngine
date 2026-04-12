@@ -28,23 +28,26 @@ def check_tool(name, cmd=None):
     return exe is not None
 
 
-def submodules_populated(repo_root: Path) -> bool:
-    """Quick check: do all registered submodule paths have content?"""
+def submodules_need_update(repo_root: Path) -> bool:
+    """Return True if any registered submodule is missing, conflicted, or stale."""
     gitmodules = repo_root / ".gitmodules"
     if not gitmodules.exists():
-        return True
+        return False
     result = subprocess.run(
-        ["git", "submodule", "status"],
+        ["git", "submodule", "status", "--recursive"],
         cwd=repo_root,
         capture_output=True, text=True,
     )
     if result.returncode != 0:
-        return False
-    for line in result.stdout.strip().splitlines():
-        # Lines starting with '-' mean uninitialized submodule
-        if line.strip().startswith("-"):
-            return False
-    return True
+        return True
+    for raw_line in result.stdout.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        # "-" = missing, "+" = wrong commit checked out, "U" = conflict
+        if line[0] in {"-", "+", "U"}:
+            return True
+    return False
 
 
 def dotnet_files_present(repo_root: Path) -> bool:
@@ -137,14 +140,17 @@ def main():
         print()
 
     # ── 2. Git submodules ────────────────────────────────────────────────
-    if submodules_populated(repo_root):
-        print("[Bolt Setup] Submodules already initialised — skipping update.")
-        print("             (Run 'git submodule update --init --recursive' manually to force.)")
-    else:
+    run_step(
+        ["git", "submodule", "sync", "--recursive"],
+        repo_root, "Syncing git submodule URLs",
+    )
+    if submodules_need_update(repo_root):
         run_step(
-            ["git", "submodule", "update", "--init", "--recursive"],
+            ["git", "submodule", "update", "--init", "--recursive", "--jobs", "8"],
             repo_root, "Updating git submodules",
         )
+    else:
+        print("[Bolt Setup] Submodules already match the recorded revisions.")
 
     # ── 3. Git LFS ──────────────────────────────────────────────────────
     lfs_ok = run_step(

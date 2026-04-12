@@ -196,6 +196,47 @@ namespace Bolt {
 
 	// ── OnGui: hot-reload polling + build overlay ──────────────────────
 
+	void ScriptSystem::TeardownManagedScripts(Scene& scene)
+	{
+		if (!ScriptEngine::IsInitialized()) {
+			return;
+		}
+
+		ScriptEngine::SetScene(&scene);
+
+		auto view = scene.GetRegistry().view<ScriptComponent>();
+		for (auto [entity, scriptComp] : view.each())
+		{
+			for (auto& instance : scriptComp.Scripts)
+			{
+				if (!instance.HasManagedInstance()) {
+					continue;
+				}
+
+				ScriptEngine::InvokeOnDestroy(instance.GetGCHandle());
+				ScriptEngine::DestroyScriptInstance(instance.GetGCHandle());
+				instance.Unbind();
+			}
+		}
+	}
+
+	void ScriptSystem::TeardownNativeScripts(Scene& scene)
+	{
+		auto view = scene.GetRegistry().view<ScriptComponent>();
+		for (auto [entity, scriptComp] : view.each())
+		{
+			for (auto& instance : scriptComp.Scripts)
+			{
+				if (!instance.HasNativeInstance()) {
+					continue;
+				}
+
+				m_NativeHost.DestroyInstance(instance.GetNativePtr());
+				instance.Unbind();
+			}
+		}
+	}
+
 	void ScriptSystem::OnGui(Scene& scene)
 	{
 		(void)scene;
@@ -218,15 +259,10 @@ namespace Bolt {
 
 				if (result.Succeeded())
 				{
-					ScriptEngine::ReloadAssemblies();
-					if (m_LastScene)
-					{
-						auto view = m_LastScene->GetRegistry().view<ScriptComponent>();
-						for (auto [ent, sc] : view.each())
-							for (auto& inst : sc.Scripts)
-								if (inst.GetType() == ScriptType::Managed)
-									inst.Unbind();
+					if (m_LastScene) {
+						TeardownManagedScripts(*m_LastScene);
 					}
+					ScriptEngine::ReloadAssemblies();
 					BT_INFO_TAG("ScriptSystem", "C# scripts rebuilt and reloaded");
 				}
 				else
@@ -401,27 +437,8 @@ namespace Bolt {
 		}
 
 		if (ScriptEngine::IsInitialized()) {
-			ScriptEngine::SetScene(&scene);
-
-			auto view = scene.GetRegistry().view<ScriptComponent>();
-			for (auto [entity, scriptComp] : view.each())
-			{
-				for (auto& instance : scriptComp.Scripts)
-				{
-					if (instance.HasManagedInstance())
-					{
-						ScriptEngine::InvokeOnDestroy(instance.GetGCHandle());
-						ScriptEngine::DestroyScriptInstance(instance.GetGCHandle());
-						instance.SetGCHandle(0);
-					}
-					if (instance.HasNativeInstance())
-					{
-						m_NativeHost.DestroyInstance(instance.GetNativePtr());
-						instance.SetNativePtr(nullptr);
-					}
-				}
-			}
-
+			TeardownManagedScripts(scene);
+			TeardownNativeScripts(scene);
 			ScriptEngine::Shutdown();
 		}
 

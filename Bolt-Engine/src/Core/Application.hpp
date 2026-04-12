@@ -7,7 +7,9 @@
 #include "Scene/SceneManager.hpp"
 #include "Gui/ImGuiRenderer.hpp"
 #include "Gui/GuiRenderer.hpp"
+#include "Core/ApplicationConfig.hpp"
 #include "Core/Layer.hpp"
+#include "Core/LayerStack.hpp"
 #include "Events/BoltEvent.hpp"
 #include "Events/EventBus.hpp"
 
@@ -21,17 +23,6 @@
 #include <utility>
 
 namespace Bolt {
-	struct ApplicationConfig {
-		WindowSpecification WindowSpecification{ 800, 800, "Bolt Runtime", true, true, false };
-		bool EnableImGui = true;
-		bool EnableGuiRenderer = true;
-		bool EnableGizmoRenderer = true;
-		bool EnablePhysics2D = true;
-		bool EnableAudio = true;
-		bool SetWindowIcon = true;
-		bool Vsync = true;
-	};
-
 	class BOLT_API Application {
 		friend class Window;
 		friend class SceneManager;
@@ -40,6 +31,19 @@ namespace Bolt {
 		using Clock = std::chrono::high_resolution_clock;
 
 	public:
+		struct CommandLineArgs {
+			int Count = 0;
+			char** Values = nullptr;
+
+			const char* operator[](int index) const {
+				if (!Values || index < 0 || index >= Count) {
+					return nullptr;
+				}
+
+				return Values[index];
+			}
+		};
+
 		Application()
 			: m_SceneManager(std::make_unique<SceneManager>())
 			, m_FixedUpdateAccumulator{ 0 } {
@@ -77,6 +81,8 @@ namespace Bolt {
 		static bool GetForceSingleInstance() { return s_Instance ? s_Instance->m_ForceSingleInstance : false; }
 		static bool GetRunInBackground() { return s_Instance ? s_Instance->m_RunInBackground : false; }
 		static Window* GetWindow() { return s_Instance ? s_Instance->m_Window.get() : nullptr; }
+		static CommandLineArgs GetCommandLineArgs() { return s_CommandLineArgs; }
+		static void SetCommandLineArgs(int argc, char** argv) { s_CommandLineArgs = { argc, argv }; }
 
 
 		Renderer2D* GetRenderer2D() { return m_Renderer2D.get(); }
@@ -99,10 +105,10 @@ namespace Bolt {
 		static bool IsPlaymodePaused() { return s_Instance ? s_Instance->m_IsPlaymodePaused : false; }
 
 		/// Signals a quit request that can be intercepted (e.g. to show a save dialog).
-		static void RequestQuit() { if (s_Instance) s_Instance->m_QuitRequested = true; }
-		static bool IsQuitRequested() { return s_Instance ? s_Instance->m_QuitRequested : false; }
-		static void CancelQuit() { if (s_Instance) s_Instance->m_QuitRequested = false; }
-		static void ConfirmQuit() { Quit(); }
+		static void RequestQuit();
+		static bool IsQuitRequested();
+		static void CancelQuit();
+		static void ConfirmQuit();
 		void RenderOnceForRefresh();
 
 		template<typename TLayer, typename... Args>
@@ -162,11 +168,13 @@ namespace Bolt {
 		bool m_IsPlaying = true;
 		bool m_IsPlaymodePaused = false;
 		bool m_QuitRequested = false;
+		int m_QuitRequestFrame = -1;
 
 		float m_TargetFramerate = 144.0f;
 		static const float k_PausedTargetFrameRate;
 
 		static Application* s_Instance;
+		static CommandLineArgs s_CommandLineArgs;
 
 
 		std::vector<std::string> m_PendingFileDrops;
@@ -180,6 +188,7 @@ namespace Bolt {
 		void DispatchEvent(BoltEvent& event);
 		void CoreInput();
 		void ResetTimePoints();
+		void TryCompleteQuitRequest();
 		void BeginFrame();
 		void BeginFixedFrame();
 		void EndFixedFrame();

@@ -4,7 +4,9 @@
 #include <memory>
 #include <functional>
 #include <typeindex>
+#include <algorithm>
 #include "Core/Export.hpp"
+#include "Core/Log.hpp"
 
 namespace Bolt {
     class Scene;
@@ -25,6 +27,11 @@ namespace Bolt {
             static_assert(std::is_base_of<ISystem, TSystem>::value,
                 "TSystem must derive from ISystem");
 
+            const std::type_index systemType = typeid(TSystem);
+            if (std::find(m_SystemTypes.begin(), m_SystemTypes.end(), systemType) != m_SystemTypes.end()) {
+                BT_CORE_WARN_TAG("SceneDefinition", "System '{}' is already registered on scene '{}'", systemType.name(), m_Name);
+                return *this;
+            }
 
             m_SystemFactories.emplace_back(
                 [capturedArgs = std::tuple<Args...>(std::forward<Args>(args)...)]() mutable {
@@ -38,7 +45,7 @@ namespace Bolt {
             );
 
 
-            m_SystemTypes.push_back(std::type_index(typeid(TSystem)));
+            m_SystemTypes.push_back(systemType);
 
             return *this;
         }

@@ -43,19 +43,25 @@ namespace Bolt {
 
 
 	void Collider2D::DestroyShape(bool updateBodyMass) {
-		if (b2Shape_IsValid(m_ShapeId)) {
+		const bool hasShapeHandle = b2StoreShapeId(m_ShapeId) != b2StoreShapeId(b2_nullShapeId);
+		if (hasShapeHandle) {
 			PhysicsSystem2D::GetMainPhysicsWorld().GetDispatcher().UnregisterShape(m_ShapeId);
-			b2DestroyShape(m_ShapeId, updateBodyMass);
-			m_ShapeId = b2_nullShapeId;
 		}
+
+		if (b2Shape_IsValid(m_ShapeId)) {
+			b2DestroyShape(m_ShapeId, updateBodyMass);
+		}
+
+		m_ShapeId = b2_nullShapeId;
 	}
 
 	void Collider2D::Destroy() {
 		DestroyShape(true);
 		if (b2Body_IsValid(m_BodyId)) {
 			b2DestroyBody(m_BodyId);
-			m_BodyId = b2_nullBodyId;
 		}
+
+		m_BodyId = b2_nullBodyId;
 	}
 
 	void Collider2D::SetRotation(float radiant) {

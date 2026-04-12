@@ -1,47 +1,23 @@
 #pragma once
-#include "Texture2D.hpp"
-#include "TextureHandle.hpp"
 #include "Core/Export.hpp"
-
+#include "Graphics/DefaultTexture.hpp"
+#include "Graphics/Texture2D.hpp"
+#include "Graphics/TextureEntry.hpp"
+#include "TextureHandle.hpp"
 #include "Serialization/Path.hpp"
 
-#include <vector>
-#include <queue>
-#include <memory>
-#include <string>
 #include <array>
 #include <cstdint>
+#include <memory>
+#include <queue>
+#include <string>
+#include <vector>
 
 namespace Bolt {
     class Application;
 }
 
 namespace Bolt {
-        struct TextureEntry {
-            TextureEntry() = default;
-            TextureEntry(TextureEntry&&) noexcept = default;
-            TextureEntry& operator=(TextureEntry&&) noexcept = default;
-            TextureEntry(const TextureEntry&) = delete;
-            TextureEntry& operator=(const TextureEntry&) = delete;
-
-            Texture2D Texture;
-            uint16_t Generation = 0;
-            std::string Name;
-            bool IsValid = false;
-        };
-
-        enum class BOLT_API DefaultTexture : uint8_t {
-            Square,
-            Pixel,
-            Circle,
-            Capsule,
-            IsometricDiamond,
-            HexagonFlatTop,
-            HexagonPointedTop,
-            _9Sliced,
-            Invisible
-        };
-
         class BOLT_API TextureManager {
         public:
             static void Initialize();

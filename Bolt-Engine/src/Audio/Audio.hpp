@@ -15,7 +15,7 @@ namespace Bolt {
 
         bool LoadFromFile(const std::string& filepath);
        
-        const ma_decoder& GetDecoder() const { return m_Decoder; }
+        const ma_decoder& GetDecoder() const { return m_Decoder; }  
         bool IsLoaded() const { return m_IsLoaded; }
         const std::string& GetFilepath() const { return m_Filepath; }
 

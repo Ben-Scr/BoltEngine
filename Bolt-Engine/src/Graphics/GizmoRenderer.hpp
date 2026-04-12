@@ -1,4 +1,6 @@
 #pragma once
+#include "Graphics/PosColorVertex.hpp"
+
 #include <glm/glm.hpp>
 
 #include <memory>
@@ -7,10 +9,7 @@
 
 namespace Bolt {
     class Camera2DComponent;
-    struct PosColorVertex;
     class Shader;
-
-    struct PosColorVertex { float x, y, z; uint32_t color; };
 
     class GizmoRenderer2D {
     public:

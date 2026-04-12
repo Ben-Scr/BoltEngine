@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/BoltErrorCode.hpp"
 
 #include <exception>
 #include <source_location>
@@ -9,21 +10,6 @@
 #include "Core/Log.hpp"
 
 namespace Bolt {
-	enum class BoltErrorCode {
-		InvalidArgument,
-		NotInitialized,
-		AlreadyInitialized,
-		FileNotFound,
-		InvalidHandle,
-		OutOfRange,
-		OutOfBounds,
-		Overflow,
-		NullReference,
-		LoadFailed,
-		InvalidValue,
-		Undefined
-	};
-
 	const char* ErrorCodeToString(BoltErrorCode code);
 
 	class BoltException : public std::runtime_error {

@@ -1,6 +1,10 @@
 #pragma once
 #include "Collections/Vec2.hpp"
-#include "Scene/EntityHandle.hpp"
+#include "Physics/OverlapMode.hpp"
+#include "Physics/RaycastHit2D.hpp"
+
+#include <optional>
+#include <vector>
 
 namespace Bolt {
 	class Rigidbody2DComponent;
@@ -8,18 +12,6 @@ namespace Bolt {
 }
 
 namespace Bolt {
-	struct RaycastHit2D {
-		EntityHandle entity;
-		Vec2 point;
-		Vec2 normal;
-		float distance;
-	};
-
-	enum class OverlapMode {
-		First,
-		Nearest
-	};
-
 	class Physics2D {
 	public:
 		static std::optional<EntityHandle> OverlapCircle(const Vec2& center, float radius, OverlapMode mode);

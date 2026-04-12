@@ -7,12 +7,12 @@ namespace Bolt {
 	std::array<std::string, 9> TextureManager::s_DefaultTextures = {
 		   "Default/Square.png",
 		   "Default/Pixel.png",
-		   "Default/Circle.png",
+		   "Default/circle.png",
 		   "Default/Capsule.png",
 		   "Default/IsometricDiamond.png",
 		   "Default/HexagonFlatTop.png",
 		   "Default/HexagonPointedTop.png",
-		   "Default/9sliced.png",
+		   "Default/9Sliced.png",
 		   "Default/Invisible.png"
 	};
 

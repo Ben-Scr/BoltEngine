@@ -555,6 +555,25 @@ namespace Bolt {
 		}
 	} // namespace
 
+	Json::Value SceneSerializer::SerializeScene(Scene& scene) {
+		Value root = Value::MakeObject();
+		root.AddMember("version", Value(SCENE_FORMAT_VERSION));
+		root.AddMember("name", Value(scene.GetName()));
+		root.AddMember("sceneId", Value(std::to_string(static_cast<uint64_t>(scene.GetSceneId()))));
+
+		Value entitiesValue = Value::MakeArray();
+		auto& registry = scene.GetRegistry();
+		auto view = registry.view<entt::entity>();
+		std::vector<entt::entity> entities(view.begin(), view.end());
+
+		for (const entt::entity entity : entities) {
+			entitiesValue.Append(SerializeEntity(scene, entity));
+		}
+
+		root.AddMember("entities", std::move(entitiesValue));
+		return root;
+	}
+
 	bool SceneSerializer::SaveToFile(Scene& scene, const std::string& path) {
 		try {
 			const std::filesystem::path parentDir = std::filesystem::path(path).parent_path();
@@ -562,22 +581,7 @@ namespace Bolt {
 				std::filesystem::create_directories(parentDir);
 			}
 
-			Value root = Value::MakeObject();
-			root.AddMember("version", Value(SCENE_FORMAT_VERSION));
-			root.AddMember("name", Value(scene.GetName()));
-			root.AddMember("sceneId", Value(std::to_string(static_cast<uint64_t>(scene.GetSceneId()))));
-
-			Value entitiesValue = Value::MakeArray();
-			auto& registry = scene.GetRegistry();
-			auto view = registry.view<entt::entity>();
-			std::vector<entt::entity> entities(view.begin(), view.end());
-
-			for (const entt::entity entity : entities) {
-				entitiesValue.Append(SerializeEntity(scene, entity));
-			}
-
-			root.AddMember("entities", std::move(entitiesValue));
-			File::WriteAllText(path, Json::Stringify(root, true));
+			File::WriteAllText(path, Json::Stringify(SerializeScene(scene), true));
 			scene.ClearDirty();
 			BT_CORE_INFO_TAG("SceneSerializer", "Saved scene: {}", scene.GetName());
 			return true;
@@ -586,329 +590,6 @@ namespace Bolt {
 			BT_CORE_ERROR_TAG("SceneSerializer", "Save failed: {}", exception.what());
 			return false;
 		}
-	}
-
-	bool SceneSerializer::LoadFromFile(Scene& scene, const std::string& path) {
-		try {
-			if (!File::Exists(path)) {
-				BT_CORE_WARN_TAG("SceneSerializer", "Scene file not found: {}", path);
-				return false;
-			}
-
-			const std::string json = File::ReadAllText(path);
-			if (json.empty()) {
-				BT_CORE_WARN_TAG("SceneSerializer", "Scene file is empty: {}", path);
-				return false;
-			}
-
-			Value root;
-			std::string parseError;
-			if (!Json::TryParse(json, root, &parseError) || !root.IsObject()) {
-				BT_CORE_ERROR_TAG("SceneSerializer", "Failed to parse scene JSON {}: {}", path, parseError);
-				return false;
-			}
-
-			const int version = GetIntMember(root, "version", 1);
-			if (version > SCENE_FORMAT_VERSION) {
-				BT_CORE_WARN_TAG(
-					"SceneSerializer",
-					"Scene version {} is newer than supported ({})",
-					version,
-					SCENE_FORMAT_VERSION);
-			}
-
-			scene.SetName(std::filesystem::path(path).stem().string());
-
-			const uint64_t sceneId = GetUInt64Member(root, "sceneId", 0);
-			if (sceneId != 0) {
-				scene.SetSceneId(UUID(sceneId));
-			}
-
-			scene.GetRegistry().clear();
-
-			if (const Value* entitiesValue = GetArrayMember(root, "entities")) {
-				for (const Value& entityValue : entitiesValue->GetArray()) {
-					if (!entityValue.IsObject()) {
-						continue;
-					}
-					DeserializeEntity(scene, entityValue);
-				}
-			}
-			else {
-				BT_CORE_WARN_TAG("SceneSerializer", "No entities array in scene file: {}", path);
-			}
-
-			if (scene.GetRegistry().view<Camera2DComponent>().size() == 0) {
-				EntityHelper::CreateCamera2DEntity();
-				BT_CORE_INFO_TAG("SceneSerializer", "Added default camera (none in scene file)");
-			}
-
-			scene.ClearDirty();
-			BT_CORE_INFO_TAG("SceneSerializer", "Loaded scene: {}", scene.GetName());
-			return true;
-		}
-		catch (const std::exception& exception) {
-			BT_CORE_ERROR_TAG("SceneSerializer", "Load failed: {}", exception.what());
-			return false;
-		}
-	}
-
-	EntityHandle SceneSerializer::DeserializeEntity(Scene& scene, const Json::Value& entityValue) {
-		if (!entityValue.IsObject()) {
-			return entt::null;
-		}
-
-		const std::string name = GetStringMember(entityValue, "name", "Entity");
-		const EntityHandle entity = scene.CreateEntity(name).GetHandle();
-
-		const uint64_t savedUuid = GetUInt64Member(entityValue, "uuid", 0);
-		if (savedUuid != 0 && scene.HasComponent<UUIDComponent>(entity)) {
-			scene.GetComponent<UUIDComponent>(entity).Id = UUID(savedUuid);
-		}
-
-		if (const Value* transformValue = GetObjectMember(entityValue, "Transform2D")) {
-			auto& transform = scene.GetComponent<Transform2DComponent>(entity);
-			transform.Position.x = GetFloatMember(*transformValue, "posX", 0.0f);
-			transform.Position.y = GetFloatMember(*transformValue, "posY", 0.0f);
-			transform.Rotation = GetFloatMember(*transformValue, "rotation", 0.0f);
-			transform.Scale.x = GetFloatMember(*transformValue, "scaleX", 1.0f);
-			transform.Scale.y = GetFloatMember(*transformValue, "scaleY", 1.0f);
-		}
-
-		if (const Value* spriteValue = GetObjectMember(entityValue, "SpriteRenderer")) {
-			auto& spriteRenderer = scene.AddComponent<SpriteRendererComponent>(entity);
-			spriteRenderer.Color.r = GetFloatMember(*spriteValue, "r", 1.0f);
-			spriteRenderer.Color.g = GetFloatMember(*spriteValue, "g", 1.0f);
-			spriteRenderer.Color.b = GetFloatMember(*spriteValue, "b", 1.0f);
-			spriteRenderer.Color.a = GetFloatMember(*spriteValue, "a", 1.0f);
-			spriteRenderer.SortingOrder = static_cast<short>(GetIntMember(*spriteValue, "sortOrder", 0));
-			spriteRenderer.SortingLayer = static_cast<uint8_t>(GetIntMember(*spriteValue, "sortLayer", 0));
-
-			spriteRenderer.TextureHandle = LoadTextureFromValue(*spriteValue, "textureAsset", "texture", &spriteRenderer.TextureAssetId);
-			Texture2D* texture = TextureManager::GetTexture(spriteRenderer.TextureHandle);
-			if (texture) {
-				const int filter = GetIntMember(*spriteValue, "filter", static_cast<int>(Filter::Point));
-				const int wrapU = GetIntMember(*spriteValue, "wrapU", static_cast<int>(Wrap::Clamp));
-				const int wrapV = GetIntMember(*spriteValue, "wrapV", static_cast<int>(Wrap::Clamp));
-				texture->SetSampler(static_cast<Filter>(filter), static_cast<Wrap>(wrapU), static_cast<Wrap>(wrapV));
-			}
-		}
-
-		if (const Value* rigidbodyValue = GetObjectMember(entityValue, "Rigidbody2D")) {
-			auto& rigidbody = scene.AddComponent<Rigidbody2DComponent>(entity);
-			rigidbody.SetBodyType(static_cast<BodyType>(GetIntMember(*rigidbodyValue, "bodyType", static_cast<int>(BodyType::Dynamic))));
-			rigidbody.SetGravityScale(GetFloatMember(*rigidbodyValue, "gravityScale", 1.0f));
-			rigidbody.SetMass(GetFloatMember(*rigidbodyValue, "mass", 1.0f));
-		}
-
-		if (const Value* colliderValue = GetObjectMember(entityValue, "BoxCollider2D")) {
-			auto& boxCollider = scene.AddComponent<BoxCollider2DComponent>(entity);
-			const Vec2 savedCenter{
-				GetFloatMember(*colliderValue, "centerX", 0.0f),
-				GetFloatMember(*colliderValue, "centerY", 0.0f)
-			};
-			boxCollider.SetCenter(savedCenter, scene);
-
-			const auto& transform = scene.GetComponent<Transform2DComponent>(entity);
-			const Vec2 savedScale{
-				GetFloatMember(*colliderValue, "scaleX", transform.Scale.x),
-				GetFloatMember(*colliderValue, "scaleY", transform.Scale.y)
-			};
-			Vec2 localScale{ 1.0f, 1.0f };
-			if (std::fabs(transform.Scale.x) > k_MinScaleAxis) {
-				localScale.x = savedScale.x / transform.Scale.x;
-			}
-			if (std::fabs(transform.Scale.y) > k_MinScaleAxis) {
-				localScale.y = savedScale.y / transform.Scale.y;
-			}
-			boxCollider.SetScale(localScale, scene);
-			boxCollider.SetSensor(GetBoolMember(*colliderValue, "sensor", false), scene);
-			boxCollider.SetFriction(GetFloatMember(*colliderValue, "friction", boxCollider.GetFriction()));
-			boxCollider.SetBounciness(GetFloatMember(*colliderValue, "bounciness", boxCollider.GetBounciness()));
-			boxCollider.SetLayer(GetUInt64Member(*colliderValue, "layer", boxCollider.GetLayer()));
-			boxCollider.SetRegisterContacts(GetBoolMember(*colliderValue, "registerContacts", boxCollider.CanRegisterContacts()));
-		}
-
-		if (const Value* audioValue = GetObjectMember(entityValue, "AudioSource")) {
-			auto& audioSource = scene.AddComponent<AudioSourceComponent>(entity);
-			audioSource.SetVolume(GetFloatMember(*audioValue, "volume", 1.0f));
-			audioSource.SetPitch(GetFloatMember(*audioValue, "pitch", 1.0f));
-			audioSource.SetLoop(GetBoolMember(*audioValue, "loop", false));
-			audioSource.SetPlayOnAwake(GetBoolMember(*audioValue, "playOnAwake", false));
-
-			UUID audioAssetId = UUID(0);
-			const AudioHandle handle = LoadAudioFromValue(*audioValue, "clipAsset", "clip", &audioAssetId);
-			if (handle.IsValid()) {
-				audioSource.SetAudioHandle(handle, audioAssetId);
-			}
-		}
-
-		if (GetBoolMember(entityValue, "static", false)) {
-			scene.AddComponent<StaticTag>(entity);
-		}
-		if (GetBoolMember(entityValue, "disabled", false)) {
-			scene.AddComponent<DisabledTag>(entity);
-		}
-		if (GetBoolMember(entityValue, "deadly", false)) {
-			scene.AddComponent<DeadlyTag>(entity);
-		}
-
-		if (const Value* cameraValue = GetObjectMember(entityValue, "Camera2D")) {
-			auto& camera = scene.AddComponent<Camera2DComponent>(entity);
-			camera.SetOrthographicSize(GetFloatMember(*cameraValue, "orthoSize", 5.0f));
-			camera.SetZoom(GetFloatMember(*cameraValue, "zoom", 1.0f));
-			camera.SetClearColor(Color(
-				GetFloatMember(*cameraValue, "clearR", 0.1f),
-				GetFloatMember(*cameraValue, "clearG", 0.1f),
-				GetFloatMember(*cameraValue, "clearB", 0.1f),
-				GetFloatMember(*cameraValue, "clearA", 1.0f)));
-		}
-
-		if (const Value* bodyValue = GetObjectMember(entityValue, "BoltBody2D")) {
-			auto& body = scene.AddComponent<BoltBody2DComponent>(entity);
-			body.Type = static_cast<BoltPhys::BodyType>(GetIntMember(*bodyValue, "type", 1));
-			body.Mass = GetFloatMember(*bodyValue, "mass", 1.0f);
-			body.UseGravity = GetBoolMember(*bodyValue, "useGravity", true);
-			body.BoundaryCheck = GetBoolMember(*bodyValue, "boundaryCheck", false);
-
-			if (body.m_Body) {
-				body.m_Body->SetBodyType(body.Type);
-				body.m_Body->SetMass(body.Mass);
-				body.m_Body->SetGravityEnabled(body.UseGravity);
-				body.m_Body->SetBoundaryCheckEnabled(body.BoundaryCheck);
-			}
-		}
-
-		if (const Value* colliderValue = GetObjectMember(entityValue, "BoltBoxCollider2D")) {
-			auto& collider = scene.AddComponent<BoltBoxCollider2DComponent>(entity);
-			collider.HalfExtents = {
-				GetFloatMember(*colliderValue, "halfX", 0.5f),
-				GetFloatMember(*colliderValue, "halfY", 0.5f)
-			};
-			if (collider.m_Collider) {
-				collider.m_Collider->SetHalfExtents({ collider.HalfExtents.x, collider.HalfExtents.y });
-			}
-		}
-
-		if (const Value* colliderValue = GetObjectMember(entityValue, "BoltCircleCollider2D")) {
-			auto& collider = scene.AddComponent<BoltCircleCollider2DComponent>(entity);
-			collider.Radius = GetFloatMember(*colliderValue, "radius", 0.5f);
-			if (collider.m_Collider) {
-				collider.m_Collider->SetRadius(collider.Radius);
-			}
-		}
-
-		if (const Value* particleValue = GetObjectMember(entityValue, "ParticleSystem2D")) {
-			auto& particleSystem = scene.AddComponent<ParticleSystem2DComponent>(entity);
-			particleSystem.PlayOnAwake = GetBoolMember(*particleValue, "playOnAwake", true);
-			particleSystem.ParticleSettings.LifeTime = GetFloatMember(*particleValue, "lifetime", 1.0f);
-			particleSystem.ParticleSettings.Speed = GetFloatMember(*particleValue, "speed", 5.0f);
-			particleSystem.ParticleSettings.Scale = GetFloatMember(*particleValue, "scale", 1.0f);
-			particleSystem.ParticleSettings.Gravity.x = GetFloatMember(*particleValue, "gravityX", 0.0f);
-			particleSystem.ParticleSettings.Gravity.y = GetFloatMember(*particleValue, "gravityY", 0.0f);
-			particleSystem.ParticleSettings.UseGravity = GetBoolMember(*particleValue, "useGravity", false);
-			particleSystem.ParticleSettings.UseRandomColors = GetBoolMember(*particleValue, "useRandomColors", false);
-			particleSystem.ParticleSettings.MoveDirection.x = GetFloatMember(*particleValue, "moveDirectionX", 0.0f);
-			particleSystem.ParticleSettings.MoveDirection.y = GetFloatMember(*particleValue, "moveDirectionY", 0.0f);
-			particleSystem.EmissionSettings.EmitOverTime =
-				static_cast<uint16_t>(GetIntMember(*particleValue, "emitOverTime", 10));
-			particleSystem.EmissionSettings.RateOverDistance =
-				static_cast<uint16_t>(GetIntMember(*particleValue, "rateOverDistance", 0));
-			particleSystem.EmissionSettings.EmissionSpace = static_cast<ParticleSystem2DComponent::Space>(
-				GetIntMember(*particleValue, "emissionSpace", static_cast<int>(ParticleSystem2DComponent::Space::World)));
-
-			if (GetIntMember(*particleValue, "shapeType", 0) == 0) {
-				ParticleSystem2DComponent::CircleParams circle;
-				circle.Radius = GetFloatMember(*particleValue, "radius", 1.0f);
-				circle.IsOnCircle = GetBoolMember(*particleValue, "isOnCircle", false);
-				particleSystem.Shape = circle;
-			}
-			else {
-				ParticleSystem2DComponent::SquareParams square;
-				square.HalfExtends.x = GetFloatMember(*particleValue, "halfExtendsX", 1.0f);
-				square.HalfExtends.y = GetFloatMember(*particleValue, "halfExtendsY", 1.0f);
-				particleSystem.Shape = square;
-			}
-
-			particleSystem.RenderingSettings.MaxParticles =
-				static_cast<uint32_t>(GetUInt64Member(*particleValue, "maxParticles", 1000));
-			particleSystem.RenderingSettings.Color.r = GetFloatMember(*particleValue, "colorR", 1.0f);
-			particleSystem.RenderingSettings.Color.g = GetFloatMember(*particleValue, "colorG", 1.0f);
-			particleSystem.RenderingSettings.Color.b = GetFloatMember(*particleValue, "colorB", 1.0f);
-			particleSystem.RenderingSettings.Color.a = GetFloatMember(*particleValue, "colorA", 1.0f);
-			particleSystem.RenderingSettings.SortingOrder =
-				static_cast<short>(GetIntMember(*particleValue, "sortOrder", 0));
-			particleSystem.RenderingSettings.SortingLayer =
-				static_cast<uint8_t>(GetIntMember(*particleValue, "sortLayer", 0));
-
-			UUID textureAssetId = UUID(0);
-			const TextureHandle textureHandle = LoadTextureFromValue(*particleValue, "textureAsset", "texture", &textureAssetId);
-			if (textureHandle.IsValid()) {
-				particleSystem.SetTexture(textureHandle, textureAssetId);
-			}
-		}
-
-		if (const Value* rectValue = GetObjectMember(entityValue, "RectTransform")) {
-			auto& rectTransform = scene.AddComponent<RectTransformComponent>(entity);
-			rectTransform.Position.x = GetFloatMember(*rectValue, "posX", 0.0f);
-			rectTransform.Position.y = GetFloatMember(*rectValue, "posY", 0.0f);
-			rectTransform.Pivot.x = GetFloatMember(*rectValue, "pivotX", 0.0f);
-			rectTransform.Pivot.y = GetFloatMember(*rectValue, "pivotY", 0.0f);
-			rectTransform.Width = GetFloatMember(*rectValue, "width", 100.0f);
-			rectTransform.Height = GetFloatMember(*rectValue, "height", 100.0f);
-			rectTransform.Rotation = GetFloatMember(*rectValue, "rotation", 0.0f);
-			rectTransform.Scale.x = GetFloatMember(*rectValue, "scaleX", 1.0f);
-			rectTransform.Scale.y = GetFloatMember(*rectValue, "scaleY", 1.0f);
-		}
-
-		if (const Value* imageValue = GetObjectMember(entityValue, "Image")) {
-			auto& image = scene.AddComponent<ImageComponent>(entity);
-			image.Color.r = GetFloatMember(*imageValue, "r", 1.0f);
-			image.Color.g = GetFloatMember(*imageValue, "g", 1.0f);
-			image.Color.b = GetFloatMember(*imageValue, "b", 1.0f);
-			image.Color.a = GetFloatMember(*imageValue, "a", 1.0f);
-
-			image.TextureHandle = LoadTextureFromValue(*imageValue, "textureAsset", "texture", &image.TextureAssetId);
-		}
-
-		if (const Value* scriptsValue = GetArrayMember(entityValue, "Scripts")) {
-			auto& scriptComponent = scene.AddComponent<ScriptComponent>(entity);
-			for (const Value& scriptNameValue : scriptsValue->GetArray()) {
-				if (!scriptNameValue.IsString()) {
-					continue;
-				}
-				scriptComponent.AddScript(scriptNameValue.AsStringOr());
-			}
-
-			if (const Value* fieldsByClass = GetObjectMember(entityValue, "ScriptFields")) {
-				for (const auto& [className, fieldsValue] : fieldsByClass->GetObject()) {
-					if (!scriptComponent.HasScript(className) || !fieldsValue.IsArray()) {
-						continue;
-					}
-
-					for (const Value& fieldValue : fieldsValue.GetArray()) {
-						if (!fieldValue.IsObject()) {
-							continue;
-						}
-
-						const std::string fieldName = GetStringMember(fieldValue, "name");
-						if (fieldName.empty()) {
-							continue;
-						}
-
-						const Value* valueValue = fieldValue.FindMember("value");
-						if (!valueValue) {
-							continue;
-						}
-
-						scriptComponent.PendingFieldValues[className + "." + fieldName] =
-							ValueToFieldString(*valueValue);
-					}
-				}
-			}
-		}
-
-		return entity;
 	}
 
 	bool SceneSerializer::SaveEntityToFile(Scene& scene, EntityHandle entity, const std::string& path) {
@@ -933,40 +614,6 @@ namespace Bolt {
 		catch (const std::exception& exception) {
 			BT_CORE_ERROR_TAG("SceneSerializer", "SaveEntityToFile failed: {}", exception.what());
 			return false;
-		}
-	}
-
-	EntityHandle SceneSerializer::LoadEntityFromFile(Scene& scene, const std::string& path) {
-		try {
-			if (!File::Exists(path)) {
-				BT_CORE_WARN_TAG("SceneSerializer", "Prefab file not found: {}", path);
-				return entt::null;
-			}
-
-			const std::string json = File::ReadAllText(path);
-			if (json.empty()) {
-				BT_CORE_WARN_TAG("SceneSerializer", "Prefab file is empty: {}", path);
-				return entt::null;
-			}
-
-			Value root;
-			std::string parseError;
-			if (!Json::TryParse(json, root, &parseError) || !root.IsObject()) {
-				BT_CORE_ERROR_TAG("SceneSerializer", "Failed to parse prefab JSON {}: {}", path, parseError);
-				return entt::null;
-			}
-
-			const Value* prefabValue = GetObjectMember(root, "prefab");
-			if (!prefabValue) {
-				BT_CORE_WARN_TAG("SceneSerializer", "No prefab block in file: {}", path);
-				return entt::null;
-			}
-
-			return DeserializeEntity(scene, *prefabValue);
-		}
-		catch (const std::exception& exception) {
-			BT_CORE_ERROR_TAG("SceneSerializer", "LoadEntityFromFile failed: {}", exception.what());
-			return entt::null;
 		}
 	}
 

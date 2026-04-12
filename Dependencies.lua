@@ -13,7 +13,7 @@ IncludeDir["MiniAudio"] = "External/miniaudio"
 IncludeDir["Cereal"] = "External/cereal/include"
 IncludeDir["Glad"] = "External/glad/include"
 IncludeDir["DotNet"] = "External/dotnet"
-IncludeDir["BoltEngine"] = "Bolt-Engine/Src"
+IncludeDir["BoltEngine"] = "Bolt-Engine/src"
 IncludeDir["BoltEngineLegacy"] = "Bolt-Engine/src"
 
 Library = {}

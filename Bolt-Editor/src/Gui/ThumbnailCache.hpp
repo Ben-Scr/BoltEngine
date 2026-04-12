@@ -1,24 +1,14 @@
 #pragma once
 #include "Graphics/Texture2D.hpp"
+#include "Gui/AssetType.hpp"
+
 #include <imgui.h>
+
+#include <memory>
 #include <string>
 #include <unordered_map>
-#include <memory>
 
 namespace Bolt {
-
-	enum class AssetType {
-		Unknown,
-		Folder,
-		Image,
-		Shader,
-		Audio,
-		Font,
-		Script,
-		Scene,
-		Config,
-		Prefab
-	};
 
 	class ThumbnailCache {
 	public:

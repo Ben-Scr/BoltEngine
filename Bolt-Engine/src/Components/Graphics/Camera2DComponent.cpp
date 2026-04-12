@@ -1,17 +1,23 @@
 #include "pch.hpp"
 #include "Camera2DComponent.hpp"
 #include "Collections/Viewport.hpp"
+#include "Core/Application.hpp"
 #include "Core/Window.hpp"
+#include "Scene/Scene.hpp"
 
 #include <glm/glm.hpp>                     
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Bolt {
-	Camera2DComponent* Camera2DComponent::s_Main = nullptr;
-
 	Camera2DComponent* Camera2DComponent::Main() {
-		return s_Main;
+		Application* app = Application::GetInstance();
+		if (!app || !app->GetSceneManager()) {
+			return nullptr;
+		}
+
+		Scene* activeScene = app->GetSceneManager()->GetActiveScene();
+		return activeScene ? activeScene->GetMainCamera() : nullptr;
 	}
 
 	void Camera2DComponent::UpdateViewport() {
@@ -81,7 +87,6 @@ namespace Bolt {
 	}
 
 	void Camera2DComponent::Initialize(Transform2DComponent& transform) {
-		s_Main = this;
 		m_Viewport = Window::GetMainViewport();
 		m_Transform = &transform;
 		m_ViewMat = glm::mat4(1.0f);
@@ -91,9 +96,7 @@ namespace Bolt {
 	}
 
 	void Camera2DComponent::Destroy() {
-		if (s_Main == this)
-			s_Main = nullptr;
-
 		m_Transform = nullptr;
+		m_Viewport = nullptr;
 	}
 }

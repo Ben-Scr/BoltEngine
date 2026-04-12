@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+runtime_binary="$(find "$repo_root/bin" -path '*/Bolt-Runtime/Bolt-Runtime' -type f | head -n 1)"
+
+if [[ -z "${runtime_binary}" ]]; then
+    echo "Bolt-Runtime binary was not found under $repo_root/bin" >&2
+    exit 1
+fi
+
+runtime_dir="$(dirname "$runtime_binary")"
+bolt_assets_dir="$runtime_dir/BoltAssets"
+
+if [[ ! -d "$bolt_assets_dir" ]]; then
+    echo "Expected BoltAssets next to the runtime binary at $bolt_assets_dir" >&2
+    exit 1
+fi
+
+rm -rf "$runtime_dir/Assets" "$runtime_dir/bolt-project.json"
+mkdir -p "$runtime_dir/Assets/Scenes"
+
+cat >"$runtime_dir/bolt-project.json" <<'EOF'
+{
+  "name": "SmokeProject",
+  "engineVersion": "ci",
+  "startupScene": "SampleScene",
+  "lastOpenedScene": "SampleScene",
+  "buildScenes": [
+    "SampleScene"
+  ]
+}
+EOF
+
+cat >"$runtime_dir/Assets/Scenes/SampleScene.scene" <<'EOF'
+{
+  "version": 1,
+  "name": "SampleScene",
+  "entities": [
+    {
+      "name": "Main Camera",
+      "Transform2D": {
+        "posX": 0.0,
+        "posY": 0.0,
+        "rotation": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0
+      },
+      "Camera2D": {
+        "orthoSize": 5.0,
+        "zoom": 1.0,
+        "clearR": 0.1,
+        "clearG": 0.1,
+        "clearB": 0.1,
+        "clearA": 1.0
+      }
+    },
+    {
+      "name": "Pixel Sprite",
+      "Transform2D": {
+        "posX": 0.0,
+        "posY": 0.0,
+        "rotation": 0.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0
+      },
+      "SpriteRenderer": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0,
+        "sortOrder": 0,
+        "sortLayer": 0,
+        "texture": "Default/Pixel.png"
+      }
+    }
+  ]
+}
+EOF
+
+log_file="$(mktemp)"
+
+print_log() {
+    echo "---- linux smoke log ----"
+    cat "$log_file"
+    echo "-------------------------"
+}
+
+set +e
+(
+    cd "$runtime_dir"
+    timeout 10s xvfb-run -a ./Bolt-Runtime >"$log_file" 2>&1
+)
+status=$?
+set -e
+
+if [[ $status -ne 0 && $status -ne 124 ]]; then
+    echo "Smoke test process exited with status $status" >&2
+    print_log
+    exit $status
+fi
+
+if ! grep -q "Loaded project:" "$log_file"; then
+    echo "Runtime did not load the staged smoke-test project." >&2
+    print_log
+    exit 1
+fi
+
+if ! grep -q "Loaded scene: SampleScene" "$log_file"; then
+    echo "Runtime did not load the smoke-test scene." >&2
+    print_log
+    exit 1
+fi
+
+if grep -q "Failed to load default texture" "$log_file"; then
+    echo "Runtime failed to load one or more default textures." >&2
+    print_log
+    exit 1
+fi
+
+if grep -q "BoltAssets/Textures not found" "$log_file"; then
+    echo "Runtime could not resolve BoltAssets/Textures." >&2
+    print_log
+    exit 1
+fi
+
+if grep -q "Texture 'Default/" "$log_file"; then
+    echo "Runtime could not resolve a default texture from the smoke-test scene." >&2
+    print_log
+    exit 1
+fi

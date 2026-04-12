@@ -38,20 +38,17 @@
 #include "Physics/Physics2D.hpp"
 
 namespace Bolt {
-
-	// ── Helpers ─────────────────────────────────────────────────────────
-
-	static EntityHandle ToEntityHandle(uint64_t id)
+	EntityHandle ToEntityHandle(uint64_t id)
 	{
 		return static_cast<EntityHandle>(static_cast<uint32_t>(id));
 	}
 
-	static uint64_t FromEntityHandle(EntityHandle handle)
+	uint64_t FromEntityHandle(EntityHandle handle)
 	{
 		return static_cast<uint64_t>(static_cast<uint32_t>(handle));
 	}
 
-	static uint64_t GetEntityScriptId(const Scene& scene, EntityHandle handle)
+	uint64_t GetEntityScriptId(const Scene& scene, EntityHandle handle)
 	{
 		if (scene.IsValid(handle) && scene.HasComponent<UUIDComponent>(handle)) {
 			return static_cast<uint64_t>(scene.GetComponent<UUIDComponent>(handle).Id);
@@ -60,7 +57,7 @@ namespace Bolt {
 		return FromEntityHandle(handle);
 	}
 
-	static bool TryResolveEntityByUUID(const Scene& scene, uint64_t entityID, EntityHandle& outHandle)
+	bool TryResolveEntityByUUID(const Scene& scene, uint64_t entityID, EntityHandle& outHandle)
 	{
 		auto view = scene.GetRegistry().view<UUIDComponent>();
 		for (EntityHandle handle : view) {
@@ -73,7 +70,7 @@ namespace Bolt {
 		return false;
 	}
 
-	static bool ResolveEntityReference(uint64_t entityID, Scene*& outScene, EntityHandle& outHandle)
+	bool ResolveEntityReference(uint64_t entityID, Scene*& outScene, EntityHandle& outHandle)
 	{
 		outScene = nullptr;
 		outHandle = entt::null;
@@ -112,7 +109,7 @@ namespace Bolt {
 		return outScene != nullptr;
 	}
 
-	static Scene* GetScene()
+	Scene* GetScene()
 	{
 		Scene* scene = ScriptEngine::GetScene();
 		if (!scene)
@@ -122,10 +119,10 @@ namespace Bolt {
 		return scene;
 	}
 
-	// Thread-local buffer for returning strings to managed code
-	static thread_local std::string s_StringReturnBuffer;
+	thread_local std::string s_StringReturnBuffer;
 
-	// Component getter macro to reduce boilerplate
+	void PopulateNonComponentBindings(NativeBindings& b);
+
 	#define GET_COMPONENT(Type, entityID, failReturn) \
 		Scene* scene = nullptr; \
 		EntityHandle handle = entt::null; \
@@ -133,151 +130,6 @@ namespace Bolt {
 		if (!scene->HasComponent<Type>(handle)) return failReturn; \
 		auto& comp = scene->GetComponent<Type>(handle)
 
-	// ── Application Bindings ────────────────────────────────────────────
-
-	static float Bolt_Application_GetDeltaTime()
-	{
-		auto* app = Application::GetInstance();
-		return app ? app->GetTime().GetDeltaTime() : 0.0f;
-	}
-
-	static float Bolt_Application_GetTime()
-	{
-		auto* app = Application::GetInstance();
-		return app ? app->GetTime().GetElapsedTime() : 0.0f;
-	}
-
-	static int Bolt_Application_GetScreenWidth()
-	{
-		auto* window = Application::GetWindow();
-		return window ? window->GetWidth() : 0;
-	}
-
-	static int Bolt_Application_GetScreenHeight()
-	{
-		auto* window = Application::GetWindow();
-		return window ? window->GetHeight() : 0;
-	}
-
-	static float Bolt_Application_GetTargetFrameRate() { return Application::GetTargetFramerate(); }
-	static void  Bolt_Application_SetTargetFrameRate(float fps) { Application::SetTargetFramerate(fps); }
-
-	static void Bolt_Application_Quit() {
-		// Only quit in build mode, not in the editor
-		if (!Application::GetIsPlaying() || Application::GetInstance() == nullptr) return;
-		Application::Quit();
-	}
-
-	static float Bolt_Application_GetFixedDeltaTime() {
-		auto* app = Application::GetInstance();
-		return app ? app->GetTime().GetFixedDeltaTime() : (1.0f / 50.0f);
-	}
-	static float Bolt_Application_GetUnscaledDeltaTime() {
-		auto* app = Application::GetInstance();
-		return app ? app->GetTime().GetDeltaTimeUnscaled() : 0.0f;
-	}
-	static float Bolt_Application_GetFixedUnscaledDeltaTime() {
-		auto* app = Application::GetInstance();
-		return app ? app->GetTime().GetUnscaledFixedDeltaTime() : (1.0f / 50.0f);
-	}
-
-	// ── Log Bindings ────────────────────────────────────────────────────
-
-	static void Bolt_Log_Trace(const char* message) { Log::PrintMessageTag(Log::Type::Client, Log::Level::Trace, "Script", message); }
-	static void Bolt_Log_Info(const char* message)  { Log::PrintMessageTag(Log::Type::Client, Log::Level::Info, "Script", message); }
-	static void Bolt_Log_Warn(const char* message)  { Log::PrintMessageTag(Log::Type::Client, Log::Level::Warn, "Script", message); }
-	static void Bolt_Log_Error(const char* message) { Log::PrintMessageTag(Log::Type::Client, Log::Level::Error, "Script", message); }
-
-	// ── Input Bindings ──────────────────────────────────────────────────
-
-	static int Bolt_Input_GetKey(int keyCode)
-	{
-		auto* app = Application::GetInstance();
-		return app ? (app->GetInput().GetKey(static_cast<KeyCode>(keyCode)) ? 1 : 0) : 0;
-	}
-
-	static int Bolt_Input_GetKeyDown(int keyCode)
-	{
-		auto* app = Application::GetInstance();
-		return app ? (app->GetInput().GetKeyDown(static_cast<KeyCode>(keyCode)) ? 1 : 0) : 0;
-	}
-
-	static int Bolt_Input_GetKeyUp(int keyCode)
-	{
-		auto* app = Application::GetInstance();
-		return app ? (app->GetInput().GetKeyUp(static_cast<KeyCode>(keyCode)) ? 1 : 0) : 0;
-	}
-
-	static int Bolt_Input_GetMouseButton(int button)
-	{
-		auto* app = Application::GetInstance();
-		return app ? (app->GetInput().GetMouse(static_cast<MouseButton>(button)) ? 1 : 0) : 0;
-	}
-
-	static int Bolt_Input_GetMouseButtonDown(int button)
-	{
-		auto* app = Application::GetInstance();
-		return app ? (app->GetInput().GetMouseDown(static_cast<MouseButton>(button)) ? 1 : 0) : 0;
-	}
-
-	static void Bolt_Input_GetMousePosition(float* outX, float* outY)
-	{
-		auto* app = Application::GetInstance();
-		if (app) { Vec2 pos = app->GetInput().GetMousePosition(); *outX = pos.x; *outY = pos.y; }
-		else { *outX = 0.0f; *outY = 0.0f; }
-	}
-
-	static void Bolt_Input_GetAxis(float* outX, float* outY) {
-		auto* app = Application::GetInstance();
-		if (app) { Vec2 axis = app->GetInput().GetAxis(); *outX = axis.x; *outY = axis.y; }
-		else { *outX = 0.0f; *outY = 0.0f; }
-	}
-	static void Bolt_Input_GetMouseDelta(float* outX, float* outY) {
-		auto* app = Application::GetInstance();
-		if (app) { Vec2 delta = app->GetInput().GetMouseDelta(); *outX = delta.x; *outY = delta.y; }
-		else { *outX = 0.0f; *outY = 0.0f; }
-	}
-	static float Bolt_Input_GetScrollWheelDelta() {
-		auto* app = Application::GetInstance();
-		return app ? app->GetInput().ScrollValue() : 0.0f;
-	}
-
-	// ── Entity Bindings ─────────────────────────────────────────────────
-
-	static int Bolt_Entity_IsValid(uint64_t entityID)
-	{
-		Scene* scene = nullptr;
-		EntityHandle handle = entt::null;
-		return ResolveEntityReference(entityID, scene, handle) ? 1 : 0;
-	}
-
-	static uint64_t Bolt_Entity_FindByName(const char* name)
-	{
-		Scene* scene = GetScene();
-		if (!scene) return 0;
-		std::string targetName(name);
-		auto& registry = scene->GetRegistry();
-		auto view = registry.view<NameComponent>();
-		for (auto [entity, nameComp] : view.each())
-			if (nameComp.Name == targetName) return GetEntityScriptId(*scene, entity);
-		return 0;
-	}
-
-	static void Bolt_Entity_Destroy(uint64_t entityID)
-	{
-		Scene* scene = nullptr;
-		EntityHandle handle = entt::null;
-		if (!ResolveEntityReference(entityID, scene, handle)) return;
-		scene->DestroyEntity(handle);
-	}
-
-	static uint64_t Bolt_Entity_Create(const char* name)
-	{
-		Scene* scene = GetScene();
-		if (!scene) return 0;
-		Entity entity = scene->CreateEntity(name ? name : "Entity");
-		return GetEntityScriptId(*scene, entity.GetHandle());
-	}
 
 	// Helper: find ComponentInfo by display name
 	static const ComponentInfo* FindComponentByName(const std::string& name) {
@@ -290,7 +142,7 @@ namespace Bolt {
 		return found;
 	}
 
-	static int Bolt_Entity_HasComponent(uint64_t entityID, const char* componentName)
+	int Bolt_Entity_HasComponent(uint64_t entityID, const char* componentName)
 	{
 		Scene* scene = nullptr;
 		EntityHandle handle = entt::null;
@@ -301,7 +153,7 @@ namespace Bolt {
 		return info->has(scene->GetEntity(handle)) ? 1 : 0;
 	}
 
-	static int Bolt_Entity_AddComponent(uint64_t entityID, const char* componentName)
+	int Bolt_Entity_AddComponent(uint64_t entityID, const char* componentName)
 	{
 		Scene* scene = nullptr;
 		EntityHandle handle = entt::null;
@@ -311,12 +163,12 @@ namespace Bolt {
 		if (!info || !info->add) return 0;
 
 		Entity entity = scene->GetEntity(handle);
-		if (info->has && info->has(entity)) return 1; // Already has it
+		if (info->has && info->has(entity)) return 1;
 		info->add(entity);
 		return 1;
 	}
 
-	static int Bolt_Entity_RemoveComponent(uint64_t entityID, const char* componentName)
+	int Bolt_Entity_RemoveComponent(uint64_t entityID, const char* componentName)
 	{
 		Scene* scene = nullptr;
 		EntityHandle handle = entt::null;
@@ -326,12 +178,12 @@ namespace Bolt {
 		if (!info || !info->remove) return 0;
 
 		Entity entity = scene->GetEntity(handle);
-		if (info->has && !info->has(entity)) return 0; // Doesn't have it
+		if (info->has && !info->has(entity)) return 0;
 		info->remove(entity);
 		return 1;
 	}
 
-	static uint64_t Bolt_Entity_Clone(uint64_t sourceEntityID)
+	uint64_t Bolt_Entity_Clone(uint64_t sourceEntityID)
 	{
 		Scene* targetScene = GetScene();
 		if (!targetScene) return 0;
@@ -349,8 +201,9 @@ namespace Bolt {
 		registry.ForEachComponentInfo([&](const std::type_index&, const ComponentInfo& info) {
 			if (info.category != ComponentCategory::Component) return;
 			if (!info.has(source)) return;
-			if (info.copyTo)
+			if (info.copyTo) {
 				info.copyTo(source, clone);
+			}
 		});
 
 		return GetEntityScriptId(*targetScene, clone.GetHandle());
@@ -1077,112 +930,12 @@ namespace Bolt {
 
 	void ScriptBindings::PopulateNativeBindings(NativeBindings& b)
 	{
-		b.Application_GetDeltaTime = &Bolt_Application_GetDeltaTime;
-		b.Application_GetElapsedTime = &Bolt_Application_GetTime;
-		b.Application_GetScreenWidth = &Bolt_Application_GetScreenWidth;
-		b.Application_GetScreenHeight = &Bolt_Application_GetScreenHeight;
-		b.Application_GetTargetFrameRate = &Bolt_Application_GetTargetFrameRate;
-		b.Application_SetTargetFrameRate = &Bolt_Application_SetTargetFrameRate;
-		b.Application_Quit = &Bolt_Application_Quit;
-		b.Application_GetFixedDeltaTime = &Bolt_Application_GetFixedDeltaTime;
-		b.Application_GetUnscaledDeltaTime = &Bolt_Application_GetUnscaledDeltaTime;
-		b.Application_GetFixedUnscaledDeltaTime = &Bolt_Application_GetFixedUnscaledDeltaTime;
+		PopulateNonComponentBindings(b);
 
-		b.Log_Trace = &Bolt_Log_Trace;
-		b.Log_Info = &Bolt_Log_Info;
-		b.Log_Warn = &Bolt_Log_Warn;
-		b.Log_Error = &Bolt_Log_Error;
-
-		b.Input_GetKey = &Bolt_Input_GetKey;
-		b.Input_GetKeyDown = &Bolt_Input_GetKeyDown;
-		b.Input_GetKeyUp = &Bolt_Input_GetKeyUp;
-		b.Input_GetMouseButton = &Bolt_Input_GetMouseButton;
-		b.Input_GetMouseButtonDown = &Bolt_Input_GetMouseButtonDown;
-		b.Input_GetMousePosition = &Bolt_Input_GetMousePosition;
-		b.Input_GetAxis = &Bolt_Input_GetAxis;
-		b.Input_GetMouseDelta = &Bolt_Input_GetMouseDelta;
-		b.Input_GetScrollWheelDelta = &Bolt_Input_GetScrollWheelDelta;
-
-		b.Entity_IsValid = &Bolt_Entity_IsValid;
-		b.Entity_FindByName = &Bolt_Entity_FindByName;
-		b.Entity_Destroy = &Bolt_Entity_Destroy;
-		b.Entity_Create = &Bolt_Entity_Create;
 		b.Entity_Clone = &Bolt_Entity_Clone;
 		b.Entity_HasComponent = &Bolt_Entity_HasComponent;
 		b.Entity_AddComponent = &Bolt_Entity_AddComponent;
 		b.Entity_RemoveComponent = &Bolt_Entity_RemoveComponent;
-
-		b.NameComponent_GetName = &Bolt_NameComponent_GetName;
-		b.NameComponent_SetName = &Bolt_NameComponent_SetName;
-
-		b.Transform2D_GetPosition = &Bolt_Transform2D_GetPosition;
-		b.Transform2D_SetPosition = &Bolt_Transform2D_SetPosition;
-		b.Transform2D_GetRotation = &Bolt_Transform2D_GetRotation;
-		b.Transform2D_SetRotation = &Bolt_Transform2D_SetRotation;
-		b.Transform2D_GetScale = &Bolt_Transform2D_GetScale;
-		b.Transform2D_SetScale = &Bolt_Transform2D_SetScale;
-
-		b.SpriteRenderer_GetColor = &Bolt_SpriteRenderer_GetColor;
-		b.SpriteRenderer_SetColor = &Bolt_SpriteRenderer_SetColor;
-		b.SpriteRenderer_GetTexture = &Bolt_SpriteRenderer_GetTexture;
-		b.SpriteRenderer_SetTexture = &Bolt_SpriteRenderer_SetTexture;
-		b.SpriteRenderer_GetSortingOrder = &Bolt_SpriteRenderer_GetSortingOrder;
-		b.SpriteRenderer_SetSortingOrder = &Bolt_SpriteRenderer_SetSortingOrder;
-		b.SpriteRenderer_GetSortingLayer = &Bolt_SpriteRenderer_GetSortingLayer;
-		b.SpriteRenderer_SetSortingLayer = &Bolt_SpriteRenderer_SetSortingLayer;
-
-		b.Camera2D_GetOrthographicSize = &Bolt_Camera2D_GetOrthographicSize;
-		b.Camera2D_SetOrthographicSize = &Bolt_Camera2D_SetOrthographicSize;
-		b.Camera2D_GetZoom = &Bolt_Camera2D_GetZoom;
-		b.Camera2D_SetZoom = &Bolt_Camera2D_SetZoom;
-		b.Camera2D_GetClearColor = &Bolt_Camera2D_GetClearColor;
-		b.Camera2D_SetClearColor = &Bolt_Camera2D_SetClearColor;
-		b.Camera2D_ScreenToWorld = &Bolt_Camera2D_ScreenToWorld;
-		b.Camera2D_GetViewportWidth = &Bolt_Camera2D_GetViewportWidth;
-		b.Camera2D_GetViewportHeight = &Bolt_Camera2D_GetViewportHeight;
-
-		b.Rigidbody2D_ApplyForce = &Bolt_Rigidbody2D_ApplyForce;
-		b.Rigidbody2D_ApplyImpulse = &Bolt_Rigidbody2D_ApplyImpulse;
-		b.Rigidbody2D_GetLinearVelocity = &Bolt_Rigidbody2D_GetLinearVelocity;
-		b.Rigidbody2D_SetLinearVelocity = &Bolt_Rigidbody2D_SetLinearVelocity;
-		b.Rigidbody2D_GetAngularVelocity = &Bolt_Rigidbody2D_GetAngularVelocity;
-		b.Rigidbody2D_SetAngularVelocity = &Bolt_Rigidbody2D_SetAngularVelocity;
-		b.Rigidbody2D_GetBodyType = &Bolt_Rigidbody2D_GetBodyType;
-		b.Rigidbody2D_SetBodyType = &Bolt_Rigidbody2D_SetBodyType;
-		b.Rigidbody2D_GetGravityScale = &Bolt_Rigidbody2D_GetGravityScale;
-		b.Rigidbody2D_SetGravityScale = &Bolt_Rigidbody2D_SetGravityScale;
-		b.Rigidbody2D_GetMass = &Bolt_Rigidbody2D_GetMass;
-		b.Rigidbody2D_SetMass = &Bolt_Rigidbody2D_SetMass;
-
-		b.BoxCollider2D_GetScale = &Bolt_BoxCollider2D_GetScale;
-		b.BoxCollider2D_GetCenter = &Bolt_BoxCollider2D_GetCenter;
-		b.BoxCollider2D_SetEnabled = &Bolt_BoxCollider2D_SetEnabled;
-
-		b.AudioSource_Play = &Bolt_AudioSource_Play;
-		b.AudioSource_Pause = &Bolt_AudioSource_Pause;
-		b.AudioSource_Stop = &Bolt_AudioSource_Stop;
-		b.AudioSource_Resume = &Bolt_AudioSource_Resume;
-		b.AudioSource_GetVolume = &Bolt_AudioSource_GetVolume;
-		b.AudioSource_SetVolume = &Bolt_AudioSource_SetVolume;
-		b.AudioSource_GetPitch = &Bolt_AudioSource_GetPitch;
-		b.AudioSource_SetPitch = &Bolt_AudioSource_SetPitch;
-		b.AudioSource_GetLoop = &Bolt_AudioSource_GetLoop;
-		b.AudioSource_SetLoop = &Bolt_AudioSource_SetLoop;
-		b.AudioSource_IsPlaying = &Bolt_AudioSource_IsPlaying;
-		b.AudioSource_IsPaused = &Bolt_AudioSource_IsPaused;
-
-		b.BoltBody2D_GetBodyType = &Bolt_BoltBody2D_GetBodyType;
-		b.BoltBody2D_SetBodyType = &Bolt_BoltBody2D_SetBodyType;
-		b.BoltBody2D_GetMass = &Bolt_BoltBody2D_GetMass;
-		b.BoltBody2D_SetMass = &Bolt_BoltBody2D_SetMass;
-		b.BoltBody2D_GetUseGravity = &Bolt_BoltBody2D_GetUseGravity;
-		b.BoltBody2D_SetUseGravity = &Bolt_BoltBody2D_SetUseGravity;
-		b.BoltBody2D_GetVelocity = &Bolt_BoltBody2D_GetVelocity;
-		b.BoltBody2D_SetVelocity = &Bolt_BoltBody2D_SetVelocity;
-		b.BoltBoxCollider2D_GetHalfExtents = &Bolt_BoltBoxCollider2D_GetHalfExtents;
-		b.BoltBoxCollider2D_SetHalfExtents = &Bolt_BoltBoxCollider2D_SetHalfExtents;
-		b.BoltCircleCollider2D_GetRadius = &Bolt_BoltCircleCollider2D_GetRadius;
-		b.BoltCircleCollider2D_SetRadius = &Bolt_BoltCircleCollider2D_SetRadius;
 
 		b.Scene_GetActiveSceneName = &Bolt_Scene_GetActiveSceneName;
 		b.Scene_GetEntityCount = &Bolt_Scene_GetEntityCount;
@@ -1196,6 +949,7 @@ namespace Bolt {
 		b.Scene_GetLoadedSceneNameAt = &Bolt_Scene_GetLoadedSceneNameAt;
 		b.Scene_QueryEntities = &Bolt_Scene_QueryEntities;
 		b.Scene_QueryEntitiesFiltered = &Bolt_Scene_QueryEntitiesFiltered;
+
 		b.Asset_IsValid = &Bolt_Asset_IsValid;
 		b.Asset_GetOrCreateUUIDFromPath = &Bolt_Asset_GetOrCreateUUIDFromPath;
 		b.Asset_GetPath = &Bolt_Asset_GetPath;

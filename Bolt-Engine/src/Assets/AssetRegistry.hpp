@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Assets/AssetKind.hpp"
 #include "Core/UUID.hpp"
 #include "Project/BoltProject.hpp"
 #include "Project/ProjectManager.hpp"
@@ -17,16 +18,6 @@
 
 namespace Bolt {
 
-	enum class AssetKind {
-		Unknown = 0,
-		Texture,
-		Audio,
-		Scene,
-		Prefab,
-		Script,
-		Other
-	};
-
 	class AssetRegistry {
 	public:
 		struct Record {
@@ -35,7 +26,7 @@ namespace Bolt {
 			AssetKind Kind = AssetKind::Unknown;
 		};
 
-		static constexpr std::string_view MetaExtension = ".boltmeta";
+		static constexpr std::string_view MetaExtension = ".meta";
 
 		static bool IsMetaFilePath(std::string_view path) {
 			const std::string normalized = ToLowerCopy(std::string(path));
@@ -440,4 +431,4 @@ namespace Bolt {
 		inline static std::unordered_map<std::string, uint64_t> s_PathToId;
 	};
 
-} // namespace Bolt
+}

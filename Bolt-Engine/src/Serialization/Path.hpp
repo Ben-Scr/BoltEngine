@@ -1,21 +1,10 @@
 #pragma once
+#include "Serialization/SpecialFolder.hpp"
+
 #include <filesystem>
 #include <string>
 
 namespace Bolt {
-	enum class SpecialFolder {
-		User,              
-		Desktop,            
-		Documents,         
-		Downloads,          
-		Music,              
-		Pictures,          
-		Videos,           
-		AppDataRoaming,   
-		LocalAppData,      
-		ProgramData
-	};
-
 	class Path {
 	public:
 		static std::string GetSpecialFolderPath(SpecialFolder folder);

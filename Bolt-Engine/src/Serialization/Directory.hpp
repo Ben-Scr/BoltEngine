@@ -1,15 +1,10 @@
 #pragma once
-#include <vector>
+#include "Serialization/DirectoryEntry.hpp"
+
 #include <string>
+#include <vector>
 
 namespace Bolt {
-
-	struct DirectoryEntry {
-		std::string Path;
-		std::string Name;
-		bool IsDirectory = false;
-	};
-
 	class Directory {
 	public:
 		static void Create(const std::string& dir, bool recursive = true);

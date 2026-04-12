@@ -31,6 +31,9 @@ Bolt is a lightweight C++20 2D game engine focused on performance.
 - Python 3
 
 ## How to Generate Build Files
+For a fresh checkout, either clone with `--recurse-submodules` or run the setup script immediately after cloning.
+Re-run setup after pulling changes that update dependencies or `.gitmodules`.
+
 <details>
 <summary><strong>Windows (Visual Studio)</strong></summary>
   

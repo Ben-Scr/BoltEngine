@@ -19,6 +19,7 @@ project "Bolt-Editor"
     }
 
     UseDependencySet(Dependency.EditorRuntimeCommon)
+    includedirs { "src" }
 
     filter "system:windows"
         buildoptions { "/utf-8" }

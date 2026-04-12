@@ -1,7 +1,8 @@
 #pragma once
-#include "Core/Export.hpp"
-#include "Scene/EntityHandle.hpp"
 #include "Collections/Vec2.hpp"
+#include "Core/Export.hpp"
+#include "Physics/BoltContact2D.hpp"
+#include "Scene/EntityHandle.hpp"
 
 #include <PhysicsWorld.hpp>
 #include <WorldSettings.hpp>
@@ -14,14 +15,6 @@
 #include <vector>
 
 namespace Bolt {
-
-	struct BoltContact2D {
-		EntityHandle EntityA = entt::null;
-		EntityHandle EntityB = entt::null;
-		Vec2 Normal{};
-		float Penetration = 0.0f;
-	};
-
 	using BoltContactCallback = std::function<void(const BoltContact2D&)>;
 
 	/// Engine-level wrapper around the Bolt-Physics PhysicsWorld.

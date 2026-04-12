@@ -1,15 +1,11 @@
 #pragma once
 #include "Core/Export.hpp"
+#include "Project/LauncherProjectEntry.hpp"
+
 #include <string>
 #include <vector>
 
 namespace Bolt {
-
-	struct LauncherProjectEntry {
-		std::string name;
-		std::string path;
-		std::string lastOpened;
-	};
 
 	class BOLT_API LauncherRegistry {
 	public:

@@ -1,8 +1,7 @@
 #pragma once
-#include <Core/Log.hpp>
 
 #include <chrono>
-#include <string>
+#include <cstdint>
 #include <iostream>
 
 namespace Bolt {
@@ -76,23 +75,6 @@ namespace Bolt {
 	inline std::ostream& operator<<(std::ostream& os, const Timer& timer) {
 		return os << timer.ElapsedMilliseconds() << " ms";
 	}
+} // namespace Bolt
 
-	class ScopedTimer
-	{
-	public:
-		ScopedTimer(const std::string& name, const std::string& description)
-			: m_Name(name), m_Description(description) {
-		}
-		~ScopedTimer()
-		{
-			float time = m_Timer.ElapsedMilliseconds();
-			std::ostringstream oss;
-			oss << m_Description << " - " << time << "ms";
-			BT_INFO_TAG(m_Name, oss.str());
-		}
-	private:
-		std::string m_Name;
-		std::string m_Description;
-		Timer m_Timer;
-	};
-}
+#include "Utils/ScopedTimer.hpp"

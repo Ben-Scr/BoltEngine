@@ -140,6 +140,24 @@ namespace Bolt.Hosting
             s_CoreAssembly = assembly;
         }
 
+        private static void UnloadCurrentUserAssemblyContext()
+        {
+            if (s_UserLoadContext == null)
+                return;
+
+            var weakContext = new WeakReference(s_UserLoadContext, trackResurrection: false);
+            s_UserLoadContext.Unload();
+            s_UserLoadContext = null;
+            s_UserAssembly = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            if (weakContext.IsAlive)
+                Log.Warn("[ScriptLoader] User assembly load context is still alive after unload; lingering references may delay full cleanup.");
+        }
+
         [UnmanagedCallersOnly]
         public static unsafe int CreateScriptInstance(byte* classNamePtr, ulong entityID)
         {
@@ -220,9 +238,9 @@ namespace Bolt.Hosting
 
                 if (s_UserLoadContext != null)
                 {
-                    s_UserLoadContext.Unload();
-                    s_UserLoadContext = null;
-                    s_UserAssembly = null;
+                    s_Instances.Clear();
+                    s_ClassCache.Clear();
+                    UnloadCurrentUserAssemblyContext();
                 }
 
                 s_ClassCache.Clear();
@@ -250,12 +268,7 @@ namespace Bolt.Hosting
             s_Instances.Clear();
             s_ClassCache.Clear();
 
-            if (s_UserLoadContext != null)
-            {
-                s_UserLoadContext.Unload();
-                s_UserLoadContext = null;
-                s_UserAssembly = null;
-            }
+            UnloadCurrentUserAssemblyContext();
         }
 
         // ── Field reflection for [ShowInEditor] ──────────────────────

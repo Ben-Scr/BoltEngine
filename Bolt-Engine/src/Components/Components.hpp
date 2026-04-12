@@ -14,7 +14,6 @@
 #include "Physics/BoxCollider2DComponent.hpp"
 #include "Physics/Rigidbody2DComponent.hpp"
 
-// Bolt-Physics library components (lightweight AABB physics)
 #include "Physics/BoltBody2DComponent.hpp"
 #include "Physics/BoltBoxCollider2DComponent.hpp"
 #include "Physics/BoltCircleCollider2DComponent.hpp"

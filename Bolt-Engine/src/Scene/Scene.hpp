@@ -3,9 +3,11 @@
 #include "Scene/ISystem.hpp"
 #include "Core/Export.hpp"
 #include "Core/UUID.hpp"
+#include <unordered_set>
 
 namespace Bolt {
 	class SceneDefinition;
+	class Camera2DComponent;
 	class BOLT_API Scene {
 		friend class SceneManager;
 		friend class SceneDefinition;
@@ -26,6 +28,7 @@ namespace Bolt {
 
 		void DestroyEntity(Entity entity);
 		void DestroyEntity(EntityHandle nativeEntity);
+		void ClearEntities();
 
 		bool IsValid(EntityHandle nativeEntity) const {
 			return m_Registry.valid(nativeEntity);
@@ -168,6 +171,9 @@ namespace Bolt {
 		bool IsLoaded() const { return m_IsLoaded; }
 		bool IsPersistent() const { return m_Persistent; }
 		const SceneDefinition* GetDefinition() const { return m_Definition; }
+		Camera2DComponent* GetMainCamera();
+		const Camera2DComponent* GetMainCamera() const;
+		bool SetMainCamera(EntityHandle entity);
 
 		bool IsDirty() const { return m_Dirty; }
 		void MarkDirty();
@@ -197,6 +203,10 @@ namespace Bolt {
 		void OnBoltBoxCollider2DDestroy(entt::registry& registry, EntityHandle entity);
 		void OnBoltCircleCollider2DConstruct(entt::registry& registry, EntityHandle entity);
 		void OnBoltCircleCollider2DDestroy(entt::registry& registry, EntityHandle entity);
+		void DestroyEntityInternal(EntityHandle nativeEntity, bool markDirty);
+		void TrackEntityDestruction(EntityHandle entity);
+		void UntrackEntityDestruction(EntityHandle entity);
+		bool IsEntityBeingDestroyed(EntityHandle entity) const;
 
 		void AwakeSystems();
 		void StartSystems();
@@ -230,9 +240,11 @@ namespace Bolt {
 		std::string m_Name;
 		const SceneDefinition* m_Definition;
 		UUID m_SceneId;
+		EntityHandle m_MainCameraEntity = entt::null;
 
 		bool m_IsLoaded = false;
 		bool m_Persistent = false;
 		bool m_Dirty = false;
+		std::unordered_set<uint32_t> m_EntitiesBeingDestroyed;
 	};
 }

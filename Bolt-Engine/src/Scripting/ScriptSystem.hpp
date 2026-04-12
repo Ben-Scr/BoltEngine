@@ -27,6 +27,8 @@ namespace Bolt {
 	private:
 		void RebuildAndReloadScripts();
 		void RebuildAndReloadNativeScripts();
+		void TeardownManagedScripts(Scene& scene);
+		void TeardownNativeScripts(Scene& scene);
 
 		bool m_SuppressRecompile = false;
 

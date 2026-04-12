@@ -1,14 +1,14 @@
 #pragma once
 #include "Core/Export.hpp"
 #include "Scene/EntityHandle.hpp"
-#include <string>
+#include "Scripting/ScriptType.hpp"
+
 #include <cstdint>
+#include <string>
 
 namespace Bolt {
 
 	class NativeScript;
-
-	enum class ScriptType : uint8_t { Managed, Native };
 
 	class BOLT_API ScriptInstance {
 	public:

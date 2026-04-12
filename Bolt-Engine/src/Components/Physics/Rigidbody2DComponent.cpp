@@ -98,5 +98,7 @@ namespace Bolt {
 		if (IsValid()) {
 			b2DestroyBody(m_BodyId);
 		}
+
+		m_BodyId = b2_nullBodyId;
 	}
 }

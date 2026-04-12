@@ -15,6 +15,76 @@
 #include <random>
 
 namespace Bolt {
+	namespace {
+		bool ToLocalTime(std::time_t value, std::tm& outTime) {
+#if defined(_WIN32)
+			return localtime_s(&outTime, &value) == 0;
+#else
+			return localtime_r(&value, &outTime) != nullptr;
+#endif
+		}
+
+		std::string EscapeXml(const std::string& value) {
+			std::string escaped;
+			escaped.reserve(value.size());
+
+			for (char c : value) {
+				switch (c) {
+				case '&':  escaped += "&amp;";  break;
+				case '<':  escaped += "&lt;";   break;
+				case '>':  escaped += "&gt;";   break;
+				case '"':  escaped += "&quot;"; break;
+				case '\'': escaped += "&apos;"; break;
+				default:   escaped += c;        break;
+				}
+			}
+
+			return escaped;
+		}
+
+		std::string MakeRelativePathOrEmpty(const std::filesystem::path& from, const std::filesystem::path& to) {
+			std::error_code ec;
+			const std::filesystem::path relative = std::filesystem::relative(to, from, ec);
+			if (ec) {
+				return {};
+			}
+
+			return relative.generic_string();
+		}
+
+		std::filesystem::path ResolveEngineRoot() {
+			const auto exeDir = std::filesystem::path(Path::ExecutableDir());
+			const std::vector<std::filesystem::path> candidates = {
+				exeDir / ".." / ".." / "..",
+				exeDir / ".."
+			};
+
+			for (const auto& candidate : candidates) {
+				std::error_code ec;
+				const std::filesystem::path canonicalCandidate = std::filesystem::weakly_canonical(candidate, ec);
+				if (ec) {
+					continue;
+				}
+
+				if (std::filesystem::exists(canonicalCandidate / "Bolt-Engine" / "src")
+					&& std::filesystem::exists(canonicalCandidate / "Bolt-ScriptCore" / "Bolt-ScriptCore.csproj")) {
+					return canonicalCandidate;
+				}
+			}
+
+			return {};
+		}
+
+		std::string GetNativeLibraryFilename(const std::string& projectName) {
+#if defined(_WIN32)
+			return projectName + "-NativeScripts.dll";
+#elif defined(__APPLE__)
+			return "lib" + projectName + "-NativeScripts.dylib";
+#else
+			return "lib" + projectName + "-NativeScripts.so";
+#endif
+		}
+	}
 
 	static std::string GenerateGUID() {
 		std::random_device rd;
@@ -35,7 +105,9 @@ namespace Bolt {
 	static std::string NowISO8601() {
 		auto t = std::time(nullptr);
 		std::tm tm{};
-		localtime_s(&tm, &t);
+		if (!ToLocalTime(t, tm)) {
+			return {};
+		}
 		std::stringstream ss;
 		ss << std::put_time(&tm, "%Y-%m-%dT%H:%M:%S");
 		return ss.str();
@@ -81,7 +153,21 @@ namespace Bolt {
 	}
 
 	std::string BoltProject::GetNativeDllPath() const {
-		return Path::Combine(NativeScriptsDir, "build", "Release", Name + "-NativeScripts.dll");
+		const std::string libraryFilename = GetNativeLibraryFilename(Name);
+		const std::vector<std::filesystem::path> candidates = {
+			std::filesystem::path(NativeScriptsDir) / "build" / "Release" / libraryFilename,
+			std::filesystem::path(NativeScriptsDir) / "build" / libraryFilename,
+		};
+
+		for (const auto& candidate : candidates) {
+			if (std::filesystem::exists(candidate)) {
+				auto normalizedCandidate = candidate;
+				return normalizedCandidate.make_preferred().string();
+			}
+		}
+
+		auto fallbackCandidate = candidates.front();
+		return fallbackCandidate.make_preferred().string();
 	}
 
 	std::string BoltProject::GetSceneFilePath(const std::string& sceneName) const {
@@ -205,23 +291,35 @@ namespace Bolt {
 			} catch (...) {}
 		}
 
+		if (project.BuildSceneList.empty()) {
+			project.BuildSceneList.push_back(project.StartupScene);
+		}
+
 		// Write bolt-project.json
 		{
-			Json::Value root = Json::Value::MakeObject();
-			root.AddMember("name", name);
-			root.AddMember("engineVersion", std::string(BT_VERSION));
+			Json::Value root = BuildProjectJson(project);
 			root.AddMember("createdAt", NowISO8601());
 			File::WriteAllText(project.ProjectFilePath, Json::Stringify(root, true));
 		}
 
-		// Resolve path to Bolt-ScriptCore for ProjectReference
-		auto exeDir = std::filesystem::path(Path::ExecutableDir());
-		std::string scriptCorePath;
-		auto coreRelative = exeDir / ".." / ".." / ".." / "Bolt-ScriptCore" / "Bolt-ScriptCore.csproj";
-		if (std::filesystem::exists(coreRelative))
-			scriptCorePath = std::filesystem::canonical(coreRelative).string();
-		else
-			scriptCorePath = "..\\Bolt-ScriptCore\\Bolt-ScriptCore.csproj";
+		// Generate starter scene
+		{
+			Json::Value sceneRoot = Json::Value::MakeObject();
+			sceneRoot.AddMember("version", 1);
+			sceneRoot.AddMember("name", project.StartupScene);
+			sceneRoot.AddMember("entities", Json::Value::MakeArray());
+			File::WriteAllText(project.GetSceneFilePath(project.StartupScene), Json::Stringify(sceneRoot, true));
+		}
+
+		const std::filesystem::path engineRoot = ResolveEngineRoot();
+		const std::string scriptCoreFallback = engineRoot.empty()
+			? std::string()
+			: MakeRelativePathOrEmpty(
+				std::filesystem::path(project.RootDirectory),
+				engineRoot / "Bolt-ScriptCore" / "Bolt-ScriptCore.csproj");
+		const std::string nativeBoltRootFallback = engineRoot.empty()
+			? std::string()
+			: MakeRelativePathOrEmpty(std::filesystem::path(project.NativeScriptsDir), engineRoot);
 
 		// Preserve existing NuGet PackageReference entries if .csproj already exists
 		std::string existingPackageRefs;
@@ -240,26 +338,17 @@ namespace Bolt {
 				igEnd += 12; // length of "</ItemGroup>"
 
 				std::string block = content.substr(igStart, igEnd - igStart);
+				const bool referencesBoltScriptCore = block.find("Bolt-ScriptCore") != std::string::npos;
 				if (block.find("PackageReference") != std::string::npos
-					|| block.find("<Reference ") != std::string::npos) {
+					|| (block.find("<Reference ") != std::string::npos && !referencesBoltScriptCore)
+					|| (block.find("ProjectReference") != std::string::npos && !referencesBoltScriptCore)) {
 					existingPackageRefs += "  " + block + "\n";
 				}
 				searchPos = igEnd;
 			}
 		}
 
-		// Generate .csproj
-		// Resolve the Bolt-ScriptCore DLL path relative to the project root.
-		// We reference the compiled DLL instead of the .csproj so that
-		// Bolt-ScriptCore does not appear in the user's Solution Explorer.
-		std::string scriptCoreDllPath = Path::Combine(
-			std::filesystem::path(scriptCorePath).parent_path().string(),
-			"..", "bin", "Release-windows-x86_64", "Bolt-ScriptCore", "Bolt-ScriptCore.dll");
-		// Normalize to absolute
-		if (std::filesystem::exists(scriptCoreDllPath))
-			scriptCoreDllPath = std::filesystem::canonical(scriptCoreDllPath).string();
-
-		std::string csproj = R"(<Project Sdk="Microsoft.NET.Sdk">
+		std::string csproj = R"CS(<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net9.0</TargetFramework>
@@ -270,7 +359,14 @@ namespace Bolt {
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Nullable>enable</Nullable>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <BoltRoot Condition="'$(BoltRoot)' == ''">$([System.Environment]::GetEnvironmentVariable('BOLT_DIR'))</BoltRoot>
+    <BoltScriptCoreProject Condition="'$(BoltScriptCoreProject)' == '' and '$(BoltRoot)' != ''">$(BoltRoot)/Bolt-ScriptCore/Bolt-ScriptCore.csproj</BoltScriptCoreProject>
   </PropertyGroup>
+)CS" + (!scriptCoreFallback.empty()
+			? "  <PropertyGroup>\n    <BoltScriptCoreProject Condition=\"'$(BoltScriptCoreProject)' == ''\">" + EscapeXml(scriptCoreFallback) + "</BoltScriptCoreProject>\n  </PropertyGroup>\n"
+			: "") + R"CS(  <Target Name="ValidateBoltScriptCoreReference" BeforeTargets="ResolveReferences" Condition="'$(BoltScriptCoreProject)' == '' or !Exists('$(BoltScriptCoreProject)')">
+    <Error Text="Bolt-ScriptCore project not found. Set the BoltRoot MSBuild property or BOLT_DIR environment variable to the Bolt repository root." />
+  </Target>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
@@ -282,13 +378,12 @@ namespace Bolt {
     <Compile Include="Assets\Scripts\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Bolt-ScriptCore">
-      <HintPath>)" + scriptCoreDllPath + R"(</HintPath>
+    <ProjectReference Include="$(BoltScriptCoreProject)">
       <Private>false</Private>
-    </Reference>
+    </ProjectReference>
   </ItemGroup>
-)" + existingPackageRefs + R"(</Project>
-)";
+)CS" + existingPackageRefs + R"CS(</Project>
+)CS";
 		File::WriteAllText(project.CsprojPath, csproj);
 
 		// Generate .sln — only the user project is visible.
@@ -343,18 +438,37 @@ public class GameScript : BoltScript
 })";
 		File::WriteAllText(Path::Combine(project.RootDirectory, ".vscode", "settings.json"), vsCodeSettings);
 
+		std::string boltRootBootstrap = R"(set(BOLT_DIR "$ENV{BOLT_DIR}" CACHE PATH "Path to the Bolt repository root")
+)";
+		if (!nativeBoltRootFallback.empty()) {
+			boltRootBootstrap += "if(NOT BOLT_DIR)\n";
+			boltRootBootstrap += "    get_filename_component(BOLT_DIR \"${CMAKE_CURRENT_LIST_DIR}/" + nativeBoltRootFallback + "\" ABSOLUTE)\n";
+			boltRootBootstrap += "endif()\n";
+		}
+		boltRootBootstrap += R"(
+if(NOT BOLT_DIR OR NOT EXISTS "${BOLT_DIR}/Bolt-Engine/src")
+    message(FATAL_ERROR "Bolt engine sources not found. Set BOLT_DIR to the Bolt repository root before configuring native scripts.")
+endif()
+
+)";
+
 		// Generate NativeScripts CMakeLists.txt
 		std::string cmakeFile = R"(cmake_minimum_required(VERSION 3.20)
 project()" + name + R"(-NativeScripts LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 
+)" + boltRootBootstrap + R"(
 file(GLOB_RECURSE NATIVE_SOURCES "Source/*.cpp" "Source/*.h" "Source/*.hpp")
 add_library(${PROJECT_NAME} SHARED ${NATIVE_SOURCES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-    )" + std::filesystem::path(Path::ExecutableDir()).parent_path().parent_path().parent_path().string() + R"(/Bolt-Engine/src
+    "${BOLT_DIR}/Bolt-Engine/src"
 )
-target_compile_definitions(${PROJECT_NAME} PRIVATE BT_PLATFORM_WINDOWS)
+if(WIN32)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE BT_PLATFORM_WINDOWS)
+elseif(UNIX AND NOT APPLE)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE BT_PLATFORM_LINUX)
+endif()
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /utf-8)
 endif()

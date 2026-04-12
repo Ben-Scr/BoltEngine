@@ -63,7 +63,7 @@ jobs:
       - name: Install Native Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y xorg-dev libglu1-mesa-dev
+          sudo apt-get install -y xorg-dev libglu1-mesa-dev xvfb
 
       - name: Generate Makefiles
         run: |
@@ -73,3 +73,8 @@ jobs:
 
       - name: Build Linux Targets
         run: make config=release -j"$(nproc)" Bolt-Engine Bolt-Runtime Bolt-Editor
+
+      - name: Linux Runtime Smoke Test
+        run: |
+          chmod +x scripts/ci/linux_smoke_test.sh
+          ./scripts/ci/linux_smoke_test.sh

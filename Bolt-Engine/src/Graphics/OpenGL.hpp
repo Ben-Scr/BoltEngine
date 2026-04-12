@@ -1,35 +1,11 @@
 #pragma once
-#include "Collections/Vec2.hpp"
 #include "Collections/Color.hpp"
-#include "Collections/Viewport.hpp"
 #include "Core/Export.hpp"
+#include "Graphics/GLInitSpecifications.hpp"
+
 #include <glad/glad.h>
 
 namespace Bolt {
-	enum GLCullingMode {
-		GLNone = 0,
-		GLFrontLeft = 0x0400,
-		GLFrontRight = 0x0401,
-		GLBackLeft = 0x0402,
-		GLBackRight = 0x0403,
-		GLFront = 0x0404,
-		GLBack = 0x0405,
-		GLLeft = 0x0406,
-		GLRight = 0x0407,
-		GLFrontAndBack = 0x0408
-	};
-
-	struct GLInitSpecifications {
-		Color ClearColor;
-		GLCullingMode CullingMode;
-
-		GLInitSpecifications(const Color& clearColor, GLCullingMode cullMode)
-			: ClearColor{ clearColor }, CullingMode{ cullMode } {
-		}
-	};
-
-
-
 	class BOLT_API OpenGL {
 	public:
 		OpenGL() = delete;

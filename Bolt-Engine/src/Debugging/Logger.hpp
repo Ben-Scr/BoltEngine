@@ -1,17 +1,12 @@
 #pragma once
-#include "Utils/Event.hpp"
 #include "Core/Export.hpp"
-#include <string>
+#include "Debugging/LogLevel.hpp"
+#include "Utils/Event.hpp"
+
 #include <source_location>
+#include <string>
 
 namespace Bolt {
-	enum class BOLT_API LogLevel {
-		None,
-		Info,
-		Warning,
-		Error
-	};
-
 	class BOLT_API Logger {
 	public:
 		static void Message(const std::string& message, const std::source_location& loc = std::source_location::current());

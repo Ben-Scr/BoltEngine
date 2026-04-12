@@ -1,0 +1,51 @@
+#pragma once
+
+#include <cstring>
+
+namespace Bolt {
+
+	class NativeScript;
+
+	class NativeScriptRegistry {
+	public:
+		using Factory = NativeScript* (*)();
+
+		struct Entry {
+			const char* name;
+			Factory factory;
+			Entry* next;
+		};
+
+		inline static Entry* s_Head = nullptr;
+
+		static void Register(const char* name, Factory factory) {
+			static Entry entries[256];
+			static int count = 0;
+			if (count < 256) {
+				entries[count] = { name, factory, s_Head };
+				s_Head = &entries[count++];
+			}
+		}
+
+		static NativeScript* Create(const char* name) {
+			for (auto* e = s_Head; e; e = e->next) {
+				if (std::strcmp(name, e->name) == 0) {
+					return e->factory();
+				}
+			}
+
+			return nullptr;
+		}
+
+		static bool Has(const char* name) {
+			for (auto* e = s_Head; e; e = e->next) {
+				if (std::strcmp(name, e->name) == 0) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+	};
+
+} // namespace Bolt

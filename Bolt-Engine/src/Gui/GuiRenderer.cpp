@@ -36,8 +36,12 @@ namespace Bolt {
 		BT_ASSERT(m_SpriteShader.IsValid(), BoltErrorCode::InvalidHandle, "Invalid Sprite 2D Shader");
 		m_SpriteShader.Bind();
 
-		Camera2DComponent* camera2D = Camera2DComponent::Main();
-		BT_ASSERT(camera2D, BoltErrorCode::NullReference, "There is no main camera");
+		Camera2DComponent* camera2D = const_cast<Camera2DComponent*>(scene.GetMainCamera());
+		if (!camera2D) {
+			BT_WARN_TAG("GuiRenderer", "Skipping GUI render for scene '{}' because it has no enabled main camera.", scene.GetName());
+			m_SpriteShader.Unbind();
+			return;
+		}
 
 		camera2D->UpdateViewport();
 		Viewport* vp = camera2D->GetViewport();

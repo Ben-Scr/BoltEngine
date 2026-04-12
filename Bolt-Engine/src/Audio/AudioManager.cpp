@@ -191,11 +191,10 @@ namespace Bolt {
 			return AudioHandle();
 		}
 
-		// Accept path as-given first (absolute or already-correct relative)
 		std::string fullpath(path);
 		auto audio = std::make_unique<Audio>();
 		if (!audio->LoadFromFile(fullpath)) {
-			// Fallback: try relative to engine audio assets root
+
 			std::string rootPath = Path::Combine(s_RootPath, path);
 			audio = std::make_unique<Audio>();
 			if (!audio->LoadFromFile(rootPath)) {

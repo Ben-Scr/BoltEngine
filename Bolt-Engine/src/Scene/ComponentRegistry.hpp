@@ -1,34 +1,12 @@
 #pragma once
-#include "Entity.hpp"
-#include <string>
-#include <unordered_map>
+#include "Scene/ComponentInfo.hpp"
+
+#include <type_traits>
 #include <typeindex>
+#include <unordered_map>
+#include <utility>
 
 namespace Bolt {
-    enum class ComponentCategory {
-        Component,
-        Tag,
-        System,
-    };
-
-    struct ComponentInfo {
-        std::string displayName;
-        std::string subcategory;
-        ComponentCategory category;
-
-        ComponentInfo() = default;
-		ComponentInfo(const std::string& displayName, ComponentCategory category)
-            : displayName(displayName), category(category) {}
-		ComponentInfo(const std::string& displayName, const std::string& subcategory, ComponentCategory category)
-            : displayName(displayName), subcategory(subcategory), category(category) {}
-
-        bool (*has)(Entity) = nullptr;
-        void (*add)(Entity) = nullptr;
-        void (*remove)(Entity) = nullptr;
-        void (*copyTo)(Entity src, Entity dst) = nullptr;
-        void (*drawInspector)(Entity) = nullptr;
-    };
-
     class ComponentRegistry {
     public:
         template<typename T>
@@ -69,6 +47,15 @@ namespace Bolt {
         void ForEachComponentInfo(F&& fn) const {
             for (const auto& [id, info] : m_map)
                 fn(id, info);
+        }
+
+        void CopyComponents(Entity src, Entity dst) const {
+            for (const auto& [id, info] : m_map) {
+                (void)id;
+                if (info.copyTo) {
+                    info.copyTo(src, dst);
+                }
+            }
         }
 
     private:

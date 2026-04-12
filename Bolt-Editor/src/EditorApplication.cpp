@@ -8,7 +8,6 @@
 #include <Systems/ImGuiEditorLayer.hpp>
 #include <Systems/ImGuiDebugSystem.hpp>
 #include <Systems/GizmosDebugSystem.hpp>
-#include <Systems/ParticleUpdateSystem.hpp>
 #include <Scripting/ScriptSystem.hpp>
 #include <Project/ProjectManager.hpp>
 #include <Project/BoltProject.hpp>
@@ -16,10 +15,10 @@
 #include <Serialization/File.hpp>
 #include <Systems/AudioUpdateSystem.hpp>
 #include <Core/Version.hpp>
+#include "Editor/EditorComponentRegistration.hpp"
 
 using namespace Bolt;
 
-// Parsed from command line before Application starts
 static std::string s_ProjectPath;
 
 class EditorApplication : public Application {
@@ -53,7 +52,7 @@ public:
 				}
 			}
 
-			EntityHelper::CreateCamera2DEntity();
+			EntityHelper::CreateCamera2DEntity(scene);
 		});
 		editorScene.SetAsStartupScene();
 	}
@@ -64,7 +63,9 @@ public:
 		PushOverlay<GizmosDebugSystem>();
 	}
 
-	void Start() override {}
+	void Start() override {
+		RegisterEditorComponentInspectors(*GetSceneManager());
+	}
 	void Update() override {}
 	void FixedUpdate() override {}
 	void OnPaused() override {}
@@ -90,11 +91,15 @@ public:
 
 Bolt::Application* Bolt::CreateApplication() {
 	// Parse --project="path" from command line
-	int argc = __argc;
-	char** argv = __argv;
+	const Application::CommandLineArgs args = Application::GetCommandLineArgs();
 
-	for (int i = 1; i < argc; i++) {
-		std::string arg(argv[i]);
+	for (int i = 1; i < args.Count; i++) {
+		const char* rawArg = args[i];
+		if (!rawArg) {
+			continue;
+		}
+
+		std::string arg(rawArg);
 		if (arg.rfind("--project=", 0) == 0) {
 			s_ProjectPath = arg.substr(10);
 			// Remove surrounding quotes if present

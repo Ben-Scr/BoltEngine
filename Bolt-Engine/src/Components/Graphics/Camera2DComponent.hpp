@@ -8,8 +8,6 @@
 #include <memory>
 
 namespace Bolt {
-	struct Viewport;
-
 	class BOLT_API Camera2DComponent {
 	public:
 		Camera2DComponent() = default;
@@ -59,11 +57,10 @@ namespace Bolt {
 		void Destroy();
 
 		Transform2DComponent* m_Transform = nullptr;
-		static Camera2DComponent* s_Main;
 		float m_Zoom{ 1.0f };
 		float m_OrthographicSize{ 5.0f };
 		Color m_ClearColor{ 0.1f, 0.1f, 0.1f, 1.0f };
-		Viewport* m_Viewport;
+		Viewport* m_Viewport = nullptr;
 
 		glm::mat4 m_ViewMat{};
 		glm::mat4 m_ProjMat{};

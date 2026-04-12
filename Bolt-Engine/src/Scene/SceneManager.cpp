@@ -9,121 +9,16 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <optional>
 #include "SceneDefinition.hpp"
 #include "Scene/BuiltInComponentRegistration.hpp"
 #include "Systems/ParticleUpdateSystem.hpp"
 #include "Core/Application.hpp"
-#include "Components/Components.hpp"
 #include "Events/SceneEvents.hpp"
+#include "Serialization/Json.hpp"
+#include "Serialization/SceneSerializer.hpp"
 
 
 namespace Bolt {
-	namespace {
-		struct EntitySnapshot {
-			EntityHandle handle{ entt::null };
-			std::optional<Transform2DComponent> transform2D;
-			std::optional<RectTransformComponent> rectTransform;
-			std::optional<NameComponent> name;
-			std::optional<SpriteRendererComponent> spriteRenderer;
-			std::optional<ImageComponent> image;
-			std::optional<Camera2DComponent> camera2D;
-			std::optional<ParticleSystem2DComponent> particleSystem2D;
-			std::optional<BoxCollider2DComponent> boxCollider2D;
-			std::optional<Rigidbody2DComponent> rigidbody2D;
-			std::optional<AudioSourceComponent> audioSource;
-			std::optional<BoltBody2DComponent> boltBody2D;
-			std::optional<BoltBoxCollider2DComponent> boltBoxCollider2D;
-			std::optional<BoltCircleCollider2DComponent> boltCircleCollider2D;
-			bool hasIdTag = false;
-			bool hasStaticTag = false;
-			bool hasDisabledTag = false;
-			bool hasDeadlyTag = false;
-		};
-
-		using SceneSnapshot = std::vector<EntitySnapshot>;
-
-		template<typename T>
-		static void CaptureComponentIfExists(const entt::registry& registry, EntityHandle entity, std::optional<T>& out) {
-			if (registry.all_of<T>(entity)) {
-				out = registry.get<T>(entity);
-			}
-		}
-
-		template<typename T>
-		static void RestoreComponentIfExists(entt::registry& registry, EntityHandle entity, const std::optional<T>& data) {
-			if (data.has_value()) {
-				registry.emplace<T>(entity, data.value());
-			}
-		}
-
-		static SceneSnapshot CaptureSceneSnapshot(const Scene& scene) {
-			SceneSnapshot snapshot;
-			const entt::registry& registry = scene.GetRegistry();
-			auto view = registry.view<entt::entity>();
-			snapshot.reserve(view.size());
-
-			for (const EntityHandle entity : view) {
-				EntitySnapshot entitySnapshot;
-				entitySnapshot.handle = entity;
-
-				CaptureComponentIfExists(registry, entity, entitySnapshot.transform2D);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.rectTransform);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.name);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.spriteRenderer);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.image);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.camera2D);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.particleSystem2D);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.boxCollider2D);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.rigidbody2D);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.audioSource);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.boltBody2D);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.boltBoxCollider2D);
-				CaptureComponentIfExists(registry, entity, entitySnapshot.boltCircleCollider2D);
-
-				entitySnapshot.hasIdTag = registry.all_of<IdTag>(entity);
-				entitySnapshot.hasStaticTag = registry.all_of<StaticTag>(entity);
-				entitySnapshot.hasDisabledTag = registry.all_of<DisabledTag>(entity);
-				entitySnapshot.hasDeadlyTag = registry.all_of<DeadlyTag>(entity);
-
-				snapshot.push_back(std::move(entitySnapshot));
-			}
-
-			return snapshot;
-		}
-
-		static void RestoreSceneSnapshot(const SceneSnapshot& snapshot, Scene& scene) {
-			entt::registry& registry = scene.GetRegistry();
-			registry.clear();
-
-			for (const EntitySnapshot& entitySnapshot : snapshot) {
-				registry.create(entitySnapshot.handle);
-			}
-
-			for (const EntitySnapshot& entitySnapshot : snapshot) {
-				const EntityHandle entity = entitySnapshot.handle;
-				RestoreComponentIfExists(registry, entity, entitySnapshot.transform2D);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.rectTransform);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.name);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.spriteRenderer);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.image);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.camera2D);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.particleSystem2D);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.boxCollider2D);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.rigidbody2D);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.audioSource);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.boltBody2D);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.boltBoxCollider2D);
-				RestoreComponentIfExists(registry, entity, entitySnapshot.boltCircleCollider2D);
-
-				if (entitySnapshot.hasIdTag) registry.emplace<IdTag>(entity);
-				if (entitySnapshot.hasStaticTag) registry.emplace<StaticTag>(entity);
-				if (entitySnapshot.hasDisabledTag) registry.emplace<DisabledTag>(entity);
-				if (entitySnapshot.hasDeadlyTag) registry.emplace<DeadlyTag>(entity);
-			}
-		}
-	}
-
 	SceneManager& SceneManager::Get() {
 		auto* app = Application::GetInstance();
 		BT_CORE_ASSERT(app && app->GetSceneManager(), "SceneManager is not available before the Application instance exists");
@@ -187,7 +82,7 @@ namespace Bolt {
 		return LoadSceneInternal(name, true);
 	}
 
-	std::shared_ptr<Scene> SceneManager::LoadSceneInternal(const std::string& name, bool additive) {
+	std::shared_ptr<Scene> SceneManager::LoadSceneInternal(const std::string& name, bool additive, SceneSetupCallback setupCallback) {
 		if (!m_IsInitialized) {
 			BT_CORE_ERROR_TAG("SceneManager", "LoadScene called before SceneManager initialization");
 			return {};
@@ -207,6 +102,9 @@ namespace Bolt {
 		std::shared_ptr<Scene> newScene = definition->Instantiate();
 		for (const auto& callback : definition->m_LoadCallbacks) {
 			callback(*newScene);
+		}
+		if (setupCallback) {
+			setupCallback(*newScene);
 		}
 
 		{
@@ -242,16 +140,26 @@ namespace Bolt {
 			BT_CORE_WARN_TAG("SceneManager", "ReloadScene: scene '{}' is not loaded", name);
 			return {};
 		}
+
 		const bool wasActive = m_ActiveScene == scene.get();
-		const SceneSnapshot snapshot = CaptureSceneSnapshot(*scene);
+		const bool wasDirty = scene->IsDirty();
+		Json::Value snapshotRoot = SceneSerializer::SerializeScene(*scene);
 
 		UnloadScene(name);
-		std::weak_ptr<Scene> reloadedWeak = wasActive ? LoadScene(name) : LoadSceneAdditive(name);
-		if (std::shared_ptr<Scene> reloaded = reloadedWeak.lock()) {
-			RestoreSceneSnapshot(snapshot, *reloaded);
-		}
+		std::shared_ptr<Scene> reloaded = LoadSceneInternal(name, !wasActive, [&snapshotRoot, wasDirty](Scene& restoredScene) {
+			if (!SceneSerializer::DeserializeScene(restoredScene, snapshotRoot)) {
+				BT_CORE_ERROR_TAG("SceneManager", "ReloadScene: failed to restore snapshot for '{}'", restoredScene.GetName());
+				return;
+			}
 
-		return reloadedWeak;
+			if (wasDirty) {
+				restoredScene.MarkDirty();
+			}
+			else {
+				restoredScene.ClearDirty();
+			}
+		});
+		return reloaded;
 	}
 
 	void SceneManager::UnloadScene(const std::string& name) {
@@ -286,7 +194,7 @@ namespace Bolt {
 		}
 		scene.m_IsLoaded = false;
 		scene.DestroyScene();
-		scene.m_Registry.clear();
+		scene.ClearEntities();
 
 		if (m_ActiveScene == &scene) {
 			m_ActiveScene = nullptr;
