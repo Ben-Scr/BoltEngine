@@ -8,9 +8,6 @@ namespace Bolt
     /// </summary>
     public static class Application
     {
-        public static Action OnApplicationQuit;
-        public static Action<bool> OnWindowFocus;
-
         public static float TargetFrameRate
         {
             get => InternalCalls.Application_GetTargetFrameRate();

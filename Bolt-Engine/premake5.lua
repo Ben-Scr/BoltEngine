@@ -71,4 +71,4 @@ project "Bolt-Engine"
         runtime "Release"
         optimize "Full"
         symbols "Off"
-        defines { "BT_RELEASE", "NDEBUG" }
+        defines { "BT_DIST", "NDEBUG" }

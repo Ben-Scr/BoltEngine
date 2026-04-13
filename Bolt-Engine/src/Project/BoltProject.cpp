@@ -298,14 +298,7 @@ namespace Bolt {
 		return project;
 	}
 
-	BoltProject BoltProject::Create(const std::string& name, const std::string& parentDir) {
-		BoltProject project;
-		project.Name = name;
-		project.RootDirectory = Path::Combine(parentDir, name);
-		project.EngineVersion = BT_VERSION;
-		ResolvePaths(project);
-
-		// Create directory tree
+	void CreateDirectoryTree(const BoltProject& project) {
 		Directory::Create(project.RootDirectory);
 		Directory::Create(project.AssetsDirectory);
 		Directory::Create(project.ScriptsDirectory);
@@ -316,14 +309,41 @@ namespace Bolt {
 		Directory::Create(project.PackagesDirectory);
 		Directory::Create(Path::Combine(project.RootDirectory, "bin"));
 		Directory::Create(Path::Combine(project.RootDirectory, ".vscode"));
+	}
 
-		// Copy engine default assets into the project's BoltAssets directory
+	void ConfigurePackages(const BoltProject& project) {
+
+		const std::filesystem::path engineRoot = ResolveEngineRoot();
+		const std::filesystem::path scriptCoreOutput = engineRoot / "bin" / "Release-windows-x86_64" / "Bolt-ScriptCore" / "Bolt-ScriptCore.dll";
+		const std::filesystem::path scriptCorePdb = engineRoot / "bin" / "Release-windows-x86_64" / "Bolt-ScriptCore" / "Bolt-ScriptCore.pdb";
+
+		std::filesystem::path packageDir = std::filesystem::path(project.PackagesDirectory) / "Bolt-ScriptCore";
+		std::filesystem::create_directories(packageDir);
+
+		if (std::filesystem::exists(scriptCoreOutput))
+			std::filesystem::copy_file(scriptCoreOutput, packageDir / "Bolt-ScriptCore.dll", std::filesystem::copy_options::overwrite_existing);
+
+		if (std::filesystem::exists(scriptCorePdb))
+			std::filesystem::copy_file(scriptCorePdb, packageDir / "Bolt-ScriptCore.pdb", std::filesystem::copy_options::overwrite_existing);
+	}
+
+	BoltProject BoltProject::Create(const std::string& name, const std::string& parentDir) {
+		BoltProject project;
+		project.Name = name;
+		project.RootDirectory = Path::Combine(parentDir, name);
+		project.EngineVersion = BT_VERSION;
+		ResolvePaths(project);
+
+		CreateDirectoryTree(project);
+		ConfigurePackages(project);
+
 		std::string engineAssets = Path::ResolveBoltAssets("");
 		if (!engineAssets.empty() && Directory::Exists(engineAssets)) {
 			try {
 				std::filesystem::copy(engineAssets, project.BoltAssetsDirectory,
 					std::filesystem::copy_options::recursive | std::filesystem::copy_options::skip_existing);
-			} catch (...) {}
+			}
+			catch (...) {}
 		}
 
 		if (project.BuildSceneList.empty()) {
@@ -394,30 +414,29 @@ namespace Bolt {
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Nullable>enable</Nullable>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <BoltRoot Condition="'$(BoltRoot)' == ''">$([System.Environment]::GetEnvironmentVariable('BOLT_DIR'))</BoltRoot>
-    <BoltScriptCoreProject Condition="'$(BoltScriptCoreProject)' == '' and '$(BoltRoot)' != ''">$(BoltRoot)/Bolt-ScriptCore/Bolt-ScriptCore.csproj</BoltScriptCoreProject>
   </PropertyGroup>
-)CS" + (!scriptCoreFallback.empty()
-			? "  <PropertyGroup>\n    <BoltScriptCoreProject Condition=\"'$(BoltScriptCoreProject)' == ''\">" + EscapeXml(scriptCoreFallback) + "</BoltScriptCoreProject>\n  </PropertyGroup>\n"
-			: "") + R"CS(  <Target Name="ValidateBoltScriptCoreReference" BeforeTargets="ResolveReferences" Condition="'$(BoltScriptCoreProject)' == '' or !Exists('$(BoltScriptCoreProject)')">
-    <Error Text="Bolt-ScriptCore project not found. Set the BoltRoot MSBuild property or BOLT_DIR environment variable to the Bolt repository root." />
-  </Target>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <OutputPath>bin\Release\</OutputPath>
     <Optimize>true</Optimize>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="Assets\Scripts\**\*.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="$(BoltScriptCoreProject)">
-      <Private>false</Private>
-    </ProjectReference>
+    <Reference Include="Bolt-ScriptCore">
+      <HintPath>Packages\Bolt-ScriptCore\Bolt-ScriptCore.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
-)CS" + existingPackageRefs + R"CS(</Project>
+)CS" + existingPackageRefs + R"CS(
+</Project>
 )CS";
 		File::WriteAllText(project.CsprojPath, csproj);
 

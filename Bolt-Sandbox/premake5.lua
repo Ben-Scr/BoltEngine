@@ -40,4 +40,4 @@ project "Bolt-Sandbox"
     filter "configurations:Dist"
         optimize "Full"
         symbols "Off"
-        defines { "BT_RELEASE" }
+        defines { "BT_DIST" }

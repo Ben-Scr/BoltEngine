@@ -116,7 +116,7 @@ namespace Bolt {
 			float w = ImGui::GetContentRegionAvail().x;
 			float h = ImGui::GetContentRegionAvail().y;
 			ImVec2 center(ImGui::GetCursorScreenPos().x + w * 0.5f,
-			              ImGui::GetCursorScreenPos().y + h * 0.4f);
+				ImGui::GetCursorScreenPos().y + h * 0.4f);
 
 			ImGui::SetCursorScreenPos(ImVec2(center.x - 120, center.y - 20));
 			ImGui::TextUnformatted("Opening project...");
@@ -310,10 +310,9 @@ namespace Bolt {
 			if (!canCreate) ImGui::BeginDisabled();
 
 			if (ImGui::Button("Create", ImVec2(120, 0))) {
-				// L2: Prevent double-click
 				if (m_IsCreating) {
-					// Already in progress
-				} else {
+				}
+				else {
 					m_IsCreating = true;
 					try {
 						std::string name(m_NewProjectName);
@@ -323,7 +322,8 @@ namespace Bolt {
 						if (std::filesystem::exists(fullPath)) {
 							m_CreateError = "Directory already exists: " + fullPath;
 							m_IsCreating = false;
-						} else {
+						}
+						else {
 							auto project = BoltProject::Create(name, location);
 							m_Registry.AddProject(project.Name, project.RootDirectory);
 							m_Registry.Save();
@@ -339,7 +339,7 @@ namespace Bolt {
 								"-v", "q",
 								"-nowarn:CS8632",
 								"-p:DefineConstants=BOLT_EDITOR%3BBT_RELEASE"
-							});
+								});
 							if (!buildResult.Succeeded()) {
 								BT_WARN_TAG("Launcher", "Project created, but the initial script build failed (exit code {}).", buildResult.ExitCode);
 							}
@@ -351,7 +351,8 @@ namespace Bolt {
 							m_IsCreating = false;
 							OpenProject(entry);
 						}
-					} catch (const std::exception& e) {
+					}
+					catch (const std::exception& e) {
 						m_CreateError = e.what();
 						m_IsCreating = false;
 					}

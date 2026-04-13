@@ -915,7 +915,7 @@ namespace Bolt {
 
 				// Define subcategory ordering
 				const std::vector<std::string> subcategoryOrder = {
-					"General", "Rendering", "Physics", "Audio", "Scripting"
+					"General", "Rendering", "Physics", "Audio"
 				};
 				for (const auto& sub : subcategoryOrder) {
 					categoryIndex[sub] = categories.size();
