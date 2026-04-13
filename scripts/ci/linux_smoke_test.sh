@@ -2,10 +2,23 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-runtime_binary="$(find "$repo_root/bin" -path '*/Bolt-Runtime/Bolt-Runtime' -type f | head -n 1)"
+bin_dir="$repo_root/bin"
+
+if [[ ! -d "$bin_dir" ]]; then
+    echo "Expected bin directory at: $bin_dir" >&2
+    echo "Top-level repo contents:" >&2
+    ls -la "$repo_root" >&2
+    echo >&2
+    echo "Directories up to depth 4:" >&2
+    find "$repo_root" -maxdepth 4 -type d | sort >&2
+    exit 1
+fi
+
+runtime_binary="$(find "$bin_dir" -path '*/Bolt-Runtime/Bolt-Runtime' -type f | head -n 1)"
 
 if [[ -z "${runtime_binary}" ]]; then
-    echo "Bolt-Runtime binary was not found under $repo_root/bin" >&2
+    echo "Bolt-Runtime binary was not found under $bin_dir" >&2
+    find "$bin_dir" -maxdepth 5 -type f | sort >&2
     exit 1
 fi
 
