@@ -375,6 +375,7 @@ namespace Bolt.Hosting
 
         private static string MapFieldType(Type t)
         {
+            // Primitve types
             if (t == typeof(float)) return "float";
             if (t == typeof(double)) return "double";
             if (t == typeof(int)) return "int";
@@ -387,10 +388,19 @@ namespace Bolt.Hosting
             if (t == typeof(ulong)) return "ulong";
             if (t == typeof(bool)) return "bool";
             if (t == typeof(string)) return "string";
+
+            // Bolt-specific types
             if (t == typeof(Color)) return "color";
             if (t == typeof(Entity)) return "entity";
             if (t == typeof(TextureRef)) return "texture";
             if (t == typeof(AudioRef)) return "audio";
+            if(t == typeof(Vector2)) return "vector2";
+            if (t == typeof(Vector2Int)) return "vector2Int";
+            if (t == typeof(Vector3)) return "vector3";
+            if (t == typeof(Vector3Int)) return "vector3Int";
+            if (t == typeof(Vector4)) return "vector4";
+            if (t == typeof(Vector4Int)) return "vector4Int";
+
             if (t.IsSubclassOf(typeof(Component)))
             {
                 return Entity.TryGetNativeComponentName(t, out string? nativeName)
@@ -403,7 +413,11 @@ namespace Bolt.Hosting
         private static string FormatFieldValue(Type t, object? val)
         {
             if (val == null) return "";
+
+            //INFO(Ben-Scr): This may causes bugs when sharing projects across different locales
             var ic = System.Globalization.CultureInfo.InvariantCulture;
+
+            // Primitve types
             if (t == typeof(float)) return ((float)val).ToString(ic);
             if (t == typeof(double)) return ((double)val).ToString(ic);
             if (t == typeof(int)) return ((int)val).ToString(ic);
@@ -416,6 +430,8 @@ namespace Bolt.Hosting
             if (t == typeof(ulong)) return ((ulong)val).ToString(ic);
             if (t == typeof(bool)) return (bool)val ? "true" : "false";
             if (t == typeof(string)) return (string)val;
+
+
             if (t == typeof(Color))
             {
                 var c = (Color)val;
@@ -425,10 +441,9 @@ namespace Bolt.Hosting
             {
                 var entity = (Entity)val;
                 if (entity == null || entity == Entity.Invalid) return "0";
-                // Get UUID via native call
+
                 if (entity.HasComponent<Transform2DComponent>())
                 {
-                    // Entity is valid — serialize its ID (the C++ side stores UUID)
                     return entity.ID.ToString(ic);
                 }
                 return entity.ID.ToString(ic);
@@ -443,6 +458,37 @@ namespace Bolt.Hosting
                 AudioRef assetRef = (AudioRef)val;
                 return assetRef.UUID != 0 ? assetRef.UUID.ToString(ic) : "";
             }
+            if(t == typeof(Vector2))
+            {
+                var v = (Vector2)val;
+                return $"{v.X.ToString(ic)},{v.Y.ToString(ic)}";
+            }
+            if (t == typeof(Vector2Int))
+            {
+                var v = (Vector2Int)val;
+                return $"{v.X.ToString(ic)},{v.Y.ToString(ic)}";
+            }
+            if (t == typeof(Vector3))
+            {
+                var v = (Vector3)val;
+                return $"{v.X.ToString(ic)},{v.Y.ToString(ic)},{v.Z.ToString(ic)}";
+            }
+            if (t == typeof(Vector3Int))
+            {
+                var v = (Vector3Int)val;
+                return $"{v.X.ToString(ic)},{v.Y.ToString(ic)},{v.Z.ToString(ic)}";
+            }
+            if (t == typeof(Vector4))
+            {
+                var v = (Vector4)val;
+                return $"{v.X.ToString(ic)},{v.Y.ToString(ic)},{v.Z.ToString(ic)},{v.W.ToString(ic)}";
+            }
+            if (t == typeof(Vector4Int))
+            {
+                var v = (Vector4Int)val;
+                return $"{v.X.ToString(ic)},{v.Y.ToString(ic)},{v.Z.ToString(ic)},{v.W.ToString(ic)}";
+            }
+
             if (t.IsSubclassOf(typeof(Component)))
             {
                 var comp = (Component)val;

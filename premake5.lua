@@ -73,8 +73,8 @@ project "ImGui"
     cppdialect "C++20"
     staticruntime "off"
 
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+targetdir (path.join(ROOT_DIR, "bin/" .. outputdir .. "/%{prj.name}"))
+objdir (path.join(ROOT_DIR, "bin-int/" .. outputdir .. "/%{prj.name}"))
 
 files
     {
