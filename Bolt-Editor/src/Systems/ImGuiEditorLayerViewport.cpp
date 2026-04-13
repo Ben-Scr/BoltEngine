@@ -36,7 +36,7 @@ namespace Bolt {
 
 		SceneManager::Get().ForeachLoadedScene([&](const Scene& s) {
 			renderer->RenderSceneWithVP(s, vp, viewportAABB);
-		});
+			});
 
 		if (withGizmos && Gizmo::IsEnabled()) {
 			GizmoRenderer2D::RenderWithVP(vp);
@@ -51,17 +51,26 @@ namespace Bolt {
 	}
 
 	void ImGuiEditorLayer::RenderEditorView(Scene& scene) {
-		ImGui::Begin("Editor View");
+		m_IsEditorViewActive = ImGui::Begin("Editor View");
+
+		if (!m_IsEditorViewActive) {
+			m_IsEditorViewHovered = false;
+			m_IsEditorViewFocused = false;
+			ImGui::End();
+			return;
+		}
 
 		const ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 		const int fbW = static_cast<int>(viewportSize.x);
 		const int fbH = static_cast<int>(viewportSize.y);
 
 		if (fbW > 0 && fbH > 0) {
+
 			EnsureFBO(m_EditorViewFBO, fbW, fbH);
 			m_EditorCamera.SetViewportSize(fbW, fbH);
 
 			if (m_EditorViewFBO.FramebufferId != 0) {
+
 				auto* app = Application::GetInstance();
 				if (app) {
 					auto& input = app->GetInput();
@@ -157,7 +166,15 @@ namespace Bolt {
 
 	void ImGuiEditorLayer::RenderGameView(Scene& scene) {
 		(void)scene;
-		ImGui::Begin("Game View");
+
+		m_IsGameViewActive = ImGui::Begin("Game View");
+
+		if (!m_IsGameViewActive) {
+			ImGui::End();
+			m_IsGameViewFocused = false;
+			m_IsGameViewHovered = false;
+			return;
+		}
 
 		const ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 		const int fbW = static_cast<int>(viewportSize.x);

@@ -13,13 +13,26 @@ namespace Bolt {
 		glm::mat4 GetViewProjectionMatrix() const;
 		AABB GetViewportAABB() const;
 
+		void SetPosition(const Vec2& pos) {
+			Position = pos;
+			UpdateView();
+		}
+		void SetOrthographicSize(const float size) {
+			OrthographicSize = size;
+			UpdateProjection();
+		}
+		void SetZoom(const float zoom) {
+			Zoom = zoom;
+			UpdateProjection();
+		}
+
+	private:
 		Vec2 Position = { 0.0f, 0.0f };
 		float OrthographicSize = 5.0f;
 		float Zoom = 1.0f;
 		float PanSpeed = 10.0f;
 		float ZoomSpeed = 1.0f;
 
-	private:
 		void UpdateProjection();
 		void UpdateView();
 

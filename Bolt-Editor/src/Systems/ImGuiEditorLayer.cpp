@@ -81,6 +81,46 @@ namespace Bolt {
 		m_PackageManager.Shutdown();
 	}
 
+	void ImGuiEditorLayer::OnUpdate(Application& app, float dt) {
+
+		Input& input = app.GetInput();
+
+		//INFO(Ben-Scr): Used as shortcut for focusing an entity within the editor view
+		if (input.GetKeyDown(KeyCode::F)) {
+			BT_INFO("Pressed F");
+			BT_INFO(m_IsEditorViewActive ? "true" : "false");
+
+			if (m_SelectedEntity == entt::null) return;
+			if (!m_IsEditorViewActive) return;
+
+			auto& scene = *app.GetSceneManager()->GetActiveScene();
+
+			Transform2DComponent* tr2D;
+			if (scene.TryGetComponent<Transform2DComponent>(m_SelectedEntity, tr2D)) {
+				m_EditorCamera.SetPosition(tr2D->Position);
+			}
+		}
+
+		//INFO(Ben-Scr): Used as shortcut for duplicating an entity within the editor view
+		if (input.GetKey(KeyCode::LeftControl) && input.GetKeyDown(KeyCode::D)) {
+
+		}
+
+		//INFO(Ben-Scr): Used as shortcut for deleting an entity within the editor view
+		if (input.GetKey(KeyCode::Delete)) {
+			if (m_SelectedEntity == entt::null) return;
+
+			auto& scene = *app.GetSceneManager()->GetActiveScene();
+			scene.DestroyEntity(m_SelectedEntity);
+			m_SelectedEntity = entt::null;
+		}
+
+		//INFO(Ben-Scr): Used as shortcut for renaming an entity within the editor view
+		if (input.GetKey(KeyCode::F2)) {
+
+		}
+	}
+
 	// ──────────────────────────────────────────────
 	//  Dockspace & Menu
 	// ──────────────────────────────────────────────
@@ -935,20 +975,6 @@ namespace Bolt {
 					}
 					categories[it->second].second.push_back(&info);
 				});
-
-				for (const auto& [subcategory, components] : categories) {
-					if (components.empty() && subcategory != "Scripting") continue;
-
-					if (ImGui::TreeNode(subcategory.c_str())) {
-						for (const auto* info : components) {
-							if (ImGuiUtils::MenuItemEllipsis(info->displayName, info->displayName.c_str(), nullptr, false, true, 260.0f)) {
-								info->add(entity);
-								scene.MarkDirty();
-							}
-						}
-						ImGui::TreePop();
-					}
-				}
 
 				// Scripts subcategory: individual .cs files as addable items
 				{

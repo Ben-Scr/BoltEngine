@@ -25,6 +25,7 @@ namespace Bolt {
 		void OnAttach(Application& app) override;
 		void OnDetach(Application& app) override;
 		void OnImGuiRender(Application& app) override;
+		void OnUpdate(Application& app, float dt) override;
 	private:
 		struct LogEntry {
 			std::string Message;
@@ -82,6 +83,9 @@ namespace Bolt {
 		EditorCamera m_EditorCamera;
 		bool m_IsEditorViewHovered = false;
 		bool m_IsEditorViewFocused = false;
+
+		bool m_IsGameViewActive = false;
+		bool m_IsEditorViewActive = false;
 
 		ViewportFBO m_GameViewFBO;
 		bool m_IsGameViewHovered = false;
