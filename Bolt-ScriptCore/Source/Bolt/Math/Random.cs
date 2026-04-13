@@ -100,7 +100,7 @@ namespace Bolt
             return min + (NextFloat() * (max - min));
         }
 
-        public string NextString(int length = 10, string charset = null)
+        public string NextString(int length = 10, string? charset = null)
         {
             charset ??= TextUtils.Letters;
             int charsetLength = charset.Length;

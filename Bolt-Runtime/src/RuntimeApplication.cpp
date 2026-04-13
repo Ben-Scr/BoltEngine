@@ -3,8 +3,6 @@
 #include "Scene/SceneManager.hpp"
 
 #include "Systems/ImGuiDebugSystem.hpp"
-#include <Systems/AudioUpdateSystem.hpp>
-#include <Scripting/ScriptSystem.hpp>
 #include <Scene/EntityHelper.hpp>
 #include <Serialization/SceneSerializer.hpp>
 #include <Serialization/Path.hpp>
@@ -55,8 +53,6 @@ public:
 		// Helper: registers a scene definition with standard systems + OnLoad deserializer
 		auto registerScene = [&](const std::string& sceneName) -> SceneDefinition& {
 			auto& def = GetSceneManager()->RegisterScene(sceneName);
-			def.AddSystem<ScriptSystem>();
-			def.AddSystem<AudioUpdateSystem>();
 
 			// Load scene file in OnLoad callback — runs BEFORE Awake/Start,
 			// so entities exist when systems initialize (e.g. PlayOnAwake).

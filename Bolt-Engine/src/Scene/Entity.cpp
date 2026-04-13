@@ -9,14 +9,17 @@
 
 
 namespace Bolt {
-	Entity Entity::Null{ entt::null, nullptr };
+	Entity Entity::Null{ entt::null, static_cast<Scene*>(nullptr) };
 
 	EntityHandle Entity::GetHandle() const {
 		return m_EntityHandle;
 	}
 
-	Entity::Entity(EntityHandle e, entt::registry& r)
-		: m_EntityHandle(e), m_Registry(&r) {}
+	Entity::Entity(EntityHandle e, Scene& scene)
+		: Entity(e, &scene) {}
+
+	Entity::Entity(EntityHandle e, Scene* scene)
+		: m_EntityHandle(e), m_Registry(scene ? &scene->GetRegistry() : nullptr), m_Scene(scene) {}
 
 	Entity Entity::Create() {
 		Scene* activeScene = SceneManager::Get().GetActiveScene();
@@ -25,9 +28,7 @@ namespace Bolt {
 			return Entity::Null;
 		}
 
-		auto entity = Entity(activeScene->CreateEntityHandle(), activeScene->GetRegistry());
-		entity.AddComponent<Transform2DComponent>();
-		return entity;
+		return activeScene->CreateEntity();
 	}
 
 	void Entity::Destroy(Entity entity) {
@@ -35,11 +36,20 @@ namespace Bolt {
 	}
 
 	void Entity::Destroy() {
-		BT_ASSERT(m_Registry, BoltErrorCode::InvalidHandle, "Entity is not valid or has already been destroyed.");
+		if (!m_Registry || !m_Scene || m_EntityHandle == entt::null) {
+			return;
+		}
 
-		m_Registry->destroy(m_EntityHandle);
+		const EntityHandle entityHandle = m_EntityHandle;
+		Scene* owningScene = m_Scene;
+
 		m_EntityHandle = entt::null;
 		m_Registry = nullptr;
+		m_Scene = nullptr;
+
+		if (owningScene->IsValid(entityHandle)) {
+			owningScene->DestroyEntity(entityHandle);
+		}
 	}
 
 	std::string Entity::GetName() const {

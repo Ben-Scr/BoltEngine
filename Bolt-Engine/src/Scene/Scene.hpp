@@ -20,11 +20,11 @@ namespace Bolt {
 		Entity CreateEntity();
 		// Info: Creates an entity with a Transform2D and Name component
 		Entity CreateEntity(const std::string& name);
-		// Info: Creates an entity and returnes its handle
+		// Info: Creates an entity handle and applies scene invariants such as UUID + dirty tracking
 		EntityHandle CreateEntityHandle();
 
-		Entity GetEntity(EntityHandle nativeEntity) { return Entity(nativeEntity, m_Registry); }
-		Entity GetEntity(EntityHandle nativeEntity) const { return Entity(nativeEntity, const_cast<entt::registry&>(m_Registry)); }
+		Entity GetEntity(EntityHandle nativeEntity) { return Entity(nativeEntity, *this); }
+		Entity GetEntity(EntityHandle nativeEntity) const { return Entity(nativeEntity, const_cast<Scene&>(*this)); }
 
 		void DestroyEntity(Entity entity);
 		void DestroyEntity(EntityHandle nativeEntity);

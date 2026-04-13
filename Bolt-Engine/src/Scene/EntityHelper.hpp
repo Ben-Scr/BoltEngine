@@ -13,7 +13,7 @@ namespace Bolt {
     public:
         template<typename... Components>
         static Entity CreateWith(Scene& scene) {
-            Entity entity(scene.CreateEntityHandle(), scene.GetRegistry());
+            Entity entity = scene.GetEntity(scene.CreateEntityHandle());
 
             (entity.AddComponent<Components>(), ...);
 
@@ -29,7 +29,7 @@ namespace Bolt {
                 return Entity::Null;
             }
 
-            Entity entity(activeScene->CreateEntityHandle(), activeScene->GetRegistry());
+            Entity entity = activeScene->GetEntity(activeScene->CreateEntityHandle());
 
             (entity.AddComponent<Components>(), ...);
 

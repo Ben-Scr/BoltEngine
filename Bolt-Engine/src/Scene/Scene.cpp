@@ -24,21 +24,24 @@
 namespace Bolt {
 	Entity Scene::CreateEntity() {
 		auto entityHandle = CreateEntityHandle();
-		AddComponent<UUIDComponent>(entityHandle);
 		AddComponent<Transform2DComponent>(entityHandle);
-		if (!Application::GetIsPlaying()) m_Dirty = true;
-		return Entity(entityHandle, m_Registry);
+		return Entity(entityHandle, *this);
 	}
 	Entity Scene::CreateEntity(const std::string& name) {
 		auto entityHandle = CreateEntityHandle();
-		AddComponent<UUIDComponent>(entityHandle);
 		AddComponent<Transform2DComponent>(entityHandle);
 		AddComponent<NameComponent>(entityHandle, name);
-		if (!Application::GetIsPlaying()) m_Dirty = true;
-		return Entity(entityHandle, m_Registry);
+		return Entity(entityHandle, *this);
 	}
 
-	EntityHandle Scene::CreateEntityHandle() { return m_Registry.create(); }
+	EntityHandle Scene::CreateEntityHandle() {
+		EntityHandle entityHandle = m_Registry.create();
+		AddComponent<UUIDComponent>(entityHandle);
+		if (!Application::GetIsPlaying()) {
+			m_Dirty = true;
+		}
+		return entityHandle;
+	}
 
 	void Scene::DestroyEntity(Entity entity) { DestroyEntity(entity.GetHandle()); }
 	void Scene::DestroyEntity(EntityHandle nativeEntity) { DestroyEntityInternal(nativeEntity, true); }
@@ -100,6 +103,10 @@ namespace Bolt {
 	}
 
 	void Scene::DestroyEntityInternal(EntityHandle nativeEntity, bool markDirty) {
+		if (nativeEntity == entt::null || !m_Registry.valid(nativeEntity)) {
+			return;
+		}
+
 		if (markDirty && !Application::GetIsPlaying()) {
 			m_Dirty = true;
 		}

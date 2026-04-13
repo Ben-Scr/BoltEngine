@@ -12,6 +12,12 @@ namespace Bolt
     {
         private static readonly RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
 
+        private static void ValidateRange<T>(T min, T max) where T : IComparable<T>
+        {
+            if (Comparer<T>.Default.Compare(min, max) >= 0)
+                throw new ArgumentOutOfRangeException(nameof(min), $"Next({min},{max}) is wrong, min can't be more or equal to max.");
+        }
+
         public bool NextBool() => NextInt(0, 2) == 0;
         public byte NextByte()
         {
@@ -24,7 +30,7 @@ namespace Bolt
         }
         public byte NextByte(byte min, byte max)
         {
-            if (min >= max) throw new ArgumentOutOfRangeException($"Next({min},{max}) is wrong, min can't be more or equal to max.");
+            ValidateRange(min, max);
             return (byte)(min + (NextByte() % (max - min)));
         }
 
@@ -37,6 +43,7 @@ namespace Bolt
         }
         public int NextInt(int min, int max)
         {
+            ValidateRange(min, max);
             return min + (NextInt() % (max - min));
         }
         public int NextInt(int max)
@@ -59,6 +66,7 @@ namespace Bolt
         }
         public double NextDouble(double min, double max)
         {
+            ValidateRange(min, max);
             return min + (NextDouble() * (max - min));
         }
 
@@ -76,10 +84,11 @@ namespace Bolt
         }
         public float NextFloat(float min, float max)
         {
+            ValidateRange(min, max);
             return min + (NextFloat() * (max - min));
         }
 
-        public string NextString(int length = 10, string charset = null)
+        public string NextString(int length = 10, string? charset = null)
         {
             charset ??= TextUtils.Letters;
             int charsetLength = charset.Length;

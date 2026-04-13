@@ -15,9 +15,6 @@
 #include "Serialization/File.hpp"
 #include "Project/ProjectManager.hpp"
 #include "Project/BoltProject.hpp"
-#include "Scripting/ScriptSystem.hpp"
-#include <Systems/ParticleUpdateSystem.hpp>
-#include <Systems/AudioUpdateSystem.hpp>
 #include "Scene/ComponentRegistry.hpp"
 #include "Components/General/UUIDComponent.hpp"
 #include "Components/General/Transform2DComponent.hpp"
@@ -242,9 +239,7 @@ namespace Bolt {
 		std::string name(sceneName);
 
 		if (!sm.HasSceneDefinition(name)) {
-			auto& def = sm.RegisterScene(name);
-			def.AddSystem<ScriptSystem>();
-			def.AddSystem<AudioUpdateSystem>();
+			sm.RegisterScene(name);
 		}
 
 		auto sceneWeak = additive ? sm.LoadSceneAdditive(name) : sm.LoadScene(name);

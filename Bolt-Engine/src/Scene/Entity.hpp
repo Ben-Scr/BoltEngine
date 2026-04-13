@@ -4,6 +4,7 @@
 #include "Core/Export.hpp"
 
 namespace Bolt {
+	class Scene;
 
 	class BOLT_API Entity {
 		friend class Scene;
@@ -68,10 +69,11 @@ namespace Bolt {
 		void SetEnabled(bool enabled);
 
 	private:
-		explicit Entity(EntityHandle e, entt::registry& r);
-		Entity(EntityHandle e, entt::registry* r) : m_EntityHandle{ e }, m_Registry{ r } {};
+		explicit Entity(EntityHandle e, Scene& scene);
+		explicit Entity(EntityHandle e, Scene* scene);
 		EntityHandle    m_EntityHandle;
 		entt::registry* m_Registry;
+		Scene*          m_Scene;
 	};
 
 	inline bool operator==(const Entity& a, const Entity& b) { return a.GetHandle() == b.GetHandle(); }

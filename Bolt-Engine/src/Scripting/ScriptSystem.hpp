@@ -6,6 +6,7 @@
 #include "Utils/Process.hpp"
 #include <string>
 #include <future>
+#include <cstddef>
 #include <chrono>
 
 namespace Bolt {
@@ -30,27 +31,29 @@ namespace Bolt {
 		void TeardownManagedScripts(Scene& scene);
 		void TeardownNativeScripts(Scene& scene);
 
-		bool m_SuppressRecompile = false;
+		static inline bool m_SuppressRecompile = false;
 
-		std::string m_CoreAssemblyPath;
-		std::string m_UserAssemblyPath;
-		std::string m_SandboxProjectPath;
-		std::string m_NativeProjectDirectory;
-		Scene* m_LastScene = nullptr;
+		static inline std::string m_CoreAssemblyPath;
+		static inline std::string m_UserAssemblyPath;
+		static inline std::string m_SandboxProjectPath;
+		static inline std::string m_NativeProjectDirectory;
+		static inline Scene* m_LastScene = nullptr;
+		static inline ScriptSystem* m_PollingOwner = nullptr;
+		static inline std::size_t m_ActiveSystemCount = 0;
 
 		// C# hot-reload
-		FileWatcher m_ScriptWatcher;
-		bool m_IsRebuilding = false;
-		std::future<Process::Result> m_RebuildFuture;
-		std::chrono::steady_clock::time_point m_RebuildStartTime;
+		static inline FileWatcher m_ScriptWatcher;
+		static inline bool m_IsRebuilding = false;
+		static inline std::future<Process::Result> m_RebuildFuture;
+		static inline std::chrono::steady_clock::time_point m_RebuildStartTime;
 
 		// C++ native scripts
-		NativeScriptHost m_NativeHost;
-		FileWatcher m_NativeWatcher;
-		std::string m_NativeDLLPath;
-		bool m_IsRebuildingNative = false;
-		std::future<Process::Result> m_NativeRebuildFuture;
-		std::chrono::steady_clock::time_point m_NativeRebuildStartTime;
+		static inline NativeScriptHost m_NativeHost;
+		static inline FileWatcher m_NativeWatcher;
+		static inline std::string m_NativeDLLPath;
+		static inline bool m_IsRebuildingNative = false;
+		static inline std::future<Process::Result> m_NativeRebuildFuture;
+		static inline std::chrono::steady_clock::time_point m_NativeRebuildStartTime;
 	};
 
 } // namespace Bolt

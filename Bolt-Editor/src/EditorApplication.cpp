@@ -8,12 +8,10 @@
 #include <Systems/ImGuiEditorLayer.hpp>
 #include <Systems/ImGuiDebugSystem.hpp>
 #include <Systems/GizmosDebugSystem.hpp>
-#include <Scripting/ScriptSystem.hpp>
 #include <Project/ProjectManager.hpp>
 #include <Project/BoltProject.hpp>
 #include <Serialization/SceneSerializer.hpp>
 #include <Serialization/File.hpp>
-#include <Systems/AudioUpdateSystem.hpp>
 #include <Core/Version.hpp>
 #include "Editor/EditorComponentRegistration.hpp"
 
@@ -40,8 +38,6 @@ public:
 
 	void ConfigureScenes() override {
 		SceneDefinition& editorScene = GetSceneManager()->RegisterScene("SampleScene");
-		editorScene.AddSystem<ScriptSystem>();
-		editorScene.AddSystem<AudioUpdateSystem>();
 		editorScene.OnLoad([](Scene& scene) {
 			BoltProject* project = ProjectManager::GetCurrentProject();
 			if (project) {

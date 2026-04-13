@@ -11,6 +11,8 @@
 #include <vector>
 #include "SceneDefinition.hpp"
 #include "Scene/BuiltInComponentRegistration.hpp"
+#include "Scripting/ScriptSystem.hpp"
+#include "Systems/AudioUpdateSystem.hpp"
 #include "Systems/ParticleUpdateSystem.hpp"
 #include "Core/Application.hpp"
 #include "Events/SceneEvents.hpp"
@@ -19,6 +21,14 @@
 
 
 namespace Bolt {
+	namespace {
+		void AddStandardSceneSystems(SceneDefinition& definition) {
+			definition.AddSystem<ParticleUpdateSystem>();
+			definition.AddSystem<ScriptSystem>();
+			definition.AddSystem<AudioUpdateSystem>();
+		}
+	}
+
 	SceneManager& SceneManager::Get() {
 		auto* app = Application::GetInstance();
 		BT_CORE_ASSERT(app && app->GetSceneManager(), "SceneManager is not available before the Application instance exists");
@@ -69,7 +79,7 @@ namespace Bolt {
 		}
 
 		SceneDefinition& definition = *it->second;
-		definition.AddSystem<ParticleUpdateSystem>();
+		AddStandardSceneSystems(definition);
 		return definition;
 	}
 

@@ -54,11 +54,34 @@ namespace Bolt {
 		{
 			return BT_BUILD_CONFIG_NAME;
 		}
+
+		template <typename TFunc>
+		void ForEachLoadedScene(TFunc&& func)
+		{
+			Application* app = Application::GetInstance();
+			if (!app || !app->GetSceneManager()) {
+				return;
+			}
+
+			for (const std::weak_ptr<Scene>& weakScene : app->GetSceneManager()->GetLoadedScenes()) {
+				if (std::shared_ptr<Scene> loadedScene = weakScene.lock()) {
+					func(*loadedScene);
+				}
+			}
+		}
 	}
 
 	void ScriptSystem::Awake(Scene& scene)
 	{
 		m_LastScene = &scene;
+		++m_ActiveSystemCount;
+		if (m_PollingOwner == nullptr) {
+			m_PollingOwner = this;
+		}
+		if (m_ActiveSystemCount > 1) {
+			return;
+		}
+
 		auto exeDir = std::filesystem::path(Path::ExecutableDir());
 		BoltProject* project = ProjectManager::GetCurrentProject();
 
@@ -206,9 +229,7 @@ namespace Bolt {
 		m_IsRebuildingNative = true;
 		m_NativeRebuildStartTime = std::chrono::steady_clock::now();
 
-		if (m_LastScene) {
-			TeardownNativeScripts(*m_LastScene);
-		}
+		ForEachLoadedScene([this](Scene& loadedScene) { TeardownNativeScripts(loadedScene); });
 
 		// Unload after scene instances are unbound so no stale native pointers survive the frame.
 		m_NativeHost.UnloadDLL();
@@ -291,6 +312,12 @@ namespace Bolt {
 	void ScriptSystem::OnGui(Scene& scene)
 	{
 		(void)scene;
+		if (m_PollingOwner == nullptr) {
+			m_PollingOwner = this;
+		}
+		if (m_PollingOwner != this) {
+			return;
+		}
 
 		// Skip file watcher polling while a script is being created/renamed
 		if (!m_SuppressRecompile) {
@@ -310,9 +337,7 @@ namespace Bolt {
 
 				if (result.Succeeded())
 				{
-					if (m_LastScene) {
-						TeardownManagedScripts(*m_LastScene);
-					}
+					ForEachLoadedScene([this](Scene& loadedScene) { TeardownManagedScripts(loadedScene); });
 					ScriptEngine::ReloadAssemblies();
 					BT_INFO_TAG("ScriptSystem", "C# scripts rebuilt and reloaded");
 				}
@@ -489,6 +514,22 @@ namespace Bolt {
 
 	void ScriptSystem::OnDestroy(Scene& scene)
 	{
+		if (m_PollingOwner == this) {
+			m_PollingOwner = nullptr;
+		}
+
+		if (ScriptEngine::IsInitialized()) {
+			TeardownManagedScripts(scene);
+		}
+		TeardownNativeScripts(scene);
+
+		if (m_ActiveSystemCount > 0) {
+			--m_ActiveSystemCount;
+		}
+		if (m_ActiveSystemCount > 0) {
+			return;
+		}
+
 		m_ScriptWatcher.Stop();
 		m_NativeWatcher.Stop();
 
@@ -502,14 +543,18 @@ namespace Bolt {
 		}
 
 		if (ScriptEngine::IsInitialized()) {
-			TeardownManagedScripts(scene);
-			TeardownNativeScripts(scene);
 			ScriptEngine::Shutdown();
 		}
 
 		m_NativeHost.UnloadDLL();
 		m_LastScene = nullptr;
+		m_CoreAssemblyPath.clear();
+		m_UserAssemblyPath.clear();
+		m_SandboxProjectPath.clear();
 		m_NativeProjectDirectory.clear();
+		m_NativeDLLPath.clear();
+		m_SuppressRecompile = false;
+		m_PollingOwner = nullptr;
 	}
 
 } // namespace Bolt
