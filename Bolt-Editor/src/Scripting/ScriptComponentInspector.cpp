@@ -501,6 +501,35 @@ namespace Bolt {
 			ImGui::EndChild();
 			ImGui::EndPopup();
 		}
+		
+		static float GetEditorLabelColumnWidth()
+		{
+			const float avail = ImGui::GetContentRegionAvail().x;
+
+			const float width = avail * 0.45f;
+
+			return std::clamp(width, 120.0f, std::numeric_limits<float>().max());
+		}
+
+		static void BeginEditorFieldRow(const char* label)
+		{
+			const ImGuiStyle& style = ImGui::GetStyle();
+			const float labelColumnWidth = GetEditorLabelColumnWidth();
+
+			ImGui::AlignTextToFramePadding();
+
+			const float availableLabelWidth = std::max(1.0f, labelColumnWidth - style.ItemSpacing.x);
+
+			bool truncated = false;
+			std::string clippedLabel = ImGuiUtils::Ellipsize(label, availableLabelWidth, &truncated);
+
+			ImGui::TextUnformatted(clippedLabel.c_str());
+			if (truncated && ImGui::IsItemHovered())
+				ImGui::SetTooltip("%s", label);
+
+			ImGui::SameLine(labelColumnWidth);
+			ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+		}
 
 		static void RenderEditorField(const std::string& fieldKey, int32_t gcHandle, EditorFieldInfo& field) {
 			(void)gcHandle;
@@ -524,7 +553,9 @@ namespace Bolt {
 				float val = static_cast<float>(std::atof(field.value.c_str()));
 				float mn = field.hasClamp ? field.clampMin : 0.0f;
 				float mx = field.hasClamp ? field.clampMax : 0.0f;
-				if (ImGui::DragFloat(label, &val, 0.1f, mn, mx)) {
+
+				BeginEditorFieldRow(label);
+				if (ImGui::DragFloat("##Value", &val, 0.1f, mn, mx)) {
 					changed = true;
 					char buf[64];
 					std::snprintf(buf, sizeof(buf), "%g", val);
@@ -536,7 +567,9 @@ namespace Bolt {
 				int val = std::atoi(field.value.c_str());
 				int mn = field.hasClamp ? static_cast<int>(field.clampMin) : 0;
 				int mx = field.hasClamp ? static_cast<int>(field.clampMax) : 0;
-				if (ImGui::DragInt(label, &val, 1.0f, mn, mx)) {
+
+				BeginEditorFieldRow(label);
+				if (ImGui::DragInt("##Value", &val, 1.0f, mn, mx)) {
 					changed = true;
 					newValue = std::to_string(val);
 				}
@@ -546,7 +579,9 @@ namespace Bolt {
 				int val = std::atoi(field.value.c_str());
 				int mn = field.hasClamp ? std::max(static_cast<int>(field.clampMin), -32768) : -32768;
 				int mx = field.hasClamp ? std::min(static_cast<int>(field.clampMax), 32767) : 32767;
-				if (ImGui::DragInt(label, &val, 1.0f, mn, mx)) {
+				
+				BeginEditorFieldRow(label);
+				if (ImGui::DragInt("##Value", &val, 1.0f, mn, mx)) {
 					if (val < -32768) val = -32768;
 					if (val > 32767) val = 32767;
 					changed = true;
@@ -558,7 +593,9 @@ namespace Bolt {
 				int val = std::atoi(field.value.c_str());
 				int mn = field.hasClamp ? std::max(static_cast<int>(field.clampMin), 0) : 0;
 				int mx = field.hasClamp ? std::min(static_cast<int>(field.clampMax), 255) : 255;
-				if (ImGui::DragInt(label, &val, 1.0f, mn, mx)) {
+				
+				BeginEditorFieldRow(label);
+				if (ImGui::DragInt("##Value", &val, 1.0f, mn, mx)) {
 					if (val < 0) val = 0;
 					if (val > 255) val = 255;
 					changed = true;
@@ -570,7 +607,9 @@ namespace Bolt {
 				int val = std::atoi(field.value.c_str());
 				int mn = field.hasClamp ? std::max(static_cast<int>(field.clampMin), -128) : -128;
 				int mx = field.hasClamp ? std::min(static_cast<int>(field.clampMax), 127) : 127;
-				if (ImGui::DragInt(label, &val, 1.0f, mn, mx)) {
+				
+				BeginEditorFieldRow(label);
+				if (ImGui::DragInt("##Value", &val, 1.0f, mn, mx)) {
 					if (val < -128) val = -128;
 					if (val > 127) val = 127;
 					changed = true;
@@ -582,7 +621,9 @@ namespace Bolt {
 				int val = std::atoi(field.value.c_str());
 				int mn = field.hasClamp ? std::max(static_cast<int>(field.clampMin), 0) : 0;
 				int mx = field.hasClamp ? std::min(static_cast<int>(field.clampMax), INT_MAX) : INT_MAX;
-				if (ImGui::DragInt(label, &val, 1.0f, mn, mx)) {
+				
+				BeginEditorFieldRow(label);
+				if (ImGui::DragInt("##Value", &val, 1.0f, mn, mx)) {
 					if (val < 0) val = 0;
 					changed = true;
 					newValue = std::to_string(val);
@@ -593,7 +634,9 @@ namespace Bolt {
 				int val = std::atoi(field.value.c_str());
 				int mn = field.hasClamp ? std::max(static_cast<int>(field.clampMin), 0) : 0;
 				int mx = field.hasClamp ? std::min(static_cast<int>(field.clampMax), 65535) : 65535;
-				if (ImGui::DragInt(label, &val, 1.0f, mn, mx)) {
+				
+				BeginEditorFieldRow(label);
+				if (ImGui::DragInt("##Value", &val, 1.0f, mn, mx)) {
 					if (val < 0) val = 0;
 					if (val > 65535) val = 65535;
 					changed = true;
@@ -605,7 +648,9 @@ namespace Bolt {
 				char buf[64];
 				std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
 				buf[sizeof(buf) - 1] = '\0';
-				if (ImGui::InputText(label, buf, sizeof(buf), ImGuiInputTextFlags_EnterReturnsTrue)) {
+
+				BeginEditorFieldRow(label);
+				if (ImGui::InputText("##Value", buf, sizeof(buf), ImGuiInputTextFlags_EnterReturnsTrue)) {
 					changed = true;
 					newValue = buf;
 				}
@@ -613,7 +658,9 @@ namespace Bolt {
 			}
 			else if (type == "bool") {
 				bool val = (field.value == "true" || field.value == "True" || field.value == "1");
-				if (ImGui::Checkbox(label, &val)) {
+				
+				BeginEditorFieldRow(label);
+				if (ImGui::Checkbox("##Value", &val)) {
 					changed = true;
 					newValue = val ? "true" : "false";
 				}
@@ -623,7 +670,9 @@ namespace Bolt {
 				char buf[256];
 				std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
 				buf[sizeof(buf) - 1] = '\0';
-				if (ImGui::InputText(label, buf, sizeof(buf))) {
+
+				BeginEditorFieldRow(label);
+				if (ImGui::InputText("##Value", buf, sizeof(buf))) {
 					changed = true;
 					newValue = buf;
 				}
@@ -635,7 +684,9 @@ namespace Bolt {
 					std::sscanf(field.value.c_str(), "%f,%f,%f,%f",
 						&col[0], &col[1], &col[2], &col[3]);
 				}
-				if (ImGui::ColorEdit4(label, col)) {
+
+				BeginEditorFieldRow(label);
+				if (ImGui::ColorEdit4("##Value", col)) {
 					changed = true;
 					char buf[128];
 					std::snprintf(buf, sizeof(buf), "%g,%g,%g,%g",
@@ -976,9 +1027,16 @@ namespace Bolt {
 			}
 
 			if (open) {
-				if (instance.IsBound()) {
-					ImGui::TextDisabled("Bound | %s", instance.HasStarted() ? "Started" : "Pending Start");
-				}
+				ImGui::AlignTextToFramePadding();
+				ImGui::BeginDisabled();
+				BeginEditorFieldRow("Script");
+				ImGui::EndDisabled();
+				ImGui::SameLine();
+
+				ImGui::BeginDisabled();
+				//TODO(Ben-Scr): The Button should be aligned the same way as the other editor fields.
+				ImGui::Button((label + "##ScriptClass").c_str());
+				ImGui::EndDisabled();
 
 				if (ScriptEngine::IsInitialized()) {
 					RenderScriptFieldsForInstance(scriptComp, instance, i);

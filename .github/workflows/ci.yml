@@ -29,6 +29,10 @@ jobs:
         shell: pwsh
         run: python scripts/Setup.py
 
+      - name: Restore .NET dependencies
+        shell: pwsh
+        run: dotnet restore Bolt.sln
+
       - name: Build Solution
         shell: pwsh
         run: |
