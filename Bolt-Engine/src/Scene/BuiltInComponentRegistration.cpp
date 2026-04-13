@@ -42,8 +42,7 @@ namespace Bolt {
 		// Audio
 		RegisterComponent<AudioSourceComponent>(sceneManager, "Audio Source", ComponentCategory::Component, "Audio");
 
-		// Scripting
-		RegisterComponent<ScriptComponent>(sceneManager, "Scripts", ComponentCategory::Component, "Scripting");
+		//RegisterComponent<ScriptComponent>(sceneManager, "Scripts", ComponentCategory::Component, "Scripts");
 
 		// Tags (not user-addable)
 		RegisterComponent<IdTag>(sceneManager, "Id", ComponentCategory::Tag);

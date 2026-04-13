@@ -10,6 +10,8 @@
 #include "Serialization/Directory.hpp"
 #include "Utils/Process.hpp"
 #include "Graphics/Renderer2D.hpp"
+#include "Utils/Timer.hpp"
+#include "Utils/StringHelper.hpp"
 #include <imgui.h>
 #include <filesystem>
 #include <cstring>
@@ -255,7 +257,9 @@ namespace Bolt {
 				cursorPos.x + rowWidth - buttonWidth - 4,
 				cursorPos.y + (rowHeight - ImGui::GetFrameHeight()) * 0.5f));
 			if (ImGui::Button("Open", ImVec2(buttonWidth, 0))) {
+				Timer timer;
 				OpenProject(entry);
+				BT_INFO_TAG("Project", "Opening Took: " + StringHelper::ToString(timer));
 			}
 
 			// Advance cursor past the row
@@ -309,10 +313,13 @@ namespace Bolt {
 			bool canCreate = BoltProject::IsValidProjectName(m_NewProjectName) && !m_IsCreating;
 			if (!canCreate) ImGui::BeginDisabled();
 
+			//TODO(Ben-Scr): Project creation has to be async since it takes up 1-10s for creating a project
 			if (ImGui::Button("Create", ImVec2(120, 0))) {
 				if (m_IsCreating) {
 				}
 				else {
+					Timer timer;
+
 					m_IsCreating = true;
 					try {
 						std::string name(m_NewProjectName);
@@ -356,6 +363,8 @@ namespace Bolt {
 						m_CreateError = e.what();
 						m_IsCreating = false;
 					}
+
+					BT_INFO_TAG("Project", "Creation Took: " + StringHelper::ToString(timer));
 				}
 			}
 

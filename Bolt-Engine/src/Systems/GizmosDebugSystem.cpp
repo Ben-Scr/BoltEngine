@@ -9,6 +9,9 @@
 
 namespace Bolt {
 	void GizmosDebugSystem::OnUpdate(Application& app, float dt) {
+		//TODO(Ben-Scr): Bad setup, has to be shifted into the Bolt-Editor code.
+		return;
+
 		(void)app;
 		(void)dt;
 

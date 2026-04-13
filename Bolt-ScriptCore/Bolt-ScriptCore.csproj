@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Source\Bolt\Attributes\ClampValueAttribute.cs" />
+    <Compile Include="Source\Bolt\Attributes\HeaderAttribute.cs" />
     <Compile Include="Source\Bolt\Attributes\HideFromEditorAttribute.cs" />
     <Compile Include="Source\Bolt\Attributes\ShowInEditorAttribute.cs" />
     <Compile Include="Source\Bolt\Attributes\ToolTipAttribute.cs" />

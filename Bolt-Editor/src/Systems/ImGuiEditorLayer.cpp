@@ -103,7 +103,7 @@ namespace Bolt {
 
 		//INFO(Ben-Scr): Used as shortcut for duplicating an entity within the editor view
 		if (input.GetKey(KeyCode::LeftControl) && input.GetKeyDown(KeyCode::D)) {
-
+			
 		}
 
 		//INFO(Ben-Scr): Used as shortcut for deleting an entity within the editor view
@@ -975,6 +975,20 @@ namespace Bolt {
 					}
 					categories[it->second].second.push_back(&info);
 				});
+
+				for (const auto& [subcategory, components] : categories) {
+					if (components.empty() && subcategory != "Scripting") continue;
+
+					if (ImGui::TreeNode(subcategory.c_str())) {
+						for (const auto* info : components) {
+							if (ImGuiUtils::MenuItemEllipsis(info->displayName, info->displayName.c_str(), nullptr, false, true, 260.0f)) {
+								info->add(entity);
+								scene.MarkDirty();
+							}
+						}
+						ImGui::TreePop();
+					}
+				}
 
 				// Scripts subcategory: individual .cs files as addable items
 				{
