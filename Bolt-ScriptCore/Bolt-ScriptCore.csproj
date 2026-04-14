@@ -74,7 +74,7 @@
     <Compile Include="Source\Bolt\Core\KeyCodes.cs" />
     <Compile Include="Source\Bolt\Core\Log.cs" />
     <Compile Include="Source\Bolt\Core\Time.cs" />
-    <Compile Include="Source\Bolt\Graphics\Gizmos.cs" />
+    <Compile Include="Source\Bolt\Graphics\Gizmo.cs" />
     <Compile Include="Source\Bolt\Graphics\Texture.cs" />
     <Compile Include="Source\Bolt\Hosting\NativeCallbacks.cs" />
     <Compile Include="Source\Bolt\Hosting\ScriptHostBridge.cs" />
@@ -100,5 +100,8 @@
     <Compile Include="Source\Bolt\Scene\SceneManager.cs" />
     <Compile Include="Source\Bolt\Scene\SceneQuery.cs" />
     <Compile Include="Source\Bolt\Utility\TextUtility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Source\Bolt\Events\" />
   </ItemGroup>
 </Project>

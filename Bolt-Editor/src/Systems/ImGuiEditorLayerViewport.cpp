@@ -8,7 +8,7 @@
 #include "Core/Application.hpp"
 #include "Core/Window.hpp"
 #include "Graphics/GizmoRenderer.hpp"
-#include "Graphics/Gizmos.hpp"
+#include "Graphics/Gizmo.hpp"
 #include "Graphics/Renderer2D.hpp"
 #include "Graphics/TextureManager.hpp"
 #include "Gui/EditorIcons.hpp"
@@ -193,7 +193,7 @@ namespace Bolt {
 				gameCam->UpdateViewport();
 				glm::mat4 vp = gameCam->GetViewProjectionMatrix();
 				AABB viewAABB = gameCam->GetViewportAABB();
-				RenderSceneIntoFBO(m_GameViewFBO, scene, vp, viewAABB, false, gameCam->GetClearColor());
+				RenderSceneIntoFBO(m_GameViewFBO, scene, vp, viewAABB, true, gameCam->GetClearColor());
 
 				savedViewport->SetSize(savedW, savedH);
 

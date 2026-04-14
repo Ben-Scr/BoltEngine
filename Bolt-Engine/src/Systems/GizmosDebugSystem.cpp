@@ -1,6 +1,6 @@
 #include "pch.hpp"
 #include "GizmosDebugSystem.hpp"
-#include "Graphics/Gizmos.hpp"
+#include "Graphics/Gizmo.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Scene/Scene.hpp"
 

@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Bolt
 {
-    public static class Gizmos
+    public static class Gizmo
     {
         public static Color Color
         {

@@ -8,7 +8,7 @@
 #include "Core/Memory.hpp"
 #include "Core/Time.hpp"
 #include "Core/Window.hpp"
-#include "Graphics/Gizmos.hpp"
+#include "Graphics/Gizmo.hpp"
 #include "Graphics/OpenGL.hpp"
 #include "Scene/EntityHelper.hpp"
 #include "Scene/SceneManager.hpp"

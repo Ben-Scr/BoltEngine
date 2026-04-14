@@ -2,7 +2,7 @@
 #include "GizmoRenderer.hpp"
 #include "Shader.hpp"
 #include "Components/Graphics/Camera2DComponent.hpp"
-#include "Gizmos.hpp"
+#include "Gizmo.hpp"
 #include "Serialization/Path.hpp"
 
 #include <glad/glad.h>

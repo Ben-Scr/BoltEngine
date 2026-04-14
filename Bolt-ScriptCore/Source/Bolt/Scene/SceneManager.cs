@@ -34,11 +34,6 @@ namespace Bolt
         }
 
         /// <summary>
-        /// Loads a scene additively (shorthand for LoadScene(name, LoadSceneMode.Additive)).
-        /// </summary>
-        public static Scene? LoadSceneAdditive(string name) => LoadScene(name, LoadSceneMode.Additive);
-
-        /// <summary>
         /// Async version of LoadScene.
         /// </summary>
         public static async Task<Scene?> LoadSceneAsync(string name, LoadSceneMode mode = LoadSceneMode.Single)
@@ -74,7 +69,7 @@ namespace Bolt
         /// <summary>
         /// Returns a loaded scene by name, or null if not loaded.
         /// </summary>
-        public static Scene? GetLoadedScene(string name)
+        public static Scene? GetLoadedSceneByName(string name)
         {
             int count = InternalCalls.Scene_GetLoadedCount();
             for (int i = 0; i < count; i++)

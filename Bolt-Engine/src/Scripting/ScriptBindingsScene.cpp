@@ -34,7 +34,7 @@
 #include "Components/Tags.hpp"
 #include "Audio/AudioManager.hpp"
 #include "Graphics/TextureManager.hpp"
-#include "Graphics/Gizmos.hpp"
+#include "Graphics/Gizmo.hpp"
 #include "Physics/Physics2D.hpp"
 
 namespace Bolt {

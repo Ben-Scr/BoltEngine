@@ -12,13 +12,13 @@ namespace Bolt
             Entity = new Entity(id);
         }
 
-        protected Entity? FindEntity(string name) => Entity.FindByName(name);
-        protected T? GetComponent<T>() where T : Component, new() => Entity.GetComponent<T>();
+        private protected Entity? FindEntityByName(string name) => Entity.FindByName(name);
 
-        /// <summary>Create a new empty entity with the given name.</summary>
+        private protected T? GetComponent<T>() where T : Component, new() => Entity.GetComponent<T>();
+        private protected T? AddComponent<T>() where T : Component, new() => Entity.AddComponent<T>(); 
+
         protected Entity Create(string name = "") => Entity.Create(name);
 
-        /// <summary>Clone an existing entity with all its components (prefab instantiation).</summary>
         protected Entity Create(Entity source) => Entity.Create(source);
     }
 }

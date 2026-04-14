@@ -33,7 +33,7 @@ Bolt specific includes
 #include "Graphics/Texture2D.hpp"
 #include "Graphics/TextureHandle.hpp"
 #include "Graphics/TextureManager.hpp"
-#include "Graphics/Gizmos.hpp"
+#include "Graphics/Gizmo.hpp"
 
 // Math
 #include "Math/Common.hpp"
